@@ -15,7 +15,7 @@ function loadSidebar(containerId) {
     if (currentPath.includes('/software/usuarios/')) {
         sidebarPath = '../../../templates/components/sidebar.html';
     } else if (currentPath.includes('/templates/')) {
-        sidebarPath = '../components/sidebar.html';
+        sidebarPath = 'components/sidebar.html';
     } else {
         sidebarPath = 'templates/components/sidebar.html';
     }
@@ -94,15 +94,8 @@ function addSidebarClickHandlers() {
             // Add active class to clicked link
             this.classList.add('active');
             
-            // If it's an external link or different page, let it navigate normally
-            const href = this.getAttribute('href');
-            if (href.startsWith('http') || href.startsWith('/') || href.includes('#')) {
-                return; // Let browser handle navigation
-            }
-            
-            // For relative links, prevent default and navigate
-            e.preventDefault();
-            window.location.href = href;
+            // Let browser handle all navigation normally
+            // No need to prevent default or handle manually
         });
     });
 }
@@ -130,9 +123,9 @@ function getFallbackSidebar() {
         <nav class="sidebar">
             <h1>DETALLES</h1>
             <ul class="nav-menu">
-                <li><a href="${dashboardLink}" data-page="dashboard">Dashboard</a></li>
-                <li><a href="${usuariosLink}" data-page="usuarios">Usuarios</a></li>
-                <li><a href="${rolesLink}" data-page="roles">Roles y Permisos</a></li>
+                <li><a href="/src/main/resources/templates/dashboard.html" data-page="dashboard">Dashboard</a></li>
+                <li><a href="/src/main/resources/templates/software/usuarios/usuario.html" data-page="usuarios">Usuarios</a></li>
+                <li><a href="/src/main/resources/templates/software/usuarios/roles.html" data-page="roles">Roles y Permisos</a></li>
                 <li><a href="/productos" data-page="productos">Productos</a></li>
                 <li><a href="/clientes" data-page="clientes">Clientes</a></li>
                 <li><a href="/ventas" data-page="ventas">Ventas</a></li>
@@ -179,3 +172,14 @@ document.addEventListener('DOMContentLoaded', function() {
         loadSidebar('sidebar-container');
     }
 });
+
+// Also try to load immediately in case DOMContentLoaded already fired
+if (document.readyState === 'loading') {
+    // Still loading, wait for DOMContentLoaded
+} else {
+    // DOM already loaded, load sidebar immediately
+    const sidebarContainer = document.getElementById('sidebar-container');
+    if (sidebarContainer) {
+        loadSidebar('sidebar-container');
+    }
+}
