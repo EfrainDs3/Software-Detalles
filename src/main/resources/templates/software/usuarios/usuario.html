@@ -5,16 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Usuarios - Detalles</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../../../static/css/dashboard.css">
-    <link rel="stylesheet" href="../../../static/css/usuarios.css">
+    <link rel="stylesheet" href="/src/main/resources/static/css/dashboard.css">
+    <link rel="stylesheet" href="/src/main/resources/static/css/usuarios.css">
 </head>
 <body>
     <!-- Sidebar -->
     <nav class="sidebar">
         <h1>DETALLES</h1>
         <ul class="nav-menu">
-            <li><a href="/src/main/resources/templates/dashboard.html">Dashboard</a></li>
-            <li><a href="/src/main/resources/templates/software/usuarios/usuario.html" class="active">Usuarios</a></li>
+            <li><a href="/src/main/resources/templates/web/dashboard.html">Dashboard</a></li>
+            <li><a href="/src/main/resources/templates/web/usuarios/index.html" class="active">Usuarios</a></li>
+            <li><a href="/src/main/resources/templates/web/usuarios/roles.html">Roles y Permisos</a></li>
             <li><a href="/productos">Productos</a></li>
             <li><a href="/clientes">Clientes</a></li>
             <li><a href="/ventas">Ventas</a></li>
@@ -30,7 +31,7 @@
         <div class="top-bar">
             <div class="page-header">
                 <div class="breadcrumb">
-                    <a href="../../dashboard.html" class="breadcrumb-link">
+                    <a href="/dashboard" class="breadcrumb-link">
                         Dashboard
                     </a>
                     <span class="breadcrumb-separator">/</span>
@@ -256,7 +257,7 @@
         </div>
     </div>
 
-    <script src="../../../static/js/dashboard.js"></script>
-    <script src="../../../static/js/usuarios.js"></script>
+    <script src="/js/dashboard.js"></script>
+    <script src="/js/usuarios.js"></script>
 </body>
 </html>
