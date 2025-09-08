@@ -9,21 +9,8 @@
     <link rel="stylesheet" href="/src/main/resources/static/css/roles.css">
 </head>
 <body>
-    <!-- Sidebar -->
-    <nav class="sidebar">
-        <h1>DETALLES</h1>
-        <ul class="nav-menu">
-            <li><a href="/src/main/resources/templates/web/dashboard.html">Dashboard</a></li>
-            <li><a href="/src/main/resources/templates/web/usuarios/index.html" class="active">Usuarios</a></li>
-            <li><a href="/src/main/resources/templates/web/usuarios/roles.html">Roles y Permisos</a></li>
-            <li><a href="/productos">Productos</a></li>
-            <li><a href="/clientes">Clientes</a></li>
-            <li><a href="/ventas">Ventas</a></li>
-            <li><a href="/stock">Stock</a></li>
-            <li><a href="/reportes">Reportes</a></li>
-            <li><a href="/auditoria">Auditoría</a></li>
-        </ul>
-    </nav>
+    <!-- Sidebar Container -->
+    <div id="sidebar-container"></div>
     <!-- Main Content -->
     <main class="main-content">
         <!-- Top Bar -->
@@ -391,7 +378,8 @@
         </div>
     </div>
 
-    <script src="/js/dashboard.js"></script>
-    <script src="/js/roles.js"></script>
+    <script src="../../../static/js/sidebar.js"></script>
+    <script src="../../../static/js/dashboard.js"></script>
+    <script src="../../../static/js/roles.js"></script>
 </body>
 </html>
