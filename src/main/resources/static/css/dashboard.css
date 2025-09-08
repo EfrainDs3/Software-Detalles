@@ -66,34 +66,38 @@ body {
 }
 
 .nav-menu li:nth-child(1) a::before {
-    content: '\f007';
+    content: '\f015';
 }
 
 .nav-menu li:nth-child(2) a::before {
-    content: '\f023';
+    content: '\f007';
 }
 
 .nav-menu li:nth-child(3) a::before {
-    content: '\f07a';
+    content: '\f023';
 }
 
 .nav-menu li:nth-child(4) a::before {
-    content: '\f0c0';
+    content: '\f07a';
 }
 
 .nav-menu li:nth-child(5) a::before {
-    content: '\f155';
+    content: '\f0c0';
 }
 
 .nav-menu li:nth-child(6) a::before {
-    content: '\f1b2';
+    content: '\f155';
 }
 
 .nav-menu li:nth-child(7) a::before {
-    content: '\f201';
+    content: '\f1b2';
 }
 
 .nav-menu li:nth-child(8) a::before {
+    content: '\f201';
+}
+
+.nav-menu li:nth-child(9) a::before {
     content: '\f002';
 }
 
