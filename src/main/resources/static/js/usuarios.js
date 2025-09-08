@@ -46,7 +46,7 @@ function initUsuariosModule() {
     const addUserBtn = document.getElementById('addUserBtn');
     const filterBtn = document.getElementById('filterBtn');
     const userModal = document.getElementById('userModal');
-    const closeModal = document.getElementById('closeModal');
+    const modalCloseBtn = document.getElementById('closeModal');
     const cancelBtn = document.getElementById('cancelBtn');
     const userForm = document.getElementById('userForm');
     const selectAllCheckbox = document.getElementById('selectAll');
@@ -65,8 +65,8 @@ function initUsuariosModule() {
         filterBtn.addEventListener('click', handleFilter);
     }
 
-    if (closeModal) {
-        closeModal.addEventListener('click', closeModal);
+    if (modalCloseBtn) {
+        modalCloseBtn.addEventListener('click', closeModal);
     }
 
     if (cancelBtn) {
