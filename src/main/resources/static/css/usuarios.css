@@ -497,6 +497,48 @@ input[type="checkbox"] {
     border-left: 4px solid white;
 }
 
+/* User Details View */
+.user-details-view {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px 0;
+}
+
+.user-avatar-large {
+    width: 80px;
+    height: 80px;
+    background-color: #b30000;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 32px;
+    flex-shrink: 0;
+}
+
+.user-info-details {
+    flex: 1;
+}
+
+.user-info-details h4 {
+    margin: 0 0 15px 0;
+    color: #333;
+    font-size: 24px;
+}
+
+.user-info-details p {
+    margin: 8px 0;
+    color: #666;
+    font-size: 14px;
+}
+
+.user-info-details strong {
+    color: #333;
+    font-weight: 600;
+}
+
 /* Loading States */
 .loading {
     opacity: 0.6;

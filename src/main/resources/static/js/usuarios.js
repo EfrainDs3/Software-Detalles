@@ -1,8 +1,43 @@
 // Usuarios Module JavaScript
 
+// Global variables
+let users = [
+    {
+        id: '001',
+        name: 'Juan Pérez',
+        email: 'juan.perez@empresa.com',
+        role: 'admin',
+        status: 'active',
+        phone: '+51 999 888 777',
+        lastAccess: '2024-01-15 14:30'
+    },
+    {
+        id: '002',
+        name: 'María García',
+        email: 'maria.garcia@empresa.com',
+        role: 'user',
+        status: 'active',
+        phone: '+51 999 777 666',
+        lastAccess: '2024-01-15 12:15'
+    },
+    {
+        id: '003',
+        name: 'Carlos López',
+        email: 'carlos.lopez@empresa.com',
+        role: 'manager',
+        status: 'inactive',
+        phone: '+51 999 666 555',
+        lastAccess: '2024-01-10 09:45'
+    }
+];
+
+let currentEditId = null;
+
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize usuarios module
     initUsuariosModule();
+    // Load initial data
+    loadUsers();
 });
 
 function initUsuariosModule() {
@@ -15,7 +50,7 @@ function initUsuariosModule() {
     const cancelBtn = document.getElementById('cancelBtn');
     const userForm = document.getElementById('userForm');
     const selectAllCheckbox = document.getElementById('selectAll');
-    const userCheckboxes = document.querySelectorAll('.user-checkbox');
+    const logoutBtn = document.querySelector('.logout-btn');
 
     // Event listeners
     if (searchInput) {
@@ -46,13 +81,9 @@ function initUsuariosModule() {
         selectAllCheckbox.addEventListener('change', handleSelectAll);
     }
 
-    // Add event listeners to individual checkboxes
-    userCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', handleIndividualCheckbox);
-    });
-
-    // Add event listeners to action buttons
-    addActionButtonListeners();
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', handleLogout);
+    }
 
     // Close modal when clicking outside
     if (userModal) {
@@ -62,6 +93,86 @@ function initUsuariosModule() {
             }
         });
     }
+
+    // Add event listeners to action buttons
+    addActionButtonListeners();
+}
+
+// Load users into table
+function loadUsers() {
+    const tbody = document.getElementById('usersTableBody');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+    
+    users.forEach(user => {
+        const row = createUserRow(user);
+        tbody.appendChild(row);
+    });
+
+    // Update pagination info
+    updatePaginationInfo();
+}
+
+// Create user row
+function createUserRow(user) {
+    const row = document.createElement('tr');
+    
+    const roleText = {
+        'admin': 'Administrador',
+        'manager': 'Gerente',
+        'user': 'Usuario'
+    };
+    
+    const statusText = {
+        'active': 'Activo',
+        'inactive': 'Inactivo'
+    };
+    
+    const roleClass = {
+        'admin': 'badge-admin',
+        'manager': 'badge-manager',
+        'user': 'badge-user'
+    };
+    
+    const statusClass = {
+        'active': 'badge-active',
+        'inactive': 'badge-inactive'
+    };
+
+    row.innerHTML = `
+        <td><input type="checkbox" class="user-checkbox" data-user-id="${user.id}"></td>
+        <td>${user.id}</td>
+        <td>
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="user-details">
+                    <span class="user-name">${user.name}</span>
+                </div>
+            </div>
+        </td>
+        <td>${user.email}</td>
+        <td><span class="badge ${roleClass[user.role]}">${roleText[user.role]}</span></td>
+        <td><span class="badge ${statusClass[user.status]}">${statusText[user.status]}</span></td>
+        <td>${user.lastAccess}</td>
+        <td>
+            <div class="action-buttons-cell">
+                <button class="btn-icon btn-edit" title="Editar" data-user-id="${user.id}">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn-icon btn-delete" title="Eliminar" data-user-id="${user.id}">
+                    <i class="fas fa-trash"></i>
+                </button>
+                <button class="btn-icon btn-view" title="Ver detalles" data-user-id="${user.id}">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+        </td>
+    `;
+    
+    return row;
 }
 
 // Search functionality
@@ -86,15 +197,84 @@ function handleSearch(e) {
 
 // Filter functionality
 function handleFilter() {
-    // Create filter modal or dropdown
-    const filterOptions = {
-        role: ['Todos', 'Administrador', 'Gerente', 'Usuario'],
-        status: ['Todos', 'Activo', 'Inactivo'],
-        dateRange: ['Todos', 'Última semana', 'Último mes', 'Último año']
-    };
+    const filterModal = createFilterModal();
+    document.body.appendChild(filterModal);
+}
 
-    // For now, show a simple alert
-    alert('Funcionalidad de filtros en desarrollo');
+function createFilterModal() {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'block';
+    
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Filtros de Usuarios</h3>
+                <button class="modal-close" onclick="this.closest('.modal').remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="filterRole">Rol</label>
+                        <select id="filterRole">
+                            <option value="">Todos los roles</option>
+                            <option value="admin">Administrador</option>
+                            <option value="manager">Gerente</option>
+                            <option value="user">Usuario</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filterStatus">Estado</label>
+                        <select id="filterStatus">
+                            <option value="">Todos los estados</option>
+                            <option value="active">Activo</option>
+                            <option value="inactive">Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="applyFilters()">Aplicar Filtros</button>
+            </div>
+        </div>
+    `;
+    
+    return modal;
+}
+
+function applyFilters() {
+    const roleFilter = document.getElementById('filterRole').value;
+    const statusFilter = document.getElementById('filterStatus').value;
+    
+    let filteredUsers = users;
+    
+    if (roleFilter) {
+        filteredUsers = filteredUsers.filter(user => user.role === roleFilter);
+    }
+    
+    if (statusFilter) {
+        filteredUsers = filteredUsers.filter(user => user.status === statusFilter);
+    }
+    
+    // Update table with filtered data
+    const tbody = document.getElementById('usersTableBody');
+    tbody.innerHTML = '';
+    
+    filteredUsers.forEach(user => {
+        const row = createUserRow(user);
+        tbody.appendChild(row);
+    });
+    
+    // Close modal
+    document.querySelector('.modal').remove();
+    
+    // Re-add event listeners
+    addActionButtonListeners();
+    
+    showNotification(`Filtros aplicados: ${filteredUsers.length} usuarios encontrados`);
 }
 
 // Modal functions
@@ -239,41 +419,136 @@ function isValidEmail(email) {
 
 // User CRUD operations
 function createUser(userData) {
-    console.log('Creating user:', userData);
-    // Here you would make an API call to create the user
-    alert('Usuario creado exitosamente');
-    // Refresh the table
-    refreshUsersTable();
+    // Generate new ID
+    const newId = String(users.length + 1).padStart(3, '0');
+    
+    // Create new user object
+    const newUser = {
+        id: newId,
+        name: userData.name,
+        email: userData.email,
+        role: userData.role,
+        status: userData.status,
+        phone: userData.phone || '',
+        lastAccess: new Date().toLocaleString('es-ES', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        })
+    };
+    
+    // Add to users array
+    users.push(newUser);
+    
+    // Refresh table
+    loadUsers();
+    
+    showNotification('Usuario creado exitosamente', 'success');
 }
 
 function updateUser(userData) {
-    console.log('Updating user:', userData);
-    // Here you would make an API call to update the user
-    alert('Usuario actualizado exitosamente');
-    // Refresh the table
-    refreshUsersTable();
+    // Find user index
+    const userIndex = users.findIndex(user => user.id === userData.id);
+    
+    if (userIndex !== -1) {
+        // Update user data
+        users[userIndex] = {
+            ...users[userIndex],
+            name: userData.name,
+            email: userData.email,
+            role: userData.role,
+            status: userData.status,
+            phone: userData.phone || ''
+        };
+        
+        // Refresh table
+        loadUsers();
+        
+        showNotification('Usuario actualizado exitosamente', 'success');
+    }
 }
 
 function deleteUser(userId) {
     if (confirm('¿Está seguro de que desea eliminar este usuario?')) {
-        console.log('Deleting user:', userId);
-        // Here you would make an API call to delete the user
-        alert('Usuario eliminado exitosamente');
-        // Refresh the table
-        refreshUsersTable();
+        // Find user index
+        const userIndex = users.findIndex(user => user.id === userId);
+        
+        if (userIndex !== -1) {
+            // Remove user from array
+            users.splice(userIndex, 1);
+            
+            // Refresh table
+            loadUsers();
+            
+            showNotification('Usuario eliminado exitosamente', 'success');
+        }
     }
 }
 
 function viewUser(userId) {
-    console.log('Viewing user:', userId);
-    // Here you would navigate to user details page or show user info
-    alert('Funcionalidad de ver detalles en desarrollo');
+    const user = users.find(u => u.id === userId);
+    
+    if (user) {
+        const viewModal = createViewUserModal(user);
+        document.body.appendChild(viewModal);
+    }
+}
+
+function createViewUserModal(user) {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'block';
+    
+    const roleText = {
+        'admin': 'Administrador',
+        'manager': 'Gerente',
+        'user': 'Usuario'
+    };
+    
+    const statusText = {
+        'active': 'Activo',
+        'inactive': 'Inactivo'
+    };
+    
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Detalles del Usuario</h3>
+                <button class="modal-close" onclick="this.closest('.modal').remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="user-details-view">
+                    <div class="user-avatar-large">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-info-details">
+                        <h4>${user.name}</h4>
+                        <p><strong>ID:</strong> ${user.id}</p>
+                        <p><strong>Email:</strong> ${user.email}</p>
+                        <p><strong>Rol:</strong> ${roleText[user.role]}</p>
+                        <p><strong>Estado:</strong> ${statusText[user.status]}</p>
+                        <p><strong>Teléfono:</strong> ${user.phone || 'No especificado'}</p>
+                        <p><strong>Último Acceso:</strong> ${user.lastAccess}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="openEditUserModal('${user.id}'); this.closest('.modal').remove();">Editar Usuario</button>
+            </div>
+        </div>
+    `;
+    
+    return modal;
 }
 
 // Table management
 function refreshUsersTable() {
-    // Here you would fetch users from API and update the table
-    console.log('Refreshing users table');
+    loadUsers();
 }
 
 function populateUserForm(userId) {
@@ -350,30 +625,53 @@ function addActionButtonListeners() {
     const editButtons = document.querySelectorAll('.btn-edit');
     const deleteButtons = document.querySelectorAll('.btn-delete');
     const viewButtons = document.querySelectorAll('.btn-view');
+    const userCheckboxes = document.querySelectorAll('.user-checkbox');
 
     editButtons.forEach(btn => {
         btn.addEventListener('click', function() {
-            const row = this.closest('tr');
-            const userId = row.cells[1].textContent;
+            const userId = this.getAttribute('data-user-id');
             openEditUserModal(userId);
         });
     });
 
     deleteButtons.forEach(btn => {
         btn.addEventListener('click', function() {
-            const row = this.closest('tr');
-            const userId = row.cells[1].textContent;
+            const userId = this.getAttribute('data-user-id');
             deleteUser(userId);
         });
     });
 
     viewButtons.forEach(btn => {
         btn.addEventListener('click', function() {
-            const row = this.closest('tr');
-            const userId = row.cells[1].textContent;
+            const userId = this.getAttribute('data-user-id');
             viewUser(userId);
         });
     });
+
+    // Add event listeners to individual checkboxes
+    userCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', handleIndividualCheckbox);
+    });
+}
+
+// Logout functionality
+function handleLogout() {
+    if (confirm('¿Está seguro de que desea cerrar sesión?')) {
+        showNotification('Sesión cerrada exitosamente', 'success');
+        // Redirect to login page or dashboard
+        setTimeout(() => {
+            window.location.href = '/dashboard';
+        }, 1500);
+    }
+}
+
+// Update pagination info
+function updatePaginationInfo() {
+    const paginationInfo = document.querySelector('.pagination-info');
+    if (paginationInfo) {
+        const totalUsers = users.length;
+        paginationInfo.textContent = `Mostrando 1-${totalUsers} de ${totalUsers} usuarios`;
+    }
 }
 
 // Utility functions
