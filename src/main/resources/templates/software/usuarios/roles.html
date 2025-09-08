@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Roles - Detalles</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/src/main/resources/static/css/dashboard.css">
+    <link rel="stylesheet" href="/src/main/resources/static/css/roles.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <h1>DETALLES</h1>
+        <ul class="nav-menu">
+            <li><a href="/src/main/resources/templates/dashboard.html">Dashboard</a></li>
+            <li><a href="/src/main/resources/templates/software/usuarios/index.html" class="active">Usuarios</a></li>
+            <li><a href="/src/main/resources/templates/software/usuarios/perfiles.html" class="active">Roles y Permisos</a></li>
+            <li><a href="/productos">Productos</a></li>
+            <li><a href="/clientes">Clientes</a></li>
+            <li><a href="/ventas">Ventas</a></li>
+            <li><a href="/stock">Stock</a></li>
+            <li><a href="/reportes">Reportes</a></li>
+            <li><a href="/auditoria">Auditoría</a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="page-header">
+                <div class="breadcrumb">
+                    <a href="/dashboard" class="breadcrumb-link">
+                        Dashboard
+                    </a>
+                    <span class="breadcrumb-separator">/</span>
+                    <a href="/perfiles" class="breadcrumb-link">
+                        Perfiles y Permisos
+                    </a>
+                    <span class="breadcrumb-separator">/</span>
+                    <span class="breadcrumb-current">Roles</span>
+                </div>
+                <h2 class="main-title">Gestión de Roles</h2>
+                <p class="page-subtitle">Administra los roles y permisos del sistema</p>
+            </div>
+            <button class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                Cerrar Sesión
+            </button>
+        </div>
+
+        <!-- Action Bar -->
+        <div class="action-bar">
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Buscar roles...">
+            </div>
+            <div class="action-buttons">
+                <button class="btn btn-secondary" id="filterBtn">
+                    <i class="fas fa-filter"></i>
+                    Filtros
+                </button>
+                <button class="btn btn-primary" id="addRoleBtn">
+                    <i class="fas fa-plus"></i>
+                    Nuevo Rol
+                </button>
+            </div>
+        </div>
+
+        <!-- Roles Table -->
+        <div class="table-container">
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>
+                            <input type="checkbox" id="selectAll">
+                        </th>
+                        <th>ID</th>
+                        <th>Nombre del Rol</th>
+                        <th>Descripción</th>
+                        <th>Permisos</th>
+                        <th>Usuarios Asignados</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="rolesTableBody">
+                    <!-- Sample data -->
+                    <tr>
+                        <td><input type="checkbox" class="role-checkbox"></td>
+                        <td>001</td>
+                        <td>
+                            <div class="user-info">
+                                <div class="user-avatar">
+                                    <i class="fas fa-user-shield"></i>
+                                </div>
+                                <div class="user-details">
+                                    <span class="user-name">Administrador</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>Acceso completo al sistema</td>
+                        <td>
+                            <div class="permissions-list">
+                                <span class="badge badge-permission">Todos los permisos</span>
+                            </div>
+                        </td>
+                        <td><span class="badge badge-count">3 usuarios</span></td>
+                        <td><span class="badge badge-active">Activo</span></td>
+                        <td>
+                            <div class="action-buttons-cell">
+                                <button class="btn-icon btn-edit" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-icon btn-delete" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                <button class="btn-icon btn-view" title="Ver detalles">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox" class="role-checkbox"></td>
+                        <td>002</td>
+                        <td>
+                            <div class="user-info">
+                                <div class="user-avatar">
+                                    <i class="fas fa-user-tie"></i>
+                                </div>
+                                <div class="user-details">
+                                    <span class="user-name">Gerente</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>Gestión de equipos y reportes</td>
+                        <td>
+                            <div class="permissions-list">
+                                <span class="badge badge-permission">Ver reportes</span>
+                                <span class="badge badge-permission">Gestionar usuarios</span>
+                            </div>
+                        </td>
+                        <td><span class="badge badge-count">5 usuarios</span></td>
+                        <td><span class="badge badge-active">Activo</span></td>
+                        <td>
+                            <div class="action-buttons-cell">
+                                <button class="btn-icon btn-edit" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-icon btn-delete" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                <button class="btn-icon btn-view" title="Ver detalles">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox" class="role-checkbox"></td>
+                        <td>003</td>
+                        <td>
+                            <div class="user-info">
+                                <div class="user-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="user-details">
+                                    <span class="user-name">Usuario</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>Acceso básico al sistema</td>
+                        <td>
+                            <div class="permissions-list">
+                                <span class="badge badge-permission">Ver datos</span>
+                                <span class="badge badge-permission">Editar perfil</span>
+                            </div>
+                        </td>
+                        <td><span class="badge badge-count">12 usuarios</span></td>
+                        <td><span class="badge badge-active">Activo</span></td>
+                        <td>
+                            <div class="action-buttons-cell">
+                                <button class="btn-icon btn-edit" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-icon btn-delete" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                <button class="btn-icon btn-view" title="Ver detalles">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox" class="role-checkbox"></td>
+                        <td>004</td>
+                        <td>
+                            <div class="user-info">
+                                <div class="user-avatar">
+                                    <i class="fas fa-user-cog"></i>
+                                </div>
+                                <div class="user-details">
+                                    <span class="user-name">Editor</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>Edición de contenido y productos</td>
+                        <td>
+                            <div class="permissions-list">
+                                <span class="badge badge-permission">Editar productos</span>
+                                <span class="badge badge-permission">Ver inventario</span>
+                            </div>
+                        </td>
+                        <td><span class="badge badge-count">2 usuarios</span></td>
+                        <td><span class="badge badge-inactive">Inactivo</span></td>
+                        <td>
+                            <div class="action-buttons-cell">
+                                <button class="btn-icon btn-edit" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-icon btn-delete" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                <button class="btn-icon btn-view" title="Ver detalles">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-container">
+            <div class="pagination-info">
+                Mostrando 1-4 de 4 roles
+            </div>
+            <div class="pagination">
+                <button class="btn-pagination" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="btn-pagination active">1</button>
+                <button class="btn-pagination" disabled>
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal for Add/Edit Role -->
+    <div id="roleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Nuevo Rol</h3>
+                <button class="modal-close" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="roleForm" class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="roleName">Nombre del Rol *</label>
+                        <input type="text" id="roleName" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="roleStatus">Estado</label>
+                        <select id="roleStatus" name="status">
+                            <option value="active">Activo</option>
+                            <option value="inactive">Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="roleDescription">Descripción *</label>
+                    <textarea id="roleDescription" name="description" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Permisos *</label>
+                    <div class="permissions-grid">
+                        <div class="permission-category">
+                            <h4>Usuarios</h4>
+                            <label class="permission-item">
+                                <input type="checkbox" name="permissions" value="users.view">
+                                <span>Ver usuarios</span>
+                            </label>
+                            <label class="permission-item">
+                                <input type="checkbox" name="permissions" value="users.create">
+                                <span>Crear usuarios</span>
+                            </label>
+                            <label class="permission-item">
+                                <input type="checkbox" name="permissions" value="users.edit">
+                                <span>Editar usuarios</span>
+                            </label>
+                            <label class="permission-item">
+                                <input type="checkbox" name="permissions" value="users.delete">
+                                <span>Eliminar usuarios</span>
+                            </label>
+                        </div>
+                        <div class="permission-category">
+                            <h4>Productos</h4>
+                            <label class="permission-item">
+                                <input type="checkbox" name="permissions" value="products.view">
+                                <span>Ver productos</span>
+                            </label>
+                            <label class="permission-item">
+                                <input type="checkbox" name="permissions" value="products.create">
+                                <span>Crear productos</span>
+                            </label>
+                            <label class="permission-item">
+                                <input type="checkbox" name="permissions" value="products.edit">
+                                <span>Editar productos</span>
+                            </label>
+                            <label class="permission-item">
+                                <input type="checkbox" name="permissions" value="products.delete">
+                                <span>Eliminar productos</span>
+                            </label>
+                        </div>
+                        <div class="permission-category">
+                            <h4>Reportes</h4>
+                            <label class="permission-item">
+                                <input type="checkbox" name="permissions" value="reports.view">
+                                <span>Ver reportes</span>
+                            </label>
+                            <label class="permission-item">
+                                <input type="checkbox" name="permissions" value="reports.export">
+                                <span>Exportar reportes</span>
+                            </label>
+                        </div>
+                        <div class="permission-category">
+                            <h4>Sistema</h4>
+                            <label class="permission-item">
+                                <input type="checkbox" name="permissions" value="system.settings">
+                                <span>Configuración del sistema</span>
+                            </label>
+                            <label class="permission-item">
+                                <input type="checkbox" name="permissions" value="system.audit">
+                                <span>Ver auditoría</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelBtn">Cancelar</button>
+                <button type="submit" form="roleForm" class="btn btn-primary" id="saveBtn">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/dashboard.js"></script>
+    <script src="/js/usuarios.js"></script>
+</body>
+</html>
