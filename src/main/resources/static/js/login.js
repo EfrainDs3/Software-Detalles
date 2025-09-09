@@ -19,9 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (hoursDiff < 24) {
                 // Sesión válida, redirigir al dashboard
                 showMessage(`Bienvenido de nuevo, ${usuarioLogueado}!`, 'success');
-                setTimeout(() => {
-                    window.location.href = '/dashboard.html';
-                }, 500);
+                window.location.href = '../../dashboard.html';
                 return true;
             } else {
                 // Sesión expirada, limpiar localStorage
@@ -109,10 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 localStorage.setItem('loginTime', new Date().toISOString());
                 
                 // Redirigir al dashboard inmediatamente
-                setTimeout(() => {
-                    // Redirigir al dashboard
-                    window.location.href = '/dashboard.html';
-                }, 500);
+                window.location.href = '../../dashboard.html';
             } else {
                 // Login fallido
                 showMessage('Usuario o contraseña incorrectos', 'error');
