@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Detalles</title>
+    <link rel="stylesheet" href="/src/main/resources/static/css/login.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <h1 class="login-title">INICIAR SESIÓN</h1>
+            
+            <!-- Logo de Detalles -->
+            <div class="logo-container">
+                <img src="/src/main/resources/static/img/detalles-logo.png" alt="Detalles Shoes & Accessories" class="logo-image">
+            </div>
+            
+            <form class="login-form" id="loginForm">
+                <div class="form-group">
+                    <label for="usuario">USUARIO:</label>
+                    <input type="text" id="usuario" name="usuario" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">CONTRASEÑA:</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                
+                <button type="submit" class="login-btn">INGRESAR</button>
+            </form>
+            
+            <div class="forgot-password">
+                <a href="#" class="forgot-link">¿Olvidaste tu contraseña?</a>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/js/login.js"></script>
+</body>
+</html>
