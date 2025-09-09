@@ -5,6 +5,38 @@ document.addEventListener('DOMContentLoaded', function() {
     const passwordInput = document.getElementById('password');
     const loginBtn = document.querySelector('.login-btn');
 
+    // Verificar si ya hay una sesión activa
+    function checkExistingSession() {
+        const usuarioLogueado = localStorage.getItem('usuarioLogueado');
+        const loginTime = localStorage.getItem('loginTime');
+        
+        if (usuarioLogueado && loginTime) {
+            // Verificar si la sesión no ha expirado (24 horas)
+            const now = new Date();
+            const loginDate = new Date(loginTime);
+            const hoursDiff = (now - loginDate) / (1000 * 60 * 60);
+            
+            if (hoursDiff < 24) {
+                // Sesión válida, redirigir al dashboard
+                showMessage(`Bienvenido de nuevo, ${usuarioLogueado}!`, 'success');
+                setTimeout(() => {
+                    window.location.href = '/dashboard.html';
+                }, 500);
+                return true;
+            } else {
+                // Sesión expirada, limpiar localStorage
+                localStorage.removeItem('usuarioLogueado');
+                localStorage.removeItem('loginTime');
+            }
+        }
+        return false;
+    }
+
+    // Verificar sesión al cargar la página
+    if (checkExistingSession()) {
+        return; // Si hay sesión válida, no continuar
+    }
+
     // Validación en tiempo real
     usuarioInput.addEventListener('input', function() {
         validateField(this);
@@ -29,6 +61,14 @@ document.addEventListener('DOMContentLoaded', function() {
         
         return isValid;
     }
+
+    // Credenciales válidas (simuladas)
+    const validCredentials = {
+        'admin': '123456',
+        'usuario': 'password',
+        'test': 'test123',
+        'demo': 'demo123'
+    };
 
     // Manejo del envío del formulario
     loginForm.addEventListener('submit', function(e) {
@@ -59,9 +99,30 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Simular delay de autenticación
         setTimeout(() => {
-            // Aquí iría la lógica real de autenticación
-            // Por ahora, redirigimos al dashboard
-            window.location.href = '/dashboard';
+            // Verificar credenciales
+            if (validCredentials[usuario] && validCredentials[usuario] === password) {
+                // Login exitoso
+                showMessage('¡Bienvenido! Redirigiendo...', 'success');
+                
+                // Guardar sesión en localStorage
+                localStorage.setItem('usuarioLogueado', usuario);
+                localStorage.setItem('loginTime', new Date().toISOString());
+                
+                // Redirigir al dashboard inmediatamente
+                setTimeout(() => {
+                    // Redirigir al dashboard
+                    window.location.href = '/dashboard.html';
+                }, 500);
+            } else {
+                // Login fallido
+                showMessage('Usuario o contraseña incorrectos', 'error');
+                loginBtn.textContent = 'INGRESAR';
+                loginBtn.disabled = false;
+                
+                // Limpiar campos
+                passwordInput.value = '';
+                passwordInput.focus();
+            }
         }, 1500);
     });
 

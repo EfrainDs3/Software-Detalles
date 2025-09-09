@@ -1,6 +1,46 @@
 // Dashboard JavaScript functionality
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Verificar si hay una sesión activa
+    function checkSession() {
+        const usuarioLogueado = localStorage.getItem('usuarioLogueado');
+        const loginTime = localStorage.getItem('loginTime');
+        
+        if (!usuarioLogueado || !loginTime) {
+            // No hay sesión, redirigir al login
+            window.location.href = '/software/login.html';
+            return false;
+        }
+        
+        // Verificar si la sesión no ha expirado (24 horas)
+        const now = new Date();
+        const loginDate = new Date(loginTime);
+        const hoursDiff = (now - loginDate) / (1000 * 60 * 60);
+        
+        if (hoursDiff >= 24) {
+            // Sesión expirada
+            localStorage.removeItem('usuarioLogueado');
+            localStorage.removeItem('loginTime');
+            alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+            window.location.href = '/software/login.html';
+            return false;
+        }
+        
+        return true;
+    }
+
+    // Verificar sesión al cargar
+    if (!checkSession()) {
+        return;
+    }
+
+    // Mostrar información del usuario logueado
+    const usuarioLogueado = localStorage.getItem('usuarioLogueado');
+    const topBar = document.querySelector('.top-bar h2');
+    if (topBar && usuarioLogueado) {
+        topBar.textContent = `Bienvenido, ${usuarioLogueado}`;
+    }
+
     // Add click functionality to cards
     document.querySelectorAll('.card').forEach(card => {
         card.addEventListener('click', function() {
@@ -12,7 +52,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add click functionality to logout button
     document.querySelector('.logout-btn').addEventListener('click', function() {
         if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-            alert('Sesión cerrada');
+            // Limpiar sesión
+            localStorage.removeItem('usuarioLogueado');
+            localStorage.removeItem('loginTime');
+            
+            // Mostrar mensaje y redirigir
+            alert('Sesión cerrada correctamente');
+            window.location.href = '/software/login.html';
         }
     });
 
