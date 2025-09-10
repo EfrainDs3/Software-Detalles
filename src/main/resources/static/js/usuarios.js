@@ -1,6 +1,6 @@
-// Usuarios Module JavaScript
+// Módulo de usuarios
 
-// Global variables
+// variables
 let users = [
     {
         id: '001',
@@ -34,14 +34,14 @@ let users = [
 let currentEditId = null;
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize usuarios module
+    // usuarios
     initUsuariosModule();
-    // Load initial data
+    // carga para usuarios
     loadUsers();
 });
 
 function initUsuariosModule() {
-    // Get DOM elements
+    // Get DOM
     const searchInput = document.getElementById('searchInput');
     const addUserBtn = document.getElementById('addUserBtn');
     const filterBtn = document.getElementById('filterBtn');
@@ -52,7 +52,7 @@ function initUsuariosModule() {
     const selectAllCheckbox = document.getElementById('selectAll');
     const logoutBtn = document.querySelector('.logout-btn');
 
-    // Event listeners
+    // eventos
     if (searchInput) {
         searchInput.addEventListener('input', handleSearch);
     }
@@ -85,7 +85,7 @@ function initUsuariosModule() {
         logoutBtn.addEventListener('click', handleLogout);
     }
 
-    // Close modal when clicking outside
+    // salir click
     if (userModal) {
         userModal.addEventListener('click', function(e) {
             if (e.target === userModal) {
@@ -94,7 +94,7 @@ function initUsuariosModule() {
         });
     }
 
-    // Add event listeners to action buttons
+    // agregar botón de acción
     addActionButtonListeners();
 }
 
