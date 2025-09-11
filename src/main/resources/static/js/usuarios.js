@@ -98,7 +98,7 @@ function initUsuariosModule() {
     addActionButtonListeners();
 }
 
-// Load users into table
+// subir usuarios
 function loadUsers() {
     const tbody = document.getElementById('usersTableBody');
     if (!tbody) return;
@@ -110,7 +110,7 @@ function loadUsers() {
         tbody.appendChild(row);
     });
 
-    // Update pagination info
+    // actualizar la lista
     updatePaginationInfo();
 }
 

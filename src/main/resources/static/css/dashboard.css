@@ -5,7 +5,7 @@
 }
 
 body {
-    font-family: Arial, sans-serif;
+    font-family: Segoe UI, sans-serif;
     background-color: #f4f4f4;
     display: flex;
     min-height: 100vh;
@@ -189,10 +189,11 @@ body {
     margin: 0;
 }
 
-/* Responsive Design */
+/* Responsive */
 @media (max-width: 768px) {
     .sidebar {
         width: 100%;
+        max-width: 1200px;
         height: auto;
         position: relative;
     }

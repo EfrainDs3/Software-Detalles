@@ -1,6 +1,3 @@
-// Sidebar Component JavaScript
-
-// Load sidebar into specified container
 function loadSidebar(containerId) {
     const container = document.getElementById(containerId);
     if (!container) {
@@ -8,7 +5,7 @@ function loadSidebar(containerId) {
         return;
     }
 
-    // Determine the correct path based on current location
+    // ubicación
     const currentPath = window.location.pathname;
     let sidebarPath;
     
@@ -20,7 +17,7 @@ function loadSidebar(containerId) {
         sidebarPath = 'templates/components/sidebar.html';
     }
 
-    // Fetch sidebar HTML
+    // barra lateral
     fetch(sidebarPath)
         .then(response => {
             if (!response.ok) {
@@ -31,22 +28,22 @@ function loadSidebar(containerId) {
         .then(html => {
             container.innerHTML = html;
             
-            // Set active page after loading
+            // la página activa después de cargar
             setActivePage();
             
-            // Add click handlers
+            // click
             addSidebarClickHandlers();
         })
         .catch(error => {
             console.error('Error loading sidebar:', error);
-            // Fallback sidebar if fetch fails
+            // opción de barra lateral 
             container.innerHTML = getFallbackSidebar();
             setActivePage();
             addSidebarClickHandlers();
         });
 }
 
-// Set active page based on current URL
+//Establecer la página activa según la URL actual
 function setActivePage() {
     const currentPage = getCurrentPage();
     const navLinks = document.querySelectorAll('.nav-menu a');
@@ -60,21 +57,21 @@ function setActivePage() {
     });
 }
 
-// Get current page from URL
+// Get del URL
 function getCurrentPage() {
     const path = window.location.pathname;
     const filename = path.split('/').pop();
     
-    // Map filenames to page identifiers
+    // Asignar nombres de archivos para las páginas
     const pageMap = {
         'dashboard.html': 'dashboard',
         'usuario.html': 'usuarios',
         'roles.html': 'roles',
-        'index.html': 'usuarios', // fallback for index
+        'index.html': 'usuarios', // respaldo index
         '': 'dashboard' // root path
     };
     
-    // Check if we're on the root dashboard
+    // Comprueba si estamos en el panel raíz
     if (path.endsWith('/') || path.endsWith('/templates/') || path.endsWith('/templates/dashboard.html')) {
         return 'dashboard';
     }
@@ -82,25 +79,22 @@ function getCurrentPage() {
     return pageMap[filename] || 'dashboard';
 }
 
-// Add click handlers to sidebar links
+// Agregar controladores de clic a los enlaces de la barra lateral
 function addSidebarClickHandlers() {
     const navLinks = document.querySelectorAll('.nav-menu a');
     
     navLinks.forEach(link => {
         link.addEventListener('click', function(e) {
-            // Remove active class from all links
+            // Eliminar la clase activa de todos los enlaces
             navLinks.forEach(l => l.classList.remove('active'));
             
-            // Add active class to clicked link
+            // Agregar clase activa al enlace en el que se hizo clic
             this.classList.add('active');
-            
-            // Let browser handle all navigation normally
-            // No need to prevent default or handle manually
         });
     });
 }
 
-// Fallback sidebar HTML in case fetch fails
+// barra lateral del HTML si falla
 function getFallbackSidebar() {
     const currentPath = window.location.pathname;
     let dashboardLink, usuariosLink, rolesLink;
@@ -137,7 +131,7 @@ function getFallbackSidebar() {
     `;
 }
 
-// Update sidebar navigation (for dynamic updates)
+// Actualizar la navegación de la barra lateral
 function updateSidebarNavigation(menuItems) {
     const navMenu = document.querySelector('.nav-menu');
     if (!navMenu) return;
