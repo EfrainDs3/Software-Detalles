@@ -67,6 +67,7 @@ function getCurrentPage() {
         'dashboard.html': 'dashboard',
         'usuario.html': 'usuarios',
         'roles.html': 'roles',
+        'permisos.html': 'permisos',
         'index.html': 'usuarios', // respaldo index
         '': 'dashboard' // root path
     };

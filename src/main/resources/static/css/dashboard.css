@@ -51,54 +51,17 @@ body {
     transition: background-color 0.3s ease;
     border-radius: 5px;
     padding-left: 10px;
+    gap: 12px;
 }
 
 .nav-menu a:hover {
     background-color: rgba(255, 255, 255, 0.1);
 }
 
-.nav-menu a::before {
-    font-family: "Font Awesome 6 Free";
-    font-weight: 900;
+.nav-menu a i {
     width: 20px;
-    margin-right: 15px;
     text-align: center;
-}
-
-.nav-menu li:nth-child(1) a::before {
-    content: '\f015';
-}
-
-.nav-menu li:nth-child(2) a::before {
-    content: '\f007';
-}
-
-.nav-menu li:nth-child(3) a::before {
-    content: '\f023';
-}
-
-.nav-menu li:nth-child(4) a::before {
-    content: '\f07a';
-}
-
-.nav-menu li:nth-child(5) a::before {
-    content: '\f0c0';
-}
-
-.nav-menu li:nth-child(6) a::before {
-    content: '\f155';
-}
-
-.nav-menu li:nth-child(7) a::before {
-    content: '\f1b2';
-}
-
-.nav-menu li:nth-child(8) a::before {
-    content: '\f201';
-}
-
-.nav-menu li:nth-child(9) a::before {
-    content: '\f002';
+    flex-shrink: 0;
 }
 
 /* Main Content */
