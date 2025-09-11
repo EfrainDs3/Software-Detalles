@@ -58,6 +58,11 @@ body {
     background-color: rgba(255, 255, 255, 0.1);
 }
 
+.nav-menu a.active {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-left: 4px solid white;
+}
+
 .nav-menu a i {
     width: 20px;
     text-align: center;
@@ -119,6 +124,11 @@ body {
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 20px;
     max-width: 1200px;
+}
+
+.card-link {
+    text-decoration: none;
+    color: inherit;
 }
 
 .card {
@@ -194,35 +204,4 @@ body {
     }
 }
 
-/* Specific card icons */
-.card:nth-child(1) .card-icon::before {
-    content: '\f007';
-}
 
-.card:nth-child(2) .card-icon::before {
-    content: '\f023';
-}
-
-.card:nth-child(3) .card-icon::before {
-    content: '\f07a';
-}
-
-.card:nth-child(4) .card-icon::before {
-    content: '\f0c0';
-}
-
-.card:nth-child(5) .card-icon::before {
-    content: '\f155';
-}
-
-.card:nth-child(6) .card-icon::before {
-    content: '\f1b2';
-}
-
-.card:nth-child(7) .card-icon::before {
-    content: '\f201';
-}
-
-.card:nth-child(8) .card-icon::before {
-    content: '\f002';
-}

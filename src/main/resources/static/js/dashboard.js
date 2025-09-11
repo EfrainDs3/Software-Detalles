@@ -41,13 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
         topBar.textContent = `Bienvenido, ${usuarioLogueado}`;
     }
 
-    // Add click functionality to cards
-    document.querySelectorAll('.card').forEach(card => {
-        card.addEventListener('click', function() {
-            const title = this.querySelector('.card-title').textContent;
-            alert(`Has seleccionado: ${title}`);
-        });
-    });
+    // Las tarjetas ahora usan enlaces directos, no necesitan JavaScript adicional para navegación
 
     // Add click functionality to logout button
     document.querySelector('.logout-btn').addEventListener('click', function() {
