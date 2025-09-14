@@ -7,8 +7,12 @@ let calzados = [
         name: 'Zapatillas Deportivas Nike',
         brand: 'Nike',
         model: 'Air Max 270',
+        color: 'Negro',
+        type: 'Unisex',
         size: '42',
         price: 249.90,
+        purchasePrice: 180.00,
+        material: 'Mesh',
         category: 'Deportivo',
         image: '../../../static/img/calzado-default.jpg',
         stock: 15,
@@ -19,8 +23,12 @@ let calzados = [
         name: 'Zapatos Formales Clarks',
         brand: 'Clarks',
         model: 'Desert Boot',
+        color: 'Marrón',
+        type: 'Hombre',
         size: '41',
         price: 189.90,
+        purchasePrice: 135.00,
+        material: 'Cuero',
         category: 'Formal',
         image: '../../../static/img/calzado-default.jpg',
         stock: 8,
@@ -31,8 +39,12 @@ let calzados = [
         name: 'Botas de Cuero Timberland',
         brand: 'Timberland',
         model: '6 Inch Premium',
+        color: 'Café',
+        type: 'Mujer',
         size: '43',
         price: 389.90,
+        purchasePrice: 280.00,
+        material: 'Cuero',
         category: 'Casual',
         image: '../../../static/img/calzado-default.jpg',
         stock: 5,
@@ -175,6 +187,8 @@ function createCalzadoRow(calzado) {
         </td>
         <td><span class="brand-badge">${calzado.brand}</span></td>
         <td>${calzado.model}</td>
+        <td><span class="color-badge ${calzado.color.toLowerCase()}">${calzado.color}</span></td>
+        <td><span class="type-badge ${calzado.type.toLowerCase()}">${calzado.type}</span></td>
         <td><span class="size-badge">${calzado.size}</span></td>
         <td><span class="price">${formattedPrice}</span></td>
         <td>
@@ -559,6 +573,7 @@ function createViewCalzadoModal(calzado) {
     modal.style.display = 'block';
     
     const formattedPrice = `S/ ${calzado.price.toFixed(2)}`;
+    const formattedPurchasePrice = `S/ ${calzado.purchasePrice.toFixed(2)}`;
 
     modal.innerHTML = `
         <div class="modal-content">
@@ -580,9 +595,15 @@ function createViewCalzadoModal(calzado) {
                         <p><strong>ID:</strong> ${calzado.id}</p>
                         <p><strong>Marca:</strong> <span class="brand-badge">${calzado.brand}</span></p>
                         <p><strong>Modelo:</strong> ${calzado.model}</p>
+                        <p><strong>Color:</strong> <span class="color-badge ${calzado.color.toLowerCase()}">${calzado.color}</span></p>
+                        <p><strong>Tipo:</strong> <span class="type-badge ${calzado.type.toLowerCase()}">${calzado.type}</span></p>
                         <p><strong>Talla:</strong> <span class="size-badge">${calzado.size}</span></p>
+                        <p><strong>Material:</strong> ${calzado.material}</p>
                         <p><strong>Categoría:</strong> <span class="product-category ${calzado.category.toLowerCase()}">${calzado.category}</span></p>
-                        <p><strong>Precio:</strong> <span class="price">${formattedPrice}</span></p>
+                        <div class="price-details">
+                            <p><strong>Precio de Venta:</strong> <span class="price">${formattedPrice}</span></p>
+                            <p><strong>Precio de Compra:</strong> <span class="purchase-price">${formattedPurchasePrice}</span></p>
+                        </div>
                         <p><strong>Stock:</strong> ${calzado.stock} unidades</p>
                     </div>
                 </div>

@@ -65,6 +65,8 @@
                         <th>Nombre</th>
                         <th>Marca</th>
                         <th>Modelo</th>
+                        <th>Color</th>
+                        <th>Tipo</th>
                         <th>Talla</th>
                         <th>Precio de Venta</th>
                         <th>Acciones</th>
@@ -91,6 +93,8 @@
                         </td>
                         <td><span class="brand-badge">Nike</span></td>
                         <td>Air Max 270</td>
+                        <td><span class="color-badge negro">Negro</span></td>
+                        <td><span class="type-badge unisex">Unisex</span></td>
                         <td><span class="size-badge">42</span></td>
                         <td><span class="price">S/ 249.90</span></td>
                         <td>
@@ -127,6 +131,8 @@
                         </td>
                         <td><span class="brand-badge">Clarks</span></td>
                         <td>Desert Boot</td>
+                        <td><span class="color-badge marron">Marrón</span></td>
+                        <td><span class="type-badge hombre">Hombre</span></td>
                         <td><span class="size-badge">41</span></td>
                         <td><span class="price">S/ 189.90</span></td>
                         <td>
@@ -163,6 +169,8 @@
                         </td>
                         <td><span class="brand-badge">Timberland</span></td>
                         <td>6 Inch Premium</td>
+                        <td><span class="color-badge cafe">Café</span></td>
+                        <td><span class="type-badge mujer">Mujer</span></td>
                         <td><span class="size-badge">43</span></td>
                         <td><span class="price">S/ 389.90</span></td>
                         <td>
@@ -241,6 +249,34 @@
                             <input type="text" id="calzadoModel" name="model" required placeholder="Ej: Air Max 270">
                         </div>
                         <div class="form-group">
+                            <label for="calzadoColor">Color *</label>
+                            <select id="calzadoColor" name="color" required>
+                                <option value="">Seleccionar color</option>
+                                <option value="Negro">Negro</option>
+                                <option value="Blanco">Blanco</option>
+                                <option value="Marrón">Marrón</option>
+                                <option value="Café">Café</option>
+                                <option value="Azul">Azul</option>
+                                <option value="Rojo">Rojo</option>
+                                <option value="Verde">Verde</option>
+                                <option value="Gris">Gris</option>
+                                <option value="Beige">Beige</option>
+                                <option value="Multicolor">Multicolor</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="calzadoType">Tipo *</label>
+                            <select id="calzadoType" name="type" required>
+                                <option value="">Seleccionar tipo</option>
+                                <option value="Hombre">Hombre</option>
+                                <option value="Mujer">Mujer</option>
+                                <option value="Unisex">Unisex</option>
+                                <option value="Niños">Niños</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
                             <label for="calzadoSize">Talla *</label>
                             <select id="calzadoSize" name="size" required>
                                 <option value="">Seleccionar talla</option>
@@ -259,6 +295,28 @@
                         <div class="form-group">
                             <label for="calzadoPrice">Precio de Venta (S/) *</label>
                             <input type="number" id="calzadoPrice" name="price" required placeholder="0.00" step="0.01" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="calzadoPurchasePrice">Precio de Compra (S/) *</label>
+                            <input type="number" id="calzadoPurchasePrice" name="purchasePrice" required placeholder="0.00" step="0.01" min="0">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="calzadoMaterial">Material *</label>
+                            <select id="calzadoMaterial" name="material" required>
+                                <option value="">Seleccionar material</option>
+                                <option value="Cuero">Cuero</option>
+                                <option value="Cuero Sintético">Cuero Sintético</option>
+                                <option value="Lona">Lona</option>
+                                <option value="Textil">Textil</option>
+                                <option value="Mesh">Mesh</option>
+                                <option value="Gamuza">Gamuza</option>
+                                <option value="Nobuck">Nobuck</option>
+                                <option value="Caucho">Caucho</option>
+                                <option value="EVA">EVA</option>
+                                <option value="Mixto">Mixto</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label for="calzadoCategory">Categoría</label>
@@ -307,8 +365,14 @@
                                 <h5 id="previewCalzadoName">Nombre del Calzado</h5>
                                 <p id="previewCalzadoDetails">Marca - Modelo</p>
                                 <div class="preview-specs">
+                                    <span class="preview-color">Color: --</span>
+                                    <span class="preview-type">Tipo: --</span>
                                     <span class="preview-size">Talla: --</span>
-                                    <span class="preview-price">S/ 0.00</span>
+                                    <span class="preview-material">Material: --</span>
+                                </div>
+                                <div class="preview-prices">
+                                    <span class="preview-price-sale">Venta: S/ 0.00</span>
+                                    <span class="preview-price-purchase">Compra: S/ 0.00</span>
                                 </div>
                             </div>
                         </div>
