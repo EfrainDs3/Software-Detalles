@@ -11,6 +11,8 @@ function loadSidebar(containerId) {
     
     if (currentPath.includes('/software/usuarios/')) {
         sidebarPath = '../../../templates/components/sidebar.html';
+    } else if (currentPath.includes('/software/productos/')) {
+        sidebarPath = '../../../templates/components/sidebar.html';
     } else if (currentPath.includes('/templates/')) {
         sidebarPath = 'components/sidebar.html';
     } else {
@@ -48,11 +50,39 @@ function setActivePage() {
     const currentPage = getCurrentPage();
     const navLinks = document.querySelectorAll('.nav-menu a');
     
+    // Primero remover todas las clases activas
     navLinks.forEach(link => {
         link.classList.remove('active');
+        // También remover la clase open de los padres
+        link.classList.remove('open');
+    });
+    
+    // Cerrar todos los submenus
+    const submenus = document.querySelectorAll('.submenu');
+    submenus.forEach(submenu => {
+        submenu.classList.remove('open');
+    });
+    
+    navLinks.forEach(link => {
         const pageData = link.getAttribute('data-page');
         if (pageData === currentPage) {
             link.classList.add('active');
+            
+            // Si es un item del submenu, solo expandir el parent (sin marcarlo como activo)
+            const parentLi = link.closest('li');
+            const isInSubmenu = parentLi && parentLi.closest('.submenu');
+            
+            if (isInSubmenu) {
+                // Encontrar el parent menu item
+                const parentSubmenu = parentLi.closest('.submenu');
+                const parentMenuItem = parentSubmenu.previousElementSibling;
+                
+                if (parentMenuItem && parentMenuItem.classList.contains('has-submenu')) {
+                    // Solo agregar 'open' para expandir, NO 'active'
+                    parentMenuItem.classList.add('open');
+                    parentSubmenu.classList.add('open');
+                }
+            }
         }
     });
 }
@@ -68,6 +98,8 @@ function getCurrentPage() {
         'usuario.html': 'usuarios',
         'roles.html': 'roles',
         'permisos.html': 'permisos',
+        'calzados.html': 'calzado',
+        'accesorios.html': 'accesorios',
         'index.html': 'usuarios', // respaldo index
         '': 'dashboard' // root path
     };
@@ -86,11 +118,36 @@ function addSidebarClickHandlers() {
     
     navLinks.forEach(link => {
         link.addEventListener('click', function(e) {
-            // Eliminar la clase activa de todos los enlaces
-            navLinks.forEach(l => l.classList.remove('active'));
+            // Si tiene submenu, toggle el submenu (sin marcarlo como activo)
+            if (this.classList.contains('has-submenu')) {
+                e.preventDefault();
+                const submenu = this.parentElement.querySelector('.submenu');
+                
+                if (submenu) {
+                    submenu.classList.toggle('open');
+                    this.classList.toggle('open');
+                }
+                return;
+            }
             
-            // Agregar clase activa al enlace en el que se hizo clic
+            // Para enlaces normales (incluye subopciones), actualizar solo ese elemento como activo
+            navLinks.forEach(l => l.classList.remove('active'));
             this.classList.add('active');
+            
+            // Si es una subopción, mantener el submenu abierto
+            const parentLi = this.closest('li');
+            const isInSubmenu = parentLi && parentLi.closest('.submenu');
+            
+            if (isInSubmenu) {
+                const parentSubmenu = parentLi.closest('.submenu');
+                const parentMenuItem = parentSubmenu.previousElementSibling;
+                
+                if (parentMenuItem && parentMenuItem.classList.contains('has-submenu')) {
+                    // Mantener el submenu abierto, pero NO marcar el parent como activo
+                    parentMenuItem.classList.add('open');
+                    parentSubmenu.classList.add('open');
+                }
+            }
         });
     });
 }
@@ -104,6 +161,10 @@ function getFallbackSidebar() {
         dashboardLink = '../../dashboard.html';
         usuariosLink = 'usuario.html';
         rolesLink = 'roles.html';
+    } else if (currentPath.includes('/software/productos/')) {
+        dashboardLink = '../../dashboard.html';
+        usuariosLink = '../usuarios/usuario.html';
+        rolesLink = '../usuarios/roles.html';
     } else if (currentPath.includes('/templates/')) {
         dashboardLink = 'dashboard.html';
         usuariosLink = 'software/usuarios/usuario.html';
