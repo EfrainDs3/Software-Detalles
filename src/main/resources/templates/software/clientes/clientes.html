@@ -53,7 +53,7 @@
             <table class="clients-table">
                 <thead>
                     <tr>
-                        <th>
+                        <th style="width: 48px;">
                             <input type="checkbox" id="selectAll">
                         </th>
                         <th>ID</th>
@@ -70,59 +70,11 @@
                 <tbody id="clientsTableBody">
                     <tr>
                         <td><input type="checkbox" class="client-checkbox"></td>
-                        <td>001</td>
-                        <td>Juan Carlos</td>
-                        <td>Pérez González</td>
-                        <td><span class="doc-badge dni">DNI</span></td>
-                        <td>12345678</td>
-                        <td>juan.perez@email.com</td>
-                        <td>987654321</td>
-                        <td class="address-cell" title="Av. Los Pinos 123, San Isidro, Lima">Av. Los Pinos 123, San Isidro, Lima</td>
-                        <td>
-                            <div class="action-buttons-cell">
-                                <button class="btn-icon btn-edit" title="Editar">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="btn-icon btn-delete" title="Eliminar">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                                <button class="btn-icon btn-view" title="Ver detalles">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><input type="checkbox" class="client-checkbox"></td>
-                        <td>002</td>
-                        <td>María Elena</td>
-                        <td>Rodríguez Silva</td>
-                        <td><span class="doc-badge dni">DNI</span></td>
-                        <td>87654321</td>
-                        <td>maria.rodriguez@email.com</td>
-                        <td>912345678</td>
-                        <td class="address-cell" title="Jr. Las Flores 456, Miraflores, Lima">Jr. Las Flores 456, Miraflores, Lima</td>
-                        <td>
-                            <div class="action-buttons-cell">
-                                <button class="btn-icon btn-edit" title="Editar">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="btn-icon btn-delete" title="Eliminar">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                                <button class="btn-icon btn-view" title="Ver detalles">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><input type="checkbox" class="client-checkbox"></td>
-                        <td>003</td>
-                        <td>Empresa XYZ</td>
+                        <td><span class="badge-id">003</span></td>
+                        <td><strong>Empresa XYZ</strong></td>
                         <td>S.A.C.</td>
                         <td><span class="doc-badge ruc">RUC</span></td>
-                        <td>20123456789</td>
+                        <td><code>20123456789</code></td>
                         <td>contacto@empresaxyz.com</td>
                         <td>014567890</td>
                         <td class="address-cell" title="Av. Industrial 789, Los Olivos, Lima">Av. Industrial 789, Los Olivos, Lima</td>
@@ -224,30 +176,6 @@
                     <div class="form-group">
                         <label for="clientAddress">Dirección *</label>
                         <textarea id="clientAddress" name="direccion" rows="3" required placeholder="Dirección completa del cliente"></textarea>
-                    </div>
-                </div>
-
-                <!-- Vista Previa -->
-                <div class="form-section">
-                    <h4 class="section-title">
-                        <i class="fas fa-eye"></i>
-                        Vista Previa del Cliente
-                    </h4>
-                    <div class="client-preview">
-                        <div class="preview-client-info">
-                            <div class="preview-avatar">
-                                <i class="fas fa-user-circle"></i>
-                            </div>
-                            <div class="preview-details">
-                                <h5 id="previewClientName">Nombre del Cliente</h5>
-                                <p id="previewClientDetails">Tipo Doc. - Nro Documento</p>
-                                <div class="preview-contact">
-                                    <span class="preview-email" id="previewEmail">Email: --</span>
-                                    <span class="preview-phone" id="previewPhone">Teléfono: --</span>
-                                </div>
-                                <div class="preview-address" id="previewAddress">Dirección: --</div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </form>
