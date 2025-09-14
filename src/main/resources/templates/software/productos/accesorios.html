@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Accesorios - Detalles</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../../static/css/dashboard.css">
+    <link rel="stylesheet" href="../../../static/css/accesorios.css">
+</head>
+<body>
+
+    <div id="sidebar-container"></div>
+ 
+    <main class="main-content">
+
+        <div class="top-bar">
+            <div class="page-header">
+                <div class="breadcrumb">
+                    <a href="../../dashboard.html" class="breadcrumb-link">
+                        Dashboard
+                    </a>
+                    <span class="breadcrumb-separator">/</span>
+                    <a href="#" class="breadcrumb-link">
+                        Productos
+                    </a>
+                    <span class="breadcrumb-separator">/</span>
+                    <span class="breadcrumb-current">Accesorios</span>
+                </div>
+                <h2 class="main-title">Gestión de Accesorios</h2>
+                <p class="page-subtitle">Administra el inventario de accesorios del sistema</p>
+            </div>
+            <button class="logout-btn">
+                Cerrar Sesión
+            </button>
+        </div>
+
+        <div class="action-bar">
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Buscar accesorios...">
+            </div>
+            <div class="action-buttons">
+                <button class="btn btn-secondary" id="filterBtn">
+                    <i class="fas fa-filter"></i>
+                    Filtros
+                </button>
+                <button class="btn btn-primary" id="addAccesorioBtn">
+                    <i class="fas fa-plus"></i>
+                    Nuevo Accesorio
+                </button>
+            </div>
+        </div>
+
+        <!-- Accesorios Table -->
+        <div class="table-container">
+            <table class="accesorios-table">
+                <thead>
+                    <tr>
+                        <th>
+                            <input type="checkbox" id="selectAll">
+                        </th>
+                        <th>ID</th>
+                        <th>Imagen</th>
+                        <th>Nombre</th>
+                        <th>Color</th>
+                        <th>Marca</th>
+                        <th>Material</th>
+                        <th>Precio de Venta</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="accesoriosTableBody">
+                    <!-- Data will be loaded from JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-container">
+            <div class="pagination-info">
+                Mostrando 1-3 de 3 accesorios
+            </div>
+            <div class="pagination">
+                <button class="btn-pagination" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="btn-pagination active">1</button>
+                <button class="btn-pagination" disabled>
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal for adding/editing accesorios -->
+    <div id="accesorioModal" class="modal">
+        <div class="modal-content accesorio-modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Nuevo Accesorio</h3>
+                <button class="modal-close" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="accesorioForm" class="modal-body">
+                <!-- Información Básica -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-info-circle"></i>
+                        Información Básica
+                    </h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="accesorioName">Nombre del Producto *</label>
+                            <input type="text" id="accesorioName" name="name" required placeholder="Ej: Cinturón de Cuero">
+                        </div>
+                        <div class="form-group">
+                            <label for="accesorioBrand">Marca *</label>
+                            <select id="accesorioBrand" name="brand" required>
+                                <option value="">Seleccionar marca</option>
+                                <option value="Levi's">Levi's</option>
+                                <option value="Tommy Hilfiger">Tommy Hilfiger</option>
+                                <option value="Coach">Coach</option>
+                                <option value="Michael Kors">Michael Kors</option>
+                                <option value="Ray-Ban">Ray-Ban</option>
+                                <option value="Fossil">Fossil</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="accesorioColor">Color *</label>
+                            <select id="accesorioColor" name="color" required>
+                                <option value="">Seleccionar color</option>
+                                <option value="Negro">Negro</option>
+                                <option value="Blanco">Blanco</option>
+                                <option value="Marrón">Marrón</option>
+                                <option value="Café">Café</option>
+                                <option value="Azul">Azul</option>
+                                <option value="Rojo">Rojo</option>
+                                <option value="Verde">Verde</option>
+                                <option value="Gris">Gris</option>
+                                <option value="Beige">Beige</option>
+                                <option value="Multicolor">Multicolor</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="accesorioMaterial">Material *</label>
+                            <select id="accesorioMaterial" name="material" required>
+                                <option value="">Seleccionar material</option>
+                                <option value="Cuero">Cuero</option>
+                                <option value="Cuero Sintético">Cuero Sintético</option>
+                                <option value="Metal">Metal</option>
+                                <option value="Plástico">Plástico</option>
+                                <option value="Tela">Tela</option>
+                                <option value="Lana">Lana</option>
+                                <option value="Algodón">Algodón</option>
+                                <option value="Seda">Seda</option>
+                                <option value="Vidrio">Vidrio</option>
+                                <option value="Mixto">Mixto</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="accesorioDimensions">Dimensiones *</label>
+                            <input type="text" id="accesorioDimensions" name="dimensions" required placeholder="Ej: 120x5x2 cm">
+                        </div>
+                        <div class="form-group">
+                            <label for="accesorioWeight">Peso (g) *</label>
+                            <input type="number" id="accesorioWeight" name="weight" required placeholder="0" min="0" step="0.1">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="accesorioPrice">Precio de Venta (S/) *</label>
+                            <input type="number" id="accesorioPrice" name="price" required placeholder="0.00" step="0.01" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="accesorioPurchasePrice">Precio de Compra (S/) *</label>
+                            <input type="number" id="accesorioPurchasePrice" name="purchasePrice" required placeholder="0.00" step="0.01" min="0">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="accesorioStock">Stock *</label>
+                            <input type="number" id="accesorioStock" name="stock" required placeholder="0" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="accesorioCategory">Categoría</label>
+                            <select id="accesorioCategory" name="category">
+                                <option value="Cinturones">Cinturones</option>
+                                <option value="Carteras">Carteras</option>
+                                <option value="Sombreros">Sombreros</option>
+                                <option value="Joyas">Joyas</option>
+                                <option value="Gafas">Gafas</option>
+                                <option value="Relojes">Relojes</option>
+                                <option value="Bufandas">Bufandas</option>
+                                <option value="Otros">Otros</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label for="accesorioDescription">Descripción</label>
+                            <textarea id="accesorioDescription" name="description" placeholder="Describe las características del accesorio" rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Imagen del Producto -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-image"></i>
+                        Imagen del Producto
+                    </h4>
+                    <div class="image-upload-container">
+                        <div class="image-preview" id="imagePreview">
+                            <i class="fas fa-camera"></i>
+                            <span>Click para subir imagen</span>
+                        </div>
+                        <input type="file" id="accesorioImage" name="image" accept="image/*" style="display: none;">
+                        <button type="button" class="btn btn-secondary" id="selectImageBtn">
+                            <i class="fas fa-upload"></i>
+                            Seleccionar Imagen
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Vista Previa -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-eye"></i>
+                        Vista Previa del Producto
+                    </h4>
+                    <div class="accesorio-preview">
+                        <div class="preview-accesorio-info">
+                            <div class="preview-image">
+                                <i class="fas fa-gem"></i>
+                            </div>
+                            <div class="preview-details">
+                                <h5 id="previewAccesorioName">Nombre del Accesorio</h5>
+                                <p id="previewAccesorioDetails">Marca del accesorio</p>
+                                <div class="preview-specs">
+                                    <span class="preview-color">Color: --</span>
+                                    <span class="preview-material">Material: --</span>
+                                    <span class="preview-dimensions">Dimensiones: --</span>
+                                    <span class="preview-weight">Peso: --</span>
+                                </div>
+                                <div class="preview-prices">
+                                    <span class="preview-price-sale">Venta: S/ 0.00</span>
+                                    <span class="preview-price-purchase">Compra: S/ 0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelBtn">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </button>
+                <button type="submit" form="accesorioForm" class="btn btn-primary" id="saveBtn">
+                    <i class="fas fa-save"></i>
+                    Guardar Accesorio
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../../../static/js/sidebar.js"></script>
+    <script src="../../../static/js/logout.js"></script>
+    <script src="../../../static/js/accesorios.js"></script>
+
+</body>
+</html>
