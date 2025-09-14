@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Calzados - Detalles</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../../static/css/dashboard.css">
+    <link rel="stylesheet" href="../../../static/css/calzados.css">
+</head>
+<body>
+
+    <div id="sidebar-container"></div>
+ 
+    <main class="main-content">
+
+        <div class="top-bar">
+            <div class="page-header">
+                <div class="breadcrumb">
+                    <a href="../../dashboard.html" class="breadcrumb-link">
+                        Dashboard
+                    </a>
+                    <span class="breadcrumb-separator">/</span>
+                    <a href="#" class="breadcrumb-link">
+                        Productos
+                    </a>
+                    <span class="breadcrumb-separator">/</span>
+                    <span class="breadcrumb-current">Calzados</span>
+                </div>
+                <h2 class="main-title">Gestión de Calzados</h2>
+                <p class="page-subtitle">Administra el inventario de calzados del sistema</p>
+            </div>
+            <button class="logout-btn">
+                Cerrar Sesión
+            </button>
+        </div>
+
+        <div class="action-bar">
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Buscar calzados...">
+            </div>
+            <div class="action-buttons">
+                <button class="btn btn-secondary" id="filterBtn">
+                    <i class="fas fa-filter"></i>
+                    Filtros
+                </button>
+                <button class="btn btn-primary" id="addCalzadoBtn">
+                    <i class="fas fa-plus"></i>
+                    Nuevo Calzado
+                </button>
+            </div>
+        </div>
+
+        <!-- Calzados Table -->
+        <div class="table-container">
+            <table class="calzados-table">
+                <thead>
+                    <tr>
+                        <th>
+                            <input type="checkbox" id="selectAll">
+                        </th>
+                        <th>ID</th>
+                        <th>Imagen</th>
+                        <th>Nombre</th>
+                        <th>Marca</th>
+                        <th>Modelo</th>
+                        <th>Talla</th>
+                        <th>Precio de Venta</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="calzadosTableBody">
+                    <tr>
+                        <td><input type="checkbox" class="calzado-checkbox"></td>
+                        <td>001</td>
+                        <td>
+                            <div class="product-image">
+                                <div class="placeholder-image">
+                                    <i class="fas fa-shoe-prints"></i>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="product-info">
+                                <div class="product-details">
+                                    <span class="product-name">Zapatillas Deportivas Nike</span>
+                                    <span class="product-category">Deportivo</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="brand-badge">Nike</span></td>
+                        <td>Air Max 270</td>
+                        <td><span class="size-badge">42</span></td>
+                        <td><span class="price">S/ 249.90</span></td>
+                        <td>
+                            <div class="action-buttons-cell">
+                                <button class="btn-icon btn-edit" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-icon btn-delete" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                <button class="btn-icon btn-view" title="Ver detalles">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox" class="calzado-checkbox"></td>
+                        <td>002</td>
+                        <td>
+                            <div class="product-image">
+                                <div class="placeholder-image">
+                                    <i class="fas fa-shoe-prints"></i>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="product-info">
+                                <div class="product-details">
+                                    <span class="product-name">Zapatos Formales Clarks</span>
+                                    <span class="product-category">Formal</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="brand-badge">Clarks</span></td>
+                        <td>Desert Boot</td>
+                        <td><span class="size-badge">41</span></td>
+                        <td><span class="price">S/ 189.90</span></td>
+                        <td>
+                            <div class="action-buttons-cell">
+                                <button class="btn-icon btn-edit" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-icon btn-delete" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                <button class="btn-icon btn-view" title="Ver detalles">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox" class="calzado-checkbox"></td>
+                        <td>003</td>
+                        <td>
+                            <div class="product-image">
+                                <div class="placeholder-image">
+                                    <i class="fas fa-shoe-prints"></i>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="product-info">
+                                <div class="product-details">
+                                    <span class="product-name">Botas de Cuero Timberland</span>
+                                    <span class="product-category">Casual</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="brand-badge">Timberland</span></td>
+                        <td>6 Inch Premium</td>
+                        <td><span class="size-badge">43</span></td>
+                        <td><span class="price">S/ 389.90</span></td>
+                        <td>
+                            <div class="action-buttons-cell">
+                                <button class="btn-icon btn-edit" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-icon btn-delete" title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                <button class="btn-icon btn-view" title="Ver detalles">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-container">
+            <div class="pagination-info">
+                Mostrando 1-3 de 3 calzados
+            </div>
+            <div class="pagination">
+                <button class="btn-pagination" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="btn-pagination active">1</button>
+                <button class="btn-pagination" disabled>
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal for adding/editing calzados -->
+    <div id="calzadoModal" class="modal">
+        <div class="modal-content calzado-modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Nuevo Calzado</h3>
+                <button class="modal-close" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="calzadoForm" class="modal-body">
+                <!-- Información Básica -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-info-circle"></i>
+                        Información Básica
+                    </h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="calzadoName">Nombre del Producto *</label>
+                            <input type="text" id="calzadoName" name="name" required placeholder="Ej: Zapatillas Deportivas Nike">
+                        </div>
+                        <div class="form-group">
+                            <label for="calzadoBrand">Marca *</label>
+                            <select id="calzadoBrand" name="brand" required>
+                                <option value="">Seleccionar marca</option>
+                                <option value="Nike">Nike</option>
+                                <option value="Adidas">Adidas</option>
+                                <option value="Clarks">Clarks</option>
+                                <option value="Timberland">Timberland</option>
+                                <option value="Converse">Converse</option>
+                                <option value="Vans">Vans</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="calzadoModel">Modelo *</label>
+                            <input type="text" id="calzadoModel" name="model" required placeholder="Ej: Air Max 270">
+                        </div>
+                        <div class="form-group">
+                            <label for="calzadoSize">Talla *</label>
+                            <select id="calzadoSize" name="size" required>
+                                <option value="">Seleccionar talla</option>
+                                <option value="38">38</option>
+                                <option value="39">39</option>
+                                <option value="40">40</option>
+                                <option value="41">41</option>
+                                <option value="42">42</option>
+                                <option value="43">43</option>
+                                <option value="44">44</option>
+                                <option value="45">45</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="calzadoPrice">Precio de Venta (S/) *</label>
+                            <input type="number" id="calzadoPrice" name="price" required placeholder="0.00" step="0.01" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="calzadoCategory">Categoría</label>
+                            <select id="calzadoCategory" name="category">
+                                <option value="Deportivo">Deportivo</option>
+                                <option value="Formal">Formal</option>
+                                <option value="Casual">Casual</option>
+                                <option value="Botas">Botas</option>
+                                <option value="Sandalias">Sandalias</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Imagen del Producto -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-image"></i>
+                        Imagen del Producto
+                    </h4>
+                    <div class="image-upload-container">
+                        <div class="image-preview" id="imagePreview">
+                            <i class="fas fa-camera"></i>
+                            <span>Click para subir imagen</span>
+                        </div>
+                        <input type="file" id="calzadoImage" name="image" accept="image/*" style="display: none;">
+                        <button type="button" class="btn btn-secondary" id="selectImageBtn">
+                            <i class="fas fa-upload"></i>
+                            Seleccionar Imagen
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Vista Previa -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-eye"></i>
+                        Vista Previa del Producto
+                    </h4>
+                    <div class="calzado-preview">
+                        <div class="preview-calzado-info">
+                            <div class="preview-image">
+                                <i class="fas fa-shoe-prints"></i>
+                            </div>
+                            <div class="preview-details">
+                                <h5 id="previewCalzadoName">Nombre del Calzado</h5>
+                                <p id="previewCalzadoDetails">Marca - Modelo</p>
+                                <div class="preview-specs">
+                                    <span class="preview-size">Talla: --</span>
+                                    <span class="preview-price">S/ 0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelBtn">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </button>
+                <button type="submit" form="calzadoForm" class="btn btn-primary" id="saveBtn">
+                    <i class="fas fa-save"></i>
+                    Guardar Calzado
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../../static/js/sidebar.js"></script>
+    <script src="../../../static/js/logout.js"></script>
+    <script src="../../../static/js/calzados.js"></script>
+</body>
+</html>
