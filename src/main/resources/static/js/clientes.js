@@ -1,487 +1,472 @@
-// Variables globales
-let clients = [
-    {
-        id: 1,
-        nombre: "Juan Carlos",
-        apellido: "Pérez González",
-        tipoDocumento: "DNI",
-        nroDocumento: "12345678",
-        email: "juan.perez@email.com",
-        telefono: "987654321",
-        direccion: "Av. Los Pinos 123, San Isidro, Lima"
-    },
-    {
-        id: 2,
-        nombre: "María Elena",
-        apellido: "Rodríguez Silva",
-        tipoDocumento: "DNI",
-        nroDocumento: "87654321",
-        email: "maria.rodriguez@email.com",
-        telefono: "912345678",
-        direccion: "Jr. Las Flores 456, Miraflores, Lima"
-    },
-    {
-        id: 3,
-        nombre: "Empresa XYZ",
-        apellido: "S.A.C.",
-        tipoDocumento: "RUC",
-        nroDocumento: "20123456789",
-        email: "contacto@empresaxyz.com",
-        telefono: "014567890",
-        direccion: "Av. Industrial 789, Los Olivos, Lima"
-    }
-];
-
-let currentClientId = null;
-let filteredClients = [...clients];
-
-// DOM Elements
-const clientModal = document.getElementById('clientModal');
-const clientForm = document.getElementById('clientForm');
-const addClientBtn = document.getElementById('addClientBtn');
-const saveBtn = document.getElementById('saveBtn');
-const cancelBtn = document.getElementById('cancelBtn');
-const closeModalBtn = document.getElementById('closeModal');
-const searchInput = document.getElementById('searchInput');
-const clientsTableBody = document.getElementById('clientsTableBody');
-const selectAllCheckbox = document.getElementById('selectAll');
-
-// Modal elements
-const modalTitle = document.getElementById('modalTitle');
-const clientNameInput = document.getElementById('clientName');
-const clientLastNameInput = document.getElementById('clientLastName');
-const clientDocTypeSelect = document.getElementById('clientDocType');
-const clientDocNumberInput = document.getElementById('clientDocNumber');
-const clientEmailInput = document.getElementById('clientEmail');
-const clientPhoneInput = document.getElementById('clientPhone');
-const clientAddressInput = document.getElementById('clientAddress');
-
-// Preview elements
-const previewClientName = document.getElementById('previewClientName');
-const previewClientDetails = document.getElementById('previewClientDetails');
-const previewEmail = document.getElementById('previewEmail');
-const previewPhone = document.getElementById('previewPhone');
-const previewAddress = document.getElementById('previewAddress');
-
-// Inicialización
-document.addEventListener('DOMContentLoaded', function() {
-    loadClients();
-    setupEventListeners();
-    setupPreviewUpdates();
-});
-
-// Event Listeners
-function setupEventListeners() {
-    // Modal controls
-    addClientBtn.addEventListener('click', openAddClientModal);
-    saveBtn.addEventListener('click', saveClient);
-    cancelBtn.addEventListener('click', closeModal);
-    closeModalBtn.addEventListener('click', closeModal);
-    
-    // Cerrar modal al hacer click fuera
-    window.addEventListener('click', function(event) {
-        if (event.target === clientModal) {
-            closeModal();
-        }
-    });
-
-    // Búsqueda
-    searchInput.addEventListener('input', handleSearch);
-    
-    // Select all checkbox
-    selectAllCheckbox.addEventListener('change', handleSelectAll);
-    
-    // Validación en tiempo real del tipo de documento
-    clientDocTypeSelect.addEventListener('change', function() {
-        const tipo = this.value;
-        if (tipo === 'DNI') {
-            clientDocNumberInput.placeholder = "Ej: 12345678";
-            clientDocNumberInput.maxLength = 8;
-        } else if (tipo === 'RUC') {
-            clientDocNumberInput.placeholder = "Ej: 20123456789";
-            clientDocNumberInput.maxLength = 11;
-        } else {
-            clientDocNumberInput.placeholder = "Número de documento";
-            clientDocNumberInput.removeAttribute('maxLength');
-        }
-        clientDocNumberInput.value = '';
-        updatePreview();
-    });
-    
-    // Validar solo números en el documento
-    clientDocNumberInput.addEventListener('input', function(e) {
-        this.value = this.value.replace(/[^0-9]/g, '');
-        updatePreview();
-    });
-
-    // Form submission
-    clientForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        saveClient();
-    });
-}
-
-// Setup preview updates
-function setupPreviewUpdates() {
-    const formInputs = [
-        clientNameInput,
-        clientLastNameInput,
-        clientDocTypeSelect,
-        clientDocNumberInput,
-        clientEmailInput,
-        clientPhoneInput,
-        clientAddressInput
-    ];
-
-    formInputs.forEach(input => {
-        input.addEventListener('input', updatePreview);
-        input.addEventListener('change', updatePreview);
-    });
-}
-
-// Update preview in real time
-function updatePreview() {
-    const nombre = clientNameInput.value || 'Nombre del Cliente';
-    const apellido = clientLastNameInput.value || '';
-    const tipoDoc = clientDocTypeSelect.value || 'Tipo Doc.';
-    const nroDoc = clientDocNumberInput.value || 'Nro Documento';
-    const email = clientEmailInput.value || '--';
-    const telefono = clientPhoneInput.value || '--';
-    const direccion = clientAddressInput.value || '--';
-
-    previewClientName.textContent = `${nombre} ${apellido}`.trim();
-    previewClientDetails.textContent = `${tipoDoc} - ${nroDoc}`;
-    previewEmail.textContent = `Email: ${email}`;
-    previewPhone.textContent = `Teléfono: ${telefono}`;
-    previewAddress.textContent = `Dirección: ${direccion}`;
-}
-
-// Cargar clientes en la tabla
-function loadClients() {
-    clientsTableBody.innerHTML = '';
-    
-    if (filteredClients.length === 0) {
-        clientsTableBody.innerHTML = `
-            <tr>
-                <td colspan="10" class="text-center">No se encontraron clientes</td>
-            </tr>
-        `;
-        return;
-    }
-
-    filteredClients.forEach(client => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>
-                <input type="checkbox" class="client-checkbox" data-client-id="${client.id}">
-            </td>
-            <td>${client.id}</td>
-            <td>${client.nombre}</td>
-            <td>${client.apellido}</td>
-            <td><span class="doc-badge ${client.tipoDocumento.toLowerCase()}">${client.tipoDocumento}</span></td>
-            <td>${client.nroDocumento}</td>
-            <td>${client.email || '-'}</td>
-            <td>${client.telefono || '-'}</td>
-            <td class="address-cell" title="${client.direccion}">${truncateText(client.direccion, 30)}</td>
-            <td>
-                <div class="action-buttons-cell">
-                    <button class="btn-icon btn-edit" onclick="editClient(${client.id})" title="Editar">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn-icon btn-delete" onclick="deleteClient(${client.id})" title="Eliminar">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                    <button class="btn-icon btn-view" onclick="viewClient(${client.id})" title="Ver detalles">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                </div>
-            </td>
-        `;
-        clientsTableBody.appendChild(row);
-    });
-    
-    updatePaginationInfo();
-}
-
-// Truncar texto para la tabla
-function truncateText(text, maxLength) {
-    if (!text || text.length <= maxLength) return text || '';
-    return text.substring(0, maxLength) + '...';
-}
-
-// Abrir modal para agregar cliente
-function openAddClientModal() {
-    currentClientId = null;
-    clientForm.reset();
-    modalTitle.textContent = 'Nuevo Cliente';
-    clientDocTypeSelect.value = '';
-    clientDocNumberInput.placeholder = 'Número de documento';
-    clientDocNumberInput.removeAttribute('maxLength');
-    
-    // Reset preview
-    updatePreview();
-    
-    clientModal.style.display = 'block';
-    document.body.style.overflow = 'hidden';
-    
-    // Focus en el primer campo
-    setTimeout(() => clientNameInput.focus(), 100);
-}
-
-// Editar cliente
-function editClient(clientId) {
-    const client = clients.find(c => c.id === clientId);
-    if (!client) return;
-
-    currentClientId = clientId;
-    modalTitle.textContent = 'Editar Cliente';
-    
-    // Llenar el formulario
-    document.getElementById('clientId').value = client.id;
-    clientNameInput.value = client.nombre;
-    clientLastNameInput.value = client.apellido;
-    clientDocTypeSelect.value = client.tipoDocumento;
-    clientDocNumberInput.value = client.nroDocumento;
-    clientEmailInput.value = client.email || '';
-    clientPhoneInput.value = client.telefono || '';
-    clientAddressInput.value = client.direccion;
-    
-    // Configurar placeholder del documento
-    if (client.tipoDocumento === 'DNI') {
-        clientDocNumberInput.placeholder = "Ej: 12345678";
-        clientDocNumberInput.maxLength = 8;
-    } else if (client.tipoDocumento === 'RUC') {
-        clientDocNumberInput.placeholder = "Ej: 20123456789";
-        clientDocNumberInput.maxLength = 11;
-    }
-    
-    // Actualizar preview
-    updatePreview();
-    
-    clientModal.style.display = 'block';
-    document.body.style.overflow = 'hidden';
-}
-
-// Ver detalles del cliente
-function viewClient(clientId) {
-    const client = clients.find(c => c.id === clientId);
-    if (!client) return;
-
-    alert(`Detalles del Cliente:
-    
-Nombre: ${client.nombre} ${client.apellido}
-${client.tipoDocumento}: ${client.nroDocumento}
-Email: ${client.email || 'No especificado'}
-Teléfono: ${client.telefono || 'No especificado'}
-Dirección: ${client.direccion}
-    `);
-}
-
-// Guardar cliente
-function saveClient() {
-    if (!validateForm()) return;
-
-    const formData = new FormData(clientForm);
-    const clientData = {
-        nombre: formData.get('nombre').trim(),
-        apellido: formData.get('apellido').trim(),
-        tipoDocumento: formData.get('tipoDocumento'),
-        nroDocumento: formData.get('nroDocumento').trim(),
-        email: formData.get('email').trim(),
-        telefono: formData.get('telefono').trim(),
-        direccion: formData.get('direccion').trim()
-    };
-
-    // Validar documento único
-    if (!validateUniqueDocument(clientData.nroDocumento, currentClientId)) {
-        showNotification('Ya existe un cliente con ese número de documento', 'error');
-        return;
-    }
-
-    if (currentClientId) {
-        // Editar cliente existente
-        const clientIndex = clients.findIndex(c => c.id === currentClientId);
-        if (clientIndex !== -1) {
-            clients[clientIndex] = { ...clients[clientIndex], ...clientData };
-            showNotification('Cliente actualizado correctamente', 'success');
-        }
-    } else {
-        // Agregar nuevo cliente
-        const newId = Math.max(...clients.map(c => c.id), 0) + 1;
-        clients.push({ id: newId, ...clientData });
-        showNotification('Cliente agregado correctamente', 'success');
-    }
-
-    closeModal();
-    applyCurrentSearch();
-    loadClients();
-}
-
-// Validar formulario
-function validateForm() {
-    const requiredFields = [
-        { id: 'clientName', name: 'nombre' },
-        { id: 'clientLastName', name: 'apellido' },
-        { id: 'clientDocType', name: 'tipo de documento' },
-        { id: 'clientDocNumber', name: 'número de documento' },
-        { id: 'clientAddress', name: 'dirección' }
-    ];
-    
-    let isValid = true;
-
-    requiredFields.forEach(field => {
-        const element = document.getElementById(field.id);
-        const value = element.value.trim();
+// clientes.js - Gestión de Clientes (Solo Frontend)
+class ClienteManager {
+    constructor() {
+        this.currentPage = 0;
+        this.pageSize = 10;
+        this.totalPages = 0;
+        this.totalItems = 0;
+        this.searchTerm = '';
+        this.isEditMode = false;
+        this.currentClienteId = null;
         
-        if (!value) {
-            element.classList.add('error');
-            isValid = false;
-        } else {
-            element.classList.remove('error');
-        }
-    });
-
-    // Validar formato de documento
-    const tipoDoc = clientDocTypeSelect.value;
-    const nroDoc = clientDocNumberInput.value;
+        // Datos de ejemplo para el frontend
+        this.clientes = [
+            {
+                id: 1,
+                nombre: "Juan Carlos Pérez",
+                dni: "12345678",
+                email: "juan.perez@email.com",
+                telefono: "987654321",
+                direccion: "Av. Los Pinos 123, San Isidro, Lima",
+                activo: true,
+                fechaCreacion: "2024-01-15T10:30:00"
+            },
+            {
+                id: 2,
+                nombre: "María Elena Rodríguez",
+                dni: "87654321",
+                email: "maria.rodriguez@email.com",
+                telefono: "912345678",
+                direccion: "Jr. Las Flores 456, Miraflores, Lima",
+                activo: true,
+                fechaCreacion: "2024-01-20T14:15:00"
+            },
+            {
+                id: 3,
+                nombre: "Carlos Alberto Silva",
+                dni: "11223344",
+                email: "carlos.silva@email.com",
+                telefono: "955666777",
+                direccion: "Av. Industrial 789, Los Olivos, Lima",
+                activo: false,
+                fechaCreacion: "2024-02-01T09:45:00"
+            },
+            {
+                id: 4,
+                nombre: "Ana Patricia López",
+                dni: "55667788",
+                email: "ana.lopez@email.com",
+                telefono: "944333222",
+                direccion: "Calle Real 321, Surco, Lima",
+                activo: true,
+                fechaCreacion: "2024-02-10T16:20:00"
+            },
+            {
+                id: 5,
+                nombre: "Roberto Miguel Torres",
+                dni: "99887766",
+                email: "roberto.torres@email.com",
+                telefono: "933444555",
+                direccion: "Av. Universitaria 654, San Miguel, Lima",
+                activo: true,
+                fechaCreacion: "2024-02-15T11:30:00"
+            }
+        ];
+        
+        this.filteredClientes = [...this.clientes];
+        
+        this.init();
+    }
     
-    if (tipoDoc === 'DNI' && nroDoc.length !== 8) {
-        clientDocNumberInput.classList.add('error');
-        showNotification('El DNI debe tener 8 dígitos', 'error');
-        isValid = false;
-    } else if (tipoDoc === 'RUC' && nroDoc.length !== 11) {
-        clientDocNumberInput.classList.add('error');
-        showNotification('El RUC debe tener 11 dígitos', 'error');
-        isValid = false;
+    init() {
+        this.bindEvents();
+        this.loadClientes();
     }
-
-    // Validar email si se proporciona
-    const email = clientEmailInput.value.trim();
-    if (email && !isValidEmail(email)) {
-        clientEmailInput.classList.add('error');
-        showNotification('El formato del email no es válido', 'error');
-        isValid = false;
-    }
-
-    if (!isValid) {
-        showNotification('Por favor, complete todos los campos requeridos correctamente', 'error');
-    }
-
-    return isValid;
-}
-
-// Validar email
-function isValidEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-}
-
-// Validar documento único
-function validateUniqueDocument(nroDocumento, excludeId = null) {
-    return !clients.some(client => 
-        client.nroDocumento === nroDocumento && client.id !== excludeId
-    );
-}
-
-// Eliminar cliente
-function deleteClient(clientId) {
-    if (confirm('¿Está seguro de que desea eliminar este cliente?')) {
-        clients = clients.filter(c => c.id !== clientId);
-        applyCurrentSearch();
-        loadClients();
-        showNotification('Cliente eliminado correctamente', 'success');
-    }
-}
-
-// Cerrar modal
-function closeModal() {
-    clientModal.style.display = 'none';
-    document.body.style.overflow = '';
-    clientForm.reset();
-    currentClientId = null;
     
-    // Limpiar errores
-    document.querySelectorAll('.form-control, input, select, textarea').forEach(field => {
-        field.classList.remove('error');
-    });
-    
-    // Reset preview
-    updatePreview();
-}
-
-// Búsqueda
-function handleSearch() {
-    applyCurrentSearch();
-    loadClients();
-}
-
-function applyCurrentSearch() {
-    const searchTerm = searchInput.value.toLowerCase().trim();
-    
-    if (!searchTerm) {
-        filteredClients = [...clients];
-        return;
-    }
-
-    filteredClients = clients.filter(client => 
-        client.nombre.toLowerCase().includes(searchTerm) ||
-        client.apellido.toLowerCase().includes(searchTerm) ||
-        client.nroDocumento.includes(searchTerm) ||
-        (client.email && client.email.toLowerCase().includes(searchTerm)) ||
-        (client.telefono && client.telefono.includes(searchTerm)) ||
-        client.direccion.toLowerCase().includes(searchTerm)
-    );
-}
-
-// Select All
-function handleSelectAll() {
-    const checkboxes = document.querySelectorAll('.client-checkbox');
-    checkboxes.forEach(checkbox => {
-        checkbox.checked = selectAllCheckbox.checked;
-    });
-}
-
-// Actualizar información de paginación
-function updatePaginationInfo() {
-    const paginationInfo = document.querySelector('.pagination-info');
-    const total = filteredClients.length;
-    paginationInfo.textContent = `Mostrando 1-${total} de ${total} clientes`;
-}
-
-// Mostrar notificaciones
-function showNotification(message, type = 'info') {
-    // Remover notificación anterior si existe
-    const existingNotification = document.querySelector('.notification');
-    if (existingNotification) {
-        existingNotification.remove();
-    }
-
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.innerHTML = `
-        <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
-        <span>${message}</span>
-        <button class="notification-close" onclick="this.parentElement.remove()">
-            <i class="fas fa-times"></i>
-        </button>
-    `;
-
-    document.body.appendChild(notification);
-
-    // Auto-remover después de 5 segundos
-    setTimeout(() => {
-        if (notification && notification.parentElement) {
-            notification.remove();
-        }
-    }, 5000);
-}
-
-// Limpiar errores al escribir
-document.addEventListener('DOMContentLoaded', function() {
-    const formControls = document.querySelectorAll('input, select, textarea');
-    formControls.forEach(control => {
-        control.addEventListener('input', function() {
-            this.classList.remove('error');
+    bindEvents() {
+        // Botón nuevo cliente
+        document.getElementById('addClientBtn').addEventListener('click', () => {
+            this.openModal();
         });
-    });
+        
+        // Botón cerrar modal
+        document.getElementById('closeClient').addEventListener('click', () => {
+            this.closeModal();
+        });
+        
+        // Botón guardar cliente
+        document.getElementById('saveClient').addEventListener('click', () => {
+            this.saveCliente();
+        });
+        
+        // Búsqueda
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            this.searchTerm = e.target.value;
+            this.currentPage = 0;
+            this.applySearch();
+            this.loadClientes();
+        });
+        
+        // Select all checkbox
+        document.getElementById('selectAll').addEventListener('change', (e) => {
+            this.toggleSelectAll(e.target.checked);
+        });
+        
+        // Cerrar modal al hacer click fuera
+        document.getElementById('clientModal').addEventListener('click', (e) => {
+            if (e.target.id === 'clientModal') {
+                this.closeModal();
+            }
+        });
+    }
+    
+    applySearch() {
+        if (!this.searchTerm.trim()) {
+            this.filteredClientes = [...this.clientes];
+        } else {
+            const term = this.searchTerm.toLowerCase();
+            this.filteredClientes = this.clientes.filter(cliente => 
+                cliente.nombre.toLowerCase().includes(term) ||
+                cliente.dni.includes(term) ||
+                cliente.email.toLowerCase().includes(term) ||
+                (cliente.telefono && cliente.telefono.includes(term)) ||
+                (cliente.direccion && cliente.direccion.toLowerCase().includes(term))
+            );
+        }
+        
+        this.totalItems = this.filteredClientes.length;
+        this.totalPages = Math.ceil(this.totalItems / this.pageSize);
+    }
+    
+    loadClientes() {
+        this.applySearch();
+        
+        const startIndex = this.currentPage * this.pageSize;
+        const endIndex = startIndex + this.pageSize;
+        const clientesPaginados = this.filteredClientes.slice(startIndex, endIndex);
+        
+        this.renderTable(clientesPaginados);
+        this.renderPagination();
+        this.updatePaginationInfo();
+    }
+    
+    renderTable(clientes) {
+        const tbody = document.getElementById('clientsTableBody');
+        tbody.innerHTML = '';
+        
+        if (clientes.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 40px; color: #666;">
+                        <i class="fas fa-users" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
+                        No se encontraron clientes
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        clientes.forEach(cliente => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>
+                    <input type="checkbox" class="client-checkbox" data-id="${cliente.id}">
+                </td>
+                <td>
+                    <span class="badge-id">${cliente.id}</span>
+                </td>
+                <td>${cliente.nombre}</td>
+                <td>${cliente.dni}</td>
+                <td>${cliente.email}</td>
+                <td>${cliente.telefono || '-'}</td>
+                <td>
+                    <div class="action-buttons-cell">
+                        <button class="btn-icon btn-view" onclick="clienteManager.viewCliente(${cliente.id})" title="Ver">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn-icon btn-edit" onclick="clienteManager.editCliente(${cliente.id})" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-icon btn-delete" onclick="clienteManager.deleteCliente(${cliente.id})" title="Eliminar">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+    
+    renderPagination() {
+        const pagination = document.querySelector('.pagination');
+        pagination.innerHTML = '';
+        
+        // Botón anterior
+        const prevBtn = document.createElement('button');
+        prevBtn.className = 'btn-pagination';
+        prevBtn.disabled = this.currentPage === 0;
+        prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+        prevBtn.addEventListener('click', () => {
+            if (this.currentPage > 0) {
+                this.currentPage--;
+                this.loadClientes();
+            }
+        });
+        pagination.appendChild(prevBtn);
+        
+        // Números de página
+        const startPage = Math.max(0, this.currentPage - 2);
+        const endPage = Math.min(this.totalPages - 1, this.currentPage + 2);
+        
+        for (let i = startPage; i <= endPage; i++) {
+            const pageBtn = document.createElement('button');
+            pageBtn.className = `btn-pagination ${i === this.currentPage ? 'active' : ''}`;
+            pageBtn.textContent = i + 1;
+            pageBtn.addEventListener('click', () => {
+                this.currentPage = i;
+                this.loadClientes();
+            });
+            pagination.appendChild(pageBtn);
+        }
+        
+        // Botón siguiente
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'btn-pagination';
+        nextBtn.disabled = this.currentPage >= this.totalPages - 1;
+        nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+        nextBtn.addEventListener('click', () => {
+            if (this.currentPage < this.totalPages - 1) {
+                this.currentPage++;
+                this.loadClientes();
+            }
+        });
+        pagination.appendChild(nextBtn);
+    }
+    
+    updatePaginationInfo() {
+        const startItem = this.currentPage * this.pageSize + 1;
+        const endItem = Math.min((this.currentPage + 1) * this.pageSize, this.totalItems);
+        
+        document.querySelector('.pagination-info').textContent = 
+            `Mostrando ${startItem}-${endItem} de ${this.totalItems} clientes`;
+    }
+    
+    openModal(cliente = null) {
+        const modal = document.getElementById('clientModal');
+        const title = document.querySelector('.modal-title');
+        const form = document.getElementById('clientForm');
+        
+        if (cliente) {
+            this.isEditMode = true;
+            this.currentClienteId = cliente.id;
+            title.textContent = 'Editar Cliente';
+            this.fillForm(cliente);
+        } else {
+            this.isEditMode = false;
+            this.currentClienteId = null;
+            title.textContent = 'Nuevo Cliente';
+            form.reset();
+        }
+        
+        modal.classList.add('open');
+    }
+    
+    closeModal() {
+        const modal = document.getElementById('clientModal');
+        modal.classList.remove('open');
+        this.isEditMode = false;
+        this.currentClienteId = null;
+        document.getElementById('clientForm').reset();
+        
+        // Habilitar todos los campos
+        const inputs = document.querySelectorAll('#clientForm input');
+        inputs.forEach(input => input.disabled = false);
+        document.getElementById('saveClient').style.display = 'inline-flex';
+    }
+    
+    fillForm(cliente) {
+        document.getElementById('clientId').value = cliente.id;
+        document.getElementById('nombre').value = cliente.nombre;
+        document.getElementById('dni').value = cliente.dni;
+        document.getElementById('email').value = cliente.email;
+        document.getElementById('telefono').value = cliente.telefono || '';
+        document.getElementById('direccion').value = cliente.direccion || '';
+    }
+    
+    saveCliente() {
+        const formData = {
+            nombre: document.getElementById('nombre').value.trim(),
+            dni: document.getElementById('dni').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            telefono: document.getElementById('telefono').value.trim(),
+            direccion: document.getElementById('direccion').value.trim()
+        };
+        
+        // Validaciones básicas
+        if (!formData.nombre) {
+            this.showError('El nombre es obligatorio');
+            return;
+        }
+        if (!formData.dni) {
+            this.showError('El DNI es obligatorio');
+            return;
+        }
+        if (!formData.email) {
+            this.showError('El email es obligatorio');
+            return;
+        }
+        
+        // Validar formato de DNI
+        if (!/^\d{8}$/.test(formData.dni)) {
+            this.showError('El DNI debe tener 8 dígitos');
+            return;
+        }
+        
+        // Validar formato de email
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+            this.showError('El formato del email no es válido');
+            return;
+        }
+        
+        // Validar DNI único
+        const dniExists = this.clientes.some(c => 
+            c.dni === formData.dni && c.id !== this.currentClienteId
+        );
+        if (dniExists) {
+            this.showError('Ya existe un cliente con este DNI');
+            return;
+        }
+        
+        // Validar email único
+        const emailExists = this.clientes.some(c => 
+            c.email === formData.email && c.id !== this.currentClienteId
+        );
+        if (emailExists) {
+            this.showError('Ya existe un cliente con este email');
+            return;
+        }
+        
+        if (this.isEditMode) {
+            // Editar cliente existente
+            const index = this.clientes.findIndex(c => c.id === this.currentClienteId);
+            if (index !== -1) {
+                this.clientes[index] = {
+                    ...this.clientes[index],
+                    ...formData,
+                    fechaActualizacion: new Date().toISOString()
+                };
+                this.showSuccess('Cliente actualizado exitosamente');
+            }
+        } else {
+            // Crear nuevo cliente
+            const newId = Math.max(...this.clientes.map(c => c.id), 0) + 1;
+            const newCliente = {
+                id: newId,
+                ...formData,
+                activo: true,
+                fechaCreacion: new Date().toISOString()
+            };
+            this.clientes.push(newCliente);
+            this.showSuccess('Cliente creado exitosamente');
+        }
+        
+        this.closeModal();
+        this.loadClientes();
+    }
+    
+    viewCliente(id) {
+        const cliente = this.clientes.find(c => c.id === id);
+        if (cliente) {
+            this.openModal(cliente);
+            // Deshabilitar campos para solo lectura
+            const inputs = document.querySelectorAll('#clientForm input');
+            inputs.forEach(input => input.disabled = true);
+            document.getElementById('saveClient').style.display = 'none';
+        }
+    }
+    
+    editCliente(id) {
+        const cliente = this.clientes.find(c => c.id === id);
+        if (cliente) {
+            this.openModal(cliente);
+            // Habilitar campos para edición
+            const inputs = document.querySelectorAll('#clientForm input');
+            inputs.forEach(input => input.disabled = false);
+            document.getElementById('saveClient').style.display = 'inline-flex';
+        }
+    }
+    
+    deleteCliente(id) {
+        if (!confirm('¿Estás seguro de que quieres eliminar este cliente?')) {
+            return;
+        }
+        
+        const index = this.clientes.findIndex(c => c.id === id);
+        if (index !== -1) {
+            this.clientes.splice(index, 1);
+            this.showSuccess('Cliente eliminado exitosamente');
+            this.loadClientes();
+        }
+    }
+    
+    toggleSelectAll(checked) {
+        const checkboxes = document.querySelectorAll('.client-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = checked;
+        });
+    }
+    
+    showSuccess(message) {
+        this.showNotification(message, 'success');
+    }
+    
+    showError(message) {
+        this.showNotification(message, 'error');
+    }
+    
+    showNotification(message, type) {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 9999;
+            max-width: 400px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            animation: slideIn 0.3s ease;
+        `;
+        
+        if (type === 'success') {
+            notification.style.backgroundColor = '#28a745';
+        } else {
+            notification.style.backgroundColor = '#dc3545';
+        }
+        
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 3000);
+    }
+}
+
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', () => {
+    window.clienteManager = new ClienteManager();
 });
+
+// Agregar estilos CSS para las notificaciones
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+`;
+document.head.appendChild(style);
