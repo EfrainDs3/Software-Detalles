@@ -5,13 +5,17 @@ function loadSidebar(containerId) {
         return;
     }
 
-    // ubicación
+    // Detectar automáticamente la ubicación basada en la URL
     const currentPath = window.location.pathname;
     let sidebarPath;
     
-    if (currentPath.includes('/software/usuarios/')) {
-        sidebarPath = '../../../templates/components/sidebar.html';
-    } else if (currentPath.includes('/software/productos/')) {
+    // Detectar la profundidad de carpetas automáticamente
+    const pathSegments = currentPath.split('/').filter(segment => segment.length > 0);
+    const depth = pathSegments.length;
+    
+    // Construir ruta relativa basada en la profundidad
+    if (currentPath.includes('/software/')) {
+        // Para cualquier archivo dentro de /software/
         sidebarPath = '../../../templates/components/sidebar.html';
     } else if (currentPath.includes('/templates/')) {
         sidebarPath = 'components/sidebar.html';
@@ -19,7 +23,7 @@ function loadSidebar(containerId) {
         sidebarPath = 'templates/components/sidebar.html';
     }
 
-    // barra lateral
+    // Cargar la barra lateral
     fetch(sidebarPath)
         .then(response => {
             if (!response.ok) {
@@ -30,15 +34,15 @@ function loadSidebar(containerId) {
         .then(html => {
             container.innerHTML = html;
             
-            // la página activa después de cargar
+            // Configurar la página activa después de cargar
             setActivePage();
             
-            // click
+            // Agregar manejadores de click
             addSidebarClickHandlers();
         })
         .catch(error => {
             console.error('Error loading sidebar:', error);
-            // opción de barra lateral 
+            // Opción de barra lateral fallback
             container.innerHTML = getFallbackSidebar();
             setActivePage();
             addSidebarClickHandlers();
@@ -87,12 +91,12 @@ function setActivePage() {
     });
 }
 
-// Get del URL
+// Obtener la página actual del URL de manera genérica
 function getCurrentPage() {
     const path = window.location.pathname;
     const filename = path.split('/').pop();
     
-    // Asignar nombres de archivos para las páginas
+    // Mapeo específico para casos especiales
     const pageMap = {
         'dashboard.html': 'dashboard',
         'usuario.html': 'usuarios',
@@ -100,16 +104,38 @@ function getCurrentPage() {
         'permisos.html': 'permisos',
         'calzados.html': 'calzado',
         'accesorios.html': 'accesorios',
+        'clientes.html': 'clientes',
+        'ventas.html': 'ventas',
+        'stock.html': 'stock',
+        'reportes.html': 'reportes',
+        'auditoria.html': 'auditoria',
         'index.html': 'usuarios', // respaldo index
         '': 'dashboard' // root path
     };
+    
+    // Si existe en el mapeo, usarlo
+    if (pageMap[filename]) {
+        return pageMap[filename];
+    }
+    
+    // Si no existe en el mapeo, extraer automáticamente del nombre del archivo
+    if (filename && filename.includes('.html')) {
+        const baseName = filename.replace('.html', '');
+        
+        // Manejar casos plurales/singulares automáticamente
+        if (baseName.endsWith('s') && baseName !== 'roles' && baseName !== 'permisos') {
+            return baseName; // clientes, usuarios, etc.
+        }
+        
+        return baseName;
+    }
     
     // Comprueba si estamos en el panel raíz
     if (path.endsWith('/') || path.endsWith('/templates/') || path.endsWith('/templates/dashboard.html')) {
         return 'dashboard';
     }
     
-    return pageMap[filename] || 'dashboard';
+    return 'dashboard'; // fallback
 }
 
 // Agregar controladores de clic a los enlaces de la barra lateral
@@ -152,42 +178,108 @@ function addSidebarClickHandlers() {
     });
 }
 
-// barra lateral del HTML si falla
+// Generar barra lateral del HTML si falla la carga - versión genérica
 function getFallbackSidebar() {
     const currentPath = window.location.pathname;
-    let dashboardLink, usuariosLink, rolesLink;
+    let dashboardLink, usuariosLink, rolesLink, permisosLink, clientesLink;
     
-    if (currentPath.includes('/software/usuarios/')) {
-        dashboardLink = '../../dashboard.html';
-        usuariosLink = 'usuario.html';
-        rolesLink = 'roles.html';
-    } else if (currentPath.includes('/software/productos/')) {
+    // Detectar automáticamente las rutas basadas en la estructura de carpetas
+    if (currentPath.includes('/software/')) {
+        // Estamos en cualquier subcarpeta de software
         dashboardLink = '../../dashboard.html';
         usuariosLink = '../usuarios/usuario.html';
         rolesLink = '../usuarios/roles.html';
+        permisosLink = '../usuarios/permisos.html';
+        clientesLink = '../clientes/clientes.html';
+        
+        // Si estamos específicamente en usuarios
+        if (currentPath.includes('/usuarios/')) {
+            usuariosLink = 'usuario.html';
+            rolesLink = 'roles.html';
+            permisosLink = 'permisos.html';
+            clientesLink = '../clientes/clientes.html';
+        }
+        // Si estamos en productos
+        else if (currentPath.includes('/productos/')) {
+            clientesLink = '../clientes/clientes.html';
+        }
+        // Si estamos en clientes
+        else if (currentPath.includes('/clientes/')) {
+            usuariosLink = '../usuarios/usuario.html';
+            rolesLink = '../usuarios/roles.html';
+            permisosLink = '../usuarios/permisos.html';
+            clientesLink = 'clientes.html';
+        }
     } else if (currentPath.includes('/templates/')) {
         dashboardLink = 'dashboard.html';
         usuariosLink = 'software/usuarios/usuario.html';
         rolesLink = 'software/usuarios/roles.html';
+        permisosLink = 'software/usuarios/permisos.html';
+        clientesLink = 'software/clientes/clientes.html';
     } else {
         dashboardLink = 'templates/dashboard.html';
         usuariosLink = 'templates/software/usuarios/usuario.html';
         rolesLink = 'templates/software/usuarios/roles.html';
+        permisosLink = 'templates/software/usuarios/permisos.html';
+        clientesLink = 'templates/software/clientes/clientes.html';
     }
     
     return `
         <nav class="sidebar">
             <h1>DETALLES</h1>
             <ul class="nav-menu">
-                <li><a href="/src/main/resources/templates/dashboard.html" data-page="dashboard">Dashboard</a></li>
-                <li><a href="/src/main/resources/templates/software/usuarios/usuario.html" data-page="usuarios">Usuarios</a></li>
-                <li><a href="/src/main/resources/templates/software/usuarios/roles.html" data-page="roles">Roles y Permisos</a></li>
-                <li><a href="/productos" data-page="productos">Productos</a></li>
-                <li><a href="/clientes" data-page="clientes">Clientes</a></li>
-                <li><a href="/ventas" data-page="ventas">Ventas</a></li>
-                <li><a href="/stock" data-page="stock">Stock</a></li>
-                <li><a href="/reportes" data-page="reportes">Reportes</a></li>
-                <li><a href="/auditoria" data-page="auditoria">Auditoría</a></li>
+                <li><a href="${dashboardLink}" data-page="dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Dashboard
+                </a></li>
+                <li><a href="${usuariosLink}" data-page="usuarios">
+                    <i class="fas fa-users"></i>
+                    Usuarios
+                </a></li>
+                <li><a href="${rolesLink}" data-page="roles">
+                    <i class="fas fa-user-shield"></i>
+                    Roles
+                </a></li>
+                <li><a href="${permisosLink}" data-page="permisos">
+                    <i class="fas fa-shield-alt"></i>
+                    Permisos
+                </a></li>
+                <li><a href="#" data-page="productos" class="has-submenu">
+                    <i class="fas fa-box"></i>
+                    Productos
+                    <i class="fas fa-chevron-down submenu-arrow"></i>
+                </a>
+                    <ul class="submenu">
+                        <li><a href="../productos/calzados.html" data-page="calzado">
+                            <i class="fas fa-shoe-prints"></i>
+                            Calzado
+                        </a></li>
+                        <li><a href="../productos/accesorios.html" data-page="accesorios">
+                            <i class="fas fa-glasses"></i>
+                            Accesorios
+                        </a></li>
+                    </ul>
+                </li>
+                <li><a href="${clientesLink}" data-page="clientes">
+                    <i class="fas fa-user-friends"></i>
+                    Clientes
+                </a></li>
+                <li><a href="#" data-page="ventas">
+                    <i class="fas fa-shopping-cart"></i>
+                    Ventas
+                </a></li>
+                <li><a href="#" data-page="stock">
+                    <i class="fas fa-warehouse"></i>
+                    Stock
+                </a></li>
+                <li><a href="#" data-page="reportes">
+                    <i class="fas fa-chart-bar"></i>
+                    Reportes
+                </a></li>
+                <li><a href="#" data-page="auditoria">
+                    <i class="fas fa-clipboard-list"></i>
+                    Auditoría
+                </a></li>
             </ul>
         </nav>
     `;
