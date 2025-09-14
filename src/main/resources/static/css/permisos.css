@@ -1,331 +1,231 @@
-/* permisos.css - Estilos para la gestión de permisos */
+/* permisos.css - Estilos mejorados para la gestión de permisos */
+
+/* Variables y base */
+:root{
+  --rojo-primario: #b30000;
+  --rojo-oscuro: #800000;
+  --gris-claro: #f8f9fa;
+  --gris-medio: #e0e0e0;
+  --texto: #333;
+  --muted: #666;
+  --sombra: 0 6px 18px rgba(0,0,0,0.08);
+  --border-radius: 10px;
+  --gap: 12px;
+}
+
+/* Reset/Tipografía */
+*{box-sizing:border-box}
+body{font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial; color:var(--texto); background:#f5f5f5; margin:0;}
 
 /* Encabezado de Página */
-.page-header {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
+.page-header{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  margin-bottom:12px;
 }
-
-.page-subtitle {
-    color: #666;
-    font-size: 14px;
-    margin: 0;
-}
+.page-title{ font-size:1.4rem; color:var(--rojo-primario); font-weight:700; margin:0; }
+.page-subtitle{ color:var(--muted); font-size:0.95rem; margin:0; }
 
 /* Breadcrumb */
-.breadcrumb {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 10px;
-    font-size: 14px;
+.breadcrumb{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:10px;
+  font-size:0.95rem;
+}
+.breadcrumb-link{ color:var(--rojo-primario); text-decoration:none; display:flex; gap:6px; align-items:center; transition:color .18s ease; }
+.breadcrumb-link:hover{ color:var(--rojo-oscuro); text-decoration:underline; }
+.breadcrumb-separator{ color:var(--muted); }
+.breadcrumb-current{ color:var(--texto); font-weight:600; }
+
+/* Contenedor general reutilizable */
+.card-surface{
+  background:#fff;
+  border-radius:var(--border-radius);
+  box-shadow:var(--sombra);
+  overflow:hidden;
+  margin-bottom:18px;
 }
 
-.breadcrumb-link {
-    color: #b30000;
-    text-decoration: none;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    transition: color 0.3s ease;
+/* Action Bar y Search */
+.action-bar{
+  display:flex;
+  gap:var(--gap);
+  align-items:center;
+  padding:16px;
+  background:#fff;
+  border-radius:var(--border-radius);
+  box-shadow:var(--sombra);
+  flex-wrap:wrap;
+}
+.search-container{ position:relative; display:flex; align-items:center; }
+.search-container i{ position:absolute; left:12px; color:var(--muted); pointer-events:none; font-size:1rem; }
+.search-container input{
+  padding:10px 14px 10px 40px;
+  border:1px solid var(--gris-medio);
+  border-radius:8px;
+  font-size:0.95rem;
+  width:320px;
+  transition:box-shadow .15s ease, border-color .15s ease;
+}
+.search-container input:focus{
+  outline:none;
+  box-shadow:0 0 0 3px rgba(179,0,0,0.06);
+  border-color:var(--rojo-primario);
 }
 
-.breadcrumb-link:hover {
-    color: #800000;
-    text-decoration: underline;
+/* Logout / acciones principales */
+.logout-btn{
+  background-color:var(--rojo-primario);
+  color:#fff;
+  border:none;
+  padding:10px 18px;
+  border-radius:8px;
+  font-size:0.95rem;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  transition:background-color .12s ease, transform .08s ease;
+}
+.logout-btn:hover{ background-color:var(--rojo-oscuro); transform:translateY(-1px); }
+.logout-btn:focus{ outline:3px solid rgba(179,0,0,0.12); }
+
+/* Tabla de permisos */
+.table-container{ margin-bottom:18px; }
+.permissions-table{
+  width:100%;
+  border-collapse:collapse;
+  background:#fff;
+  border-radius:8px;
+  overflow:hidden;
+}
+.permissions-table thead th{
+  position:sticky;
+  top:0;
+  background:var(--gris-claro);
+  padding:14px 12px;
+  text-align:left;
+  font-weight:600;
+  color:var(--texto);
+  border-bottom:1px solid var(--gris-medio);
+  font-size:0.95rem;
+}
+.permissions-table tbody td{
+  padding:12px;
+  border-bottom:1px solid #f0f0f0;
+  vertical-align:middle;
+  font-size:0.95rem;
+  color:var(--texto);
+}
+.permissions-table tbody tr:hover{
+  background:#fbfbfc;
+}
+.permissions-table tbody tr:nth-child(even){ background: #fff; }
+
+/* Badges */
+.badge-id{
+  display:inline-block;
+  background:#e9eefc;
+  color:#2f4373;
+  border-radius:6px;
+  padding:0.18em 0.6em;
+  font-size:0.9rem;
+  font-weight:600;
+}
+.badge-description{
+  background:#f7f7fa;
+  color:#555;
+  border-radius:6px;
+  padding:0.18em 0.6em;
+  font-size:0.9rem;
 }
 
-.breadcrumb-separator {
-    color: #666;
+/* Acciones: botones compactos */
+.action-buttons-cell{ display:flex; gap:8px; align-items:center; }
+.btn-icon{
+  width:36px;
+  height:36px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  transition:transform .12s ease, box-shadow .12s ease, opacity .12s ease;
+  font-size:0.95rem;
 }
-
-.breadcrumb-current {
-    color: #333;
-    font-weight: 500;
-}
-
-/* Contenedor de Tabla */
-.table-container {
-    background-color: white;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    margin-bottom: 20px;
-}
-
-.permissions-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.permissions-table th {
-    background-color: #f8f9fa;
-    padding: 15px 12px;
-    text-align: left;
-    font-weight: 600;
-    color: #333;
-    border-bottom: 2px solid #e0e0e0;
-    font-size: 14px;
-}
-
-.permissions-table td {
-    padding: 15px 12px;
-    border-bottom: 1px solid #f0f0f0;
-    vertical-align: middle;
-}
-
-.permissions-table tbody tr:hover {
-    background-color: #f8f9fa;
-}
-
-.badge-id {
-    background: #e3e8f7;
-    color: #3a4a7c;
-    border-radius: 6px;
-    padding: 0.2em 0.7em;
-    font-size: 0.95em;
-    font-weight: 500;
-}
-
-.badge-description {
-    background: #f7f7fa;
-    color: #555;
-    border-radius: 6px;
-    padding: 0.2em 0.7em;
-    font-size: 0.95em;
-}
-
-/* Action Bar y Search de permisos igual a roles */
-.action-bar {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    margin-bottom: 20px;
-    padding: 20px;
-    background-color: white;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.search-container {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.search-container i {
-    position: absolute;
-    left: 15px;
-    color: #666;
-    z-index: 1;
-}
-
-.search-container input {
-    padding: 12px 15px 12px 45px;
-    border: 2px solid #e0e0e0;
-    border-radius: 8px;
-    font-size: 14px;
-    width: 300px;
-    transition: border-color 0.3s ease;
-}
-
-.search-container input:focus {
-    outline: none;
-    border-color: #b30000;
-}
-
-/* Botón Cerrar Sesión igual que en roles.html */
-.logout-btn {
-    background-color: #b30000;
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 5px;
-    font-size: 16px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: background-color 0.3s ease;
-}
-
-.logout-btn:hover {
-    background-color: #800000;
-}
-
-.logout-btn::before {
-    content: '\f2f5';
-    font-family: "Font Awesome 6 Free";
-    font-weight: 900;
-}
-
-/* --- Estilos de tabla de usuarios.css aplicados a permisos.css --- */
- .table-container {
-    background-color: white;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    margin-bottom: 20px;
-}
-
-.permissions-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.permissions-table th {
-    background-color: #f8f9fa;
-    padding: 15px 12px;
-    text-align: left;
-    font-weight: 600;
-    color: #333;
-    border-bottom: 2px solid #e0e0e0;
-    font-size: 14px;
-}
-
-.permissions-table td {
-    padding: 15px 12px;
-    border-bottom: 1px solid #f0f0f0;
-    vertical-align: middle;
-}
-
-.permissions-table tbody tr:hover {
-    background-color: #f8f9fa;
-} 
-
-/* Acciones */
-.action-buttons-cell {
-    display: flex;
-    gap: 8px;
-}
-
-.btn-icon {
-    width: 32px;
-    height: 32px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    font-size: 14px;
-}
-
-.btn-edit {
-    background-color: #ffc107;
-    color: white;
-}
-
-.btn-edit:hover {
-    background-color: #e0a800;
-    transform: scale(1.1);
-}
-
-.btn-delete {
-    background-color: #dc3545;
-    color: white;
-}
-
-.btn-delete:hover {
-    background-color: #c82333;
-    transform: scale(1.1);
-}
-
-.btn-view {
-    background-color: #17a2b8;
-    color: white;
-}
-
-.btn-view:hover {
-    background-color: #138496;
-    transform: scale(1.1);
-}
+.btn-icon:focus{ outline:3px solid rgba(0,0,0,0.06); }
+.btn-edit{ background:#ffc107; color:#2b2b2b; }
+.btn-edit:hover{ transform:translateY(-2px); box-shadow:0 6px 12px rgba(224,160,0,0.12); }
+.btn-delete{ background:#dc3545; color:#fff; }
+.btn-delete:hover{ transform:translateY(-2px); box-shadow:0 6px 12px rgba(200,30,45,0.12); }
+.btn-view{ background:#17a2b8; color:#fff; }
+.btn-view:hover{ transform:translateY(-2px); box-shadow:0 6px 12px rgba(23,162,184,0.12); }
 
 /* Paginación */
-.pagination-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px;
-    background-color: white;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+.pagination-container{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:14px;
+  background:#fff;
+  border-radius:var(--border-radius);
+  box-shadow:var(--sombra);
+  gap:12px;
+  flex-wrap:wrap;
+}
+.pagination-info{ color:var(--muted); font-size:0.95rem; }
+.pagination{ display:flex; gap:8px; align-items:center; }
+.btn-pagination{
+  min-width:40px;
+  height:38px;
+  border:1px solid #e6e6e6;
+  background:#fff;
+  border-radius:8px;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:0 10px;
+  transition:background-color .12s ease, border-color .12s ease, transform .08s ease;
+}
+.btn-pagination:hover:not(:disabled){ background:var(--gris-claro); border-color:var(--rojo-primario); transform:translateY(-2px); }
+.btn-pagination.active{ background:var(--rojo-primario); color:#fff; border-color:var(--rojo-primario); }
+.btn-pagination:disabled{ opacity:0.6; cursor:not-allowed; transform:none; }
+
+/* Checkbox: apariencia accesible */
+input[type="checkbox"]{
+  width:18px;
+  height:18px;
+  accent-color:var(--rojo-primario);
+  cursor:pointer;
+  border-radius:4px;
+  border:1px solid #dcdcdc;
+}
+input[type="checkbox"]:focus{ outline:3px solid rgba(179,0,0,0.12); }
+
+/* Helpers */
+.text-muted{ color:var(--muted); font-size:0.92rem; }
+.small{ font-size:0.88rem; }
+
+/* Responsive */
+@media (max-width: 992px){
+  .action-bar{ flex-direction:column; align-items:stretch; gap:10px; padding:12px; }
+  .search-container input{ width:100%; max-width:540px; }
+  .permissions-table{ min-width:640px; display:block; overflow:auto; border-radius:8px; }
+  .card-surface{ margin-bottom:14px; }
+  .page-title{ font-size:1.2rem; }
+  .logout-btn{ width:100%; justify-content:center; }
+  .pagination-container{ flex-direction:column; align-items:stretch; gap:10px; text-align:center; }
 }
 
-.pagination-info {
-    color: #666;
-    font-size: 14px;
-}
-
-.pagination {
-    display: flex;
-    gap: 5px;
-}
-
-.btn-pagination {
-    width: 40px;
-    height: 40px;
-    border: 1px solid #ddd;
-    background-color: white;
-    border-radius: 6px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    font-size: 14px;
-}
-
-.btn-pagination:hover:not(:disabled) {
-    background-color: #f8f9fa;
-    border-color: #b30000;
-}
-
-.btn-pagination.active {
-    background-color: #b30000;
-    color: white;
-    border-color: #b30000;
-}
-
-.btn-pagination:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-/* Checkbox Styles */
-input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    accent-color: #b30000;
-    cursor: pointer;
-}
-
-@media (max-width: 768px) {
-    .table-container {
-        overflow-x: auto;
-    }
-    .permissions-table {
-        min-width: 600px;
-    }
-    .action-bar {
-        flex-direction: column;
-        gap: 15px;
-        align-items: stretch;
-    }
-    .search-container input {
-        width: 100%;
-    }
-    .logout-btn {
-        width: 100%;
-        justify-content: center;
-        margin-left: 0;
-        margin-top: 10px;
-    }
-    .pagination-container {
-        flex-direction: column;
-        gap: 15px;
-        text-align: center;
-    }
+@media (max-width: 576px){
+  :root{ --gap:8px; }
+  .search-container input{ padding-left:38px; font-size:0.92rem; }
+  .btn-icon{ width:34px; height:34px; }
+  .permissions-table thead th{ font-size:0.88rem; padding:10px 8px; }
+  .permissions-table tbody td{ padding:10px 8px; font-size:0.9rem; }
 }
