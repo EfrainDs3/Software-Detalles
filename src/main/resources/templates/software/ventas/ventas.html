@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Ventas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../../static/css/dashboard.css">
+    <link rel="stylesheet" href="../../../static/css/ventas.css">
+</head>
+<body>
+
+    <div id="sidebar-container"></div>
+ 
+    <main class="main-content">
+
+        <div class="top-bar">
+            <div class="page-header">
+                <div class="breadcrumb">
+                    <a href="../../dashboard.html" class="breadcrumb-link">
+                        Dashboard
+                    </a>
+                    <span class="breadcrumb-separator">/</span>
+                    <span class="breadcrumb-current">Ventas</span>
+                </div>
+                <h2 class="main-title">Gestión de Ventas</h2>
+                <p class="page-subtitle">Administra el historial de ventas y transacciones</p>
+            </div>
+            <button class="logout-btn">
+                Cerrar Sesión
+            </button>
+        </div>
+
+        <div class="action-bar">
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Buscar ventas...">
+            </div>
+            <div class="action-buttons">
+                <button class="btn btn-secondary" id="filterBtn">
+                    <i class="fas fa-filter"></i>
+                    Filtros
+                </button>
+                <button class="btn btn-primary" id="addVentaBtn">
+                    <i class="fas fa-plus"></i>
+                    Nueva Venta
+                </button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table class="ventas-table">
+                <thead>
+                    <tr>
+                        <th>
+                            <input type="checkbox" id="selectAll">
+                        </th>
+                        <th>ID</th>
+                        <th>Cliente</th>
+                        <th>Fecha</th>
+                        <th>Método de Pago</th>
+                        <th>Estado</th>
+                        <th>Total</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="ventasTableBody">
+                    </tbody>
+            </table>
+        </div>
+
+        <div class="pagination-container">
+            <div class="pagination-info">
+                Mostrando 1-3 de 3 ventas
+            </div>
+            <div class="pagination">
+                <button class="btn-pagination" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="btn-pagination active">1</button>
+                <button class="btn-pagination" disabled>
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <div id="ventaModal" class="modal">
+        <div class="modal-content venta-modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Nueva Venta</h3>
+                <button class="modal-close" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="ventaForm" class="modal-body">
+                <input type="hidden" id="ventaId" name="id">
+                
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-file-invoice"></i>
+                        Detalles de la Venta
+                    </h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="ventaCliente">Cliente *</label>
+                            <input type="text" id="ventaCliente" name="cliente" required placeholder="Ej: Juan Pérez">
+                        </div>
+                        <div class="form-group">
+                            <label for="ventaFecha">Fecha *</label>
+                            <input type="date" id="ventaFecha" name="fecha" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="ventaMetodoPago">Método de Pago *</label>
+                            <select id="ventaMetodoPago" name="metodoPago" required>
+                                <option value="">Seleccionar método</option>
+                                <option value="Tarjeta">Tarjeta</option>
+                                <option value="Efectivo">Efectivo</option>
+                                <option value="Transferencia">Transferencia</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="ventaEstado">Estado *</label>
+                            <select id="ventaEstado" name="estado" required>
+                                <option value="">Seleccionar estado</option>
+                                <option value="Completada">Completada</option>
+                                <option value="Pendiente">Pendiente</option>
+                                <option value="Cancelada">Cancelada</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-shopping-cart"></i>
+                        Productos
+                    </h4>
+                    <div id="productosContainer">
+                        </div>
+                    <button type="button" class="btn btn-secondary mt-3" id="addProductBtn">
+                        <i class="fas fa-plus"></i>
+                        Agregar Producto
+                    </button>
+                    <div class="total-summary mt-3">
+                        <strong>Total: </strong><span id="ventaTotal">S/ 0.00</span>
+                    </div>
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelBtn">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </button>
+                <button type="submit" form="ventaForm" class="btn btn-primary" id="saveBtn">
+                    <i class="fas fa-save"></i>
+                    Guardar Venta
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../../static/js/sidebar.js"></script>
+    <script src="../../../static/js/logout.js"></script>
+    <script src="../../../static/js/ventas.js"></script>
+</body>
+</html>
