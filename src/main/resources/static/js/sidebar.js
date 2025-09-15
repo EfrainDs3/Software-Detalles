@@ -210,18 +210,24 @@ function getFallbackSidebar() {
             permisosLink = '../usuarios/permisos.html';
             clientesLink = 'clientes.html';
         }
+        // Si estamos en ventas
+        else if (currentPath.includes('/ventas/')) {
+            ventasLink = '../ventas/ventas.html';
+        }
     } else if (currentPath.includes('/templates/')) {
         dashboardLink = 'dashboard.html';
         usuariosLink = 'software/usuarios/usuario.html';
         rolesLink = 'software/usuarios/roles.html';
         permisosLink = 'software/usuarios/permisos.html';
         clientesLink = 'software/clientes/clientes.html';
+        ventasLink = 'software/ventas/ventas.html';
     } else {
         dashboardLink = 'templates/dashboard.html';
         usuariosLink = 'templates/software/usuarios/usuario.html';
         rolesLink = 'templates/software/usuarios/roles.html';
         permisosLink = 'templates/software/usuarios/permisos.html';
         clientesLink = 'templates/software/clientes/clientes.html';
+        clientesLink = 'templates/software/ventas/ventas.html';
     }
     
     return `
