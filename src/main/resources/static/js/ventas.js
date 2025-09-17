@@ -267,4 +267,39 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Iniciar la aplicación renderizando la tabla con los datos iniciales
     renderVentas();
+
+    // --- Seleccionar/Deseleccionar todos los checkboxes ---
+const selectAll = document.getElementById('selectAll');
+
+function updateSelectAllCheckbox() {
+    const checkboxes = ventasTableBody.querySelectorAll('.venta-checkbox');
+    if (checkboxes.length === 0) {
+        selectAll.checked = false;
+        selectAll.indeterminate = false;
+        return;
+    }
+    const checked = Array.from(checkboxes).filter(cb => cb.checked).length;
+    selectAll.checked = checked === checkboxes.length;
+    selectAll.indeterminate = checked > 0 && checked < checkboxes.length;
+}
+
+// Evento para seleccionar/deseleccionar todos
+selectAll.addEventListener('change', function () {
+    const checkboxes = ventasTableBody.querySelectorAll('.venta-checkbox');
+    checkboxes.forEach(cb => cb.checked = selectAll.checked);
+});
+
+// Delegación para actualizar el estado del checkbox "selectAll"
+ventasTableBody.addEventListener('change', function (e) {
+    if (e.target.classList.contains('venta-checkbox')) {
+        updateSelectAllCheckbox();
+    }
+});
+
+// Actualizar el estado del checkbox "selectAll" cada vez que se renderiza la tabla
+const originalRenderVentas = renderVentas;
+renderVentas = function () {
+    originalRenderVentas();
+    updateSelectAllCheckbox();
+};
 });
