@@ -162,8 +162,44 @@
         </div>
     </div>
 
+    <div id="detalleVentaModal" class="modal">
+        <div class="modal-content detalle-venta-modal-content">
+            <div class="modal-header">
+                <h3 id="detalleModalTitle">Detalles de la Venta</h3>
+                <button class="modal-close" id="closeDetalleModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="detalle-venta-info">
+                    <p><strong>ID de Venta:</strong> <span id="detalleVentaId"></span></p>
+                    <p><strong>Cliente:</strong> <span id="detalleVentaCliente"></span></p>
+                    <p><strong>Fecha:</strong> <span id="detalleVentaFecha"></span></p>
+                    <p><strong>Método de Pago:</strong> <span id="detalleVentaMetodoPago"></span></p>
+                    <p><strong>Estado:</strong> <span id="detalleVentaEstado"></span></p>
+                    <p><strong>Total:</strong> <span id="detalleVentaTotal"></span></p>
+                </div>
+                
+                <hr class="detalle-divider">
+
+                <div class="detalle-productos-container">
+                    <h4><i class="fas fa-shopping-cart"></i> Productos Incluidos</h4>
+                    <ul id="detalleProductosList" class="detalle-productos-list">
+                        </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="aceptarDetalleBtn">
+                    <i class="fas fa-check"></i>
+                    Aceptar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="../../../static/js/sidebar.js"></script>
     <script src="../../../static/js/logout.js"></script>
     <script src="../../../static/js/ventas.js"></script>
+    <script src="../../../static/js/caja.js"></script>
 </body>
 </html>

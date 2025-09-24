@@ -19,6 +19,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const ventaMetodoPagoSelect = document.getElementById('ventaMetodoPago');
     const ventaEstadoSelect = document.getElementById('ventaEstado');
 
+    // para el detalle dde la venta
+    const detalleVentaModal = document.getElementById('detalleVentaModal');
+    const closeDetalleModalBtn = document.getElementById('closeDetalleModal');
+    const aceptarDetalleBtn = document.getElementById('aceptarDetalleBtn');
+    const detalleVentaId = document.getElementById('detalleVentaId');
+    const detalleVentaCliente = document.getElementById('detalleVentaCliente');
+    const detalleVentaFecha = document.getElementById('detalleVentaFecha');
+    const detalleVentaMetodoPago = document.getElementById('detalleVentaMetodoPago');
+    const detalleVentaEstado = document.getElementById('detalleVentaEstado');
+    const detalleVentaTotal = document.getElementById('detalleVentaTotal');
+    const detalleProductosList = document.getElementById('detalleProductosList');
+
     // --- Datos de Ejemplo (Simulación de una API) ---
     let ventasData = [
         {
@@ -152,6 +164,27 @@ document.addEventListener('DOMContentLoaded', () => {
         calculateTotal();
     }
 
+    function showDetalleModal(venta) {
+        detalleVentaId.textContent = venta.id;
+        detalleVentaCliente.textContent = venta.cliente;
+        detalleVentaFecha.textContent = venta.fecha;
+        detalleVentaMetodoPago.textContent = venta.metodoPago;
+        detalleVentaEstado.textContent = venta.estado;
+        detalleVentaTotal.textContent = `S/ ${venta.total.toFixed(2)}`;
+
+        detalleProductosList.innerHTML = ''; // Limpiar la lista anterior
+        venta.productos.forEach(producto => {
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <span>${producto.cantidad} x ${producto.nombre}</span>
+                <strong>S/ ${(producto.cantidad * producto.precio).toFixed(2)}</strong>
+            `;
+            detalleProductosList.appendChild(li);
+        });
+
+        detalleVentaModal.style.display = 'block';
+    }
+
     // Función para llenar el modal con datos de una venta
     function fillForm(venta) {
         ventaIdInput.value = venta.id;
@@ -253,14 +286,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const ventaToView = ventasData.find(v => v.id === ventaId);
             if (ventaToView) {
                 let detallesProductos = ventaToView.productos.map(p => ` - ${p.nombre} (${p.cantidad} unidades a S/ ${p.precio.toFixed(2)} c/u)`).join('\n');
-                alert(`Detalles de la Venta:
-                ID: ${ventaToView.id}
-                Cliente: ${ventaToView.cliente}
-                Fecha: ${ventaToView.fecha}
-                Total: S/ ${ventaToView.total.toFixed(2)}
+                showDetalleModal(ventaToView);
                 
-                Productos:
-                ${detallesProductos}`);
+                //alert(`Detalles de la Venta:
+                //ID: ${ventaToView.id}
+                //Cliente: ${ventaToView.cliente}
+                //Fecha: ${ventaToView.fecha}
+                //Total: S/ ${ventaToView.total.toFixed(2)}
+                
+                //Productos:
+                //${detallesProductos}`);
             }
         }
     });
@@ -268,38 +303,63 @@ document.addEventListener('DOMContentLoaded', () => {
     // Iniciar la aplicación renderizando la tabla con los datos iniciales
     renderVentas();
 
-    // --- Seleccionar/Deseleccionar todos los checkboxes ---
-const selectAll = document.getElementById('selectAll');
+        // --- Seleccionar/Deseleccionar todos los checkboxes ---
+    const selectAll = document.getElementById('selectAll');
 
-function updateSelectAllCheckbox() {
-    const checkboxes = ventasTableBody.querySelectorAll('.venta-checkbox');
-    if (checkboxes.length === 0) {
-        selectAll.checked = false;
-        selectAll.indeterminate = false;
-        return;
+    function updateSelectAllCheckbox() {
+        const checkboxes = ventasTableBody.querySelectorAll('.venta-checkbox');
+        if (checkboxes.length === 0) {
+            selectAll.checked = false;
+            selectAll.indeterminate = false;
+            return;
+        }
+        const checked = Array.from(checkboxes).filter(cb => cb.checked).length;
+        selectAll.checked = checked === checkboxes.length;
+        selectAll.indeterminate = checked > 0 && checked < checkboxes.length;
     }
-    const checked = Array.from(checkboxes).filter(cb => cb.checked).length;
-    selectAll.checked = checked === checkboxes.length;
-    selectAll.indeterminate = checked > 0 && checked < checkboxes.length;
-}
 
-// Evento para seleccionar/deseleccionar todos
-selectAll.addEventListener('change', function () {
-    const checkboxes = ventasTableBody.querySelectorAll('.venta-checkbox');
-    checkboxes.forEach(cb => cb.checked = selectAll.checked);
-});
+    // Evento para seleccionar/deseleccionar todos
+    selectAll.addEventListener('change', function () {
+        const checkboxes = ventasTableBody.querySelectorAll('.venta-checkbox');
+        checkboxes.forEach(cb => cb.checked = selectAll.checked);
+    });
 
-// Delegación para actualizar el estado del checkbox "selectAll"
-ventasTableBody.addEventListener('change', function (e) {
-    if (e.target.classList.contains('venta-checkbox')) {
+    // Delegación para actualizar el estado del checkbox "selectAll"
+    ventasTableBody.addEventListener('change', function (e) {
+        if (e.target.classList.contains('venta-checkbox')) {
+            updateSelectAllCheckbox();
+        }
+    });
+
+    // Actualizar el estado del checkbox "selectAll" cada vez que se renderiza la tabla
+    const originalRenderVentas = renderVentas;
+    renderVentas = function () {
+        originalRenderVentas();
         updateSelectAllCheckbox();
-    }
-});
+    };
 
-// Actualizar el estado del checkbox "selectAll" cada vez que se renderiza la tabla
-const originalRenderVentas = renderVentas;
-renderVentas = function () {
-    originalRenderVentas();
-    updateSelectAllCheckbox();
-};
+    //EL DETALLE DE LA VENTA
+    closeDetalleModalBtn.addEventListener('click', () => {
+        detalleVentaModal.style.display = 'none';
+    });
+
+    aceptarDetalleBtn.addEventListener('click', () => {
+        detalleVentaModal.style.display = 'none';
+    });
+
+    // También agrega la lógica para cerrar el modal al hacer clic fuera
+    window.addEventListener('click', (event) => {
+        if (event.target === detalleVentaModal) {
+            detalleVentaModal.style.display = 'none';
+        }
+    });
+
+    // Agrega este bloque de código al final de tu archivo ventas.js
+
+    window.addEventListener('click', (event) => {
+        // Si el clic ocurrió fuera del contenido del modal
+        if (event.target === detalleVentaModal) {
+            detalleVentaModal.style.display = 'none';
+        }
+    });
 });
