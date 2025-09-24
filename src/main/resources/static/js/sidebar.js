@@ -106,6 +106,7 @@ function getCurrentPage() {
         'accesorios.html': 'accesorios',
         'clientes.html': 'clientes',
         'ventas.html': 'ventas',
+        'caja.html': 'caja',
         'stock.html': 'stock',
         'reportes.html': 'reportes',
         'auditoria.html': 'auditoria',
@@ -273,7 +274,18 @@ function getFallbackSidebar() {
                 <li><a href="#" data-page="ventas">
                     <i class="fas fa-shopping-cart"></i>
                     Ventas
-                </a></li>
+                    <i class="fas fa-chevron-down submenu-arrow"></i>
+                </a>
+                <ul class="submenu">
+                    <li>
+                        <a href=".../ventas/caja.html" data-page="caja">
+                            <i class="fas fa-cash-register"></i>
+                            Caja
+                        </a>
+                    </li>
+                </ul>
+                
+                </li>
                 <li><a href="#" data-page="stock">
                     <i class="fas fa-warehouse"></i>
                     Stock
