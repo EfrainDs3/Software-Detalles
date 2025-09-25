@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Compras</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../../static/css/dashboard.css">
+    <link rel="stylesheet" href="../../../static/css/compras.css">
+</head>
+<body>
+
+    <div id="sidebar-container"></div>
+ 
+    <main class="main-content">
+
+        <div class="top-bar">
+            <div class="page-header">
+                <div class="breadcrumb">
+                    <a href="../../dashboard.html" class="breadcrumb-link">
+                        Dashboard
+                    </a>
+                    <span class="breadcrumb-separator">/</span>
+                    <span class="breadcrumb-current">Compras</span>
+                </div>
+                <h2 class="main-title">Gestión de Compras</h2>
+                <p class="page-subtitle">Administra el historial de compras y adquisiciones</p>
+            </div>
+            <button class="logout-btn">
+                Cerrar Sesión
+            </button>
+        </div>
+
+        <div class="action-bar">
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Buscar compras...">
+            </div>
+            <div class="action-buttons">
+                <button class="btn btn-secondary" id="filterBtn">
+                    <i class="fas fa-filter"></i>
+                    Filtros
+                </button>
+                <button class="btn btn-primary" id="addCompraBtn">
+                    <i class="fas fa-plus"></i>
+                    Nueva Compra
+                </button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table class="compras-table">
+                <thead>
+                    <tr>
+                        <th>
+                            <input type="checkbox" id="selectAll">
+                        </th>
+                        <th>ID</th>
+                        <th>Proveedor</th>
+                        <th>Fecha</th>
+                        <th>Método de Pago</th>
+                        <th>Estado</th>
+                        <th>Total</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="comprasTableBody">
+                    </tbody>
+            </table>
+        </div>
+
+        <div class="pagination-container">
+            <div class="pagination-info">
+                Mostrando 1-3 de 3 compras
+            </div>
+            <div class="pagination">
+                <button class="btn-pagination" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="btn-pagination active">1</button>
+                <button class="btn-pagination" disabled>
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <div id="compraModal" class="modal">
+        <div class="modal-content compra-modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Nueva Compra</h3>
+                <button class="modal-close" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="compraForm" class="modal-body">
+                <input type="hidden" id="compraId" name="id">
+                
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-file-invoice"></i>
+                        Detalles de la Compra
+                    </h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="compraProveedor">Proveedor *</label>
+                            <input type="text" id="compraProveedor" name="proveedor" required placeholder="Ej: Distribuidora ABC">
+                        </div>
+                        <div class="form-group">
+                            <label for="compraFecha">Fecha *</label>
+                            <input type="date" id="compraFecha" name="fecha" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="compraMetodoPago">Método de Pago *</label>
+                            <select id="compraMetodoPago" name="metodoPago" required>
+                                <option value="">Seleccionar método</option>
+                                <option value="Transferencia">Transferencia</option>
+                                <option value="Cheque">Cheque</option>
+                                <option value="Efectivo">Efectivo</option>
+                                <option value="Crédito">Crédito</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="compraEstado">Estado *</label>
+                            <select id="compraEstado" name="estado" required>
+                                <option value="">Seleccionar estado</option>
+                                <option value="Recibida">Recibida</option>
+                                <option value="Pendiente">Pendiente</option>
+                                <option value="En Tránsito">En Tránsito</option>
+                                <option value="Cancelada">Cancelada</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-boxes"></i>
+                        Productos
+                    </h4>
+                    <div id="productosContainer">
+                        </div>
+                    <button type="button" class="btn btn-secondary mt-3" id="addProductBtn">
+                        <i class="fas fa-plus"></i>
+                        Agregar Producto
+                    </button>
+                    <div class="total-summary mt-3">
+                        <strong>Total: </strong><span id="compraTotal">S/ 0.00</span>
+                    </div>
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelBtn">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </button>
+                <button type="submit" form="compraForm" class="btn btn-primary" id="saveBtn">
+                    <i class="fas fa-save"></i>
+                    Guardar Compra
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="detalleCompraModal" class="modal">
+        <div class="modal-content detalle-compra-modal-content">
+            <div class="modal-header">
+                <h3 id="detalleModalTitle">Detalles de la Compra</h3>
+                <button class="modal-close" id="closeDetalleModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="detalle-compra-info">
+                    <p><strong>ID de Compra:</strong> <span id="detalleCompraId"></span></p>
+                    <p><strong>Proveedor:</strong> <span id="detalleCompraProveedor"></span></p>
+                    <p><strong>Fecha:</strong> <span id="detalleCompraFecha"></span></p>
+                    <p><strong>Método de Pago:</strong> <span id="detalleCompraMetodoPago"></span></p>
+                    <p><strong>Estado:</strong> <span id="detalleCompraEstado"></span></p>
+                    <p><strong>Total:</strong> <span id="detalleCompraTotal"></span></p>
+                </div>
+                
+                <hr class="detalle-divider">
+
+                <div class="detalle-productos-container">
+                    <h4><i class="fas fa-boxes"></i> Productos Incluidos</h4>
+                    <ul id="detalleProductosList" class="detalle-productos-list">
+                        </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="aceptarDetalleBtn">
+                    <i class="fas fa-check"></i>
+                    Aceptar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../../static/js/sidebar.js"></script>
+    <script src="../../../static/js/logout.js"></script>
+    <script src="../../../static/js/compras.js"></script>
+    <script src="../../../static/js/caja.js"></script>
+</body>
+</html>

@@ -76,9 +76,31 @@
         </li>
 
         <li>
-            <a href="#" data-page="stock">
+            <a href="#" data-page="compras" class="has-submenu">
+                <i class="fas fa-truck"></i>
+                Compras
+                <i class="fas fa-chevron-down submenu-arrow"></i>
+            </a>
+            <ul class="submenu">
+                <li>
+                    <a href="/src/main/resources/templates/software/compras/compras.html" data-page="gestion-compras">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                        Gestión de Compras
+                    </a>
+                </li>
+                <li>
+                    <a href="/src/main/resources/templates/software/compras/proveedores.html" data-page="proveedores">
+                        <i class="fas fa-industry"></i>
+                        Proveedores
+                    </a>
+                </li>
+            </ul>
+        </li>
+
+        <li>
+            <a href="#" data-page="inventario">
             <i class="fas fa-warehouse"></i>
-            Stock
+            Inventario
             </a>
         </li>
 
