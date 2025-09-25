@@ -1,4 +1,4 @@
-/* Compras Module Styles (extends base dashboard styles) */
+/* Proveedores Module Styles (extends base dashboard styles) */
 
 /* General Elements */
 .page-header {
@@ -133,12 +133,12 @@
     margin-bottom: 20px;
 }
 
-.compras-table {
+.proveedores-table {
     width: 100%;
     border-collapse: collapse;
 }
 
-.compras-table th {
+.proveedores-table th {
     background-color: #f8f9fa;
     padding: 15px 12px;
     text-align: left;
@@ -148,38 +148,14 @@
     font-size: 14px;
 }
 
-.compras-table td {
+.proveedores-table td {
     padding: 15px 12px;
     border-bottom: 1px solid #f0f0f0;
     vertical-align: middle;
 }
 
-.compras-table tbody tr:hover {
+.proveedores-table tbody tr:hover {
     background-color: #f8f9fa;
-}
-
-/* Table Badges */
-.status-badge {
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 500;
-    text-transform: capitalize;
-}
-
-.status-badge.completado { background-color: #28a745; color: white; }
-.status-badge.pendiente { background-color: #ffc107; color: #333; }
-.status-badge.cancelado { background-color: #dc3545; color: white; }
-
-/* Text alignment utilities */
-.text-center { text-align: center; }
-.text-right { text-align: right; }
-.text-left { text-align: left; }
-
-.price {
-    font-weight: 600;
-    font-size: 16px;
-    color: #28a745;
 }
 
 /* Action Buttons Cell */
@@ -307,8 +283,8 @@
     animation: modalSlideIn 0.3s ease;
 }
 
-.compra-modal-content {
-    max-width: 800px;
+.proveedor-modal-content {
+    max-width: 900px;
 }
 
 @keyframes modalSlideIn {
@@ -391,6 +367,10 @@
     flex-direction: column;
 }
 
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
 .form-group label {
     margin-bottom: 8px;
     font-weight: 500;
@@ -448,70 +428,84 @@
     margin-right: 5px;
 }
 
-/* Product list inside modal */
-.product-item {
+/* Payment Methods Section */
+.payment-methods-container {
     display: grid;
-    grid-template-columns: 2fr 100px 100px 100px 40px;
+    grid-template-columns: 1fr 1fr;
     gap: 15px;
-    align-items: center;
-    margin-bottom: 15px;
-    padding: 15px;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    background-color: white;
 }
 
-.product-item input,
-.product-item select {
+.payment-method-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 15px;
+    background-color: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.payment-method-item:hover {
+    border-color: #b30000;
+    background-color: #fafafa;
+}
+
+.payment-method-item input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: #b30000;
+}
+
+.payment-method-item label {
+    font-weight: 500;
+    color: #333;
+    min-width: 140px;
     margin: 0;
 }
 
-.product-item .form-group {
-    margin-bottom: 0;
+.payment-data {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 13px;
+    transition: border-color 0.3s ease;
 }
 
-.product-name-input {
-    width: 100%;
+.payment-data:focus {
+    outline: none;
+    border-color: #b30000;
 }
 
-.product-price-input,
-.product-qty-input,
-.product-received-input {
-    text-align: right;
-}
-
-.total-summary {
-    text-align: right;
-    font-size: 1.1rem;
-    padding: 20px;
-    border-top: 2px solid #e0e0e0;
+.payment-data:disabled {
     background-color: #f8f9fa;
-    border-radius: 8px;
-    margin-top: 20px;
+    color: #666;
 }
 
-.summary-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 8px;
-    padding: 5px 0;
+/* Detail Modal Styles */
+.detalle-proveedor-modal-content {
+    max-width: 700px;
 }
 
-.total-row {
-    border-top: 2px solid #b30000;
-    padding-top: 10px;
-    margin-top: 10px;
-    font-size: 1.3rem;
+.detalle-proveedor-info p {
+    margin: 8px 0;
+    font-size: 16px;
+    color: #555;
 }
 
-/* Form textarea styles */
-.form-group textarea {
-    resize: vertical;
-    min-height: 60px;
-    font-family: inherit;
+.detalle-proveedor-info p strong {
+    color: #333;
+    font-weight: 600;
 }
 
-/* Info grid for detail modal */
+.detalle-divider {
+    border: 0;
+    height: 1px;
+    background-color: #ddd;
+    margin: 20px 0;
+}
+
 .info-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -543,82 +537,7 @@
     min-width: 120px;
 }
 
-/* Detail products table */
-.productos-table-container {
-    overflow-x: auto;
-    margin: 15px 0;
-}
-
-.detalle-productos-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-}
-
-.detalle-productos-table th {
-    background-color: #f8f9fa;
-    padding: 12px 8px;
-    text-align: left;
-    font-weight: 600;
-    color: #333;
-    border-bottom: 2px solid #e0e0e0;
-}
-
-.detalle-productos-table td {
-    padding: 12px 8px;
-    border-bottom: 1px solid #f0f0f0;
-    vertical-align: middle;
-}
-
-.detalle-productos-table tr:hover {
-    background-color: #f8f9fa;
-}
-
-.totales-detalle {
-    background-color: #f8f9fa;
-    padding: 15px;
-    border-radius: 8px;
-    margin-top: 15px;
-}
-
-.totales-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 8px;
-    font-size: 14px;
-}
-
-.total-final {
-    border-top: 2px solid #b30000;
-    padding-top: 10px;
-    margin-top: 10px;
-    font-size: 16px;
-}
-
-/* Estilos para el nuevo modal de detalles de la compra */
-.detalle-compra-modal-content {
-    max-width: 600px;
-}
-
-.detalle-compra-info p {
-    margin: 8px 0;
-    font-size: 16px;
-    color: #555;
-}
-
-.detalle-compra-info p strong {
-    color: #333;
-    font-weight: 600;
-}
-
-.detalle-divider {
-    border: 0;
-    height: 1px;
-    background-color: #ddd;
-    margin: 20px 0;
-}
-
-.detalle-productos-container h4 {
+.detalle-metodos-container h4 {
     margin-bottom: 15px;
     font-size: 18px;
     color: #333;
@@ -627,28 +546,45 @@
     gap: 10px;
 }
 
-.detalle-productos-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+.detalle-metodos-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
 }
 
-.detalle-productos-list li {
+.metodo-item {
     background-color: #f8f9fa;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
-    padding: 12px 15px;
-    margin-bottom: 10px;
+    padding: 15px;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.metodo-nombre {
+    font-weight: 600;
+    color: #b30000;
     font-size: 15px;
 }
 
-.detalle-productos-list li strong {
-    color: #b30000;
+.metodo-datos {
+    color: #666;
+    font-size: 14px;
+    font-style: italic;
 }
 
-.detalle-productos-list li span {
-    color: #666;
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .payment-methods-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .detalle-metodos-list {
+        grid-template-columns: 1fr;
+    }
 }

@@ -55,9 +55,11 @@
                         <th>
                             <input type="checkbox" id="selectAll">
                         </th>
-                        <th>ID</th>
+                        <th>ID Pedido</th>
                         <th>Proveedor</th>
-                        <th>Fecha</th>
+                        <th>RUC</th>
+                        <th>Fecha Pedido</th>
+                        <th>Fecha Entrega</th>
                         <th>Método de Pago</th>
                         <th>Estado</th>
                         <th>Total</th>
@@ -104,11 +106,27 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="compraProveedor">Proveedor *</label>
-                            <input type="text" id="compraProveedor" name="proveedor" required placeholder="Ej: Distribuidora ABC">
+                            <select id="compraProveedor" name="proveedor" required>
+                                <option value="">Seleccionar proveedor</option>
+                                <option value="1">Distribuidora Nike S.A.</option>
+                                <option value="2">Calzados Premium Ltda.</option>
+                                <option value="3">Accesorios Fashion</option>
+                                <option value="4">Sportswear Internacional</option>
+                            </select>
                         </div>
                         <div class="form-group">
-                            <label for="compraFecha">Fecha *</label>
-                            <input type="date" id="compraFecha" name="fecha" required>
+                            <label for="compraRuc">RUC del Proveedor</label>
+                            <input type="text" id="compraRuc" name="ruc" placeholder="Ej: 20123456789" readonly>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="compraFechaPedido">Fecha de Pedido *</label>
+                            <input type="date" id="compraFechaPedido" name="fechaPedido" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="compraFechaEntrega">Fecha Entrega Esperada</label>
+                            <input type="date" id="compraFechaEntrega" name="fechaEntrega">
                         </div>
                     </div>
                     <div class="form-row">
@@ -116,21 +134,31 @@
                             <label for="compraMetodoPago">Método de Pago *</label>
                             <select id="compraMetodoPago" name="metodoPago" required>
                                 <option value="">Seleccionar método</option>
-                                <option value="Transferencia">Transferencia</option>
+                                <option value="Transferencia">Transferencia Bancaria</option>
                                 <option value="Cheque">Cheque</option>
                                 <option value="Efectivo">Efectivo</option>
-                                <option value="Crédito">Crédito</option>
+                                <option value="Crédito">Crédito 30 días</option>
+                                <option value="Crédito60">Crédito 60 días</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="compraEstado">Estado *</label>
+                            <label for="compraEstado">Estado del Pedido *</label>
                             <select id="compraEstado" name="estado" required>
                                 <option value="">Seleccionar estado</option>
-                                <option value="Recibida">Recibida</option>
                                 <option value="Pendiente">Pendiente</option>
-                                <option value="En Tránsito">En Tránsito</option>
-                                <option value="Cancelada">Cancelada</option>
+                                <option value="Completado">Completado</option>
+                                <option value="Cancelado">Cancelado</option>
                             </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="compraReferencia">Referencia/Nº Cotización</label>
+                            <input type="text" id="compraReferencia" name="referencia" placeholder="Ej: COT-2025-001">
+                        </div>
+                        <div class="form-group">
+                            <label for="compraObservaciones">Observaciones</label>
+                            <textarea id="compraObservaciones" name="observaciones" rows="2" placeholder="Notas adicionales..."></textarea>
                         </div>
                     </div>
                 </div>
@@ -138,7 +166,7 @@
                 <div class="form-section">
                     <h4 class="section-title">
                         <i class="fas fa-boxes"></i>
-                        Productos
+                        Productos del Pedido
                     </h4>
                     <div id="productosContainer">
                         </div>
@@ -147,7 +175,18 @@
                         Agregar Producto
                     </button>
                     <div class="total-summary mt-3">
-                        <strong>Total: </strong><span id="compraTotal">S/ 0.00</span>
+                        <div class="summary-row">
+                            <span>Subtotal:</span>
+                            <span id="compraSubtotal">S/ 0.00</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>IGV (18%):</span>
+                            <span id="compraIgv">S/ 0.00</span>
+                        </div>
+                        <div class="summary-row total-row">
+                            <strong>Total: </strong>
+                            <strong id="compraTotal">S/ 0.00</strong>
+                        </div>
                     </div>
                 </div>
             </form>
@@ -174,20 +213,59 @@
             </div>
             <div class="modal-body">
                 <div class="detalle-compra-info">
-                    <p><strong>ID de Compra:</strong> <span id="detalleCompraId"></span></p>
-                    <p><strong>Proveedor:</strong> <span id="detalleCompraProveedor"></span></p>
-                    <p><strong>Fecha:</strong> <span id="detalleCompraFecha"></span></p>
-                    <p><strong>Método de Pago:</strong> <span id="detalleCompraMetodoPago"></span></p>
-                    <p><strong>Estado:</strong> <span id="detalleCompraEstado"></span></p>
-                    <p><strong>Total:</strong> <span id="detalleCompraTotal"></span></p>
+                    <div class="info-grid">
+                        <div class="info-section">
+                            <h5><i class="fas fa-receipt"></i> Información del Pedido</h5>
+                            <p><strong>ID de Pedido:</strong> <span id="detalleCompraId"></span></p>
+                            <p><strong>Fecha de Pedido:</strong> <span id="detalleCompraFechaPedido"></span></p>
+                            <p><strong>Fecha de Entrega:</strong> <span id="detalleCompraFechaEntrega"></span></p>
+                            <p><strong>Referencia:</strong> <span id="detalleCompraReferencia"></span></p>
+                            <p><strong>Estado:</strong> <span id="detalleCompraEstado"></span></p>
+                        </div>
+                        <div class="info-section">
+                            <h5><i class="fas fa-industry"></i> Información del Proveedor</h5>
+                            <p><strong>Proveedor:</strong> <span id="detalleCompraProveedor"></span></p>
+                            <p><strong>RUC:</strong> <span id="detalleCompraRuc"></span></p>
+                            <p><strong>Método de Pago:</strong> <span id="detalleCompraMetodoPago"></span></p>
+                            <p><strong>Observaciones:</strong> <span id="detalleCompraObservaciones"></span></p>
+                        </div>
+                    </div>
                 </div>
                 
                 <hr class="detalle-divider">
 
                 <div class="detalle-productos-container">
-                    <h4><i class="fas fa-boxes"></i> Productos Incluidos</h4>
-                    <ul id="detalleProductosList" class="detalle-productos-list">
-                        </ul>
+                    <h4><i class="fas fa-boxes"></i> Productos del Pedido</h4>
+                    <div class="productos-table-container">
+                        <table class="detalle-productos-table">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Cant. Pedida</th>
+                                    <th>Cant. Recibida</th>
+                                    <th>Costo Unit.</th>
+                                    <th>Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody id="detalleProductosTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="totales-detalle">
+                        <div class="totales-row">
+                            <span>Subtotal:</span>
+                            <span id="detalleCompraSubtotal">S/ 0.00</span>
+                        </div>
+                        <div class="totales-row">
+                            <span>IGV (18%):</span>
+                            <span id="detalleCompraIgv">S/ 0.00</span>
+                        </div>
+                        <div class="totales-row total-final">
+                            <strong>Total:</strong>
+                            <strong id="detalleCompraTotal">S/ 0.00</strong>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
