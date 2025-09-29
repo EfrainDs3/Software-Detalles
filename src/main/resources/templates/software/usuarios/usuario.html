@@ -238,6 +238,106 @@
         </div>
     </div>
 
+    <!-- Modal Editar Usuario -->
+    <div id="editUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Editar Usuario</h3>
+                <button class="modal-close" id="closeEditModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="editUserForm" class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editUserName">Nombre Completo *</label>
+                        <input type="text" id="editUserName" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editUserEmail">Email *</label>
+                        <input type="email" id="editUserEmail" name="email" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editUserRole">Rol *</label>
+                        <select id="editUserRole" name="role" required>
+                            <option value="admin">Administrador</option>
+                            <option value="manager">Gerente</option>
+                            <option value="user">Usuario</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editUserStatus">Estado</label>
+                        <select id="editUserStatus" name="status">
+                            <option value="active">Activo</option>
+                            <option value="inactive">Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editUserPassword">Contraseña</label>
+                        <input type="password" id="editUserPassword" name="password">
+                    </div>
+                    <div class="form-group">
+                        <label for="editConfirmPassword">Confirmar Contraseña</label>
+                        <input type="password" id="editConfirmPassword" name="confirmPassword">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editUserPhone">Teléfono</label>
+                    <input type="tel" id="editUserPhone" name="phone">
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelEditBtn">Cancelar</button>
+                <button type="submit" form="editUserForm" class="btn btn-primary" id="saveEditBtn">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Eliminar Usuario -->
+    <div id="deleteUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Eliminar Usuario</h3>
+                <button class="modal-close" id="closeDeleteModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar a <span id="deleteUserName"></span>? Esta acción no puede deshacerse.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelDeleteBtn">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmDeleteBtn">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Ver Usuario -->
+    <div id="viewUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Ver Usuario</h3>
+                <button class="modal-close" id="closeViewModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Nombre Completo:</strong> <span id="viewUserName"></span></p>
+                <p><strong>Email:</strong> <span id="viewUserEmail"></span></p>
+                <p><strong>Rol:</strong> <span id="viewUserRole"></span></p>
+                <p><strong>Estado:</strong> <span id="viewUserStatus"></span></p>
+                <p><strong>Teléfono:</strong> <span id="viewUserPhone"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="closeViewBtn">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
     <script src="../../../static/js/sidebar.js"></script>
     <script src="../../../static/js/logout.js"></script>
     <script src="../../../static/js/usuarios.js"></script>

@@ -192,6 +192,104 @@
         </div>
     </div>
 
+    <!-- Modal Editar Cliente -->
+    <div id="editClientModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Editar Cliente</h3>
+                <button class="modal-close" id="closeEditClientModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="editClientForm" class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editClientName">Nombre *</label>
+                        <input type="text" id="editClientName" name="nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editClientLastName">Apellido *</label>
+                        <input type="text" id="editClientLastName" name="apellido" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editClientDocType">Tipo de Documento *</label>
+                        <select id="editClientDocType" name="tipoDocumento" required>
+                            <option value="DNI">DNI</option>
+                            <option value="RUC">RUC</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editClientDocNumber">Nro Documento *</label>
+                        <input type="text" id="editClientDocNumber" name="nroDocumento" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editClientEmail">Email</label>
+                        <input type="email" id="editClientEmail" name="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="editClientPhone">Teléfono</label>
+                        <input type="text" id="editClientPhone" name="telefono">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editClientAddress">Dirección *</label>
+                    <textarea id="editClientAddress" name="direccion" rows="3" required></textarea>
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelEditClientBtn">Cancelar</button>
+                <button type="submit" form="editClientForm" class="btn btn-primary" id="saveEditClientBtn">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Eliminar Cliente -->
+    <div id="deleteClientModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Eliminar Cliente</h3>
+                <button class="modal-close" id="closeDeleteClientModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar a <span id="deleteClientName"></span>? Esta acción no puede deshacerse.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelDeleteClientBtn">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmDeleteClientBtn">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Ver Cliente -->
+    <div id="viewClientModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Ver Cliente</h3>
+                <button class="modal-close" id="closeViewClientModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Nombre:</strong> <span id="viewClientName"></span></p>
+                <p><strong>Apellido:</strong> <span id="viewClientLastName"></span></p>
+                <p><strong>Tipo de Documento:</strong> <span id="viewClientDocType"></span></p>
+                <p><strong>Nro Documento:</strong> <span id="viewClientDocNumber"></span></p>
+                <p><strong>Email:</strong> <span id="viewClientEmail"></span></p>
+                <p><strong>Teléfono:</strong> <span id="viewClientPhone"></span></p>
+                <p><strong>Dirección:</strong> <span id="viewClientAddress"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="closeViewClientBtn">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
     <script src="../../../static/js/sidebar.js"></script>
     <script src="../../../static/js/logout.js"></script>
     <script src="../../../static/js/clientes.js"></script>

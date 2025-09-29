@@ -344,6 +344,70 @@ function closeModal() {
     }
 }
 
+// Función para abrir un modal
+function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = "flex"; // Mostrar el modal
+    }
+}
+
+// Función para cerrar un modal
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = "none"; // Ocultar el modal
+    }
+}
+
+// Event Listeners para los botones de abrir y cerrar modales
+document.addEventListener("DOMContentLoaded", () => {
+    // Botón para abrir el modal de "Nuevo Usuario"
+    const addUserBtn = document.getElementById("addUserBtn");
+    if (addUserBtn) {
+        addUserBtn.addEventListener("click", () => openModal("userModal"));
+    }
+
+    // Botón para abrir el modal de "Editar Usuario"
+    const editButtons = document.querySelectorAll(".btn-edit");
+    editButtons.forEach((btn) => {
+        btn.addEventListener("click", () => openModal("editUserModal"));
+    });
+
+    // Botón para abrir el modal de "Eliminar Usuario"
+    const deleteButtons = document.querySelectorAll(".btn-delete");
+    deleteButtons.forEach((btn) => {
+        btn.addEventListener("click", () => openModal("deleteUserModal"));
+    });
+
+    // Botón para abrir el modal de "Ver Usuario"
+    const viewButtons = document.querySelectorAll(".btn-view");
+    viewButtons.forEach((btn) => {
+        btn.addEventListener("click", () => openModal("viewUserModal"));
+    });
+
+    // Botones para cerrar los modales
+    const closeButtons = document.querySelectorAll(".modal-close, .btn-secondary");
+    closeButtons.forEach((btn) => {
+        btn.addEventListener("click", (event) => {
+            const modal = event.target.closest(".modal");
+            if (modal) {
+                modal.style.display = "none";
+            }
+        });
+    });
+
+    // Cerrar el modal al hacer clic fuera del contenido
+    const modals = document.querySelectorAll(".modal");
+    modals.forEach((modal) => {
+        modal.addEventListener("click", (event) => {
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        });
+    });
+});
+
 // Form handling
 function handleFormSubmit(e) {
     e.preventDefault();
