@@ -1,4 +1,7 @@
-CREATE DATABASE DETALLES;
+-- Creación y selección de la Base de Datos
+IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'DETALLES')
+BEGIN
+    CREATE DATABASE DETALLES;
 END
 GO
 
@@ -149,7 +152,6 @@ CREATE TABLE MaterialesProducto (
 );
 GO
 
--- NUEVA TABLA: Catálogo para las unidades de medida.
 CREATE TABLE UnidadesMedida (
     id_unidad_medida INT IDENTITY(1,1) PRIMARY KEY,
     nombre_unidad VARCHAR(50) NOT NULL UNIQUE, -- Ej: 'Par', 'Unidad', 'Kit', 'Caja'
@@ -166,7 +168,7 @@ CREATE TABLE Productos (
     codigo_barra VARCHAR(50) UNIQUE,
     id_categoria INT NOT NULL,
     id_proveedor INT,
-    id_unidad_medida INT NOT NULL, -- Atributo nuevo para consistencia
+    id_unidad_medida INT NOT NULL,
     talla VARCHAR(10),
     color VARCHAR(50),
     tipo VARCHAR(20), 
@@ -443,7 +445,7 @@ CREATE TABLE Historial_Recomendaciones (
     id_producto_recomendado INT NOT NULL,
     fecha_recomendacion DATETIME NOT NULL DEFAULT GETDATE(),
     contexto VARCHAR(255), -- Ej: 'Basado en clima lluvioso y estilo casual'
-    fue_comprado BIT NOT NULL DEFAULT 0, -- Se actualiza a 1 si el cliente compra el producto
+    fue_comprobado BIT NOT NULL DEFAULT 0, -- Se actualiza a 1 si el cliente compra el producto
     CONSTRAINT FK_HistorialRec_Clientes FOREIGN KEY (id_cliente) REFERENCES Clientes(id_cliente) ON DELETE CASCADE,
     CONSTRAINT FK_HistorialRec_Productos FOREIGN KEY (id_producto_recomendado) REFERENCES Productos(id_producto) ON DELETE CASCADE
 );
