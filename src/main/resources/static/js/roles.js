@@ -43,7 +43,7 @@ function initRolesModule() {
     const addRoleBtn = document.getElementById('addRoleBtn');
     const filterBtn = document.getElementById('filterBtn');
     const roleModal = document.getElementById('roleModal');
-    const closeModal = document.getElementById('closeModal');
+    const closeModalBtn = document.getElementById('closeModal');
     const cancelBtn = document.getElementById('cancelBtn');
     const roleForm = document.getElementById('roleForm');
     const selectAllCheckbox = document.getElementById('selectAll');
@@ -62,8 +62,8 @@ function initRolesModule() {
         filterBtn.addEventListener('click', handleFilter);
     }
 
-    if (closeModal) {
-        closeModal.addEventListener('click', closeModal);
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', closeModal);
     }
 
     if (cancelBtn) {
@@ -97,9 +97,6 @@ function initRolesModule() {
         });
     }
 
-    // Add event listeners to action buttons
-    addActionButtonListeners();
-    
     // Add real-time preview updates
     addPreviewUpdates();
 }
@@ -118,6 +115,8 @@ function loadRoles() {
 
     // Update pagination info
     updatePaginationInfo();
+    // Attach action listeners to buttons created dynamically
+    addActionButtonListeners();
 }
 
 // Create role row
@@ -234,7 +233,8 @@ function handleFilter() {
 
 function createFilterModal() {
     const modal = document.createElement('div');
-    modal.className = 'modal';
+    // use center-modal so it is centered like the users modal
+    modal.className = 'modal center-modal';
     modal.style.display = 'block';
     
     modal.innerHTML = `
@@ -477,20 +477,49 @@ function updateRole(roleData) {
 }
 
 function deleteRole(roleId) {
-    if (confirm('¿Está seguro de que desea eliminar este rol?')) {
-        // Find role index
+    // Use a custom modal confirmation instead of native confirm()
+    const role = roles.find(r => r.id === roleId);
+    const roleName = role ? role.name : '';
+    const deleteModal = createDeleteRoleModal(roleId, roleName);
+    document.body.appendChild(deleteModal);
+}
+
+function createDeleteRoleModal(roleId, roleName) {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'block';
+
+    modal.innerHTML = `
+        <div class="modal-content delete-modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Eliminar Rol</h3>
+                <button class="modal-close" onclick="this.closest('.modal').remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar <strong>${roleName}</strong>? Esta acción no puede deshacerse.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmDeleteBtn">Eliminar</button>
+            </div>
+        </div>
+    `;
+
+    // Attach handler for confirm delete
+    modal.querySelector('#confirmDeleteBtn').addEventListener('click', function() {
+        // perform delete
         const roleIndex = roles.findIndex(role => role.id === roleId);
-        
         if (roleIndex !== -1) {
-            // Remove role from array
             roles.splice(roleIndex, 1);
-            
-            // Refresh table
             loadRoles();
-            
             showNotification('Rol eliminado exitosamente', 'success');
         }
-    }
+        modal.remove();
+    });
+
+    return modal;
 }
 
 function viewRole(roleId) {

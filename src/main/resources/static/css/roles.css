@@ -700,6 +700,70 @@
     color: #b30000;
 }
 
+/* Styles for delete confirmation modal to match provided design */
+.delete-modal-content {
+    max-width: 600px;
+    width: 80%;
+    border-radius: 10px;
+}
+
+.delete-modal-content .modal-header h3 {
+    color: #b30000; /* red title */
+    font-size: 26px;
+    margin: 0;
+}
+
+.delete-modal-content .modal-body p {
+    font-size: 15px;
+    color: #333;
+    margin: 18px 0;
+}
+
+.btn-danger {
+    background-color: #b30000;
+    color: #fff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-weight: 600;
+    box-shadow: 0 6px 18px rgba(179, 0, 0, 0.15);
+}
+
+.btn-danger:hover {
+    background-color: #8f0000;
+    transform: translateY(-1px);
+}
+
+.modal .modal-footer .btn {
+    min-width: 110px;
+}
+
+/* Ensure center-modal uses same layout as usuarios modal */
+.center-modal {
+    justify-content: center;
+    align-items: center;
+}
+
+.center-modal .modal-content {
+    width: 560px; /* match usuarios modal width */
+    max-width: 90%;
+    padding: 0; /* usuarios modal uses header/body/footer spacing, we'll preserve their styles */
+    border-radius: 8px;
+}
+
+.center-modal .modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.center-modal .modal-body {
+    padding: 18px 24px;
+}
+
+.center-modal .modal-footer {
+    padding: 18px 24px;
+}
+
 /* Checkbox Styles */
 input[type="checkbox"] {
     width: 18px;

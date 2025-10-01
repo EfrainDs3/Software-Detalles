@@ -178,24 +178,25 @@
         </div>
     </main>
 
-    <!-- modificar usuarios-->
+    <!-- modificar usuarios -->
     <div id="userModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content role-modal-content">
             <div class="modal-header">
                 <h3 id="modalTitle">Nuevo Usuario</h3>
-                <button class="modal-close" id="closeModal">
+                <button class="modal-close" id="closeModal" onclick="closeModal('userModal')">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <form id="userForm" class="modal-body">
+                <!-- Información del Usuario -->
                 <div class="form-row">
                     <div class="form-group">
                         <label for="userName">Nombre Completo *</label>
-                        <input type="text" id="userName" name="name" required>
+                        <input type="text" id="userName" name="name" required placeholder="Ej: Juan Pérez">
                     </div>
                     <div class="form-group">
                         <label for="userEmail">Email *</label>
-                        <input type="email" id="userEmail" name="email" required>
+                        <input type="email" id="userEmail" name="email" required placeholder="usuario@dominio.com">
                     </div>
                 </div>
                 <div class="form-row">
@@ -232,18 +233,24 @@
                 </div>
             </form>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="cancelBtn">Cancelar</button>
-                <button type="submit" form="userForm" class="btn btn-primary" id="saveBtn">Guardar</button>
+                <button type="button" class="btn btn-secondary" id="cancelBtn" onclick="closeModal('userModal')">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </button>
+                <button type="submit" form="userForm" class="btn btn-primary" id="saveBtn">
+                    <i class="fas fa-save"></i>
+                    Guardar Usuario
+                </button>
             </div>
         </div>
     </div>
 
     <!-- Modal Editar Usuario -->
     <div id="editUserModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content role-modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">Editar Usuario</h3>
-                <button class="modal-close" id="closeEditModal">
+                <button class="modal-close" id="closeEditModal" onclick="closeModal('editUserModal')">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -291,37 +298,37 @@
                 </div>
             </form>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="cancelEditBtn">Cancelar</button>
+                <button type="button" class="btn btn-secondary" id="cancelEditBtn" onclick="closeModal('editUserModal')">Cancelar</button>
                 <button type="submit" form="editUserForm" class="btn btn-primary" id="saveEditBtn">Guardar Cambios</button>
             </div>
         </div>
     </div>
 
     <!-- Modal Eliminar Usuario -->
-    <div id="deleteUserModal" class="modal">
-        <div class="modal-content">
+    <div id="deleteUserModal" class="modal center-modal">
+        <div class="modal-content delete-modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">Eliminar Usuario</h3>
-                <button class="modal-close" id="closeDeleteModal">
+                <button class="modal-close" id="closeDeleteModal" onclick="this.closest('.modal').remove()">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="modal-body">
-                <p>¿Estás seguro de que deseas eliminar a <span id="deleteUserName"></span>? Esta acción no puede deshacerse.</p>
+                <p>¿Estás seguro de que deseas eliminar a <strong><span id="deleteUserName"></span></strong>? Esta acción no puede deshacerse.</p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="cancelDeleteBtn">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="confirmDeleteBtn">Eliminar</button>
+                <button type="button" class="btn btn-secondary" id="cancelDeleteBtn" onclick="this.closest('.modal').remove()">Cancelar</button>
+                <button type="button" class="btn btn-primary btn-danger" id="confirmDeleteBtn">Eliminar</button>
             </div>
         </div>
     </div>
 
     <!-- Modal Ver Usuario -->
     <div id="viewUserModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content role-modal-content">
             <div class="modal-header">
                 <h3 class="modal-title">Ver Usuario</h3>
-                <button class="modal-close" id="closeViewModal">
+                <button class="modal-close" id="closeViewModal" onclick="closeModal('viewUserModal')">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -333,7 +340,7 @@
                 <p><strong>Teléfono:</strong> <span id="viewUserPhone"></span></p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="closeViewBtn">Cerrar</button>
+                <button type="button" class="btn btn-secondary" id="closeViewBtn" onclick="closeModal('viewUserModal')">Cerrar</button>
             </div>
         </div>
     </div>

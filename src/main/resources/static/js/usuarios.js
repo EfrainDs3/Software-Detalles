@@ -66,11 +66,11 @@ function initUsuariosModule() {
     }
 
     if (modalCloseBtn) {
-        modalCloseBtn.addEventListener('click', closeModal);
+        modalCloseBtn.addEventListener('click', () => closeModal('userModal'));
     }
 
     if (cancelBtn) {
-        cancelBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', () => closeModal('userModal'));
     }
 
     if (userForm) {
@@ -89,7 +89,7 @@ function initUsuariosModule() {
     if (userModal) {
         userModal.addEventListener('click', function(e) {
             if (e.target === userModal) {
-                closeModal();
+                closeModal('userModal');
             }
         });
     }
@@ -336,14 +336,6 @@ function openEditUserModal(userId) {
     }
 }
 
-function closeModal() {
-    const modal = document.getElementById('userModal');
-    if (modal) {
-        modal.style.display = 'none';
-        document.body.style.overflow = 'auto';
-    }
-}
-
 // Función para abrir un modal
 function openModal(modalId) {
     const modal = document.getElementById(modalId);
@@ -362,6 +354,8 @@ function closeModal(modalId) {
 
 // Event Listeners para los botones de abrir y cerrar modales
 document.addEventListener("DOMContentLoaded", () => {
+    // Make sure any modal is hidden on load (guard against leftover inline styles)
+    document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
     // Botón para abrir el modal de "Nuevo Usuario"
     const addUserBtn = document.getElementById("addUserBtn");
     if (addUserBtn) {
@@ -441,7 +435,12 @@ function handleFormSubmit(e) {
             saveBtn.disabled = false;
         }
         
-        closeModal();
+        // Close the appropriate modal (edit vs create)
+        if (userData.id) {
+            closeModal('editUserModal');
+        } else {
+            closeModal('userModal');
+        }
     }, 1500);
 }
 
@@ -535,20 +534,48 @@ function updateUser(userData) {
 }
 
 function deleteUser(userId) {
-    if (confirm('¿Está seguro de que desea eliminar este usuario?')) {
-        // Find user index
-        const userIndex = users.findIndex(user => user.id === userId);
-        
+    // Use a custom modal confirmation (matches Roles behavior)
+    const user = users.find(u => u.id === userId);
+    const userName = user ? user.name : '';
+    const deleteModal = createDeleteUserModal(userId, userName);
+    document.body.appendChild(deleteModal);
+}
+
+function createDeleteUserModal(userId, userName) {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.display = 'block';
+
+    modal.innerHTML = `
+        <div class="modal-content delete-modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Eliminar Usuario</h3>
+                <button class="modal-close" onclick="this.closest('.modal').remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de que deseas eliminar a <strong>${userName}</strong>? Esta acción no puede deshacerse.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancelar</button>
+                <button type="button" class="btn btn-primary btn-danger" id="confirmDeleteBtn">Eliminar</button>
+            </div>
+        </div>
+    `;
+
+    // Attach handler for confirm delete
+    modal.querySelector('#confirmDeleteBtn').addEventListener('click', function() {
+        const userIndex = users.findIndex(u => u.id === userId);
         if (userIndex !== -1) {
-            // Remove user from array
             users.splice(userIndex, 1);
-            
-            // Refresh table
             loadUsers();
-            
             showNotification('Usuario eliminado exitosamente', 'success');
         }
-    }
+        modal.remove();
+    });
+
+    return modal;
 }
 
 function viewUser(userId) {
