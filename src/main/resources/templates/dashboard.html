@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Detalles</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/src/main/resources/static/css/dashboard.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
 </head>
 <body>
     <div id="sidebar-container"></div>
@@ -17,61 +17,76 @@
             <button class="logout-btn">Cerrar Sesión</button>
         </div>
 
+        
+
+        
         <div class="cards-grid">
-            <a href="/src/main/resources/templates/software/usuarios/usuario.html" class="card-link">
+            <a href="/usuarios" class="card-link">
                 <div class="card">
                     <i class="fas fa-users card-icon"></i>
                     <h3 class="card-title"> Gestión de Usuarios</h3>
                 </div>
             </a>
             
-            <a href="/src/main/resources/templates/software/usuarios/roles.html" class="card-link">
+            <a href="/roles" class="card-link">
                 <div class="card">
                     <i class="fas fa-user-shield card-icon"></i>
                     <h3 class="card-title"> Gestión de Roles</h3>
                 </div>
             </a>
 
-            <a href="/src/main/resources/templates/software/usuarios/permisos.html" class="card-link">
+            <a href="/permisos" class="card-link">
                 <div class="card">
                     <i class="fas fa-shield-alt card-icon"></i>
                     <h3 class="card-title"> Gestión de Permisos</h3>
                 </div>
             </a>
             
-            <div href="/src/main/resources/templates/software/usuarios/permisos.html" class="card">
-                <i class="fas fa-box card-icon"></i>
-                <h3 class="card-title"> Gestión de Productos</h3>
-            </div>
+            <a href="/productos/calzados" class="card-link">
+                <div class="card">
+                    <i class="fas fa-box card-icon"></i>
+                    <h3 class="card-title"> Gestión de Productos</h3>
+                </div>
+            </a>
             
-            <div class="card">
-                <i class="fas fa-user-friends card-icon"></i>
-                <h3 class="card-title"> Gestión de Clientes</h3>
-            </div>
+            <a href="/clientes" class="card-link">
+                <div class="card">
+                    <i class="fas fa-user-friends card-icon"></i>
+                    <h3 class="card-title"> Gestión de Clientes</h3>
+                </div>
+            </a>
             
-            <div class="card">
-                <i class="fas fa-shopping-cart card-icon"></i>
-                <h3 class="card-title"> Gestión de Ventas</h3>
-            </div>
+            <a href="/ventas" class="card-link">
+                <div class="card">
+                    <i class="fas fa-shopping-cart card-icon"></i>
+                    <h3 class="card-title"> Gestión de Ventas</h3>
+                </div>
+            </a>
             
-            <div href="/src/main/resources/templates/software/usuarios/inventario.html" class="card">
-                <i class="fas fa-warehouse card-icon"></i>
-                <h3 class="card-title"> Gestión de Inventario</h3>
-            </div>
+            <a href="/inventario" class="card-link">
+                <div class="card">
+                    <i class="fas fa-warehouse card-icon"></i>
+                    <h3 class="card-title"> Gestión de Inventario</h3>
+                </div>
+            </a>
             
-            <div class="card">
-                <i class="fas fa-chart-bar card-icon"></i>
-                <h3 class="card-title"> Reportes</h3>
-            </div>
+            <a href="/reportes" class="card-link">
+                <div class="card">
+                    <i class="fas fa-chart-bar card-icon"></i>
+                    <h3 class="card-title"> Reportes</h3>
+                </div>
+            </a>
             
-            <div class="card">
-                <i class="fas fa-clipboard-list card-icon"></i>
-                <h3 class="card-title"> Auditoría del Sistema</h3>
-            </div>
+            <a href="/auditoria" class="card-link">
+                <div class="card">
+                    <i class="fas fa-clipboard-list card-icon"></i>
+                    <h3 class="card-title"> Auditoría del Sistema</h3>
+                </div>
+            </a>
         </div>
     </main>
 
-    <script src="/src/main/resources/static/js/dashboard.js"></script>
-    <script src="/src/main/resources/static/js/sidebar.js"></script>
+    <script src="/js/dashboard.js"></script>
+    <script src="/js/sidebar.js"></script>
 </body>
 </html>
