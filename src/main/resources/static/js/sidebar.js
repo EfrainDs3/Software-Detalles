@@ -5,23 +5,8 @@ function loadSidebar(containerId) {
         return;
     }
 
-    // Detectar automáticamente la ubicación basada en la URL
-    const currentPath = window.location.pathname;
-    let sidebarPath;
-    
-    // Detectar la profundidad de carpetas automáticamente
-    const pathSegments = currentPath.split('/').filter(segment => segment.length > 0);
-    const depth = pathSegments.length;
-    
-    // Construir ruta relativa basada en la profundidad
-    if (currentPath.includes('/software/')) {
-        // Para cualquier archivo dentro de /software/
-        sidebarPath = '../../../templates/components/sidebar.html';
-    } else if (currentPath.includes('/templates/')) {
-        sidebarPath = 'components/sidebar.html';
-    } else {
-        sidebarPath = 'templates/components/sidebar.html';
-    }
+    // En Spring Boot, usar la ruta del controlador
+    const sidebarPath = '/components/sidebar';
 
     // Cargar la barra lateral
     fetch(sidebarPath)
@@ -179,75 +164,25 @@ function addSidebarClickHandlers() {
     });
 }
 
-// Generar barra lateral del HTML si falla la carga - versión genérica
+// Generar barra lateral del HTML si falla la carga - usando rutas de Spring Boot
 function getFallbackSidebar() {
-    const currentPath = window.location.pathname;
-    let dashboardLink, usuariosLink, rolesLink, permisosLink, clientesLink;
-    
-    // Detectar automáticamente las rutas basadas en la estructura de carpetas
-    if (currentPath.includes('/software/')) {
-        // Estamos en cualquier subcarpeta de software
-        dashboardLink = '../../dashboard.html';
-        usuariosLink = '../usuarios/usuario.html';
-        rolesLink = '../usuarios/roles.html';
-        permisosLink = '../usuarios/permisos.html';
-        clientesLink = '../clientes/clientes.html';
-        
-        // Si estamos específicamente en usuarios
-        if (currentPath.includes('/usuarios/')) {
-            usuariosLink = 'usuario.html';
-            rolesLink = 'roles.html';
-            permisosLink = 'permisos.html';
-            clientesLink = '../clientes/clientes.html';
-        }
-        // Si estamos en productos
-        else if (currentPath.includes('/productos/')) {
-            clientesLink = '../clientes/clientes.html';
-        }
-        // Si estamos en clientes
-        else if (currentPath.includes('/clientes/')) {
-            usuariosLink = '../usuarios/usuario.html';
-            rolesLink = '../usuarios/roles.html';
-            permisosLink = '../usuarios/permisos.html';
-            clientesLink = 'clientes.html';
-        }
-        // Si estamos en ventas
-        else if (currentPath.includes('/ventas/')) {
-            ventasLink = '../ventas/ventas.html';
-        }
-    } else if (currentPath.includes('/templates/')) {
-        dashboardLink = 'dashboard.html';
-        usuariosLink = 'software/usuarios/usuario.html';
-        rolesLink = 'software/usuarios/roles.html';
-        permisosLink = 'software/usuarios/permisos.html';
-        clientesLink = 'software/clientes/clientes.html';
-        ventasLink = 'software/ventas/ventas.html';
-    } else {
-        dashboardLink = 'templates/dashboard.html';
-        usuariosLink = 'templates/software/usuarios/usuario.html';
-        rolesLink = 'templates/software/usuarios/roles.html';
-        permisosLink = 'templates/software/usuarios/permisos.html';
-        clientesLink = 'templates/software/clientes/clientes.html';
-        clientesLink = 'templates/software/ventas/ventas.html';
-    }
-    
     return `
         <nav class="sidebar">
             <h1>DETALLES</h1>
             <ul class="nav-menu">
-                <li><a href="${dashboardLink}" data-page="dashboard">
+                <li><a href="/dashboard" data-page="dashboard">
                     <i class="fas fa-tachometer-alt"></i>
                     Dashboard
                 </a></li>
-                <li><a href="${usuariosLink}" data-page="usuarios">
+                <li><a href="/usuarios" data-page="usuarios">
                     <i class="fas fa-users"></i>
                     Usuarios
                 </a></li>
-                <li><a href="${rolesLink}" data-page="roles">
+                <li><a href="/roles" data-page="roles">
                     <i class="fas fa-user-shield"></i>
                     Roles
                 </a></li>
-                <li><a href="${permisosLink}" data-page="permisos">
+                <li><a href="/permisos" data-page="permisos">
                     <i class="fas fa-shield-alt"></i>
                     Permisos
                 </a></li>
@@ -257,44 +192,67 @@ function getFallbackSidebar() {
                     <i class="fas fa-chevron-down submenu-arrow"></i>
                 </a>
                     <ul class="submenu">
-                        <li><a href="../productos/calzados.html" data-page="calzado">
+                        <li><a href="/productos/calzados" data-page="calzado">
                             <i class="fas fa-shoe-prints"></i>
                             Calzado
                         </a></li>
-                        <li><a href="../productos/accesorios.html" data-page="accesorios">
+                        <li><a href="/productos/accesorios" data-page="accesorios">
                             <i class="fas fa-glasses"></i>
                             Accesorios
                         </a></li>
+                        <li><a href="/productos/catalogos" data-page="catalogo">
+                            <i class="fas fa-glasses"></i>
+                            Catalogo
+                        </a></li>
                     </ul>
                 </li>
-                <li><a href="${clientesLink}" data-page="clientes">
+                <li><a href="/clientes" data-page="clientes">
                     <i class="fas fa-user-friends"></i>
                     Clientes
                 </a></li>
-                <li><a href="#" data-page="ventas">
+                <li><a href="#" data-page="ventas" class="has-submenu">
                     <i class="fas fa-shopping-cart"></i>
                     Ventas
                     <i class="fas fa-chevron-down submenu-arrow"></i>
                 </a>
-                <ul class="submenu">
-                    <li>
-                        <a href="/src/main/resources/templates/software/ventas/ventas.html" data-page="gestion-ventas">
-                            <i class="fas fa-receipt"></i>
-                            Gestión de Ventas
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/src/main/resources/templates/software/ventas/caja.html" data-page="caja">
-                            <i class="fas fa-cash-register"></i>
-                            Caja
-                        </a>
-                    </li>
-                </ul>
-                
+                    <ul class="submenu">
+                        <li>
+                            <a href="/ventas" data-page="gestion-ventas">
+                                <i class="fas fa-receipt"></i>
+                                Gestión de Ventas
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/ventas/caja" data-page="caja">
+                                <i class="fas fa-cash-register"></i>
+                                Caja
+                            </a>
+                        </li>
+                    </ul>
                 </li>
-                <li><a href="#" data-page="stock">
+                <li><a href="#" data-page="compras" class="has-submenu">
+                    <i class="fas fa-truck"></i>
+                    Compras
+                    <i class="fas fa-chevron-down submenu-arrow"></i>
+                </a>
+                    <ul class="submenu">
+                        <li>
+                            <a href="/compras" data-page="gestion-compras">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                                Gestión de Compras
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/compras/proveedores" data-page="proveedores">
+                                <i class="fas fa-industry"></i>
+                                Proveedores
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li><a href="/inventario" data-page="inventario">
                     <i class="fas fa-warehouse"></i>
-                    Stock
+                    Inventario
                 </a></li>
                 <li><a href="#" data-page="reportes">
                     <i class="fas fa-chart-bar"></i>

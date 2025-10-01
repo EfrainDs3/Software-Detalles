@@ -10,7 +10,7 @@ function initLogoutButton() {
                 localStorage.removeItem('loginTime');
                 
                 // Redirigir sin mensaje adicional
-                window.location.href = '../login.html';
+                window.location.href = '/login';
             }
         });
     }

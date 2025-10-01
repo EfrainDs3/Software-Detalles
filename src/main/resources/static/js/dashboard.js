@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (!usuarioLogueado || !loginTime) {
             // No hay sesión, redirigir al login
-            window.location.href = 'software/login.html';
+            window.location.href = '/login';
             return false;
         }
         
@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
             localStorage.removeItem('usuarioLogueado');
             localStorage.removeItem('loginTime');
             alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
-            window.location.href = 'software/login.html';
+            window.location.href = '/login';
             return false;
         }
         
@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Mostrar mensaje y redirigir
             alert('Sesión cerrada correctamente');
-            window.location.href = 'software/login.html';
+            window.location.href = '/login';
         }
     });
 
