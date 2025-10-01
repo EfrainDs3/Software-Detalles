@@ -272,6 +272,16 @@
     color: white;
 }
 
+/* Size badge (to mirror calzados style in details table) */
+.size-badge {
+    background-color: #6f42c1;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
 /* Description styles */
 .accesorio-description {
     max-width: 150px;
@@ -936,6 +946,71 @@ input[type="checkbox"] {
 .accesorio-info-details .product-category:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* -------- Detalle: Tallas y Precios (consistente con calzados) -------- */
+.tallas-details {
+    margin-top: 15px;
+}
+
+.tallas-details h5 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    color: #333;
+    font-weight: 600;
+}
+
+.productos-table-container {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.detalle-productos-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.detalle-productos-table th {
+    background: #f8f9fa;
+    padding: 10px;
+    border-bottom: 1px solid #e0e0e0;
+    font-weight: 600;
+    color: #333;
+}
+
+.detalle-productos-table td {
+    padding: 10px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.detalle-productos-table tr:hover {
+    background: #f8f9fa;
+}
+
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+
+/* Centrar contenido en la tabla de tallas (vista de detalles) */
+.tallas-details .detalle-productos-table th,
+.tallas-details .detalle-productos-table td {
+    text-align: center;
+}
+
+/* Forzar centrado si existen utilidades aplicadas */
+.tallas-details .detalle-productos-table .text-right,
+.tallas-details .detalle-productos-table .text-center {
+    text-align: center !important;
+}
+
+/* -------- Formularios: Tallas (crear/editar) -------- */
+.talla-item {
+    padding: 12px;
+    border: 1px dashed #e0e0e0;
+    border-radius: 8px;
+    background: #fff;
+    margin-bottom: 10px;
 }
 
 /* Filter Modal Specific Styles */

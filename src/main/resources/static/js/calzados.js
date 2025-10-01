@@ -13,6 +13,8 @@ let calzados = [
         type: 'Unisex',
         proveedor: 'Distribuidora Nike S.A.',
         unidad: 'Par',
+    dimensiones: '30 x 20 x 12 cm',
+    peso: '0.8 kg',
         material: 'Mesh',
         category: 'Deportivo',
         image: '../../../static/img/calzado-default.jpg',
@@ -33,6 +35,8 @@ let calzados = [
         type: 'Hombre',
         proveedor: 'Calzados Premium Ltda.',
         unidad: 'Par',
+    dimensiones: '28 x 18 x 11 cm',
+    peso: '0.75 kg',
         material: 'Cuero',
         category: 'Formal',
         image: '../../../static/img/calzado-default.jpg',
@@ -52,6 +56,8 @@ let calzados = [
         type: 'Mujer',
         proveedor: 'Sportswear Internacional',
         unidad: 'Par',
+    dimensiones: '32 x 22 x 13 cm',
+    peso: '0.9 kg',
         material: 'Cuero',
         category: 'Casual',
         image: '../../../static/img/calzado-default.jpg',
@@ -461,6 +467,8 @@ function handleFormSubmit(e) {
     // capturar proveedor y unidad (ya vienen en formData, pero garantizamos propiedades)
     calzadoData.proveedor = calzadoData.proveedor || '';
     calzadoData.unidad = calzadoData.unidad || '';
+    calzadoData.dimensiones = calzadoData.dimensiones || '';
+    calzadoData.peso = calzadoData.peso || '';
     
     // Validate form
     if (!validateCalzadoForm(calzadoData)) {
@@ -542,6 +550,8 @@ function createCalzado(calzadoData) {
         type: calzadoData.type,
         proveedor: calzadoData.proveedor,
         unidad: calzadoData.unidad,
+    dimensiones: calzadoData.dimensiones,
+    peso: calzadoData.peso,
         material: calzadoData.material,
         category: calzadoData.category || 'Casual',
         image: '../../../static/img/calzado-default.jpg',
@@ -574,6 +584,8 @@ function updateCalzado(calzadoData) {
             type: calzadoData.type,
             proveedor: calzadoData.proveedor,
             unidad: calzadoData.unidad,
+            dimensiones: calzadoData.dimensiones,
+            peso: calzadoData.peso,
             material: calzadoData.material,
             category: calzadoData.category || 'Casual'
             ,tallas: calzadoData.tallas || [],
@@ -638,7 +650,9 @@ function createViewCalzadoModal(calzado) {
                         <p><strong>Proveedor:</strong> ${calzado.proveedor || '-'}</p>
                         <p><strong>Unidad de Medida:</strong> ${calzado.unidad || '-'}</p>
                         <p><strong>Material:</strong> ${calzado.material}</p>
-                        <p><strong>Categoría:</strong> <span class="product-category ${calzado.category.toLowerCase()}">${calzado.category}</span></p>
+                        <p><strong>Dimensiones:</strong> ${calzado.dimensiones || '-'}</p>
+                        <p><strong>Peso:</strong> ${calzado.peso || '-'}</p>
+                        <p><strong>Tipo Producto:</strong> <span class="product-category ${calzado.category.toLowerCase()}">${calzado.category}</span></p>
                         <div class="tallas-details">
                             <h5><i class="fas fa-ruler"></i> Tallas Registradas</h5>
                             <div class="productos-table-container">
@@ -691,6 +705,8 @@ function populateCalzadoForm(calzadoId) {
         document.getElementById('calzadoType').value = calzado.type;
         if (document.getElementById('calzadoProveedor')) document.getElementById('calzadoProveedor').value = calzado.proveedor || '';
         if (document.getElementById('calzadoUnidad')) document.getElementById('calzadoUnidad').value = calzado.unidad || '';
+    if (document.getElementById('calzadoDimensiones')) document.getElementById('calzadoDimensiones').value = calzado.dimensiones || '';
+    if (document.getElementById('calzadoPeso')) document.getElementById('calzadoPeso').value = calzado.peso || '';
         document.getElementById('calzadoMaterial').value = calzado.material;
         document.getElementById('calzadoCategory').value = calzado.category;
         

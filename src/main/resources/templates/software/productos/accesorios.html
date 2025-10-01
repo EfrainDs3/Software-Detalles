@@ -66,7 +66,6 @@
                         <th>Color</th>
                         <th>Marca</th>
                         <th>Material</th>
-                        <th>Precio de Venta</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -165,27 +164,7 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="accesorioDimensions">Dimensiones *</label>
-                            <input type="text" id="accesorioDimensions" name="dimensions" required placeholder="Ej: 120x5x2 cm">
-                        </div>
-                        <div class="form-group">
-                            <label for="accesorioWeight">Peso (g) *</label>
-                            <input type="number" id="accesorioWeight" name="weight" required placeholder="0" min="0" step="0.1">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="accesorioPrice">Precio de Venta (S/) *</label>
-                            <input type="number" id="accesorioPrice" name="price" required placeholder="0.00" step="0.01" min="0">
-                        </div>
-                        <div class="form-group">
-                            <label for="accesorioPurchasePrice">Precio de Compra (S/) *</label>
-                            <input type="number" id="accesorioPurchasePrice" name="purchasePrice" required placeholder="0.00" step="0.01" min="0">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="accesorioCategory">Categoría</label>
+                            <label for="accesorioCategory">Tipo Producto</label>
                             <select id="accesorioCategory" name="category">
                                 <option value="Cinturones">Cinturones</option>
                                 <option value="Carteras">Carteras</option>
@@ -197,6 +176,42 @@
                                 <option value="Otros">Otros</option>
                             </select>
                         </div>
+                        <div class="form-group">
+                            <label for="accesorioProveedor">Proveedor</label>
+                            <select id="accesorioProveedor" name="proveedor">
+                                <option value="">Seleccionar proveedor</option>
+                                <option value="Distribuidora Nike S.A.">Distribuidora Nike S.A.</option>
+                                <option value="Calzados Premium Ltda.">Calzados Premium Ltda.</option>
+                                <option value="Accesorios Fashion">Accesorios Fashion</option>
+                                <option value="Sportswear Internacional">Sportswear Internacional</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="accesorioUnidad">Unidad de Medida</label>
+                            <select id="accesorioUnidad" name="unidad">
+                                <option value="">Seleccionar unidad</option>
+                                <option value="Unidad">Unidad</option>
+                                <option value="Par">Par</option>
+                                <option value="Caja">Caja</option>
+                                <option value="Docena">Docena</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="accesorioDimensions">Dimensiones</label>
+                            <input type="text" id="accesorioDimensions" name="dimensions" placeholder="Ej: 120 x 5 x 2 cm">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="accesorioWeight">Peso</label>
+                            <input type="text" id="accesorioWeight" name="weight" placeholder="Ej: 250 g">
+                        </div>
+                        <div class="form-group">
+                            <!-- vacío para alineación de 2 columnas -->
+                        </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group" style="grid-column: 1 / -1;">
@@ -204,6 +219,19 @@
                             <textarea id="accesorioDescription" name="description" placeholder="Describe las características del accesorio" rows="3"></textarea>
                         </div>
                     </div>
+                </div>
+
+                <!-- Tallas y Precios -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-ruler"></i>
+                        Tallas y Precios
+                    </h4>
+                    <div id="tallasContainer"></div>
+                    <button type="button" class="btn btn-secondary mt-3" id="addTallaBtn">
+                        <i class="fas fa-plus"></i>
+                        Agregar Talla
+                    </button>
                 </div>
 
                 <!-- Imagen del Producto -->
@@ -242,12 +270,13 @@
                                 <div class="preview-specs">
                                     <span class="preview-color">Color: --</span>
                                     <span class="preview-material">Material: --</span>
+                                    <span class="preview-size">Tallas: 0 registradas</span>
                                     <span class="preview-dimensions">Dimensiones: --</span>
                                     <span class="preview-weight">Peso: --</span>
                                 </div>
                                 <div class="preview-prices">
-                                    <span class="preview-price-sale">Venta: S/ 0.00</span>
-                                    <span class="preview-price-purchase">Compra: S/ 0.00</span>
+                                    <span class="preview-price-sale">Venta desde: S/ 0.00</span>
+                                    <span class="preview-price-purchase">Compra desde: S/ 0.00</span>
                                 </div>
                             </div>
                         </div>
