@@ -857,3 +857,44 @@ h1,h2,h3,h4,h5,h6 {
 .aos-animate .txt-fx.zoom .letter {
   transform: scale(1);
 }
+/* --- Estilos para el Mega Menú --- */
+.mega-menu {
+  width: 50vw; /* El 70% del ancho de la ventana */
+  max-width: 700px; /* Un ancho máximo para que no sea gigante en pantallas grandes */
+  left: 50%; /* Lo movemos al centro */
+  transform: translateX(-50%); /* Ajuste fino para centrarlo perfectamente */
+}
+
+.mega-menu .dropdown-item {
+  padding: 0.25rem 0; /* Menos espacio vertical para que entren más items */
+  font-size: 0.9rem; /* Letra un poco más pequeña */
+  font-weight: normal; /* Le quitamos el bold si lo tuviera */
+  text-transform: none; /* Le quitamos el uppercase */
+}
+
+.mega-menu .dropdown-item:hover {
+    background-color: transparent;
+    color: var(--primary-color); /* Cambia al color principal de tu web al pasar el mouse */
+}
+/* --- Estilos para el Mega Menú (AJUSTE AUTOMÁTICO DEFINITIVO) --- */
+.main-menu .dropdown .mega-menu {
+  /* Le decimos que el ancho sea el de su contenido */
+  width: max-content; 
+  
+  /* El resto es para centrarlo */
+  left: 50% !important; 
+  transform: translateX(-50%) !important; 
+  top: 100%;
+}
+
+.mega-menu .dropdown-item {
+  padding: 0.25rem 0;
+  font-size: 0.9rem;
+  font-weight: normal;
+  text-transform: none;
+}
+
+.mega-menu .dropdown-item:hover {
+    background-color: transparent;
+    color: #c5a992; /* Un color de ejemplo, usa el tuyo */
+}
