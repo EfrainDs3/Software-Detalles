@@ -426,6 +426,29 @@
     cursor: not-allowed;
 }
 
+/* ---- Catalogos layout helpers ---- */
+.catalogos-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 28px;
+}
+
+/* Two columns on large screens */
+@media (min-width: 1100px) {
+    .catalogos-grid { grid-template-columns: 1fr 1fr; }
+}
+
+.catalogo-block {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+/* Extra separation below each paginator */
+.catalogo-block .pagination-container {
+    margin-bottom: 22px;
+}
+
 /* Modal */
 .modal {
     display: none;

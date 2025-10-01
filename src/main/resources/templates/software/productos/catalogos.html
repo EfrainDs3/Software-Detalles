@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Gestión de Catálogos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../../static/css/dashboard.css">
+    <link rel="stylesheet" href="../../../static/css/calzados.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <div class="page-header">
+                <div class="breadcrumb">
+                    <a href="../../dashboard.html" class="breadcrumb-link">Dashboard</a>
+                    <span class="breadcrumb-separator">/</span>
+                    <span class="breadcrumb-current">Catálogos</span>
+                </div>
+                <h2 class="main-title">Gestión de Catálogos</h2>
+                <p class="page-subtitle">Administra Marcas, Modelos, Materiales, Unidades de Medida y Tipos de Producto</p>
+            </div>
+            <button class="logout-btn">Cerrar Sesión</button>
+        </div>
+
+    <div class="catalogos-grid">
+    <!-- Unidades de Medida (mover a primera posición) -->
+    <section id="section-unidades" class="catalogo-block">
+            <h3 class="block-title"><i class="fa-solid fa-scale-balanced"></i> Unidades de Medida</h3>
+            <div class="action-bar">
+                <div class="search-container">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchUnidadInput" placeholder="Buscar unidades...">
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" id="filterUnidadBtn"><i class="fas fa-filter"></i> Filtros</button>
+                    <button class="btn btn-primary" id="addUnidadBtn"><i class="fas fa-plus"></i> Nueva Unidad</button>
+                </div>
+            </div>
+            <div class="table-container">
+                <table class="calzados-table" id="unidadesTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Unidad</th>
+                            <th>Abreviatura</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="unidadesTableBody"></tbody>
+                </table>
+            </div>
+            <div id="unidadesPagination" class="pagination-container"></div>
+    </section>
+
+        <!-- Tipos de Producto (mover a segunda posición) -->
+    <section id="section-tipos" class="catalogo-block">
+            <h3 class="block-title"><i class="fa-solid fa-layer-group"></i> Tipos de Producto</h3>
+            <div class="action-bar">
+                <div class="search-container">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchTipoInput" placeholder="Buscar tipos de producto...">
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" id="filterTipoBtn"><i class="fas fa-filter"></i> Filtros</button>
+                    <button class="btn btn-primary" id="addTipoBtn"><i class="fas fa-plus"></i> Nuevo Tipo</button>
+                </div>
+            </div>
+            <div class="table-container">
+                <table class="calzados-table" id="tiposTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Tipo Producto</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tiposTableBody"></tbody>
+                </table>
+            </div>
+            <div id="tiposPagination" class="pagination-container"></div>
+    </section>
+
+        <!-- Materiales (se mantiene en tercera posición) -->
+    <section id="section-materiales" class="catalogo-block">
+            <h3 class="block-title"><i class="fa-solid fa-box-open"></i> Materiales</h3>
+            <div class="action-bar">
+                <div class="search-container">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchMaterialInput" placeholder="Buscar materiales...">
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" id="filterMaterialBtn"><i class="fas fa-filter"></i> Filtros</button>
+                    <button class="btn btn-primary" id="addMaterialBtn"><i class="fas fa-plus"></i> Nuevo Material</button>
+                </div>
+            </div>
+            <div class="table-container">
+                <table class="calzados-table" id="materialesTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Material</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="materialesTableBody"></tbody>
+                </table>
+            </div>
+            <div id="materialesPagination" class="pagination-container"></div>
+    </section>
+
+        <!-- Marcas (mover a cuarta posición) -->
+    <section id="section-marcas" class="catalogo-block">
+            <h3 class="block-title"><i class="fa-solid fa-tags"></i> Marcas</h3>
+            <div class="action-bar">
+                <div class="search-container">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchMarcaInput" placeholder="Buscar marcas...">
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" id="filterMarcaBtn"><i class="fas fa-filter"></i> Filtros</button>
+                    <button class="btn btn-primary" id="addMarcaBtn"><i class="fas fa-plus"></i> Nueva Marca</button>
+                </div>
+            </div>
+            <div class="table-container">
+                <table class="calzados-table" id="marcasTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Marca</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="marcasTableBody"></tbody>
+                </table>
+            </div>
+            <div id="marcasPagination" class="pagination-container"></div>
+    </section>
+
+        <!-- Modelos (mover a última posición) -->
+    <section id="section-modelos" class="catalogo-block">
+            <h3 class="block-title"><i class="fa-solid fa-cubes"></i> Modelos</h3>
+            <div class="action-bar">
+                <div class="search-container">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchModeloInput" placeholder="Buscar modelos...">
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" id="filterModeloBtn"><i class="fas fa-filter"></i> Filtros</button>
+                    <button class="btn btn-primary" id="addModeloBtn"><i class="fas fa-plus"></i> Nuevo Modelo</button>
+                </div>
+            </div>
+            <div class="table-container">
+                <table class="calzados-table" id="modelosTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Modelo</th>
+                            <th>Marca</th>
+                            <th>Imagen</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modelosTableBody"></tbody>
+                </table>
+            </div>
+            <div id="modelosPagination" class="pagination-container"></div>
+    </section>
+    </div>
+    </main>
+
+    <!-- Modales: Marcas -->
+    <div id="marcaModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="marcaModalTitle">Nueva Marca</h3>
+                <button class="modal-close" data-close="marcaModal"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="marcaForm" class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="marcaNombre">Nombre de la Marca *</label>
+                        <input type="text" id="marcaNombre" required placeholder="Ej: Nike" />
+                    </div>
+                    <div class="form-group"></div>
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-close="marcaModal">Cancelar</button>
+                <button class="btn btn-primary" id="saveMarcaBtn">Guardar</button>
+            </div>
+        </div>
+    </div>
+    <div id="marcaDetalleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Detalle de Marca</h3>
+                <button class="modal-close" data-close="marcaDetalleModal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" id="marcaDetalleBody"></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-close="marcaDetalleModal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modales: Modelos -->
+    <div id="modeloModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modeloModalTitle">Nuevo Modelo</h3>
+                <button class="modal-close" data-close="modeloModal"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="modeloForm" class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="modeloNombre">Nombre del Modelo *</label>
+                        <input type="text" id="modeloNombre" required placeholder="Ej: Air Max 270" />
+                    </div>
+                    <div class="form-group">
+                        <label for="modeloMarca">Marca *</label>
+                        <select id="modeloMarca" required>
+                            <option value="">Seleccionar marca</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Imagen Principal</label>
+                        <div class="image-upload-container">
+                            <div class="image-preview" id="modeloImagePreview">
+                                <i class="fas fa-camera"></i>
+                                <span>Click para subir imagen</span>
+                            </div>
+                            <input type="file" id="modeloImage" accept="image/*" style="display: none;" />
+                            <button type="button" class="btn btn-secondary" id="selectModeloImageBtn">
+                                <i class="fas fa-upload"></i>
+                                Seleccionar Imagen
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group"></div>
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-close="modeloModal">Cancelar</button>
+                <button class="btn btn-primary" id="saveModeloBtn">Guardar</button>
+            </div>
+        </div>
+    </div>
+    <div id="modeloDetalleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Detalle de Modelo</h3>
+                <button class="modal-close" data-close="modeloDetalleModal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" id="modeloDetalleBody"></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-close="modeloDetalleModal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modales: Materiales -->
+    <div id="materialModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="materialModalTitle">Nuevo Material</h3>
+                <button class="modal-close" data-close="materialModal"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="materialForm" class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="materialNombre">Nombre del Material *</label>
+                        <input type="text" id="materialNombre" required placeholder="Ej: Cuero" />
+                    </div>
+                    <div class="form-group"></div>
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-close="materialModal">Cancelar</button>
+                <button class="btn btn-primary" id="saveMaterialBtn">Guardar</button>
+            </div>
+        </div>
+    </div>
+    <div id="materialDetalleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Detalle de Material</h3>
+                <button class="modal-close" data-close="materialDetalleModal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" id="materialDetalleBody"></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-close="materialDetalleModal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modales: Unidades -->
+    <div id="unidadModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="unidadModalTitle">Nueva Unidad</h3>
+                <button class="modal-close" data-close="unidadModal"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="unidadForm" class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="unidadNombre">Nombre de la Unidad *</label>
+                        <input type="text" id="unidadNombre" required placeholder="Ej: Par, Unidad, Caja" />
+                    </div>
+                    <div class="form-group">
+                        <label for="unidadAbrev">Abreviatura</label>
+                        <input type="text" id="unidadAbrev" placeholder="Ej: par, und, caja" />
+                    </div>
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-close="unidadModal">Cancelar</button>
+                <button class="btn btn-primary" id="saveUnidadBtn">Guardar</button>
+            </div>
+        </div>
+    </div>
+    <div id="unidadDetalleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Detalle de Unidad</h3>
+                <button class="modal-close" data-close="unidadDetalleModal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" id="unidadDetalleBody"></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-close="unidadDetalleModal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modales: Tipos de Producto -->
+    <div id="tipoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="tipoModalTitle">Nuevo Tipo de Producto</h3>
+                <button class="modal-close" data-close="tipoModal"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="tipoForm" class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="tipoNombre">Nombre del Tipo *</label>
+                        <input type="text" id="tipoNombre" required placeholder="Ej: Deportivo" />
+                    </div>
+                    <div class="form-group"></div>
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-close="tipoModal">Cancelar</button>
+                <button class="btn btn-primary" id="saveTipoBtn">Guardar</button>
+            </div>
+        </div>
+    </div>
+    <div id="tipoDetalleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Detalle de Tipo</h3>
+                <button class="modal-close" data-close="tipoDetalleModal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" id="tipoDetalleBody"></div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-close="tipoDetalleModal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../../static/js/sidebar.js"></script>
+    <script src="../../../static/js/logout.js"></script>
+    <script src="../../../static/js/catalogos.js"></script>
+</body>
+</html>

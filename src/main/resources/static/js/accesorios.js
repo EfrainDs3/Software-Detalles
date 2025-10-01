@@ -454,11 +454,6 @@ function createViewAccesorioModal(accesorio, index) {
                         <p><strong>Dimensiones:</strong> ${accesorio.dimensions || '-'}</p>
                         <p><strong>Peso:</strong> ${accesorio.weight || '-'}</p>
                         <p><strong>Descripción:</strong> ${accesorio.description}</p>
-                        <div class="price-details">
-                            <p><strong>Venta desde:</strong> <span class="price">${formattedPrice}</span></p>
-                            <p><strong>Compra desde:</strong> <span class="purchase-price">${formattedPurchasePrice}</span></p>
-                        </div>
-
                         <div class="tallas-details">
                             <h5><i class="fas fa-ruler"></i> Tallas Registradas</h5>
                             <div class="productos-table-container">
