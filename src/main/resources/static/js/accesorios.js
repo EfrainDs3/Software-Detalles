@@ -9,12 +9,16 @@ let accesorios = [
         color: 'Negro',
         material: 'Cuero',
         description: 'Cinturón elegante de cuero genuino con hebilla metálica',
-        dimensions: '120x4x0.5 cm',
-        weight: 250,
-        price: 89.90,
-        purchasePrice: 65.00,
-        stock: 15,
+        dimensions: '120 x 4 x 0.5 cm',
+        weight: '250 g',
+        proveedor: 'Accesorios Fashion',
+        unidad: 'Unidad',
         category: 'Cinturones',
+        tallas: [
+            { talla: 'S', precioVenta: 89.90, precioCompra: 65.00 },
+            { talla: 'M', precioVenta: 94.90, precioCompra: 70.00 }
+        ],
+        stock: 15,
         image: '../../../static/img/accesorio-default.jpg',
         status: 'active'
     },
@@ -25,12 +29,15 @@ let accesorios = [
         color: 'Marrón',
         material: 'Cuero',
         description: 'Cartera elegante con múltiples compartimentos para tarjetas',
-        dimensions: '20x10x2 cm',
-        weight: 180,
-        price: 299.90,
-        purchasePrice: 210.00,
-        stock: 8,
+        dimensions: '20 x 10 x 2 cm',
+        weight: '180 g',
+        proveedor: 'Calzados Premium Ltda.',
+        unidad: 'Unidad',
         category: 'Carteras',
+        tallas: [
+            { talla: 'Única', precioVenta: 299.90, precioCompra: 210.00 }
+        ],
+        stock: 8,
         image: '../../../static/img/accesorio-default.jpg',
         status: 'active'
     },
@@ -41,12 +48,15 @@ let accesorios = [
         color: 'Negro',
         material: 'Metal',
         description: 'Gafas de sol clásicas estilo aviador con protección UV400',
-        dimensions: '14x5x14 cm',
-        weight: 35,
-        price: 189.90,
-        purchasePrice: 135.00,
-        stock: 12,
+        dimensions: '14 x 5 x 14 cm',
+        weight: '35 g',
+        proveedor: 'Sportswear Internacional',
+        unidad: 'Unidad',
         category: 'Gafas',
+        tallas: [
+            { talla: 'Única', precioVenta: 189.90, precioCompra: 135.00 }
+        ],
+        stock: 12,
         image: '../../../static/img/accesorio-default.jpg',
         status: 'active'
     }
@@ -73,10 +83,11 @@ const colorInput = document.getElementById('accesorioColor');
 const materialInput = document.getElementById('accesorioMaterial');
 const dimensionsInput = document.getElementById('accesorioDimensions');
 const weightInput = document.getElementById('accesorioWeight');
-const priceInput = document.getElementById('accesorioPrice');
-const purchasePriceInput = document.getElementById('accesorioPurchasePrice');
-const stockInput = document.getElementById('accesorioStock');
+const proveedorInput = document.getElementById('accesorioProveedor');
+const unidadInput = document.getElementById('accesorioUnidad');
 const categoryInput = document.getElementById('accesorioCategory');
+const addTallaBtn = document.getElementById('addTallaBtn');
+const tallasContainer = document.getElementById('tallasContainer');
 const descriptionInput = document.getElementById('accesorioDescription');
 const imageInput = document.getElementById('accesorioImage');
 const imagePreview = document.getElementById('imagePreview');
@@ -91,6 +102,7 @@ const previewDimensions = document.querySelector('.preview-dimensions');
 const previewWeight = document.querySelector('.preview-weight');
 const previewPriceSale = document.querySelector('.preview-price-sale');
 const previewPricePurchase = document.querySelector('.preview-price-purchase');
+const previewSize = document.querySelector('.preview-size');
 
 // Event Listeners
 document.addEventListener('DOMContentLoaded', function() {
@@ -117,8 +129,9 @@ function initializeEventListeners() {
     materialInput?.addEventListener('change', updatePreview);
     dimensionsInput?.addEventListener('input', updatePreview);
     weightInput?.addEventListener('input', updatePreview);
-    priceInput?.addEventListener('input', updatePreview);
-    purchasePriceInput?.addEventListener('input', updatePreview);
+
+    // Tallas controls
+    addTallaBtn?.addEventListener('click', () => addTallaInput());
 
     // Select all checkbox
     selectAllCheckbox?.addEventListener('change', function() {
@@ -156,6 +169,9 @@ function openAddModal() {
     saveBtn.innerHTML = '<i class="fas fa-save"></i> Guardar Accesorio';
     form.reset();
     resetImagePreview();
+    // Reset tallas section
+    if (tallasContainer) tallasContainer.innerHTML = '';
+    addTallaInput();
     updatePreview();
     modal.style.display = 'block';
     setTimeout(() => modal.classList.add('show'), 10);
@@ -174,11 +190,20 @@ function openEditModal(accesorio, index) {
     materialInput.value = accesorio.material || '';
     dimensionsInput.value = accesorio.dimensions || '';
     weightInput.value = accesorio.weight || '';
-    priceInput.value = accesorio.price || '';
-    purchasePriceInput.value = accesorio.purchasePrice || '';
-    stockInput.value = accesorio.stock || '';
+    proveedorInput.value = accesorio.proveedor || '';
+    unidadInput.value = accesorio.unidad || '';
     categoryInput.value = accesorio.category || '';
     descriptionInput.value = accesorio.description || '';
+
+    // Populate tallas
+    if (tallasContainer) {
+        tallasContainer.innerHTML = '';
+        if (accesorio.tallas && accesorio.tallas.length) {
+            accesorio.tallas.forEach(t => addTallaInput(t));
+        } else {
+            addTallaInput();
+        }
+    }
     
     updatePreview();
     modal.style.display = 'block';
@@ -201,6 +226,23 @@ function handleFormSubmit(event) {
     event.preventDefault();
     
     const formData = new FormData(form);
+    // Collect tallas
+    const tallas = [];
+    const tallaItems = tallasContainer?.querySelectorAll('.talla-item') || [];
+    tallaItems.forEach(item => {
+        const talla = item.querySelector('.talla-select')?.value || '';
+        const pv = parseFloat(item.querySelector('.talla-precio-venta')?.value || '');
+        const pc = parseFloat(item.querySelector('.talla-precio-compra')?.value || '');
+        if (talla && !isNaN(pv) && !isNaN(pc)) {
+            tallas.push({ talla, precioVenta: pv, precioCompra: pc });
+        }
+    });
+
+    if (tallas.length === 0) {
+        showNotification('Agrega al menos una talla con precios válidos.', 'error');
+        return;
+    }
+
     const accesorioData = {
         name: formData.get('name'),
         brand: formData.get('brand'),
@@ -208,11 +250,11 @@ function handleFormSubmit(event) {
         material: formData.get('material'),
         description: formData.get('description'),
         dimensions: formData.get('dimensions'),
-        weight: parseFloat(formData.get('weight')),
-        price: parseFloat(formData.get('price')),
-        purchasePrice: parseFloat(formData.get('purchasePrice')),
-        stock: parseInt(formData.get('stock')),
+        weight: formData.get('weight'),
+        proveedor: formData.get('proveedor'),
+        unidad: formData.get('unidad'),
         category: formData.get('category'),
+        tallas,
         status: 'active'
     };
 
@@ -272,17 +314,26 @@ function updatePreview() {
     const material = materialInput?.value || '--';
     const dimensions = dimensionsInput?.value || '--';
     const weight = weightInput?.value || '--';
-    const price = priceInput?.value || '0.00';
-    const purchasePrice = purchasePriceInput?.value || '0.00';
+
+    const preciosVenta = Array.from(tallasContainer?.querySelectorAll('.talla-precio-venta') || [])
+        .map(inp => parseFloat(inp.value))
+        .filter(v => !isNaN(v));
+    const preciosCompra = Array.from(tallasContainer?.querySelectorAll('.talla-precio-compra') || [])
+        .map(inp => parseFloat(inp.value))
+        .filter(v => !isNaN(v));
+    const minVenta = preciosVenta.length ? Math.min(...preciosVenta) : 0;
+    const minCompra = preciosCompra.length ? Math.min(...preciosCompra) : 0;
+    const tallasCount = (tallasContainer?.querySelectorAll('.talla-item') || []).length;
 
     if (previewName) previewName.textContent = name;
     if (previewDetails) previewDetails.textContent = brand;
     if (previewColor) previewColor.textContent = `Color: ${color}`;
     if (previewMaterial) previewMaterial.textContent = `Material: ${material}`;
     if (previewDimensions) previewDimensions.textContent = `Dimensiones: ${dimensions}`;
-    if (previewWeight) previewWeight.textContent = `Peso: ${weight}g`;
-    if (previewPriceSale) previewPriceSale.textContent = `Venta: S/ ${price}`;
-    if (previewPricePurchase) previewPricePurchase.textContent = `Compra: S/ ${purchasePrice}`;
+    if (previewWeight) previewWeight.textContent = `Peso: ${weight}`;
+    if (previewSize) previewSize.textContent = `Tallas: ${tallasCount} registradas`;
+    if (previewPriceSale) previewPriceSale.textContent = `Venta desde: S/ ${minVenta.toFixed(2)}`;
+    if (previewPricePurchase) previewPricePurchase.textContent = `Compra desde: S/ ${minCompra.toFixed(2)}`;
 }
 
 // Table Functions
@@ -321,8 +372,7 @@ function createAccesorioRow(accesorio, index) {
         </td>
         <td><span class="color-badge ${accesorio.color.toLowerCase()}">${accesorio.color}</span></td>
         <td><span class="brand-badge">${accesorio.brand}</span></td>
-        <td><span class="material-badge">${accesorio.material}</span></td>
-        <td><span class="price">S/ ${accesorio.price.toFixed(2)}</span></td>
+    <td><span class="material-badge">${accesorio.material}</span></td>
         <td>
             <div class="action-buttons-cell">
                 <button class="btn-icon btn-edit" title="Editar" onclick="editAccesorio(${globalIndex})">
@@ -369,8 +419,13 @@ function createViewAccesorioModal(accesorio, index) {
     modal.className = 'modal';
     modal.style.display = 'block';
     
-    const formattedPrice = `S/ ${accesorio.price.toFixed(2)}`;
-    const formattedPurchasePrice = `S/ ${accesorio.purchasePrice.toFixed(2)}`;
+    // Compute min prices from tallas
+    const preciosVenta = (accesorio.tallas || []).map(t => t.precioVenta);
+    const preciosCompra = (accesorio.tallas || []).map(t => t.precioCompra);
+    const minVenta = preciosVenta.length ? Math.min(...preciosVenta) : 0;
+    const minCompra = preciosCompra.length ? Math.min(...preciosCompra) : 0;
+    const formattedPrice = `S/ ${minVenta.toFixed(2)}`;
+    const formattedPurchasePrice = `S/ ${minCompra.toFixed(2)}`;
 
     modal.innerHTML = `
         <div class="modal-content">
@@ -393,15 +448,40 @@ function createViewAccesorioModal(accesorio, index) {
                         <p><strong>Marca:</strong> <span class="brand-badge">${accesorio.brand}</span></p>
                         <p><strong>Color:</strong> <span class="color-badge ${accesorio.color.toLowerCase()}">${accesorio.color}</span></p>
                         <p><strong>Material:</strong> <span class="material-badge">${accesorio.material}</span></p>
-                        <p><strong>Dimensiones:</strong> ${accesorio.dimensions}</p>
-                        <p><strong>Peso:</strong> ${accesorio.weight}g</p>
-                        <p><strong>Categoría:</strong> <span class="product-category ${accesorio.category.toLowerCase()}">${accesorio.category}</span></p>
+                        <p><strong>Tipo Producto:</strong> <span class="product-category ${accesorio.category.toLowerCase()}">${accesorio.category}</span></p>
+                        <p><strong>Proveedor:</strong> ${accesorio.proveedor || '-'}</p>
+                        <p><strong>Unidad de Medida:</strong> ${accesorio.unidad || '-'}</p>
+                        <p><strong>Dimensiones:</strong> ${accesorio.dimensions || '-'}</p>
+                        <p><strong>Peso:</strong> ${accesorio.weight || '-'}</p>
                         <p><strong>Descripción:</strong> ${accesorio.description}</p>
                         <div class="price-details">
-                            <p><strong>Precio de Venta:</strong> <span class="price">${formattedPrice}</span></p>
-                            <p><strong>Precio de Compra:</strong> <span class="purchase-price">${formattedPurchasePrice}</span></p>
+                            <p><strong>Venta desde:</strong> <span class="price">${formattedPrice}</span></p>
+                            <p><strong>Compra desde:</strong> <span class="purchase-price">${formattedPurchasePrice}</span></p>
                         </div>
-                        <p><strong>Stock:</strong> ${accesorio.stock} unidades</p>
+
+                        <div class="tallas-details">
+                            <h5><i class="fas fa-ruler"></i> Tallas Registradas</h5>
+                            <div class="productos-table-container">
+                                <table class="detalle-productos-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Talla</th>
+                                            <th class="text-right">Precio Venta</th>
+                                            <th class="text-right">Precio Compra</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${(accesorio.tallas || []).map(t => `
+                                            <tr>
+                                                <td><span class=\"size-badge\">${t.talla}</span></td>
+                                                <td class=\"text-right\">S/ ${Number(t.precioVenta || 0).toFixed(2)}</td>
+                                                <td class=\"text-right\">S/ ${Number(t.precioCompra || 0).toFixed(2)}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -437,7 +517,7 @@ function createFilterModal() {
             <div class="modal-body">
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="filterCategory">Categoría</label>
+                        <label for="filterCategory">Tipo Producto</label>
                         <select id="filterCategory">
                             <option value="">Todas las categorías</option>
                             <option value="Cinturones">Cinturones</option>
@@ -558,13 +638,20 @@ function applyFilters() {
     }
     
     if (priceRangeFilter) {
-        const [min, max] = priceRangeFilter.split('-').map(p => parseFloat(p) || 0);
         if (priceRangeFilter === '300+') {
-            filteredAccesorios = filteredAccesorios.filter(accesorio => accesorio.price >= 300);
+            filteredAccesorios = filteredAccesorios.filter(accesorio => {
+                const minVenta = Math.min(...(accesorio.tallas || []).map(t => t.precioVenta));
+                return isFinite(minVenta) && minVenta >= 300;
+            });
         } else {
-            filteredAccesorios = filteredAccesorios.filter(accesorio => 
-                accesorio.price >= min && (max ? accesorio.price <= max : true)
-            );
+            const [minStr, maxStr] = priceRangeFilter.split('-');
+            const min = parseFloat(minStr) || 0;
+            const max = maxStr ? parseFloat(maxStr) : Infinity;
+            filteredAccesorios = filteredAccesorios.filter(accesorio => {
+                const minVenta = Math.min(...(accesorio.tallas || []).map(t => t.precioVenta));
+                if (!isFinite(minVenta)) return false;
+                return minVenta >= min && minVenta <= max;
+            });
         }
     }
     
@@ -725,3 +812,59 @@ document.addEventListener('keydown', function(event) {
         });
     }
 });
+
+// --------- Tallas (crear/editar) helpers ---------
+function addTallaInput(initial = null) {
+    if (!tallasContainer) return;
+
+    const item = document.createElement('div');
+    item.className = 'talla-item';
+    // Disposición en una sola fila como en calzados
+    item.style.display = 'grid';
+    item.style.gridTemplateColumns = '1fr 1fr 1fr auto';
+    item.style.gap = '12px';
+    item.style.alignItems = 'end';
+
+    item.innerHTML = `
+        <div class="form-group">
+            <label>Talla</label>
+            <select class="talla-select">
+                <option value="">Seleccionar talla</option>
+                <option value="XS" ${initial?.talla === 'XS' ? 'selected' : ''}>XS</option>
+                <option value="S" ${initial?.talla === 'S' ? 'selected' : ''}>S</option>
+                <option value="M" ${initial?.talla === 'M' ? 'selected' : ''}>M</option>
+                <option value="L" ${initial?.talla === 'L' ? 'selected' : ''}>L</option>
+                <option value="XL" ${initial?.talla === 'XL' ? 'selected' : ''}>XL</option>
+                <option value="Única" ${initial?.talla === 'Única' ? 'selected' : ''}>Única</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Precio Venta (S/)</label>
+            <input type="number" class="talla-precio-venta" value="${initial?.precioVenta ?? ''}" step="0.01" min="0" placeholder="0.00">
+        </div>
+        <div class="form-group">
+            <label>Precio Compra (S/)</label>
+            <input type="number" class="talla-precio-compra" value="${initial?.precioCompra ?? ''}" step="0.01" min="0" placeholder="0.00">
+        </div>
+        <button type="button" class="btn-icon btn-delete remove-talla-btn" title="Eliminar Talla">
+            <i class="fas fa-minus-circle"></i>
+        </button>
+    `;
+
+    tallasContainer.appendChild(item);
+
+    const select = item.querySelector('.talla-select');
+    const pv = item.querySelector('.talla-precio-venta');
+    const pc = item.querySelector('.talla-precio-compra');
+    const removeBtn = item.querySelector('.remove-talla-btn');
+
+    select.addEventListener('change', updatePreview);
+    pv.addEventListener('input', updatePreview);
+    pc.addEventListener('input', updatePreview);
+    removeBtn.addEventListener('click', () => {
+        item.remove();
+        updatePreview();
+    });
+
+    updatePreview();
+}
