@@ -1,6 +1,8 @@
 // Calzados Module JavaScript
 
 // Global variables
+// Nuevo modelo: las tallas y precios se manejan en un arreglo `tallas`
+// tallas: [{ talla: '42', precioVenta: 249.9, precioCompra: 180 }]
 let calzados = [
     {
         id: '001',
@@ -9,12 +11,16 @@ let calzados = [
         model: 'Air Max 270',
         color: 'Negro',
         type: 'Unisex',
-        size: '42',
-        price: 249.90,
-        purchasePrice: 180.00,
+        proveedor: 'Distribuidora Nike S.A.',
+        unidad: 'Par',
         material: 'Mesh',
         category: 'Deportivo',
         image: '../../../static/img/calzado-default.jpg',
+        tallas: [
+            { talla: '41', precioVenta: 239.90, precioCompra: 170.00 },
+            { talla: '42', precioVenta: 249.90, precioCompra: 180.00 },
+            { talla: '43', precioVenta: 259.90, precioCompra: 190.00 }
+        ],
         stock: 15,
         status: 'active'
     },
@@ -25,12 +31,15 @@ let calzados = [
         model: 'Desert Boot',
         color: 'Marrón',
         type: 'Hombre',
-        size: '41',
-        price: 189.90,
-        purchasePrice: 135.00,
+        proveedor: 'Calzados Premium Ltda.',
+        unidad: 'Par',
         material: 'Cuero',
         category: 'Formal',
         image: '../../../static/img/calzado-default.jpg',
+        tallas: [
+            { talla: '40', precioVenta: 179.90, precioCompra: 130.00 },
+            { talla: '41', precioVenta: 189.90, precioCompra: 135.00 }
+        ],
         stock: 8,
         status: 'active'
     },
@@ -41,12 +50,15 @@ let calzados = [
         model: '6 Inch Premium',
         color: 'Café',
         type: 'Mujer',
-        size: '43',
-        price: 389.90,
-        purchasePrice: 280.00,
+        proveedor: 'Sportswear Internacional',
+        unidad: 'Par',
         material: 'Cuero',
         category: 'Casual',
         image: '../../../static/img/calzado-default.jpg',
+        tallas: [
+            { talla: '42', precioVenta: 379.90, precioCompra: 270.00 },
+            { talla: '43', precioVenta: 389.90, precioCompra: 280.00 }
+        ],
         stock: 5,
         status: 'active'
     }
@@ -163,9 +175,6 @@ function loadCalzados() {
 // Create calzado row
 function createCalzadoRow(calzado) {
     const row = document.createElement('tr');
-    
-    // Format price
-    const formattedPrice = `S/ ${calzado.price.toFixed(2)}`;
 
     row.innerHTML = `
         <td><input type="checkbox" class="calzado-checkbox" data-calzado-id="${calzado.id}"></td>
@@ -189,8 +198,6 @@ function createCalzadoRow(calzado) {
         <td>${calzado.model}</td>
         <td><span class="color-badge ${calzado.color.toLowerCase()}">${calzado.color}</span></td>
         <td><span class="type-badge ${calzado.type.toLowerCase()}">${calzado.type}</span></td>
-        <td><span class="size-badge">${calzado.size}</span></td>
-        <td><span class="price">${formattedPrice}</span></td>
         <td>
             <div class="action-buttons-cell">
                 <button class="btn-icon btn-edit" title="Editar" data-calzado-id="${calzado.id}">
@@ -320,16 +327,16 @@ function applyFilters() {
     }
     
     if (sizeFilter) {
-        filteredCalzados = filteredCalzados.filter(calzado => calzado.size === sizeFilter);
+        filteredCalzados = filteredCalzados.filter(calzado => (calzado.tallas || []).some(t => t.talla === sizeFilter));
     }
     
     if (priceRangeFilter) {
         const [min, max] = priceRangeFilter.split('-').map(p => parseFloat(p) || 0);
         if (priceRangeFilter === '300+') {
-            filteredCalzados = filteredCalzados.filter(calzado => calzado.price >= 300);
+            filteredCalzados = filteredCalzados.filter(calzado => (calzado.tallas || []).some(t => t.precioVenta >= 300));
         } else {
             filteredCalzados = filteredCalzados.filter(calzado => 
-                calzado.price >= min && (max ? calzado.price <= max : true)
+                (calzado.tallas || []).some(t => t.precioVenta >= min && (max ? t.precioVenta <= max : true))
             );
         }
     }
@@ -375,6 +382,13 @@ function openAddCalzadoModal() {
             <span>Click para subir imagen</span>
         `;
     }
+
+    // Reiniciar tallas
+    const tallasContainer = document.getElementById('tallasContainer');
+    if (tallasContainer) {
+        tallasContainer.innerHTML = '';
+    }
+    addTallaInput();
 
     if (modal) {
         modal.style.display = 'block';
@@ -433,6 +447,21 @@ function handleFormSubmit(e) {
     const formData = new FormData(e.target);
     const calzadoData = Object.fromEntries(formData.entries());
     
+    // Obtener tallas del formulario
+    const tallas = [];
+    document.querySelectorAll('#tallasContainer .talla-item').forEach(item => {
+        const talla = item.querySelector('.talla-select')?.value || '';
+        const precioVenta = parseFloat(item.querySelector('.talla-precio-venta')?.value || '0');
+        const precioCompra = parseFloat(item.querySelector('.talla-precio-compra')?.value || '0');
+        if (talla) {
+            tallas.push({ talla, precioVenta, precioCompra });
+        }
+    });
+    calzadoData.tallas = tallas;
+    // capturar proveedor y unidad (ya vienen en formData, pero garantizamos propiedades)
+    calzadoData.proveedor = calzadoData.proveedor || '';
+    calzadoData.unidad = calzadoData.unidad || '';
+    
     // Validate form
     if (!validateCalzadoForm(calzadoData)) {
         return;
@@ -478,12 +507,16 @@ function validateCalzadoForm(data) {
         errors.push('El modelo debe tener al menos 2 caracteres');
     }
 
-    if (!data.size) {
-        errors.push('Debe seleccionar una talla');
-    }
-
-    if (!data.price || parseFloat(data.price) <= 0) {
-        errors.push('El precio debe ser mayor a 0');
+    // Validación de tallas
+    const tallas = data.tallas || [];
+    if (tallas.length === 0) {
+        errors.push('Debe registrar al menos una talla con precios');
+    } else {
+        tallas.forEach((t, idx) => {
+            if (!t.talla) errors.push(`La talla en la fila ${idx + 1} es obligatoria`);
+            if (isNaN(t.precioVenta) || t.precioVenta <= 0) errors.push(`El precio de venta en la fila ${idx + 1} debe ser mayor a 0`);
+            if (isNaN(t.precioCompra) || t.precioCompra < 0) errors.push(`El precio de compra en la fila ${idx + 1} no puede ser negativo`);
+        });
     }
 
     if (errors.length > 0) {
@@ -505,10 +538,14 @@ function createCalzado(calzadoData) {
         name: calzadoData.name,
         brand: calzadoData.brand,
         model: calzadoData.model,
-        size: calzadoData.size,
-        price: parseFloat(calzadoData.price),
+        color: calzadoData.color,
+        type: calzadoData.type,
+        proveedor: calzadoData.proveedor,
+        unidad: calzadoData.unidad,
+        material: calzadoData.material,
         category: calzadoData.category || 'Casual',
         image: '../../../static/img/calzado-default.jpg',
+        tallas: calzadoData.tallas || [],
         stock: 0,
         status: 'active'
     };
@@ -533,9 +570,13 @@ function updateCalzado(calzadoData) {
             name: calzadoData.name,
             brand: calzadoData.brand,
             model: calzadoData.model,
-            size: calzadoData.size,
-            price: parseFloat(calzadoData.price),
+            color: calzadoData.color,
+            type: calzadoData.type,
+            proveedor: calzadoData.proveedor,
+            unidad: calzadoData.unidad,
+            material: calzadoData.material,
             category: calzadoData.category || 'Casual'
+            ,tallas: calzadoData.tallas || [],
         };
         
         // Refresh table
@@ -572,9 +613,6 @@ function createViewCalzadoModal(calzado) {
     modal.className = 'modal';
     modal.style.display = 'block';
     
-    const formattedPrice = `S/ ${calzado.price.toFixed(2)}`;
-    const formattedPurchasePrice = `S/ ${calzado.purchasePrice.toFixed(2)}`;
-
     modal.innerHTML = `
         <div class="modal-content">
             <div class="modal-header">
@@ -597,12 +635,32 @@ function createViewCalzadoModal(calzado) {
                         <p><strong>Modelo:</strong> ${calzado.model}</p>
                         <p><strong>Color:</strong> <span class="color-badge ${calzado.color.toLowerCase()}">${calzado.color}</span></p>
                         <p><strong>Tipo:</strong> <span class="type-badge ${calzado.type.toLowerCase()}">${calzado.type}</span></p>
-                        <p><strong>Talla:</strong> <span class="size-badge">${calzado.size}</span></p>
+                        <p><strong>Proveedor:</strong> ${calzado.proveedor || '-'}</p>
+                        <p><strong>Unidad de Medida:</strong> ${calzado.unidad || '-'}</p>
                         <p><strong>Material:</strong> ${calzado.material}</p>
                         <p><strong>Categoría:</strong> <span class="product-category ${calzado.category.toLowerCase()}">${calzado.category}</span></p>
-                        <div class="price-details">
-                            <p><strong>Precio de Venta:</strong> <span class="price">${formattedPrice}</span></p>
-                            <p><strong>Precio de Compra:</strong> <span class="purchase-price">${formattedPurchasePrice}</span></p>
+                        <div class="tallas-details">
+                            <h5><i class="fas fa-ruler"></i> Tallas Registradas</h5>
+                            <div class="productos-table-container">
+                                <table class="detalle-productos-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Talla</th>
+                                            <th class="text-right">Precio Venta</th>
+                                            <th class="text-right">Precio Compra</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${(calzado.tallas || []).map(t => `
+                                            <tr>
+                                                <td><span class=\"size-badge\">${t.talla}</span></td>
+                                                <td class=\"text-right\">S/ ${Number(t.precioVenta || 0).toFixed(2)}</td>
+                                                <td class=\"text-right\">S/ ${Number(t.precioCompra || 0).toFixed(2)}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                         <p><strong>Stock:</strong> ${calzado.stock} unidades</p>
                     </div>
@@ -629,14 +687,25 @@ function populateCalzadoForm(calzadoId) {
         document.getElementById('calzadoName').value = calzado.name;
         document.getElementById('calzadoBrand').value = calzado.brand;
         document.getElementById('calzadoModel').value = calzado.model;
-        document.getElementById('calzadoSize').value = calzado.size;
-        document.getElementById('calzadoPrice').value = calzado.price;
+        document.getElementById('calzadoColor').value = calzado.color;
+        document.getElementById('calzadoType').value = calzado.type;
+        if (document.getElementById('calzadoProveedor')) document.getElementById('calzadoProveedor').value = calzado.proveedor || '';
+        if (document.getElementById('calzadoUnidad')) document.getElementById('calzadoUnidad').value = calzado.unidad || '';
+        document.getElementById('calzadoMaterial').value = calzado.material;
         document.getElementById('calzadoCategory').value = calzado.category;
         
         // Update image preview
         const imagePreview = document.getElementById('imagePreview');
         if (imagePreview && calzado.image) {
             imagePreview.innerHTML = `<img src="${calzado.image}" alt="Preview">`;
+        }
+
+        // Cargar tallas en el formulario
+        const tallasContainer = document.getElementById('tallasContainer');
+        if (tallasContainer) {
+            tallasContainer.innerHTML = '';
+            (calzado.tallas || []).forEach(t => addTallaInput({ talla: t.talla, precioVenta: t.precioVenta, precioCompra: t.precioCompra }));
+            if ((calzado.tallas || []).length === 0) addTallaInput();
         }
     }
 }
@@ -714,7 +783,7 @@ function updatePaginationInfo() {
 
 // Preview updates
 function addPreviewUpdates() {
-    const inputs = ['calzadoName', 'calzadoBrand', 'calzadoModel', 'calzadoSize', 'calzadoPrice', 'calzadoCategory'];
+    const inputs = ['calzadoName', 'calzadoBrand', 'calzadoModel', 'calzadoCategory'];
     
     inputs.forEach(inputId => {
         const input = document.getElementById(inputId);
@@ -728,18 +797,31 @@ function updateCalzadoPreview() {
     const name = document.getElementById('calzadoName')?.value || 'Nombre del Calzado';
     const brand = document.getElementById('calzadoBrand')?.value || 'Marca';
     const model = document.getElementById('calzadoModel')?.value || 'Modelo';
-    const size = document.getElementById('calzadoSize')?.value || '--';
-    const price = document.getElementById('calzadoPrice')?.value || '0.00';
+    // calcular precios mínimos y conteo de tallas
+    const tallaItems = document.querySelectorAll('#tallasContainer .talla-item');
+    const tallasCount = tallaItems.length;
+    let minVenta = Infinity;
+    let minCompra = Infinity;
+    tallaItems.forEach(item => {
+        const pv = parseFloat(item.querySelector('.talla-precio-venta')?.value || '');
+        const pc = parseFloat(item.querySelector('.talla-precio-compra')?.value || '');
+        if (!isNaN(pv)) minVenta = Math.min(minVenta, pv);
+        if (!isNaN(pc)) minCompra = Math.min(minCompra, pc);
+    });
+    if (minVenta === Infinity) minVenta = 0;
+    if (minCompra === Infinity) minCompra = 0;
     
     const previewName = document.getElementById('previewCalzadoName');
     const previewDetails = document.getElementById('previewCalzadoDetails');
     const previewSize = document.querySelector('.preview-size');
-    const previewPrice = document.querySelector('.preview-price');
+    const previewPriceSale = document.querySelector('.preview-price-sale');
+    const previewPricePurchase = document.querySelector('.preview-price-purchase');
     
     if (previewName) previewName.textContent = name;
     if (previewDetails) previewDetails.textContent = `${brand} - ${model}`;
-    if (previewSize) previewSize.textContent = `Talla: ${size}`;
-    if (previewPrice) previewPrice.textContent = `S/ ${parseFloat(price || 0).toFixed(2)}`;
+    if (previewSize) previewSize.textContent = `Tallas: ${tallasCount} registradas`;
+    if (previewPriceSale) previewPriceSale.textContent = `Venta desde: S/ ${Number(minVenta).toFixed(2)}`;
+    if (previewPricePurchase) previewPricePurchase.textContent = `Compra desde: S/ ${Number(minCompra).toFixed(2)}`;
 }
 
 // Utility functions
@@ -824,3 +906,68 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// --- Gestión de tallas en el formulario ---
+function addTallaInput(data = { talla: '', precioVenta: '', precioCompra: '' }) {
+    const tallasContainer = document.getElementById('tallasContainer');
+    if (!tallasContainer) return;
+
+    const itemDiv = document.createElement('div');
+    itemDiv.classList.add('talla-item');
+    itemDiv.style.display = 'grid';
+    itemDiv.style.gridTemplateColumns = '1fr 1fr 1fr auto';
+    itemDiv.style.gap = '12px';
+    itemDiv.style.alignItems = 'end';
+
+    itemDiv.innerHTML = `
+        <div class="form-group">
+            <label>Talla</label>
+            <select class="talla-select">
+                <option value="">Seleccionar talla</option>
+                <option value="38" ${data.talla === '38' ? 'selected' : ''}>38</option>
+                <option value="39" ${data.talla === '39' ? 'selected' : ''}>39</option>
+                <option value="40" ${data.talla === '40' ? 'selected' : ''}>40</option>
+                <option value="41" ${data.talla === '41' ? 'selected' : ''}>41</option>
+                <option value="42" ${data.talla === '42' ? 'selected' : ''}>42</option>
+                <option value="43" ${data.talla === '43' ? 'selected' : ''}>43</option>
+                <option value="44" ${data.talla === '44' ? 'selected' : ''}>44</option>
+                <option value="45" ${data.talla === '45' ? 'selected' : ''}>45</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Precio Venta (S/)</label>
+            <input type="number" class="talla-precio-venta" value="${data.precioVenta}" step="0.01" min="0" placeholder="0.00">
+        </div>
+        <div class="form-group">
+            <label>Precio Compra (S/)</label>
+            <input type="number" class="talla-precio-compra" value="${data.precioCompra}" step="0.01" min="0" placeholder="0.00">
+        </div>
+        <button type="button" class="btn-icon btn-delete remove-talla-btn" title="Eliminar Talla">
+            <i class="fas fa-minus-circle"></i>
+        </button>
+    `;
+
+    tallasContainer.appendChild(itemDiv);
+
+    // Actualiza la vista previa al cambiar cualquier input
+    itemDiv.querySelectorAll('select, input').forEach(el => {
+        el.addEventListener('input', updateCalzadoPreview);
+    });
+
+    // Eliminar talla
+    itemDiv.querySelector('.remove-talla-btn').addEventListener('click', () => {
+        itemDiv.remove();
+        updateCalzadoPreview();
+    });
+}
+
+// Botón para agregar talla
+document.addEventListener('DOMContentLoaded', function() {
+    const addTallaBtn = document.getElementById('addTallaBtn');
+    if (addTallaBtn) {
+        addTallaBtn.addEventListener('click', () => {
+            addTallaInput();
+            updateCalzadoPreview();
+        });
+    }
+});

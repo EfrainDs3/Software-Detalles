@@ -1047,3 +1047,76 @@ input[type="checkbox"] {
         text-align: center;
     }
 }
+
+/* -------- Detalle: Tallas y Precios (estilo consistente) -------- */
+.tallas-details {
+    margin-top: 8px;
+}
+
+.tallas-details h5 {
+    color: #b30000;
+    font-size: 16px;
+    margin: 6px 0 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.productos-table-container {
+    overflow-x: auto;
+    margin: 8px 0 0 0;
+}
+
+.detalle-productos-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.detalle-productos-table th {
+    background-color: #f8f9fa;
+    padding: 12px 8px;
+    text-align: left;
+    font-weight: 600;
+    color: #333;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.detalle-productos-table td {
+    padding: 12px 8px;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+}
+
+.detalle-productos-table tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Utilidades de alineación */
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+
+/* Centrar contenido específicamente en la tabla de tallas (vista de detalles) */
+.tallas-details .detalle-productos-table th,
+.tallas-details .detalle-productos-table td {
+    text-align: center;
+}
+
+/* Forzar centrado si existen utilidades aplicadas en el marcado */
+.tallas-details .detalle-productos-table .text-right,
+.tallas-details .detalle-productos-table .text-center {
+    text-align: center !important;
+}
+
+/* -------- Formularios: Tallas (crear/editar) -------- */
+.talla-item {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+}
+
+.talla-item .remove-talla-btn {
+    align-self: end;
+}

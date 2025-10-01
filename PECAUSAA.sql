@@ -1,4 +1,4 @@
--- Creación y selección de la Base de Datos
+-- Creaciï¿½n y selecciï¿½n de la Base de Datos
 IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'DETALLES')
 BEGIN
     CREATE DATABASE DETALLES;
@@ -9,7 +9,7 @@ USE DETALLES;
 GO
 
 -- =================================================================
--- MÓDULO 1: GESTIÓN DE USUARIOS, ROLES Y PERMISOS (RBAC)
+-- Mï¿½DULO 1: GESTIï¿½N DE USUARIOS, ROLES Y PERMISOS (RBAC)
 -- =================================================================
 
 -- Tabla para definir los roles del sistema.
@@ -21,7 +21,7 @@ CREATE TABLE Roles (
 );
 GO
 
--- Almacena cada acción específica que se puede realizar en el sistema.
+-- Almacena cada acciï¿½n especï¿½fica que se puede realizar en el sistema.
 CREATE TABLE Permisos (
     id_permiso INT IDENTITY(1,1) PRIMARY KEY,
     nombre_permiso VARCHAR(100) NOT NULL UNIQUE, -- Ej: 'crear_producto', 'editar_stock', 'ver_reportes'
@@ -57,7 +57,7 @@ CREATE TABLE Usuarios (
     direccion VARCHAR(255),
     username VARCHAR(50) NOT NULL UNIQUE,    
     email VARCHAR(100) NOT NULL UNIQUE,    
-    contraseña_hash VARCHAR(255) NOT NULL, -- El HASH de la contraseña, no el texto plano por seguridad
+    contraseï¿½a_hash VARCHAR(255) NOT NULL, -- El HASH de la contraseï¿½a, no el texto plano por seguridad
     estado BIT NOT NULL DEFAULT 1,
     fecha_creacion DATETIME NOT NULL DEFAULT GETDATE(),
     fecha_ultima_sesion DATETIME,
@@ -66,7 +66,7 @@ CREATE TABLE Usuarios (
 );
 GO
 
--- Un usuario puede tener uno o más roles.
+-- Un usuario puede tener uno o mï¿½s roles.
 CREATE TABLE Usuario_Roles (
     id_usuario INT NOT NULL,
     id_rol INT NOT NULL,
@@ -76,7 +76,7 @@ CREATE TABLE Usuario_Roles (
 );
 GO
 
--- Tabla para auditoría
+-- Tabla para auditorï¿½a
 CREATE TABLE Bitacora (
     id_bitacora BIGINT IDENTITY(1,1) PRIMARY KEY,
     id_usuario INT,
@@ -89,7 +89,7 @@ CREATE TABLE Bitacora (
 GO
 
 -- =================================================================
--- MÓDULO 2: GESTIÓN DE CLIENTES Y PROVEEDORES
+-- Mï¿½DULO 2: GESTIï¿½N DE CLIENTES Y PROVEEDORES
 -- =================================================================
 
 CREATE TABLE Clientes (
@@ -121,7 +121,7 @@ CREATE TABLE Proveedores (
 GO
 
 -- =================================================================
--- MÓDULO 3: GESTIÓN DE PRODUCTOS E INVENTARIO
+-- Mï¿½DULO 3: GESTIï¿½N DE PRODUCTOS E INVENTARIO
 -- =================================================================
 
 CREATE TABLE CategoriasProducto (
@@ -169,7 +169,6 @@ CREATE TABLE Productos (
     id_categoria INT NOT NULL,
     id_proveedor INT,
     id_unidad_medida INT NOT NULL,
-    talla VARCHAR(10),
     color VARCHAR(50),
     tipo VARCHAR(20), 
     dimensiones VARCHAR(50),
@@ -223,7 +222,7 @@ CREATE TABLE Inventario (
     id_producto INT NOT NULL,
     id_almacen INT NOT NULL,
     cantidad_stock INT NOT NULL DEFAULT 0,
-    stock_minimo INT NOT NULL DEFAULT 5, -- Nivel de alerta específico para este producto en este almacén
+    stock_minimo INT NOT NULL DEFAULT 5, -- Nivel de alerta especï¿½fico para este producto en este almacï¿½n
     fecha_ultima_actualizacion DATETIME NOT NULL DEFAULT GETDATE(),
     CONSTRAINT UQ_Inventario_Producto_Almacen UNIQUE (id_producto, id_almacen),
     CONSTRAINT FK_Inventario_Productos FOREIGN KEY (id_producto) REFERENCES Productos(id_producto) ON DELETE CASCADE,
@@ -232,7 +231,7 @@ CREATE TABLE Inventario (
 GO
 
 -- =================================================================
--- MÓDULO 4: GESTIÓN DE MOVIMIENTOS Y TRANSACCIONES
+-- Mï¿½DULO 4: GESTIï¿½N DE MOVIMIENTOS Y TRANSACCIONES
 -- =================================================================
 
 CREATE TABLE TiposMovimientoInventario (
@@ -306,7 +305,7 @@ CREATE TABLE PagosComprobante (
     id_comprobante BIGINT NOT NULL,
     id_tipopago INT NOT NULL,
     monto_pagado DECIMAL(10, 2) NOT NULL,
-    referencia_pago VARCHAR(100), -- Para nro de operación, últimos 4 dígitos de tarjeta, etc.
+    referencia_pago VARCHAR(100), -- Para nro de operaciï¿½n, ï¿½ltimos 4 dï¿½gitos de tarjeta, etc.
     CONSTRAINT FK_Pagos_Comprobantes FOREIGN KEY (id_comprobante) REFERENCES ComprobantesPago(id_comprobante) ON DELETE CASCADE,
     CONSTRAINT FK_Pagos_TiposPago FOREIGN KEY (id_tipopago) REFERENCES TiposPago(id_tipopago)
 );
@@ -326,7 +325,7 @@ CREATE TABLE DetallesComprobantePago (
 GO
 
 -- =================================================================
--- MÓDULO 5: GESTIÓN DE CAJA
+-- Mï¿½DULO 5: GESTIï¿½N DE CAJA
 -- =================================================================
 
 CREATE TABLE Cajas (
@@ -383,7 +382,7 @@ CREATE TABLE MovimientosCaja (
 GO
 
 -- =================================================================
--- MÓDULO 6: GESTIÓN DE PEDIDOS A PROVEEDORES
+-- Mï¿½DULO 6: GESTIï¿½N DE PEDIDOS A PROVEEDORES
 -- =================================================================
 
 CREATE TABLE PedidosCompra (
@@ -414,15 +413,15 @@ CREATE TABLE DetallesPedidoCompra (
 GO
 
 -- =================================================================
--- MÓDULO 7: GESTIÓN DE INTELIGENCIA ARTIFICIAL (ASESOR DE ESTILO)
+-- Mï¿½DULO 7: GESTIï¿½N DE INTELIGENCIA ARTIFICIAL (ASESOR DE ESTILO)
 -- =================================================================
 
 -- Almacena el perfil de estilo de cada cliente, aprendido por la IA.
 CREATE TABLE Perfiles_Estilo_Cliente (
     id_cliente INT PRIMARY KEY,
-    paleta_color_predominante VARCHAR(50), -- Ej: 'Cálida', 'Fría', 'Neutra'
+    paleta_color_predominante VARCHAR(50), -- Ej: 'Cï¿½lida', 'Frï¿½a', 'Neutra'
     estilos_preferidos NVARCHAR(MAX), -- Formato flexible como JSON o CSV: 'Urbano,Casual,Deportivo'
-    tallas_frecuentes VARCHAR(100), -- Tallas más compradas por el cliente
+    tallas_frecuentes VARCHAR(100), -- Tallas mï¿½s compradas por el cliente
     fecha_ultimo_analisis DATETIME NOT NULL DEFAULT GETDATE(),
     CONSTRAINT FK_PerfilesEstilo_Clientes FOREIGN KEY (id_cliente) REFERENCES Clientes(id_cliente) ON DELETE CASCADE
 );
@@ -438,7 +437,7 @@ CREATE TABLE Etiquetas_Producto_IA (
 );
 GO
 
--- Guarda un historial de las recomendaciones hechas a cada cliente y si tuvieron éxito.
+-- Guarda un historial de las recomendaciones hechas a cada cliente y si tuvieron ï¿½xito.
 CREATE TABLE Historial_Recomendaciones (
     id_recomendacion BIGINT IDENTITY(1,1) PRIMARY KEY,
     id_cliente INT NOT NULL,
