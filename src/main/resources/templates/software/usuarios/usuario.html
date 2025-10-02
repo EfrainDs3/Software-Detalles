@@ -178,30 +178,73 @@
         </div>
     </main>
 
-    <!-- modificar usuarios -->
+    <!-- Modal para gestión de usuarios -->
     <div id="userModal" class="modal">
-        <div class="modal-content role-modal-content">
+        <div class="modal-content user-modal-content">
             <div class="modal-header">
                 <h3 id="modalTitle">Nuevo Usuario</h3>
-                <button class="modal-close" id="closeModal" onclick="closeModal('userModal')">
+                <button class="modal-close" id="closeModal" onclick="closeModal()">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <form id="userForm" class="modal-body">
-                <!-- Información del Usuario -->
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="userName">Nombre Completo *</label>
-                        <input type="text" id="userName" name="name" required placeholder="Ej: Juan Pérez">
+                <!-- Información Básica -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-user"></i>
+                        Información Básica
+                    </h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="userName">Nombre Completo *</label>
+                            <input type="text" id="userName" name="name" required placeholder="Ej: Juan Pérez">
+                        </div>
+                        <div class="form-group">
+                            <label for="userEmail">Correo Electrónico *</label>
+                            <input type="email" id="userEmail" name="email" required placeholder="usuario@empresa.com">
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="userEmail">Email *</label>
-                        <input type="email" id="userEmail" name="email" required placeholder="usuario@dominio.com">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="userPhone">Teléfono</label>
+                            <input type="tel" id="userPhone" name="phone" placeholder="+51 999 999 999">
+                        </div>
+                        <div class="form-group">
+                            <label for="userStatus">Estado</label>
+                            <select id="userStatus" name="status">
+                                <option value="active">Activo</option>
+                                <option value="inactive">Inactivo</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
-                <div class="form-row">
+
+                <!-- Credenciales -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-key"></i>
+                        Credenciales de Acceso
+                    </h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="userPassword">Contraseña *</label>
+                            <input type="password" id="userPassword" name="password" required placeholder="Mínimo 8 caracteres">
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmPassword">Confirmar Contraseña *</label>
+                            <input type="password" id="confirmPassword" name="confirmPassword" required placeholder="Repetir contraseña">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rol y Permisos -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-user-shield"></i>
+                        Rol y Permisos
+                    </h4>
                     <div class="form-group">
-                        <label for="userRole">Rol *</label>
+                        <label for="userRole">Rol Asignado *</label>
                         <select id="userRole" name="role" required>
                             <option value="">Seleccionar rol</option>
                             <option value="admin">Administrador</option>
@@ -209,31 +252,38 @@
                             <option value="user">Usuario</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label for="userStatus">Estado</label>
-                        <select id="userStatus" name="status">
-                            <option value="active">Activo</option>
-                            <option value="inactive">Inactivo</option>
-                        </select>
+                    <div class="role-description">
+                        <p id="roleDescription">Selecciona un rol para ver su descripción</p>
                     </div>
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="userPassword">Contraseña *</label>
-                        <input type="password" id="userPassword" name="password" required>
+
+                <!-- Vista Previa -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-eye"></i>
+                        Vista Previa del Usuario
+                    </h4>
+                    <div class="user-preview">
+                        <div class="preview-user-info">
+                            <div class="preview-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="preview-details">
+                                <h5 id="previewUserName">Nombre del Usuario</h5>
+                                <p id="previewUserEmail">email@ejemplo.com</p>
+                                <div class="preview-role">
+                                    <span class="role-badge">
+                                        <i class="fas fa-user-tag"></i>
+                                        <span id="previewUserRole">Sin rol asignado</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="confirmPassword">Confirmar Contraseña *</label>
-                        <input type="password" id="confirmPassword" name="confirmPassword" required>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="userPhone">Teléfono</label>
-                    <input type="tel" id="userPhone" name="phone">
                 </div>
             </form>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="cancelBtn" onclick="closeModal('userModal')">
+                <button type="button" class="btn btn-secondary" id="cancelBtn" onclick="closeModal()">
                     <i class="fas fa-times"></i>
                     Cancelar
                 </button>
@@ -241,106 +291,6 @@
                     <i class="fas fa-save"></i>
                     Guardar Usuario
                 </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Editar Usuario -->
-    <div id="editUserModal" class="modal">
-        <div class="modal-content role-modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">Editar Usuario</h3>
-                <button class="modal-close" id="closeEditModal" onclick="closeModal('editUserModal')">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <form id="editUserForm" class="modal-body">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="editUserName">Nombre Completo *</label>
-                        <input type="text" id="editUserName" name="name" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editUserEmail">Email *</label>
-                        <input type="email" id="editUserEmail" name="email" required>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="editUserRole">Rol *</label>
-                        <select id="editUserRole" name="role" required>
-                            <option value="admin">Administrador</option>
-                            <option value="manager">Gerente</option>
-                            <option value="user">Usuario</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="editUserStatus">Estado</label>
-                        <select id="editUserStatus" name="status">
-                            <option value="active">Activo</option>
-                            <option value="inactive">Inactivo</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="editUserPassword">Contraseña</label>
-                        <input type="password" id="editUserPassword" name="password">
-                    </div>
-                    <div class="form-group">
-                        <label for="editConfirmPassword">Confirmar Contraseña</label>
-                        <input type="password" id="editConfirmPassword" name="confirmPassword">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="editUserPhone">Teléfono</label>
-                    <input type="tel" id="editUserPhone" name="phone">
-                </div>
-            </form>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="cancelEditBtn" onclick="closeModal('editUserModal')">Cancelar</button>
-                <button type="submit" form="editUserForm" class="btn btn-primary" id="saveEditBtn">Guardar Cambios</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Eliminar Usuario -->
-    <div id="deleteUserModal" class="modal center-modal">
-        <div class="modal-content delete-modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">Eliminar Usuario</h3>
-                <button class="modal-close" id="closeDeleteModal" onclick="this.closest('.modal').remove()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <p>¿Estás seguro de que deseas eliminar a <strong><span id="deleteUserName"></span></strong>? Esta acción no puede deshacerse.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="cancelDeleteBtn" onclick="this.closest('.modal').remove()">Cancelar</button>
-                <button type="button" class="btn btn-primary btn-danger" id="confirmDeleteBtn">Eliminar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Ver Usuario -->
-    <div id="viewUserModal" class="modal">
-        <div class="modal-content role-modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">Ver Usuario</h3>
-                <button class="modal-close" id="closeViewModal" onclick="closeModal('viewUserModal')">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <p><strong>Nombre Completo:</strong> <span id="viewUserName"></span></p>
-                <p><strong>Email:</strong> <span id="viewUserEmail"></span></p>
-                <p><strong>Rol:</strong> <span id="viewUserRole"></span></p>
-                <p><strong>Estado:</strong> <span id="viewUserStatus"></span></p>
-                <p><strong>Teléfono:</strong> <span id="viewUserPhone"></span></p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="closeViewBtn" onclick="closeModal('viewUserModal')">Cerrar</button>
             </div>
         </div>
     </div>
