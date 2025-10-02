@@ -127,7 +127,6 @@ GO
 CREATE TABLE CategoriasProducto (
     id_categoria INT IDENTITY(1,1) PRIMARY KEY,
     nombre_categoria VARCHAR(50) NOT NULL UNIQUE,
-    descripcion VARCHAR(255)
 );
 GO
 
@@ -141,7 +140,7 @@ CREATE TABLE Modelos (
     id_modelo INT IDENTITY(1,1) PRIMARY KEY,
     nombre_modelo VARCHAR(100) NOT NULL,
     id_marca INT NOT NULL, -- Un modelo pertenece a una marca
-    imagen_principal VARCHAR(255), -- La imagen principal del modelo
+    imagen_principal VARCHAR(2555), -- La imagen principal del modelo
     CONSTRAINT FK_Modelos_Marcas FOREIGN KEY (id_marca) REFERENCES MarcasProducto(id_marca)
 );
 GO

@@ -199,6 +199,12 @@
     background-color: #f8f9fa;
 }
 
+.calzado-img.is-placeholder {
+    object-fit: contain;
+    opacity: 0.65;
+    filter: grayscale(35%);
+}
+
 .calzado-img:hover {
     transform: scale(1.1);
 }

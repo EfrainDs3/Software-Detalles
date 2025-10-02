@@ -1,18 +1,13 @@
 // Catálogos unificado: render secuencial con paginación (5 por página)
 (function(){
-  // Demo data en memoria
-  let marcas = [ {id:1,nombre:'Nike'},{id:2,nombre:'Adidas'},{id:3,nombre:'Puma'},{id:4,nombre:'Reebok'},{id:5,nombre:'Vans'},{id:6,nombre:'Converse'} ];
-  let materiales = [ {id:1,nombre:'Cuero'},{id:2,nombre:'Textil'},{id:3,nombre:'Sintético'},{id:4,nombre:'Lona'},{id:5,nombre:'Gamuza'},{id:6,nombre:'Metal'} ];
-  let unidades = [ {id:1,nombre:'Par',abrev:'par'},{id:2,nombre:'Unidad',abrev:'und'},{id:3,nombre:'Caja',abrev:'caja'},{id:4,nombre:'Kit',abrev:'kit'},{id:5,nombre:'Docena',abrev:'dz'},{id:6,nombre:'Pack',abrev:'pack'} ];
-  let tipos = [ {id:1,nombre:'Deportivo'},{id:2,nombre:'Formal'},{id:3,nombre:'Casual'},{id:4,nombre:'Outdoor'},{id:5,nombre:'Urbano'},{id:6,nombre:'Sandalias'} ];
-  let modelos = [
-    {id:1,nombre:'Air Max 270', marcaId:1, marca:'Nike', imagen:''},
-    {id:2,nombre:'UltraBoost', marcaId:2, marca:'Adidas', imagen:''},
-    {id:3,nombre:'Roma', marcaId:3, marca:'Puma', imagen:''},
-    {id:4,nombre:'Classic', marcaId:4, marca:'Reebok', imagen:''},
-    {id:5,nombre:'Old Skool', marcaId:5, marca:'Vans', imagen:''},
-    {id:6,nombre:'Chuck 70', marcaId:6, marca:'Converse', imagen:''}
-  ];
+  const API_BASE = '/api/catalogos';
+
+  // Datos provenientes del backend
+  let marcas = [];
+  let materiales = [];
+  let unidades = [];
+  let tipos = [];
+  let modelos = [];
 
   const PAGE_SIZE = 5;
 
@@ -25,12 +20,135 @@
     tipos: { page:1, term:'' }
   };
 
+  const PLACEHOLDER_IMAGE = '/img/calzado-default.jpg';
+  const ESCAPE_MAP = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+
+  const escapeHtml = (value = '') => String(value ?? '')
+    .replace(/[&<>"']/g, (match) => ESCAPE_MAP[match] || match);
+
+  const normalizeImagePath = (value = '') => {
+    if (!value) return '';
+    if (value.startsWith('data:')) return value;
+    if (/^https?:\/\//i.test(value)) return value;
+    if (value.startsWith('/')) return value;
+    return '/' + value.replace(/^\/+/, '');
+  };
+
   // Estado de edición simple
   const editing = { scope:null, id:null };
   const byId = (id) => document.getElementById(id);
-  const nextId = (list) => list.length ? Math.max(...list.map(i=>i.id)) + 1 : 1;
   // Cache de altura mínima por tabla para mantener estable la posición de la paginación
   const heightCache = {};
+
+  async function apiFetch(path, options = {}){
+    const baseHeaders = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+    const opts = { method: options.method || 'GET', headers: baseHeaders, ...options };
+    opts.headers = { ...baseHeaders, ...(options.headers || {}) };
+    if (opts.body && typeof opts.body !== 'string') {
+      opts.body = JSON.stringify(opts.body);
+    }
+    if (opts.method === 'GET' || opts.method === 'DELETE') {
+      delete opts.body;
+      delete opts.headers['Content-Type'];
+    }
+    try {
+      const response = await fetch(`${API_BASE}${path}`, opts);
+      const contentType = response.headers.get('content-type') || '';
+      const raw = await response.text();
+      if (!response.ok) {
+        let message = 'Ocurrió un error inesperado';
+        if (raw) {
+          try {
+            const parsed = contentType.includes('application/json') ? JSON.parse(raw) : { message: raw };
+            message = parsed.message || parsed.error || raw;
+          } catch (err) {
+            message = raw;
+          }
+        }
+        throw new Error(message);
+      }
+      if (!raw) return null;
+      if (contentType.includes('application/json')) {
+        try {
+          return JSON.parse(raw);
+        } catch (err) {
+          console.warn('No se pudo interpretar la respuesta como JSON', err);
+          return null;
+        }
+      }
+      return raw;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  function handleError(error, fallbackMessage){
+    console.error(error);
+    const message = error && error.message ? error.message : fallbackMessage;
+    alert(message || fallbackMessage || 'Ocurrió un error inesperado');
+  }
+
+  async function loadMarcas(){
+    try {
+      const data = await apiFetch('/marcas');
+      marcas = Array.isArray(data) ? data : [];
+      normalizePage('marcas', marcas);
+      renderMarcas();
+      populateModeloMarcas();
+    } catch (error) {
+      handleError(error, 'No se pudo cargar la lista de marcas');
+    }
+  }
+
+  async function loadModelos(){
+    try {
+      const data = await apiFetch('/modelos');
+      modelos = Array.isArray(data) ? data : [];
+      normalizePage('modelos', modelos);
+      renderModelos();
+    } catch (error) {
+      handleError(error, 'No se pudo cargar la lista de modelos');
+    }
+  }
+
+  async function loadMateriales(){
+    try {
+      const data = await apiFetch('/materiales');
+      materiales = Array.isArray(data) ? data : [];
+      normalizePage('materiales', materiales);
+      renderMateriales();
+    } catch (error) {
+      handleError(error, 'No se pudo cargar la lista de materiales');
+    }
+  }
+
+  async function loadUnidades(){
+    try {
+      const data = await apiFetch('/unidades');
+      unidades = Array.isArray(data) ? data : [];
+      normalizePage('unidades', unidades);
+      renderUnidades();
+    } catch (error) {
+      handleError(error, 'No se pudo cargar la lista de unidades');
+    }
+  }
+
+  async function loadTipos(){
+    try {
+      const data = await apiFetch('/tipos');
+      tipos = Array.isArray(data) ? data : [];
+      normalizePage('tipos', tipos);
+      renderTipos();
+    } catch (error) {
+      handleError(error, 'No se pudo cargar la lista de tipos');
+    }
+  }
+
+  async function initialize(){
+    await loadMarcas();
+    await Promise.all([loadMateriales(), loadUnidades(), loadTipos()]);
+    await loadModelos();
+  }
 
   // Utilidades
   function paginate(list, page){
@@ -138,7 +256,7 @@
     if (key==='marcas') filtered = list.filter(m=>m.nombre.toLowerCase().includes(term));
     if (key==='modelos') filtered = list.filter(m=>m.nombre.toLowerCase().includes(term) || (m.marca||'').toLowerCase().includes(term));
     if (key==='materiales') filtered = list.filter(m=>m.nombre.toLowerCase().includes(term));
-    if (key==='unidades') filtered = list.filter(u=>u.nombre.toLowerCase().includes(term) || (u.abrev||'').toLowerCase().includes(term));
+  if (key==='unidades') filtered = list.filter(u=>u.nombre.toLowerCase().includes(term) || (u.abreviatura||'').toLowerCase().includes(term));
     if (key==='tipos') filtered = list.filter(t=>t.nombre.toLowerCase().includes(term));
     const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
     if (state[key].page > pages) state[key].page = pages;
@@ -167,29 +285,45 @@
   }
 
   function renderModelos(){
-    const term = state.modelos.term.toLowerCase();
-    const filtered = modelos.filter(m => m.nombre.toLowerCase().includes(term) || m.marca.toLowerCase().includes(term));
+    const term = (state.modelos.term || '').toLowerCase();
+    const filtered = modelos.filter(m =>{
+      const nombre = (m.nombre || '').toLowerCase();
+      const marcaNombre = (m.marca || '').toLowerCase();
+      return nombre.includes(term) || marcaNombre.includes(term);
+    });
     const page = state.modelos.page;
     const rows = paginate(filtered, page);
     const tbody = document.getElementById('modelosTableBody');
-    tbody.innerHTML = rows.map(r => `
-      <tr>
-        <td>${r.id}</td>
-        <td>${r.nombre}</td>
-        <td>${r.marca}</td>
-        <td>
-          ${r.imagen
-            ? `<div class="product-image"><a href="${r.imagen}" target="_blank" title="Ver imagen"><img class="calzado-img" src="${r.imagen}" alt="${r.nombre}"></a></div>`
-            : `<div class="product-image"><div class="placeholder-image"><i class="fas fa-image"></i></div></div>`}
-        </td>
-        <td><div class="action-buttons-cell">
-          <button class="btn-icon btn-view" data-scope="modelo" data-id="${r.id}"><i class="fas fa-eye"></i></button>
-          <button class="btn-icon btn-edit" data-scope="modelo" data-id="${r.id}"><i class="fas fa-edit"></i></button>
-          <button class="btn-icon btn-delete" data-scope="modelo" data-id="${r.id}"><i class="fas fa-trash"></i></button>
-        </div></td>
-      </tr>`).join('');
+    if (!tbody) return;
+    tbody.innerHTML = rows.map(renderModeloRow).join('');
     setFixedHeightForTable('modelosTable');
     renderPagination('modelosPagination', filtered.length, page, (p)=>{ state.modelos.page=p; renderModelos(); });
+  }
+
+  function renderModeloRow(modelo){
+    const id = modelo.id ?? '';
+    const idDisplay = escapeHtml(id ?? '-');
+    const nombre = escapeHtml(modelo.nombre ?? '');
+    const marcaNombre = escapeHtml(modelo.marca ?? '');
+    const rawImage = normalizeImagePath(modelo.imagen ?? '');
+    const safeImage = escapeHtml(rawImage);
+    const altText = nombre || 'Modelo sin nombre';
+    const hasImage = !!rawImage;
+    const imageMarkup = hasImage
+      ? `<a href="${safeImage}" target="_blank" rel="noopener" title="Ver imagen"><img class="calzado-img" src="${safeImage}" alt="${altText}" loading="lazy"></a>`
+      : `<img class="calzado-img is-placeholder" src="${PLACEHOLDER_IMAGE}" alt="Sin imagen" loading="lazy">`;
+    return `
+      <tr>
+        <td>${idDisplay}</td>
+        <td>${nombre}</td>
+        <td>${marcaNombre}</td>
+        <td><div class="product-image">${imageMarkup}</div></td>
+        <td><div class="action-buttons-cell">
+          <button class="btn-icon btn-view" data-scope="modelo" data-id="${escapeHtml(id)}"><i class="fas fa-eye"></i></button>
+          <button class="btn-icon btn-edit" data-scope="modelo" data-id="${escapeHtml(id)}"><i class="fas fa-edit"></i></button>
+          <button class="btn-icon btn-delete" data-scope="modelo" data-id="${escapeHtml(id)}"><i class="fas fa-trash"></i></button>
+        </div></td>
+      </tr>`;
   }
 
   function renderMateriales(){
@@ -214,7 +348,7 @@
 
   function renderUnidades(){
     const term = state.unidades.term.toLowerCase();
-    const filtered = unidades.filter(u => u.nombre.toLowerCase().includes(term) || (u.abrev||'').toLowerCase().includes(term));
+  const filtered = unidades.filter(u => u.nombre.toLowerCase().includes(term) || (u.abreviatura||'').toLowerCase().includes(term));
     const page = state.unidades.page;
     const rows = paginate(filtered, page);
     const tbody = document.getElementById('unidadesTableBody');
@@ -222,7 +356,7 @@
       <tr>
         <td>${r.id}</td>
         <td>${r.nombre}</td>
-        <td>${r.abrev || '-'}</td>
+  <td>${r.abreviatura || '-'}</td>
         <td><div class="action-buttons-cell">
           <button class="btn-icon btn-view" data-scope="unidad" data-id="${r.id}"><i class="fas fa-eye"></i></button>
           <button class="btn-icon btn-edit" data-scope="unidad" data-id="${r.id}"><i class="fas fa-edit"></i></button>
@@ -271,11 +405,22 @@
 
   // Nuevo/Guardar: Marcas
   byId('addMarcaBtn')?.addEventListener('click', ()=>{ editing.scope='marca'; editing.id=null; byId('marcaModalTitle').textContent='Nueva Marca'; byId('marcaNombre').value=''; openModal('marcaModal'); });
-  byId('saveMarcaBtn')?.addEventListener('click', ()=>{
-    const nombre = (byId('marcaNombre').value||'').trim(); if (!nombre){ byId('marcaNombre').focus(); return; }
-    if (editing.scope==='marca' && editing.id){ const it = marcas.find(x=>x.id===editing.id); if (it) it.nombre = nombre; }
-    else { marcas.push({ id: nextId(marcas), nombre }); }
-    normalizePage('marcas', marcas); closeModal('marcaModal'); renderMarcas();
+  byId('saveMarcaBtn')?.addEventListener('click', async ()=>{
+    const nombre = (byId('marcaNombre').value||'').trim();
+    if (!nombre){ byId('marcaNombre').focus(); return; }
+    try {
+      if (editing.scope==='marca' && editing.id){
+        await apiFetch(`/marcas/${editing.id}`, { method:'PUT', body:{ nombre } });
+      } else {
+        await apiFetch('/marcas', { method:'POST', body:{ nombre } });
+      }
+      await loadMarcas();
+      await loadModelos();
+      closeModal('marcaModal');
+      editing.scope = null; editing.id = null;
+    } catch (error) {
+      handleError(error, 'No se pudo guardar la marca');
+    }
   });
 
   // Nuevo/Guardar: Modelos
@@ -286,14 +431,16 @@
     const preview = byId('modeloImagePreview');
     if (!preview) return;
     preview.innerHTML = '<i class="fas fa-camera"></i><span>Click para subir imagen</span>';
+    delete preview.dataset.source;
   }
-  function setModeloImagePreview(src){
+  function setModeloImagePreview(src, originalSource){
     const preview = byId('modeloImagePreview');
     if (!preview) return;
     preview.innerHTML = '';
     const img = document.createElement('img');
     img.src = src;
     preview.appendChild(img);
+    preview.dataset.source = originalSource ?? src;
   }
   // Abrir selector al hacer click en preview o botón
   byId('modeloImagePreview')?.addEventListener('click', ()=> byId('modeloImage')?.click());
@@ -303,7 +450,7 @@
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev)=> setModeloImagePreview(ev.target.result);
+    reader.onload = (ev)=> setModeloImagePreview(ev.target.result, ev.target.result);
     reader.readAsDataURL(file);
   });
 
@@ -315,57 +462,116 @@
     resetModeloImagePreview();
     openModal('modeloModal');
   });
-  byId('saveModeloBtn')?.addEventListener('click', ()=>{
+  byId('saveModeloBtn')?.addEventListener('click', async ()=>{
     const nombre = (byId('modeloNombre').value||'').trim();
     const marcaId = Number(byId('modeloMarca').value||0);
     if (!nombre || !marcaId){ byId('modeloNombre').focus(); return; }
-    const marcaObj = marcas.find(m=>m.id===marcaId);
-    // Obtener imagen desde preview (si hay IMG, asumimos dataURL)
     let imagen = '';
     const preview = byId('modeloImagePreview');
-    const imgEl = preview ? preview.querySelector('img') : null;
-    if (imgEl && imgEl.src) imagen = imgEl.src;
-    if (editing.scope==='modelo' && editing.id){
-      const it = modelos.find(x=>x.id===editing.id);
-      if (it){ it.nombre=nombre; it.marcaId=marcaId; it.marca=marcaObj?.nombre||''; if (imagen) it.imagen=imagen; }
+    if (preview && preview.dataset.source) {
+      imagen = preview.dataset.source;
     } else {
-      modelos.push({ id: nextId(modelos), nombre, marcaId, marca: marcaObj?.nombre||'', imagen });
+      const imgEl = preview ? preview.querySelector('img') : null;
+      if (imgEl && imgEl.src) imagen = imgEl.src;
     }
-    normalizePage('modelos', modelos); closeModal('modeloModal'); renderModelos();
+    const payload = { nombre, marcaId, imagen };
+    try {
+      if (editing.scope==='modelo' && editing.id){
+        await apiFetch(`/modelos/${editing.id}`, { method:'PUT', body: payload });
+      } else {
+        await apiFetch('/modelos', { method:'POST', body: payload });
+      }
+      await loadModelos();
+      closeModal('modeloModal');
+      editing.scope = null; editing.id = null;
+    } catch (error) {
+      handleError(error, 'No se pudo guardar el modelo');
+    }
   });
 
   // Nuevo/Guardar: Materiales
   byId('addMaterialBtn')?.addEventListener('click', ()=>{ editing.scope='material'; editing.id=null; byId('materialModalTitle').textContent='Nuevo Material'; byId('materialNombre').value=''; openModal('materialModal'); });
-  byId('saveMaterialBtn')?.addEventListener('click', ()=>{
-    const nombre = (byId('materialNombre').value||'').trim(); if (!nombre){ byId('materialNombre').focus(); return; }
-    if (editing.scope==='material' && editing.id){ const it = materiales.find(x=>x.id===editing.id); if (it) it.nombre=nombre; }
-    else { materiales.push({ id: nextId(materiales), nombre }); }
-    normalizePage('materiales', materiales); closeModal('materialModal'); renderMateriales();
+  byId('saveMaterialBtn')?.addEventListener('click', async ()=>{
+    const nombre = (byId('materialNombre').value||'').trim();
+    if (!nombre){ byId('materialNombre').focus(); return; }
+    try {
+      if (editing.scope==='material' && editing.id){
+        await apiFetch(`/materiales/${editing.id}`, { method:'PUT', body:{ nombre } });
+      } else {
+        await apiFetch('/materiales', { method:'POST', body:{ nombre } });
+      }
+      await loadMateriales();
+      closeModal('materialModal');
+      editing.scope = null; editing.id = null;
+    } catch (error) {
+      handleError(error, 'No se pudo guardar el material');
+    }
   });
 
   // Nuevo/Guardar: Unidades
   byId('addUnidadBtn')?.addEventListener('click', ()=>{ editing.scope='unidad'; editing.id=null; byId('unidadModalTitle').textContent='Nueva Unidad'; byId('unidadNombre').value=''; byId('unidadAbrev').value=''; openModal('unidadModal'); });
-  byId('saveUnidadBtn')?.addEventListener('click', ()=>{
-    const nombre = (byId('unidadNombre').value||'').trim(); const abrev = (byId('unidadAbrev').value||'').trim(); if (!nombre){ byId('unidadNombre').focus(); return; }
-    if (editing.scope==='unidad' && editing.id){ const it = unidades.find(x=>x.id===editing.id); if (it){ it.nombre=nombre; it.abrev=abrev; } }
-    else { unidades.push({ id: nextId(unidades), nombre, abrev }); }
-    normalizePage('unidades', unidades); closeModal('unidadModal'); renderUnidades();
+  byId('saveUnidadBtn')?.addEventListener('click', async ()=>{
+    const nombre = (byId('unidadNombre').value||'').trim();
+    const abrev = (byId('unidadAbrev').value||'').trim();
+    if (!nombre){ byId('unidadNombre').focus(); return; }
+    const payload = { nombre, abreviatura: abrev };
+    try {
+      if (editing.scope==='unidad' && editing.id){
+        await apiFetch(`/unidades/${editing.id}`, { method:'PUT', body: payload });
+      } else {
+        await apiFetch('/unidades', { method:'POST', body: payload });
+      }
+      await loadUnidades();
+      closeModal('unidadModal');
+      editing.scope = null; editing.id = null;
+    } catch (error) {
+      handleError(error, 'No se pudo guardar la unidad');
+    }
   });
 
   // Nuevo/Guardar: Tipos
   byId('addTipoBtn')?.addEventListener('click', ()=>{ editing.scope='tipo'; editing.id=null; byId('tipoModalTitle').textContent='Nuevo Tipo de Producto'; byId('tipoNombre').value=''; openModal('tipoModal'); });
-  byId('saveTipoBtn')?.addEventListener('click', ()=>{
-    const nombre = (byId('tipoNombre').value||'').trim(); if (!nombre){ byId('tipoNombre').focus(); return; }
-    if (editing.scope==='tipo' && editing.id){ const it = tipos.find(x=>x.id===editing.id); if (it) it.nombre=nombre; }
-    else { tipos.push({ id: nextId(tipos), nombre }); }
-    normalizePage('tipos', tipos); closeModal('tipoModal'); renderTipos();
+  byId('saveTipoBtn')?.addEventListener('click', async ()=>{
+    const nombre = (byId('tipoNombre').value||'').trim();
+    if (!nombre){ byId('tipoNombre').focus(); return; }
+    try {
+      if (editing.scope==='tipo' && editing.id){
+        await apiFetch(`/tipos/${editing.id}`, { method:'PUT', body:{ nombre } });
+      } else {
+        await apiFetch('/tipos', { method:'POST', body:{ nombre } });
+      }
+      await loadTipos();
+      closeModal('tipoModal');
+      editing.scope = null; editing.id = null;
+    } catch (error) {
+      handleError(error, 'No se pudo guardar el tipo de producto');
+    }
   });
 
   // Ver detalle helpers
   function viewMarca(id){ const it = marcas.find(x=>x.id===id); if (!it) return; byId('marcaDetalleBody').innerHTML = `<p><strong>ID:</strong> ${it.id}</p><p><strong>Marca:</strong> ${it.nombre}</p>`; openModal('marcaDetalleModal'); }
-  function viewModelo(id){ const it = modelos.find(x=>x.id===id); if (!it) return; byId('modeloDetalleBody').innerHTML = `<p><strong>ID:</strong> ${it.id}</p><p><strong>Modelo:</strong> ${it.nombre}</p><p><strong>Marca:</strong> ${it.marca||'-'}</p>${it.imagen?`<img src="${it.imagen}" alt="${it.nombre}" style="max-width:100%;margin-top:8px;">`:''}`; openModal('modeloDetalleModal'); }
+  function viewModelo(id){
+    const it = modelos.find(x=>x.id===id);
+    if (!it) return;
+    const body = byId('modeloDetalleBody');
+    if (!body) return;
+    const nombre = escapeHtml(it.nombre ?? '');
+    const marca = escapeHtml(it.marca ?? '-');
+    const identifier = escapeHtml(it.id ?? '-');
+    const normalizedImage = normalizeImagePath(it.imagen ?? '');
+    const imageMarkup = normalizedImage
+      ? `<a href="${escapeHtml(normalizedImage)}" target="_blank" rel="noopener" title="Ver imagen"><img src="${escapeHtml(normalizedImage)}" alt="${nombre}" style="max-width:100%;margin-top:8px;border-radius:8px;"></a>`
+      : `<img src="${PLACEHOLDER_IMAGE}" alt="Sin imagen" style="max-width:120px;margin-top:12px;opacity:0.7;">`;
+    body.innerHTML = `
+      <p><strong>ID:</strong> ${identifier}</p>
+      <p><strong>Modelo:</strong> ${nombre}</p>
+      <p><strong>Marca:</strong> ${marca}</p>
+      ${imageMarkup}
+    `;
+    openModal('modeloDetalleModal');
+  }
   function viewMaterial(id){ const it = materiales.find(x=>x.id===id); if (!it) return; byId('materialDetalleBody').innerHTML = `<p><strong>ID:</strong> ${it.id}</p><p><strong>Material:</strong> ${it.nombre}</p>`; openModal('materialDetalleModal'); }
-  function viewUnidad(id){ const it = unidades.find(x=>x.id===id); if (!it) return; byId('unidadDetalleBody').innerHTML = `<p><strong>ID:</strong> ${it.id}</p><p><strong>Unidad:</strong> ${it.nombre}</p><p><strong>Abreviatura:</strong> ${it.abrev||'-'}</p>`; openModal('unidadDetalleModal'); }
+  function viewUnidad(id){ const it = unidades.find(x=>x.id===id); if (!it) return; byId('unidadDetalleBody').innerHTML = `<p><strong>ID:</strong> ${it.id}</p><p><strong>Unidad:</strong> ${it.nombre}</p><p><strong>Abreviatura:</strong> ${it.abreviatura||'-'}</p>`; openModal('unidadDetalleModal'); }
   function viewTipo(id){ const it = tipos.find(x=>x.id===id); if (!it) return; byId('tipoDetalleBody').innerHTML = `<p><strong>ID:</strong> ${it.id}</p><p><strong>Tipo:</strong> ${it.nombre}</p>`; openModal('tipoDetalleModal'); }
 
   // Edit helpers
@@ -377,15 +583,15 @@
     byId('modeloNombre').value=it.nombre;
     byId('modeloMarca').value=String(it.marcaId||'');
     if (byId('modeloImage')) byId('modeloImage').value='';
-    if (it.imagen){ setModeloImagePreview(it.imagen); } else { resetModeloImagePreview(); }
+  if (it.imagen){ setModeloImagePreview(it.imagen, it.imagen); } else { resetModeloImagePreview(); }
     openModal('modeloModal');
   }
   function editMaterial(id){ const it = materiales.find(x=>x.id===id); if (!it) return; editing.scope='material'; editing.id=id; byId('materialModalTitle').textContent='Editar Material'; byId('materialNombre').value=it.nombre; openModal('materialModal'); }
-  function editUnidad(id){ const it = unidades.find(x=>x.id===id); if (!it) return; editing.scope='unidad'; editing.id=id; byId('unidadModalTitle').textContent='Editar Unidad'; byId('unidadNombre').value=it.nombre; byId('unidadAbrev').value=it.abrev||''; openModal('unidadModal'); }
+  function editUnidad(id){ const it = unidades.find(x=>x.id===id); if (!it) return; editing.scope='unidad'; editing.id=id; byId('unidadModalTitle').textContent='Editar Unidad'; byId('unidadNombre').value=it.nombre; byId('unidadAbrev').value=it.abreviatura||''; openModal('unidadModal'); }
   function editTipo(id){ const it = tipos.find(x=>x.id===id); if (!it) return; editing.scope='tipo'; editing.id=id; byId('tipoModalTitle').textContent='Editar Tipo de Producto'; byId('tipoNombre').value=it.nombre; openModal('tipoModal'); }
 
   // Acciones (ver/editar/eliminar) delegadas
-  document.body.addEventListener('click', (e)=>{
+  document.body.addEventListener('click', async (e)=>{
     const btn = e.target.closest('.action-buttons-cell .btn-icon');
     if (!btn) return;
     const scope = btn.dataset.scope; const id = Number(btn.dataset.id);
@@ -404,22 +610,33 @@
       if (scope==='unidad') editUnidad(id);
       if (scope==='tipo') editTipo(id);
     } else if (btn.classList.contains('btn-delete')){
-      if (confirm('¿Eliminar registro?')){
-        const idx = list.findIndex(x => x.id === id);
-        if (idx >= 0) list.splice(idx,1);
-        if (scope==='marca'){ normalizePage('marcas', marcas); renderMarcas(); }
-        if (scope==='modelo'){ normalizePage('modelos', modelos); renderModelos(); }
-        if (scope==='material'){ normalizePage('materiales', materiales); renderMateriales(); }
-        if (scope==='unidad'){ normalizePage('unidades', unidades); renderUnidades(); }
-        if (scope==='tipo'){ normalizePage('tipos', tipos); renderTipos(); }
+      if (!confirm('¿Eliminar registro?')) return;
+      try {
+        if (scope==='marca'){
+          await apiFetch(`/marcas/${id}`, { method:'DELETE' });
+          await loadMarcas();
+          await loadModelos();
+        } else if (scope==='modelo'){
+          await apiFetch(`/modelos/${id}`, { method:'DELETE' });
+          await loadModelos();
+        } else if (scope==='material'){
+          await apiFetch(`/materiales/${id}`, { method:'DELETE' });
+          await loadMateriales();
+        } else if (scope==='unidad'){
+          await apiFetch(`/unidades/${id}`, { method:'DELETE' });
+          await loadUnidades();
+        } else if (scope==='tipo'){
+          await apiFetch(`/tipos/${id}`, { method:'DELETE' });
+          await loadTipos();
+        }
+      } catch (error) {
+        handleError(error, 'No se pudo eliminar el registro');
       }
     }
   });
 
-  // Inicializar renders
-  renderMarcas();
-  renderModelos();
-  renderMateriales();
-  renderUnidades();
-  renderTipos();
+  // Inicialización desde backend
+  initialize().catch((error)=>{
+    handleError(error, 'No se pudo cargar la información inicial de catálogos');
+  });
 })();
