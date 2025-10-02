@@ -32,7 +32,7 @@ const detalleIds = {
     rubro: 'detalle-rubro',
     direccion: 'detalle-direccion',
     telefono: 'detalle-telefono',
-    email: 'detalle-email',
+    email: 'detalle-email'
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -124,7 +124,7 @@ function renderProveedoresTable(data = proveedores) {
     if (paginatedData.length === 0) {
         proveedoresTableBody.innerHTML = `
             <tr>
-                <td colspan="8" style="text-align: center; padding: 40px; color: #666;">
+                <td colspan="7" style="text-align: center; padding: 40px; color: #666;">
                     <i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 10px; display: block;"></i>
                     No se encontraron proveedores
                 </td>
@@ -164,7 +164,6 @@ function renderProveedoresTable(data = proveedores) {
             <td>
                 <div style="font-size: 12px; color: #666;">${proveedor.direccion ?? 'Sin dirección'}</div>
             </td>
-            <td>-</td>
             <td>
                 <div class="action-buttons-cell">
                     <button class="btn-icon btn-edit" data-action="edit" data-id="${proveedor.idProveedor}" title="Editar">
@@ -255,20 +254,26 @@ async function editProveedor(id) {
     }
 }
 
-async function viewProveedorDetails(id) {
-    try {
-        const response = await fetch(`${API_URL}/${id}`);
-        if (!response.ok) {
-            throw new Error('Proveedor no encontrado');
-        }
+function viewProveedorDetails(id) {
+    const proveedor = proveedores.find(p => p.idProveedor === id);
 
-
-        document.body.style.overflow = 'hidden';
-        detalleProveedorModal.style.display = 'block';
-    } catch (error) {
-        console.error(error);
-        showNotification('No se pudo cargar el detalle del proveedor.', 'error');
+    if (!proveedor) {
+        showNotification('Proveedor no encontrado en la lista.', 'error');
+        return;
     }
+
+    Object.entries(detalleIds).forEach(([key, spanId]) => {
+        const span = document.getElementById(spanId);
+        if (!span) {
+            return;
+        }
+        span.textContent = proveedor[key] && proveedor[key].toString().trim() !== ''
+            ? proveedor[key]
+            : 'No especificado';
+    });
+
+    document.body.style.overflow = 'hidden';
+    detalleProveedorModal.style.display = 'block';
 }
 
 async function deleteProveedor(id) {
