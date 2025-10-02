@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zapatillas Deportivas para Mujeres - Detalles</title>
+    
+    <link rel="stylesheet" href="/styles.css">
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <base href="/src/main/resources/templates/Detalles%20web/">
+</head>
+<body>
+    <!-- Header (igual que en tu página principal) -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            
+            <div class="logo">
+                <h1>Tienda</h1>
+            </div>
+            
+            <ul class="nav-menu">
+                <li><a href="index.html">Inicio</a></li>
+                <li class="menu-item-has-children">
+                    <a href="#">Mujer <i class="fas fa-chevron-down"></i></a>
+                    <div class="submenu">
+                        <div class="submenu-content">
+                            <div class="submenu-column">
+                                <h3>Calzado</h3>
+                                <ul>
+                                    <li><a href="zapatos-casuales.html">Zapatos Casuales</a></li>
+                                    <li><a href="zapatillas-deportivas.html">Zapatillas Deportivas</a></li>
+                                    <li><a href="tacones.html">Tacones</a></li>
+                                    <li><a href="botas.html">Botas</a></li>
+                                </ul>
+                            </div>
+                            <div class="submenu-column">
+                                <h3>Accesorios</h3>
+                                <ul>
+                                    <li><a href="#">Bolsos</a></li>
+                                    <li><a href="#">Carteras</a></li>
+                                    <li><a href="#">Joyeria</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+                <li><a href="#">Hombre</a></li>
+                <li><a href="#">Niños</a></li>
+                <li><a href="#">Ofertas</a></li>
+            </ul>
+            
+            <div class="nav-icons">
+                <a href="#" class="nav-icon search-icon">
+                    <i class="fas fa-search"></i>
+                </a>
+                <a href="#" class="nav-icon favorites-icon">
+                    <i class="far fa-heart"></i>
+                    <span class="favorites-count">0</span>
+                </a>
+                <a href="#" class="nav-icon cart-icon">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span class="cart-count">0</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Search Overlay -->
+    <div class="search-overlay" id="searchOverlay">
+        <div class="search-container">
+            <span class="close-search">&times;</span>
+            <div class="search-content">
+                <h2>¿Qué estás buscando?</h2>
+                <form class="search-form">
+                    <input type="text" class="search-input" placeholder="Buscar productos...">
+                    <button type="submit" class="search-button">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+                <div class="search-suggestions">
+                    <h3>Sugerencias populares:</h3>
+                    <div class="suggestion-tags">
+                        <span class="tag">Zapatillas Running</span>
+                        <span class="tag">Nike Air Max</span>
+                        <span class="tag">Adidas Ultraboost</span>
+                        <span class="tag">Zapatillas Gym</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <div class="breadcrumb-content">
+            <a href="index.html">Inicio</a> / 
+            <a href="#">Mujer</a> / 
+            <span>Zapatillas Deportivas</span>
+        </div>
+    </div>
+
+    <!-- Products Page -->
+    <section class="products-page">
+        <div class="products-container">
+            <!-- Filters Sidebar -->
+            <aside class="filters-sidebar">
+                <div class="filter-section">
+                    <h3>Precio</h3>
+                    <div class="price-filter">
+                        <input type="range" class="price-range" min="0" max="300" value="200">
+                        <div class="price-inputs">
+                            <input type="number" placeholder="Mín" value="0">
+                            <input type="number" placeholder="Máx" value="200">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <h3>Talla</h3>
+                    <div class="size-filter">
+                        <div class="size-option">35</div>
+                        <div class="size-option">36</div>
+                        <div class="size-option">37</div>
+                        <div class="size-option">38</div>
+                        <div class="size-option">39</div>
+                        <div class="size-option">40</div>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <h3>Color</h3>
+                    <div class="color-filter">
+                        <div class="color-option" style="background: #000;" title="Negro"></div>
+                        <div class="color-option" style="background: #fff; border: 1px solid #ddd;" title="Blanco"></div>
+                        <div class="color-option" style="background: #ff0000;" title="Rojo"></div>
+                        <div class="color-option" style="background: #0000ff;" title="Azul"></div>
+                        <div class="color-option" style="background: #ffd700;" title="Dorado"></div>
+                        <div class="color-option" style="background: #808080;" title="Gris"></div>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <h3>Marca</h3>
+                    <div class="brand-filter">
+                        <label class="brand-option">
+                            <input type="checkbox"> Nike
+                        </label>
+                        <label class="brand-option">
+                            <input type="checkbox"> Adidas
+                        </label>
+                        <label class="brand-option">
+                            <input type="checkbox"> Puma
+                        </label>
+                        <label class="brand-option">
+                            <input type="checkbox"> New Balance
+                        </label>
+                        <label class="brand-option">
+                            <input type="checkbox"> Reebok
+                        </label>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <h3>Actividad</h3>
+                    <div class="brand-filter">
+                        <label class="brand-option">
+                            <input type="checkbox"> Running
+                        </label>
+                        <label class="brand-option">
+                            <input type="checkbox"> Gym
+                        </label>
+                        <label class="brand-option">
+                            <input type="checkbox"> Caminata
+                        </label>
+                        <label class="brand-option">
+                            <input type="checkbox"> Basketball
+                        </label>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Products Main Content -->
+            <main class="products-main">
+                <div class="products-header">
+                    <h1>Zapatillas Deportivas</h1>
+                    <div class="sort-options">
+                        <span class="products-count">24 productos</span>
+                        <select>
+                            <option>Ordenar por: Destacados</option>
+                            <option>Precio: Menor a Mayor</option>
+                            <option>Precio: Mayor a Menor</option>
+                            <option>Más Nuevos</option>
+                            <option>Mejor Valorados</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="products-grid-detailed">
+                    <!-- Producto 1 -->
+                    <div class="product-card-detailed" data-product-id="sport-1">
+                        <div class="product-image-detailed">
+                            <img src="https://via.placeholder.com/300x300" alt="Nike Air Max 270">
+                            <div class="product-badge">Nuevo</div>
+                            <div class="product-overlay">
+                                <button class="quick-view">Vista Rápida</button>
+                            </div>
+                        </div>
+                        <div class="product-info-detailed">
+                            <div class="product-brand">NIKE</div>
+                            <h3 class="product-title-detailed">Air Max 270 React</h3>
+                            <div class="product-price">
+                                <span class="current-price">$129.99</span>
+                                <span class="original-price">$159.00</span>
+                                <span class="discount">-18%</span>
+                            </div>
+                            <div class="product-actions">
+                                <button class="btn-add-cart">Añadir al Carrito</button>
+                                <button class="btn-wishlist">
+                                    <i class="far fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Producto 2 -->
+                    <div class="product-card-detailed" data-product-id="sport-2">
+                        <div class="product-image-detailed">
+                            <img src="https://via.placeholder.com/300x300" alt="Adidas Ultraboost 22">
+                            <div class="product-badge">Oferta</div>
+                        </div>
+                        <div class="product-info-detailed">
+                            <div class="product-brand">ADIDAS</div>
+                            <h3 class="product-title-detailed">Ultraboost 22 Running</h3>
+                            <div class="product-price">
+                                <span class="current-price">$149.99</span>
+                                <span class="original-price">$179.00</span>
+                                <span class="discount">-16%</span>
+                            </div>
+                            <div class="product-actions">
+                                <button class="btn-add-cart">Añadir al Carrito</button>
+                                <button class="btn-wishlist">
+                                    <i class="far fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Producto 3 -->
+                    <div class="product-card-detailed" data-product-id="sport-3">
+                        <div class="product-image-detailed">
+                            <img src="https://via.placeholder.com/300x300" alt="New Balance FuelCell">
+                        </div>
+                        <div class="product-info-detailed">
+                            <div class="product-brand">NEW BALANCE</div>
+                            <h3 class="product-title-detailed">FuelCell Rebel V3</h3>
+                            <div class="product-price">
+                                <span class="current-price">$119.99</span>
+                            </div>
+                            <div class="product-actions">
+                                <button class="btn-add-cart">Añadir al Carrito</button>
+                                <button class="btn-wishlist">
+                                    <i class="far fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Producto 4 -->
+                    <div class="product-card-detailed" data-product-id="sport-4">
+                        <div class="product-image-detailed">
+                            <img src="https://via.placeholder.com/300x300" alt="Puma RS-X">
+                            <div class="product-badge">Popular</div>
+                        </div>
+                        <div class="product-info-detailed">
+                            <div class="product-brand">PUMA</div>
+                            <h3 class="product-title-detailed">RS-X Efekt Vintage</h3>
+                            <div class="product-price">
+                                <span class="current-price">$99.99</span>
+                                <span class="original-price">$129.00</span>
+                                <span class="discount">-22%</span>
+                            </div>
+                            <div class="product-actions">
+                                <button class="btn-add-cart">Añadir al Carrito</button>
+                                <button class="btn-wishlist">
+                                    <i class="far fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Producto 5 -->
+                    <div class="product-card-detailed" data-product-id="sport-5">
+                        <div class="product-image-detailed">
+                            <img src="https://via.placeholder.com/300x300" alt="Reebok Nano X2">
+                        </div>
+                        <div class="product-info-detailed">
+                            <div class="product-brand">REEBOK</div>
+                            <h3 class="product-title-detailed">Nano X2 Gym</h3>
+                            <div class="product-price">
+                                <span class="current-price">$134.99</span>
+                                <span class="original-price">$159.00</span>
+                                <span class="discount">-15%</span>
+                            </div>
+                            <div class="product-actions">
+                                <button class="btn-add-cart">Añadir al Carrito</button>
+                                <button class="btn-wishlist">
+                                    <i class="far fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Producto 6 -->
+                    <div class="product-card-detailed" data-product-id="sport-6">
+                        <div class="product-image-detailed">
+                            <img src="https://via.placeholder.com/300x300" alt="Nike Metcon 8">
+                            <div class="product-badge">Nuevo</div>
+                        </div>
+                        <div class="product-info-detailed">
+                            <div class="product-brand">NIKE</div>
+                            <h3 class="product-title-detailed">Metcon 8 Training</h3>
+                            <div class="product-price">
+                                <span class="current-price">$139.99</span>
+                            </div>
+                            <div class="product-actions">
+                                <button class="btn-add-cart">Añadir al Carrito</button>
+                                <button class="btn-wishlist">
+                                    <i class="far fa-heart"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </section>
+
+    <!-- Footer (igual que en tu página principal) -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Tienda</h3>
+                    <p>Tu destino para la moda y el estilo de vida.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-pinterest"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3>Enlaces Rápidos</h3>
+                    <ul>
+                        <li><a href="index.html">Inicio</a></li>
+                        <li><a href="#">Mujer</a></li>
+                        <li><a href="#">Hombre</a></li>
+                        <li><a href="#">Niños</a></li>
+                        <li><a href="#">Ofertas</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Ayuda</h3>
+                    <ul>
+                        <li><a href="#">Contacto</a></li>
+                        <li><a href="#">Envíos</a></li>
+                        <li><a href="#">Devoluciones</a></li>
+                        <li><a href="#">Guía de Tallas</a></li>
+                        <li><a href="#">Preguntas Frecuentes</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Newsletter</h3>
+                    <p>Suscríbete para recibir ofertas exclusivas.</p>
+                    <form class="newsletter-form">
+                        <input type="email" placeholder="Tu correo electrónico" required>
+                        <button type="submit">Suscribirse</button>
+                    </form>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Tienda. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/js/script.js"></script>
+</body>
+</html>
