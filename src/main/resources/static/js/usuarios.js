@@ -1,6 +1,6 @@
 // Módulo de usuarios
 
-// variables
+// Variables globales
 let users = [
     {
         id: '001',
@@ -33,72 +33,73 @@ let users = [
 
 let currentEditId = null;
 
+// Inicialización del módulo
 document.addEventListener('DOMContentLoaded', function() {
-    // usuarios
     initUsuariosModule();
-    // carga para usuarios
     loadUsers();
 });
 
 function initUsuariosModule() {
-    // Get DOM
+    // Configurar eventos básicos
     const searchInput = document.getElementById('searchInput');
     const addUserBtn = document.getElementById('addUserBtn');
     const filterBtn = document.getElementById('filterBtn');
+    const selectAllCheckbox = document.getElementById('selectAll');
     const userModal = document.getElementById('userModal');
-    const modalCloseBtn = document.getElementById('closeModal');
+    const closeModalBtn = document.getElementById('closeModal');
     const cancelBtn = document.getElementById('cancelBtn');
     const userForm = document.getElementById('userForm');
-    const selectAllCheckbox = document.getElementById('selectAll');
-    const logoutBtn = document.querySelector('.logout-btn');
 
-    // eventos
     if (searchInput) {
         searchInput.addEventListener('input', handleSearch);
     }
 
     if (addUserBtn) {
-        addUserBtn.addEventListener('click', openAddUserModal);
+        addUserBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            openAddUserModal();
+        });
+    } else {
+        console.error('addUserBtn not found!');
     }
 
     if (filterBtn) {
         filterBtn.addEventListener('click', handleFilter);
     }
 
-    if (modalCloseBtn) {
-        modalCloseBtn.addEventListener('click', () => closeModal('userModal'));
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', handleSelectAll);
+    }
+
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', closeModal);
     }
 
     if (cancelBtn) {
-        cancelBtn.addEventListener('click', () => closeModal('userModal'));
+        cancelBtn.addEventListener('click', closeModal);
     }
 
     if (userForm) {
         userForm.addEventListener('submit', handleFormSubmit);
     }
 
-    if (selectAllCheckbox) {
-        selectAllCheckbox.addEventListener('change', handleSelectAll);
-    }
-
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', handleLogout);
-    }
-
-    // salir click
+    // Cerrar modal al hacer clic fuera
     if (userModal) {
         userModal.addEventListener('click', function(e) {
             if (e.target === userModal) {
-                closeModal('userModal');
+                closeModal();
             }
         });
     }
 
-    // agregar botón de acción
+    // Agregar listeners a botones de acción
     addActionButtonListeners();
+    
+    // Agregar listeners para preview en tiempo real
+    addPreviewListeners();
 }
 
-// subir usuarios
+// Cargar usuarios en la tabla
 function loadUsers() {
     const tbody = document.getElementById('usersTableBody');
     if (!tbody) return;
@@ -110,11 +111,13 @@ function loadUsers() {
         tbody.appendChild(row);
     });
 
-    // actualizar la lista
     updatePaginationInfo();
+    
+    // volver a enlazar listeners de botones
+    addActionButtonListeners();
 }
 
-// Create user row
+// Crear fila de usuario
 function createUserRow(user) {
     const row = document.createElement('tr');
     
@@ -175,7 +178,7 @@ function createUserRow(user) {
     return row;
 }
 
-// Search functionality
+// Funcionalidad de búsqueda
 function handleSearch(e) {
     const searchTerm = e.target.value.toLowerCase();
     const tableRows = document.querySelectorAll('#usersTableBody tr');
@@ -195,7 +198,7 @@ function handleSearch(e) {
     });
 }
 
-// Filter functionality
+// Funcionalidad de filtros
 function handleFilter() {
     const filterModal = createFilterModal();
     document.body.appendChild(filterModal);
@@ -203,8 +206,7 @@ function handleFilter() {
 
 function createFilterModal() {
     const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.style.display = 'block';
+    modal.className = 'modal center-modal show modal-top';
     
     modal.innerHTML = `
         <div class="modal-content">
@@ -259,7 +261,7 @@ function applyFilters() {
         filteredUsers = filteredUsers.filter(user => user.status === statusFilter);
     }
     
-    // Update table with filtered data
+    // Actualizar tabla con datos filtrados
     const tbody = document.getElementById('usersTableBody');
     tbody.innerHTML = '';
     
@@ -268,16 +270,103 @@ function applyFilters() {
         tbody.appendChild(row);
     });
     
-    // Close modal
-    document.querySelector('.modal').remove();
+    // Cerrar modal de filtros
+    const filterModal = document.querySelector('.center-modal');
+    if (filterModal) {
+        filterModal.remove();
+    }
     
-    // Re-add event listeners
+    // Reagregar listeners
     addActionButtonListeners();
     
     showNotification(`Filtros aplicados: ${filteredUsers.length} usuarios encontrados`);
 }
 
-// Modal functions
+// Manejo de checkboxes
+function handleSelectAll(e) {
+    const isChecked = e.target.checked;
+    const checkboxes = document.querySelectorAll('.user-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = isChecked;
+    });
+}
+
+function handleIndividualCheckbox() {
+    const checkboxes = document.querySelectorAll('.user-checkbox');
+    const selectAllCheckbox = document.getElementById('selectAll');
+    
+    const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+    
+    if (checkedCount === 0) {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = false;
+    } else if (checkedCount === checkboxes.length) {
+        selectAllCheckbox.checked = true;
+        selectAllCheckbox.indeterminate = false;
+    } else {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = true;
+    }
+}
+
+// Listeners para botones de acción
+function addActionButtonListeners() {
+    const editButtons = document.querySelectorAll('.btn-edit');
+    const deleteButtons = document.querySelectorAll('.btn-delete');
+    const viewButtons = document.querySelectorAll('.btn-view');
+    const userCheckboxes = document.querySelectorAll('.user-checkbox');
+
+    editButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const userId = this.getAttribute('data-user-id');
+            editUser(userId);
+        });
+    });
+
+    deleteButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const userId = this.getAttribute('data-user-id');
+            deleteUser(userId);
+        });
+    });
+
+    viewButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const userId = this.getAttribute('data-user-id');
+            viewUser(userId);
+        });
+    });
+
+    userCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', handleIndividualCheckbox);
+    });
+}
+
+// Funciones placeholder para modales (serán implementadas con estructura de ROLES)
+function editUser(userId) {
+    openEditUserModal(userId);
+}
+
+function deleteUser(userId) {
+    const user = users.find(u => u.id === userId);
+    const userName = user ? user.name : '';
+    const deleteModal = createDeleteUserModal(userId, userName);
+    document.body.appendChild(deleteModal);
+}
+
+function viewUser(userId) {
+    const user = users.find(u => u.id === userId);
+    if (user) {
+        const viewModal = createViewUserModal(user);
+        document.body.appendChild(viewModal);
+    }
+}
+
+// Funciones de modal
 function openAddUserModal() {
     const modal = document.getElementById('userModal');
     const modalTitle = document.getElementById('modalTitle');
@@ -289,16 +378,19 @@ function openAddUserModal() {
 
     if (form) {
         form.reset();
-        // Remove any existing user ID
-        const existingId = form.querySelector('input[name="id"]');
-        if (existingId) {
-            existingId.remove();
-        }
+        // Limpiar cualquier ID de usuario existente
+        currentEditId = null;
+        
+        // Restablecer preview
+        updatePreview();
     }
 
     if (modal) {
-        modal.style.display = 'block';
+        modal.classList.add('show');
+        modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
+    } else {
+        console.error('Modal element not found!');
     }
 }
 
@@ -313,238 +405,61 @@ function openEditUserModal(userId) {
 
     if (form) {
         form.reset();
+        currentEditId = userId;
         
-        // Add hidden input for user ID
-        const existingId = form.querySelector('input[name="id"]');
-        if (existingId) {
-            existingId.remove();
+        // Encontrar y poblar datos del usuario
+        const user = users.find(u => u.id === userId);
+        if (user) {
+            document.getElementById('userName').value = user.name || '';
+            document.getElementById('userEmail').value = user.email || '';
+            document.getElementById('userPhone').value = user.phone || '';
+            document.getElementById('userStatus').value = user.status || '';
+            document.getElementById('userRole').value = user.role || '';
+            
+            // Ocultar campos de contraseña en edición
+            const passwordSection = form.querySelector('.form-section:nth-child(2)');
+            if (passwordSection) {
+                passwordSection.style.display = 'none';
+            }
+            
+            updatePreview();
         }
-        
-        const idInput = document.createElement('input');
-        idInput.type = 'hidden';
-        idInput.name = 'id';
-        idInput.value = userId;
-        form.appendChild(idInput);
-
-        // Populate form with user data (mock data for now)
-        populateUserForm(userId);
     }
 
     if (modal) {
-        modal.style.display = 'block';
+        modal.classList.add('show');
+        modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
     }
 }
 
-// Función para abrir un modal
-function openModal(modalId) {
-    const modal = document.getElementById(modalId);
+function closeModal() {
+    const modal = document.getElementById('userModal');
     if (modal) {
-        modal.style.display = "flex"; // Mostrar el modal
+        modal.style.display = 'none';
+        modal.classList.remove('show');
+        document.body.style.overflow = 'auto';
     }
-}
-
-// Función para cerrar un modal
-function closeModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) {
-        modal.style.display = "none"; // Ocultar el modal
-    }
-}
-
-// Event Listeners para los botones de abrir y cerrar modales
-document.addEventListener("DOMContentLoaded", () => {
-    // Make sure any modal is hidden on load (guard against leftover inline styles)
-    document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
-    // Botón para abrir el modal de "Nuevo Usuario"
-    const addUserBtn = document.getElementById("addUserBtn");
-    if (addUserBtn) {
-        addUserBtn.addEventListener("click", () => openModal("userModal"));
-    }
-
-    // Botón para abrir el modal de "Editar Usuario"
-    const editButtons = document.querySelectorAll(".btn-edit");
-    editButtons.forEach((btn) => {
-        btn.addEventListener("click", () => openModal("editUserModal"));
-    });
-
-    // Botón para abrir el modal de "Eliminar Usuario"
-    const deleteButtons = document.querySelectorAll(".btn-delete");
-    deleteButtons.forEach((btn) => {
-        btn.addEventListener("click", () => openModal("deleteUserModal"));
-    });
-
-    // Botón para abrir el modal de "Ver Usuario"
-    const viewButtons = document.querySelectorAll(".btn-view");
-    viewButtons.forEach((btn) => {
-        btn.addEventListener("click", () => openModal("viewUserModal"));
-    });
-
-    // Botones para cerrar los modales
-    const closeButtons = document.querySelectorAll(".modal-close, .btn-secondary");
-    closeButtons.forEach((btn) => {
-        btn.addEventListener("click", (event) => {
-            const modal = event.target.closest(".modal");
-            if (modal) {
-                modal.style.display = "none";
-            }
-        });
-    });
-
-    // Cerrar el modal al hacer clic fuera del contenido
-    const modals = document.querySelectorAll(".modal");
-    modals.forEach((modal) => {
-        modal.addEventListener("click", (event) => {
-            if (event.target === modal) {
-                modal.style.display = "none";
-            }
-        });
-    });
-});
-
-// Form handling
-function handleFormSubmit(e) {
-    e.preventDefault();
     
-    const formData = new FormData(e.target);
-    const userData = Object.fromEntries(formData.entries());
-    
-    // Validate form
-    if (!validateForm(userData)) {
-        return;
-    }
-
-    // Show loading state
-    const saveBtn = document.getElementById('saveBtn');
-    if (saveBtn) {
-        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
-        saveBtn.disabled = true;
-    }
-
-    // Simulate API call
-    setTimeout(() => {
-        if (userData.id) {
-            updateUser(userData);
-        } else {
-            createUser(userData);
+    // Mostrar campos de contraseña de nuevo para próxima vez
+    const form = document.getElementById('userForm');
+    if (form) {
+        const passwordSection = form.querySelector('.form-section:nth-child(2)');
+        if (passwordSection) {
+            passwordSection.style.display = 'block';
         }
-        
-        // Reset button
-        if (saveBtn) {
-            saveBtn.innerHTML = 'Guardar';
-            saveBtn.disabled = false;
-        }
-        
-        // Close the appropriate modal (edit vs create)
-        if (userData.id) {
-            closeModal('editUserModal');
-        } else {
-            closeModal('userModal');
-        }
-    }, 1500);
-}
-
-function validateForm(data) {
-    const errors = [];
-
-    if (!data.name || data.name.trim().length < 2) {
-        errors.push('El nombre debe tener al menos 2 caracteres');
     }
-
-    if (!data.email || !isValidEmail(data.email)) {
-        errors.push('Ingrese un email válido');
-    }
-
-    if (!data.role) {
-        errors.push('Seleccione un rol');
-    }
-
-    if (!data.password || data.password.length < 6) {
-        errors.push('La contraseña debe tener al menos 6 caracteres');
-    }
-
-    if (data.password !== data.confirmPassword) {
-        errors.push('Las contraseñas no coinciden');
-    }
-
-    if (errors.length > 0) {
-        alert('Errores en el formulario:\n' + errors.join('\n'));
-        return false;
-    }
-
-    return true;
-}
-
-function isValidEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-}
-
-// User CRUD operations
-function createUser(userData) {
-    // Generate new ID
-    const newId = String(users.length + 1).padStart(3, '0');
     
-    // Create new user object
-    const newUser = {
-        id: newId,
-        name: userData.name,
-        email: userData.email,
-        role: userData.role,
-        status: userData.status,
-        phone: userData.phone || '',
-        lastAccess: new Date().toLocaleString('es-ES', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit'
-        })
-    };
-    
-    // Add to users array
-    users.push(newUser);
-    
-    // Refresh table
-    loadUsers();
-    
-    showNotification('Usuario creado exitosamente', 'success');
+    currentEditId = null;
 }
 
-function updateUser(userData) {
-    // Find user index
-    const userIndex = users.findIndex(user => user.id === userData.id);
-    
-    if (userIndex !== -1) {
-        // Update user data
-        users[userIndex] = {
-            ...users[userIndex],
-            name: userData.name,
-            email: userData.email,
-            role: userData.role,
-            status: userData.status,
-            phone: userData.phone || ''
-        };
-        
-        // Refresh table
-        loadUsers();
-        
-        showNotification('Usuario actualizado exitosamente', 'success');
-    }
-}
-
-function deleteUser(userId) {
-    // Use a custom modal confirmation (matches Roles behavior)
-    const user = users.find(u => u.id === userId);
-    const userName = user ? user.name : '';
-    const deleteModal = createDeleteUserModal(userId, userName);
-    document.body.appendChild(deleteModal);
-}
-
+// Modal de eliminación
 function createDeleteUserModal(userId, userName) {
     const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.style.display = 'block';
+    modal.className = 'modal show modal-top';
+    modal.style.display = 'flex';
+
+    const displayName = userName ? `<strong>${userName}</strong>` : 'este usuario';
 
     modal.innerHTML = `
         <div class="modal-content delete-modal-content">
@@ -555,18 +470,18 @@ function createDeleteUserModal(userId, userName) {
                 </button>
             </div>
             <div class="modal-body">
-                <p>¿Estás seguro de que deseas eliminar a <strong>${userName}</strong>? Esta acción no puede deshacerse.</p>
+                <p>¿Estás seguro de que deseas eliminar ${displayName}? Esta acción no puede deshacerse.</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancelar</button>
-                <button type="button" class="btn btn-primary btn-danger" id="confirmDeleteBtn">Eliminar</button>
+                <button type="button" class="btn btn-primary" id="confirmDeleteBtn">Eliminar</button>
             </div>
         </div>
     `;
 
-    // Attach handler for confirm delete
+    // Agregar handler para confirmar eliminación
     modal.querySelector('#confirmDeleteBtn').addEventListener('click', function() {
-        const userIndex = users.findIndex(u => u.id === userId);
+        const userIndex = users.findIndex(user => user.id === userId);
         if (userIndex !== -1) {
             users.splice(userIndex, 1);
             loadUsers();
@@ -578,19 +493,11 @@ function createDeleteUserModal(userId, userName) {
     return modal;
 }
 
-function viewUser(userId) {
-    const user = users.find(u => u.id === userId);
-    
-    if (user) {
-        const viewModal = createViewUserModal(user);
-        document.body.appendChild(viewModal);
-    }
-}
-
+// Modal de vista
 function createViewUserModal(user) {
     const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.style.display = 'block';
+    modal.className = 'modal show';
+    modal.style.display = 'flex';
     
     const roleText = {
         'admin': 'Administrador',
@@ -612,24 +519,32 @@ function createViewUserModal(user) {
                 </button>
             </div>
             <div class="modal-body">
-                <div class="user-details-view">
-                    <div class="user-avatar-large">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <div class="user-info-details">
-                        <h4>${user.name}</h4>
-                        <p><strong>ID:</strong> ${user.id}</p>
-                        <p><strong>Email:</strong> ${user.email}</p>
-                        <p><strong>Rol:</strong> ${roleText[user.role]}</p>
-                        <p><strong>Estado:</strong> ${statusText[user.status]}</p>
-                        <p><strong>Teléfono:</strong> ${user.phone || 'No especificado'}</p>
-                        <p><strong>Último Acceso:</strong> ${user.lastAccess}</p>
+                <div class="user-preview">
+                    <div class="preview-user-info">
+                        <div class="preview-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="preview-details">
+                            <h5>${user.name}</h5>
+                            <p><strong>ID:</strong> ${user.id}</p>
+                            <p><strong>Email:</strong> ${user.email}</p>
+                            <p><strong>Teléfono:</strong> ${user.phone || 'No especificado'}</p>
+                            <p><strong>Rol:</strong> ${roleText[user.role] || user.role}</p>
+                            <p><strong>Estado:</strong> ${statusText[user.status] || user.status}</p>
+                            <p><strong>Último Acceso:</strong> ${user.lastAccess}</p>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cerrar</button>
-                <button type="button" class="btn btn-primary" onclick="openEditUserModal('${user.id}'); this.closest('.modal').remove();">Editar Usuario</button>
+                <button type="button" class="btn btn-secondary" onclick="this.closest('.modal').remove()">
+                    <i class="fas fa-times"></i>
+                    Cerrar
+                </button>
+                <button type="button" class="btn btn-primary" onclick="editUser('${user.id}'); this.closest('.modal').remove();">
+                    <i class="fas fa-edit"></i>
+                    Editar Usuario
+                </button>
             </div>
         </div>
     `;
@@ -637,183 +552,251 @@ function createViewUserModal(user) {
     return modal;
 }
 
-// Table management
-function refreshUsersTable() {
-    loadUsers();
-}
+// Manejo del formulario
+function handleFormSubmit(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const userData = Object.fromEntries(formData.entries());
+    
+    // Validar formulario
+    if (!validateForm(userData)) {
+        return;
+    }
 
-function populateUserForm(userId) {
-    // Mock data - in real app, fetch from API
-    const mockUserData = {
-        '001': {
-            name: 'Juan Pérez',
-            email: 'juan.perez@empresa.com',
-            role: 'admin',
-            status: 'active',
-            phone: '+51 999 888 777'
-        },
-        '002': {
-            name: 'María García',
-            email: 'maria.garcia@empresa.com',
-            role: 'user',
-            status: 'active',
-            phone: '+51 999 777 666'
-        },
-        '003': {
-            name: 'Carlos López',
-            email: 'carlos.lopez@empresa.com',
-            role: 'manager',
-            status: 'inactive',
-            phone: '+51 999 666 555'
+    // Mostrar estado de carga
+    const saveBtn = document.getElementById('saveBtn');
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+    }
+
+    // Simular llamada API
+    setTimeout(() => {
+        if (currentEditId) {
+            // Actualizar usuario existente
+            userData.id = currentEditId;
+            updateUser(userData);
+        } else {
+            // Crear nuevo usuario
+            createUser(userData);
         }
-    };
 
-    const userData = mockUserData[userId];
-    if (userData) {
-        document.getElementById('userName').value = userData.name;
-        document.getElementById('userEmail').value = userData.email;
-        document.getElementById('userRole').value = userData.role;
-        document.getElementById('userStatus').value = userData.status;
-        document.getElementById('userPhone').value = userData.phone;
+        // Cerrar modal
+        closeModal();
         
-        // Clear password fields for edit
-        document.getElementById('userPassword').value = '';
-        document.getElementById('confirmPassword').value = '';
-        document.getElementById('userPassword').required = false;
-        document.getElementById('confirmPassword').required = false;
-    }
+        // Restablecer botón
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-save"></i> Guardar Usuario';
+        }
+    }, 1500);
 }
 
-// Checkbox management
-function handleSelectAll(e) {
-    const isChecked = e.target.checked;
-    const checkboxes = document.querySelectorAll('.user-checkbox');
+// Validación del formulario
+function validateForm(data) {
+    const errors = [];
+
+    if (!data.name || data.name.trim().length < 2) {
+        errors.push('El nombre debe tener al menos 2 caracteres');
+    }
+
+    if (!data.email || !isValidEmail(data.email)) {
+        errors.push('El email no es válido');
+    }
+
+    if (!data.role) {
+        errors.push('Debe seleccionar un rol');
+    }
+
+    // Solo validar contraseña para usuarios nuevos
+    if (!currentEditId) {
+        if (!data.password || data.password.length < 6) {
+            errors.push('La contraseña debe tener al menos 6 caracteres');
+        }
+
+        if (data.password !== data.confirmPassword) {
+            errors.push('Las contraseñas no coinciden');
+        }
+    }
+
+    if (errors.length > 0) {
+        showNotification(errors.join(', '), 'error');
+        return false;
+    }
+
+    return true;
+}
+
+function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+// Operaciones CRUD
+function createUser(userData) {
+    // Generar nuevo ID
+    const newId = String(users.length + 1).padStart(3, '0');
     
-    checkboxes.forEach(checkbox => {
-        checkbox.checked = isChecked;
-    });
-}
-
-function handleIndividualCheckbox() {
-    const checkboxes = document.querySelectorAll('.user-checkbox');
-    const selectAllCheckbox = document.getElementById('selectAll');
+    // Crear nuevo objeto usuario
+    const newUser = {
+        id: newId,
+        name: userData.name,
+        email: userData.email,
+        role: userData.role,
+        status: userData.status,
+        phone: userData.phone || '',
+        lastAccess: new Date().toLocaleString('es-ES', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        })
+    };
     
-    const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+    // Agregar al array de usuarios
+    users.push(newUser);
     
-    if (checkedCount === 0) {
-        selectAllCheckbox.indeterminate = false;
-        selectAllCheckbox.checked = false;
-    } else if (checkedCount === checkboxes.length) {
-        selectAllCheckbox.indeterminate = false;
-        selectAllCheckbox.checked = true;
-    } else {
-        selectAllCheckbox.indeterminate = true;
+    // Actualizar tabla
+    loadUsers();
+    
+    showNotification('Usuario creado exitosamente', 'success');
+}
+
+function updateUser(userData) {
+    // Encontrar índice del usuario
+    const userIndex = users.findIndex(user => user.id === userData.id);
+    
+    if (userIndex !== -1) {
+        // Actualizar datos del usuario
+        users[userIndex] = {
+            ...users[userIndex],
+            name: userData.name,
+            email: userData.email,
+            role: userData.role,
+            status: userData.status,
+            phone: userData.phone || users[userIndex].phone
+        };
+        
+        // Actualizar tabla
+        loadUsers();
+        
+        showNotification('Usuario actualizado exitosamente', 'success');
     }
 }
 
-// Action button listeners
-function addActionButtonListeners() {
-    const editButtons = document.querySelectorAll('.btn-edit');
-    const deleteButtons = document.querySelectorAll('.btn-delete');
-    const viewButtons = document.querySelectorAll('.btn-view');
-    const userCheckboxes = document.querySelectorAll('.user-checkbox');
+// Preview en tiempo real
+function addPreviewListeners() {
+    const nameInput = document.getElementById('userName');
+    const emailInput = document.getElementById('userEmail');
+    const roleSelect = document.getElementById('userRole');
 
-    editButtons.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const userId = this.getAttribute('data-user-id');
-            openEditUserModal(userId);
+    if (nameInput) {
+        nameInput.addEventListener('input', updatePreview);
+    }
+
+    if (emailInput) {
+        emailInput.addEventListener('input', updatePreview);
+    }
+
+    if (roleSelect) {
+        roleSelect.addEventListener('change', function() {
+            updateRoleDescription();
+            updatePreview();
         });
-    });
-
-    deleteButtons.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const userId = this.getAttribute('data-user-id');
-            deleteUser(userId);
-        });
-    });
-
-    viewButtons.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const userId = this.getAttribute('data-user-id');
-            viewUser(userId);
-        });
-    });
-
-    // Add event listeners to individual checkboxes
-    userCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', handleIndividualCheckbox);
-    });
-}
-
-// Logout functionality
-function handleLogout() {
-    if (confirm('¿Está seguro de que desea cerrar sesión?')) {
-        showNotification('Sesión cerrada exitosamente', 'success');
-        // Redirect to login page or dashboard
-        setTimeout(() => {
-            window.location.href = '/dashboard';
-        }, 1500);
     }
 }
 
-// Update pagination info
-function updatePaginationInfo() {
-    const paginationInfo = document.querySelector('.pagination-info');
-    if (paginationInfo) {
-        const totalUsers = users.length;
-        paginationInfo.textContent = `Mostrando 1-${totalUsers} de ${totalUsers} usuarios`;
+function updatePreview() {
+    const nameInput = document.getElementById('userName');
+    const emailInput = document.getElementById('userEmail');
+    const roleSelect = document.getElementById('userRole');
+
+    if (!nameInput && !emailInput && !roleSelect) {
+        return;
+    }
+
+    const previewName = document.getElementById('previewUserName');
+    const previewEmail = document.getElementById('previewUserEmail');
+    const previewRole = document.getElementById('previewUserRole');
+
+    if (previewName && nameInput) {
+        previewName.textContent = nameInput.value || 'Nombre del Usuario';
+    }
+
+    if (previewEmail && emailInput) {
+        previewEmail.textContent = emailInput.value || 'email@ejemplo.com';
+    }
+
+    if (previewRole && roleSelect) {
+        const roleText = {
+            'admin': 'Administrador',
+            'manager': 'Gerente',
+            'user': 'Usuario'
+        };
+        previewRole.textContent = roleText[roleSelect.value] || 'Sin rol asignado';
     }
 }
 
-// Utility functions
-function showNotification(message, type = 'success') {
-    // Create notification element
+function updateRoleDescription() {
+    const roleSelect = document.getElementById('userRole');
+    const roleDescription = document.getElementById('roleDescription');
+    
+    if (!roleSelect || !roleDescription) return;
+    
+    const descriptions = {
+        'admin': 'Acceso completo al sistema con permisos de administración total',
+        'manager': 'Gestión de equipos, reportes y operaciones de nivel medio',
+        'user': 'Acceso básico al sistema con permisos limitados'
+    };
+    
+    const selectedRole = roleSelect.value;
+    roleDescription.textContent = descriptions[selectedRole] || 'Selecciona un rol para ver su descripción';
+}
+
+
+
+// Función de notificaciones
+function showNotification(message, type = 'info') {
+    // Crear elemento de notificación
     const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.innerHTML = `
-        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
-        <span>${message}</span>
-    `;
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
     
-    // Add styles
+    // Estilos básicos
     notification.style.cssText = `
         position: fixed;
         top: 20px;
         right: 20px;
-        background: ${type === 'success' ? '#28a745' : '#dc3545'};
+        padding: 12px 24px;
+        background: #28a745;
         color: white;
-        padding: 15px 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        z-index: 1001;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        animation: slideInRight 0.3s ease;
+        border-radius: 4px;
+        z-index: 10000;
+        max-width: 300px;
     `;
+    
+    if (type === 'error') {
+        notification.style.background = '#dc3545';
+    }
     
     document.body.appendChild(notification);
     
-    // Remove after 3 seconds
+    // Remover después de 3 segundos
     setTimeout(() => {
-        notification.style.animation = 'slideOutRight 0.3s ease';
-        setTimeout(() => {
-            document.body.removeChild(notification);
-        }, 300);
+        notification.remove();
     }, 3000);
 }
 
-// Add CSS animations
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideInRight {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
+// Función de paginación
+function updatePaginationInfo() {
+    const totalUsers = users.length;
+    const visibleRows = document.querySelectorAll('#usersTableBody tr:not([style*="display: none"])').length;
     
-    @keyframes slideOutRight {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
+    // Actualizar información si existe elemento de paginación
+    const paginationInfo = document.querySelector('.pagination-info');
+    if (paginationInfo) {
+        paginationInfo.textContent = `Mostrando ${visibleRows} de ${totalUsers} usuarios`;
     }
-`;
-document.head.appendChild(style);
+}
