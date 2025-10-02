@@ -41,10 +41,6 @@
                 <input type="text" id="search-proveedores" placeholder="Buscar proveedores...">
             </div>
             <div class="action-buttons">
-                <button class="btn btn-secondary" id="filterBtn">
-                    <i class="fas fa-filter"></i>
-                    Filtros
-                </button>
                 <button class="btn btn-primary" id="btn-agregar-proveedor">
                     <i class="fas fa-plus"></i>
                     Nuevo Proveedor
@@ -124,16 +120,7 @@
                         </div>
                         <div class="form-group">
                             <label for="rubro">Rubro *</label>
-                            <select id="rubro" name="rubro" required>
-                                <option value="">Seleccionar rubro</option>
-                                <option value="Calzado">Calzado</option>
-                                <option value="Accesorios">Accesorios</option>
-                                <option value="Ropa Deportiva">Ropa Deportiva</option>
-                                <option value="Textiles">Textiles</option>
-                                <option value="Cuero y Marroquinería">Cuero y Marroquinería</option>
-                                <option value="Servicios">Servicios</option>
-                                <option value="Otros">Otros</option>
-                            </select>
+                            <input type="text" id="rubro" name="rubro" required placeholder="Ej: Calzado, Accesorios">
                         </div>
                     </div>
                 </div>
@@ -152,45 +139,11 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="telefono">Teléfono</label>
-                            <input type="tel" id="telefono" name="telefono" placeholder="Ej: 01-2345678">
+                            <input type="tel" id="telefono" name="telefono" placeholder="Ej: 987654321" maxlength="9" pattern="[0-9]{9}">
                         </div>
                         <div class="form-group">
                             <label for="email">Email</label>
                             <input type="email" id="email" name="email" placeholder="Ej: contacto@proveedor.com">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-section">
-                    <h4 class="section-title">
-                        <i class="fas fa-credit-card"></i>
-                        Métodos de Pago Aceptados
-                    </h4>
-                    <div class="payment-methods-container">
-                        <div class="payment-method-item metodo-pago">
-                            <input type="checkbox" id="contado" name="contado">
-                            <label for="contado">Contado</label>
-                            <input type="text" placeholder="Información adicional" class="payment-data" disabled>
-                        </div>
-                        <div class="payment-method-item metodo-pago">
-                            <input type="checkbox" id="credito" name="credito">
-                            <label for="credito">Crédito</label>
-                            <input type="text" placeholder="Días de crédito" class="payment-data" disabled>
-                        </div>
-                        <div class="payment-method-item metodo-pago">
-                            <input type="checkbox" id="transferencia" name="transferencia">
-                            <label for="transferencia">Transferencia Bancaria</label>
-                            <input type="text" placeholder="Nº Cuenta / CCI" class="payment-data" disabled>
-                        </div>
-                        <div class="payment-method-item metodo-pago">
-                            <input type="checkbox" id="cheque" name="cheque">
-                            <label for="cheque">Cheque</label>
-                            <input type="text" placeholder="A nombre de" class="payment-data" disabled>
-                        </div>
-                        <div class="payment-method-item metodo-pago">
-                            <input type="checkbox" id="efectivo" name="efectivo">
-                            <label for="efectivo">Efectivo</label>
-                            <input type="text" placeholder="Condiciones" class="payment-data" disabled>
                         </div>
                     </div>
                 </div>
@@ -234,14 +187,6 @@
                             <p><strong>Email:</strong> <span id="detalle-email"></span></p>
                         </div>
                     </div>
-                </div>
-                
-                <hr class="detalle-divider">
-
-                <div class="detalle-metodos-container">
-                    <h4><i class="fas fa-credit-card"></i> Métodos de Pago</h4>
-                    <div id="detalle-metodos-container" class="detalle-metodos-list">
-                        </div>
                 </div>
             </div>
             <div class="modal-footer">

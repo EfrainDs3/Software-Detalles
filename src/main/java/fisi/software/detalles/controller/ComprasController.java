@@ -24,16 +24,6 @@ public class ComprasController {
         return "software/compras/compras";
     }
     
-    /**
-     * Muestra la página de gestión de proveedores
-     * 
-     * @return Vista de proveedores
-     */
-    @GetMapping("/proveedores")
-    public String showProveedores() {
-        return "software/compras/proveedores";
-    }
-    
     // TODO: Implementar endpoints REST para:
     // - GET /compras/api - Listar compras
     // - GET /compras/api/{id} - Obtener compra por ID
