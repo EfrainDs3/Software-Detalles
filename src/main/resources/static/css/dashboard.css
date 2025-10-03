@@ -256,4 +256,22 @@ body {
     }
 }
 
+/* ventas.css */
+
+/* Estilo para ocultar campos inicialmente */
+.hidden-fields {
+    display: none;
+    /* Usa 'flex' o 'block' en el JS para mostrarlo */
+}
+
+/* Puedes necesitar este estilo para que los form-row se vean bien */
+.modal-body .form-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 15px;
+}
+
+.modal-body .form-row .form-group {
+    flex: 1; /* Distribuye el espacio equitativamente */
+}
 

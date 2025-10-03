@@ -11,6 +11,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const addProductBtn = document.getElementById('addProductBtn');
     const productosContainer = document.getElementById('productosContainer');
     const ventaTotalSpan = document.getElementById('ventaTotal');
+
+    const ventaTipoComprobanteSelect = document.getElementById('ventaTipoComprobante');
+    const facturaFieldsDiv = document.getElementById('facturaFields');
+    const ventaRUCInput = document.getElementById('ventaRUC');
+    const ventaRazonSocialInput = document.getElementById('ventaRazonSocial');
     
     // Referencias de los campos del formulario
     const ventaIdInput = document.getElementById('ventaId');
@@ -95,6 +100,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         <button class="btn-icon btn-view" data-id="${venta.id}" title="Ver detalles">
                             <i class="fas fa-eye"></i>
                         </button>
+
+                        <button class="btn-icon btn-pdf" data-id="${venta.id}" title="Generar PDF">
+                            <i class="fas fa-file-pdf"></i>
+                        </button>
                     </div>
                 </td>
             `;
@@ -149,41 +158,41 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Función para abrir el modal
-    function openModal() {
-        ventaModal.style.display = 'block';
-    }
+        // Función para abrir el modal
+        function openModal() {
+            ventaModal.style.display = 'block';
+        }
 
-    // Función para cerrar el modal
-    function closeModal() {
-        ventaModal.style.display = 'none';
-        ventaForm.reset();
-        ventaIdInput.value = '';
-        modalTitle.textContent = 'Nueva Venta';
-        productosContainer.innerHTML = '';
-        calculateTotal();
-    }
+        // Función para cerrar el modal
+        function closeModal() {
+            ventaModal.style.display = 'none';
+            ventaForm.reset();
+            ventaIdInput.value = '';
+            modalTitle.textContent = 'Nueva Venta';
+            productosContainer.innerHTML = '';
+            calculateTotal();
+        }
 
-    function showDetalleModal(venta) {
-        detalleVentaId.textContent = venta.id;
-        detalleVentaCliente.textContent = venta.cliente;
-        detalleVentaFecha.textContent = venta.fecha;
-        detalleVentaMetodoPago.textContent = venta.metodoPago;
-        detalleVentaEstado.textContent = venta.estado;
-        detalleVentaTotal.textContent = `S/ ${venta.total.toFixed(2)}`;
+        function showDetalleModal(venta) {
+            detalleVentaId.textContent = venta.id;
+            detalleVentaCliente.textContent = venta.cliente;
+            detalleVentaFecha.textContent = venta.fecha;
+            detalleVentaMetodoPago.textContent = venta.metodoPago;
+            detalleVentaEstado.textContent = venta.estado;
+            detalleVentaTotal.textContent = `S/ ${venta.total.toFixed(2)}`;
 
-        detalleProductosList.innerHTML = ''; // Limpiar la lista anterior
-        venta.productos.forEach(producto => {
-            const li = document.createElement('li');
-            li.innerHTML = `
-                <span>${producto.cantidad} x ${producto.nombre}</span>
-                <strong>S/ ${(producto.cantidad * producto.precio).toFixed(2)}</strong>
-            `;
-            detalleProductosList.appendChild(li);
-        });
+            detalleProductosList.innerHTML = ''; // Limpiar la lista anterior
+            venta.productos.forEach(producto => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <span>${producto.cantidad} x ${producto.nombre}</span>
+                    <strong>S/ ${(producto.cantidad * producto.precio).toFixed(2)}</strong>
+                `;
+                detalleProductosList.appendChild(li);
+            });
 
-        detalleVentaModal.style.display = 'block';
-    }
+            detalleVentaModal.style.display = 'block';
+        }
 
     // Función para llenar el modal con datos de una venta
     function fillForm(venta) {
@@ -197,6 +206,43 @@ document.addEventListener('DOMContentLoaded', () => {
         venta.productos.forEach(product => addProductInput(product));
         
         calculateTotal();
+    }
+
+    // --- Funciones para manejar la lógica de Factura/Boleta ---
+
+    /**
+     * Muestra u oculta los campos de RUC y Razón Social 
+     * y gestiona su requisito.
+     */
+    function toggleFacturaFields() {
+        // El ID 2 debe corresponder al valor de 'Factura' en tu select/base de datos.
+        const isFactura = ventaTipoComprobanteSelect.value === '2'; 
+        
+        if (isFactura) {
+            facturaFieldsDiv.style.display = 'flex';
+            // Hacer que RUC y Razón Social sean obligatorios para Factura
+            ventaRUCInput.setAttribute('required', 'required');
+            ventaRazonSocialInput.setAttribute('required', 'required');
+        } else {
+            facturaFieldsDiv.style.display = 'none';
+            // Limpiar y quitar el requisito si no es Factura
+            ventaRUCInput.removeAttribute('required');
+            ventaRazonSocialInput.removeAttribute('required');
+            ventaRUCInput.value = '';
+            ventaRazonSocialInput.value = '';
+        }
+
+        // Si es 'Ticket/Venta Rápida' (valor 3), limpiar el campo cliente
+        if (ventaTipoComprobanteSelect.value === '3') {
+            ventaClienteInput.value = 'Cliente Varios';
+            ventaClienteInput.setAttribute('disabled', 'disabled');
+        } else {
+            // Si es Boleta (1) o Factura (2), asegurar que el campo esté activo y limpio
+            ventaClienteInput.removeAttribute('disabled');
+            if (ventaClienteInput.value === 'Cliente Varios') {
+                ventaClienteInput.value = '';
+            }
+        }
     }
 
     // --- Event Listeners ---
@@ -297,8 +343,87 @@ document.addEventListener('DOMContentLoaded', () => {
                 //Productos:
                 //${detallesProductos}`);
             }
+        } else if (btn.classList.contains('btn-pdf')) {
+            // --- NUEVA LÓGICA DE EXPORTACIÓN A PDF ---
+            exportarVentaAPDF(ventaId);
         }
     });
+
+
+    /**
+ * Llama al backend para generar el PDF y fuerza la descarga.
+ */
+    function exportarVentaAPDF(id) {
+        const url = `/api/ventas/${id}/pdf`;
+        
+        // Usamos window.open o una etiqueta <a> invisible para forzar la descarga
+        // ya que el backend devolverá un archivo binario.
+        
+        // Abrir una nueva pestaña para el PDF (el navegador gestiona la descarga/visualización)
+        window.open(url, '_blank');
+        
+        // Si necesitas un control más fino o un mensaje de error:
+        /*
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    // Si el backend lanza un error, notifica al usuario
+                    throw new Error('Error al generar el PDF. El servidor no pudo crear el archivo.');
+                }
+                // Esto solo es necesario si el servidor devuelve un Blob (binario)
+                // En este caso, 'window.open' es más sencillo.
+            })
+            .catch(error => {
+                console.error('Error al exportar PDF:', error);
+                alert('Hubo un problema al generar el PDF: ' + error.message);
+            });
+        */
+    }
+
+    // Añadir el listener para el cambio de tipo de comprobante
+    ventaTipoComprobanteSelect.addEventListener('change', toggleFacturaFields);
+
+
+    // ... (ADAPTACIÓN del evento submit para incluir los nuevos campos) ...
+    ventaForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // 1. Recolectar detalles de productos (mismo código)
+        // ...
+
+        // 2. Construir el objeto de Venta (ComprobantePago)
+        const ventaPayload = {
+            id_comprobante: ventaIdInput.value || null,
+            
+            // NUEVOS CAMPOS AGREGADOS:
+            id_tipo_comprobante: parseInt(ventaTipoComprobanteSelect.value), // Usar el ID
+            ruc: ventaRUCInput.value || null,
+            razon_social: ventaRazonSocialInput.value || null,
+            // ---------------------
+            
+            nombre_cliente_temp: ventaClienteInput.value, 
+            fecha_emision: ventaFechaInput.value,
+            id_tipopago: ventaMetodoPagoSelect.value,
+            estado_comprobante: ventaEstadoSelect.value,
+            monto_total: parseFloat(ventaTotalSpan.textContent.replace('S/ ', '')),
+            detalles: detalles
+        };
+
+        if (await saveVenta(ventaPayload)) {
+            renderVentas();
+            closeModal();
+        }
+    });
+
+    // ... (Resto de tu código, incluyendo la llamada final a renderVentas()) ...
+    
+    // Al abrir el modal, llama a la función para establecer el estado inicial.
+    // Asegúrate de modificar la función openModal para que también llame a toggleFacturaFields
+    function openModal() {
+        ventaModal.style.display = 'block';
+        // Esto inicializa los campos
+        toggleFacturaFields(); 
+    }
     
     // Iniciar la aplicación renderizando la tabla con los datos iniciales
     renderVentas();

@@ -103,32 +103,58 @@
                     </h4>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="ventaCliente">Cliente *</label>
-                            <input type="text" id="ventaCliente" name="cliente" required placeholder="Ej: Juan Pérez">
+                            <label for="ventaTipoComprobante">Tipo de Comprobante *</label>
+                            <select id="ventaTipoComprobante" name="tipoComprobante" required>
+                                <option value="">Seleccionar Tipo</option>
+                                <option value="1">Boleta de Venta</option>
+                                <option value="2">Factura</option>
+                                <option value="3">Ticket / Venta Rápida</option>
+                            </select>
                         </div>
+                        <div class="form-group">
+                            <label for="ventaCliente">Cliente *</label>
+                            <input type="text" id="ventaCliente" name="cliente" required placeholder="Ej: Juan Pérez / RUC: 1045...">
+                        </div>
+                    </div>
+
+                    <div id="facturaFields" class="form-row hidden-fields"> 
+                        <div class="form-group">
+                            <label for="ventaRUC">RUC</label>
+                            <input type="text" id="ventaRUC" name="ruc" placeholder="RUC del Cliente">
+                        </div>
+                        <div class="form-group">
+                            <label for="ventaRazonSocial">Razón Social</label>
+                            <input type="text" id="ventaRazonSocial" name="razonSocial" placeholder="Razón Social del Cliente">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
                         <div class="form-group">
                             <label for="ventaFecha">Fecha *</label>
                             <input type="date" id="ventaFecha" name="fecha" required>
                         </div>
-                    </div>
-                    <div class="form-row">
                         <div class="form-group">
                             <label for="ventaMetodoPago">Método de Pago *</label>
                             <select id="ventaMetodoPago" name="metodoPago" required>
                                 <option value="">Seleccionar método</option>
-                                <option value="Tarjeta">Tarjeta</option>
-                                <option value="Efectivo">Efectivo</option>
-                                <option value="Transferencia">Transferencia</option>
+                                <option value="1">Tarjeta</option>
+                                <option value="2">Efectivo</option>
+                                <option value="3">Transferencia</option>
                             </select>
                         </div>
+                    </div>
+                    <div class="form-row">
                         <div class="form-group">
                             <label for="ventaEstado">Estado *</label>
                             <select id="ventaEstado" name="estado" required>
-                                <option value="">Seleccionar estado</option>
                                 <option value="Completada">Completada</option>
                                 <option value="Pendiente">Pendiente</option>
                                 <option value="Cancelada">Cancelada</option>
                             </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="ventaSerie">Serie/Correlativo</label>
+                            <input type="text" id="ventaSerie" name="serie" disabled value="Pendiente">
                         </div>
                     </div>
                 </div>
