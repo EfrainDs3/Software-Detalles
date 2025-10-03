@@ -901,10 +901,10 @@ footer {
 /* Filtros Sidebar */
 .filters-sidebar {
     background: white;
-    padding: 2rem;
+    padding-bottom: 2rem;
     border-radius: 10px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    height: fit-content;
+    height: auto;
     position: sticky;
     top: 120px;
 }
@@ -1012,7 +1012,6 @@ footer {
     align-items: center;
     gap: 0.8rem; /* Aumenta el espacio */
     cursor: pointer;
-    padding: 0.5rem 0; /* Aumenta padding vertical */
 }
 
 .brand-option input {

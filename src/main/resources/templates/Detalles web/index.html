@@ -4,131 +4,74 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detalles - Calzados y Accesorios</title>
-    <link rel="stylesheet" href="/styles.css">
+    
+    <link rel="stylesheet" href="styles.css">
+    
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <base href="/src/main/resources/templates/Detalles%20web/">
 </head>
 <body>
-<header>
-    <nav class="navbar">
-        <div class="nav-container">
-            <!-- Logo a la izquierda -->
-            <div class="logo">
-                <h1>Detalles</h1>
-            </div>
-            
-            <!-- Menú central -->
-            <ul class="nav-menu">
-                <li><a href="../index.html">Inicio</a></li>
+    <header>
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="logo">
+                    <h1>Detalles</h1>
+                </div>
                 
-                <!-- Submenú Mujeres -->
-                <li class="menu-item-has-children">
-                    <a href="#mujeres">Mujeres <i class="fas fa-chevron-down"></i></a>
-                    <div class="submenu">
-                        <div class="submenu-content">
-                            <div class="submenu-column">
-                                <h3>Calzado</h3>
-                                <ul>
-                                    <li><a href="mujeres/zapatillas-deportivas.html">Zapatillas Deportivas</a></li>
-                                    <li><a href="mujeres/zapatos-casuales.html">Zapatos Casuales</a></li>
-                                    <li><a href="#tacones">Tacones</a></li>
-                                    <li><a href="#sandalias-mujeres">Sandalias</a></li>
-                                    <li><a href="#botas-mujeres">Botas</a></li>
-                                </ul>
-                            </div>
-                            <div class="submenu-column">
-                                <h3>Accesorios</h3>
-                                <ul>
-                                    <li><a href="#bolsos">Bolsos</a></li>
-                                    <li><a href="#billeteras-mujeres">Billeteras</a></li>
-                                    <li><a href="#gafas-mujeres">Gafas de Sol</a></li>
-                                    <li><a href="#cinturones-mujeres">Cinturones</a></li>
-                                </ul>
+                <ul class="nav-menu">
+                    <li><a href="index.html">Inicio</a></li>
+                    
+                    <li class="menu-item-has-children">
+                        <a href="#mujeres">Mujeres <i class="fas fa-chevron-down"></i></a>
+                        <div class="submenu">
+                            <div class="submenu-content">
+                                <div class="submenu-column">
+                                    <h3>Calzado</h3>
+                                    <ul>
+                                        <li><a href="mujeres/zapatillas-deportivas.html">Zapatillas Deportivas</a></li>
+                                        <li><a href="mujeres/zapatos-casuales.html">Zapatos Casuales</a></li>
+                                        <li><a href="mujeres/tacones.html">Tacones</a></li>
+                                        <li><a href="mujeres/sandalias.html">Sandalias</a></li>
+                                        <li><a href="mujeres/botas.html">Botas</a></li>
+                                    </ul>
+                                </div>
+                                <div class="submenu-column">
+                                    <h3>Accesorios</h3>
+                                    <ul>
+                                        <li><a href="mujeres-accesorios/bolsos.html">Bolsos</a></li>
+                                        <li><a href="mujeres-accesorios/billeteras.html">Billeteras</a></li>
+                                        <li><a href="#">Gafas de Sol</a></li>
+                                        <li><a href="#">Cinturones</a></li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </li>
+                    </li>
+                    
+                    <li class="menu-item-has-children">
+                        <a href="#">Hombres <i class="fas fa-chevron-down"></i></a>
+                        </li>
+                    
+                    <li class="menu-item-has-children">
+                        <a href="#">Niños <i class="fas fa-chevron-down"></i></a>
+                        </li>
+                </ul>
                 
-                <!-- Submenú Hombres -->
-                <li class="menu-item-has-children">
-                    <a href="#hombres">Hombres <i class="fas fa-chevron-down"></i></a>
-                    <div class="submenu">
-                        <div class="submenu-content">
-                            <div class="submenu-column">
-                                <h3>Calzado</h3>
-                                <ul>
-                                    <li><a href="#zapatillas-hombres">Zapatillas Deportivas</a></li>
-                                    <li><a href="#casual-hombres">Zapatos Casuales</a></li>
-                                    <li><a href="#formales-hombres">Zapatos Formales</a></li>
-                                    <li><a href="#sandalias-hombres">Sandalias</a></li>
-                                    <li><a href="#botas-hombres">Botas</a></li>
-                                </ul>
-                            </div>
-                            <div class="submenu-column">
-                                <h3>Accesorios</h3>
-                                <ul>
-                                    <li><a href="#billeteras-hombres">Billeteras</a></li>
-                                    <li><a href="#cinturones-hombres">Cinturones</a></li>
-                                    <li><a href="#gafas-hombres">Gafas de Sol</a></li>
-                                    <li><a href="#relojes-hombres">Relojes</a></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </li>
+                <div class="nav-icons">
+                    <a href="#" class="nav-icon search-icon"><i class="fas fa-search"></i></a>
+                    <a href="#" class="nav-icon"><i class="fas fa-user"></i></a>
+                    <a href="#" class="nav-icon cart-icon">
+                        <i class="fas fa-shopping-bag"></i>
+                        <span class="cart-count">0</span>
+                    </a>
+                </div>
                 
-                <!-- Submenú Niños -->
-                <li class="menu-item-has-children">
-                    <a href="#ninos">Niños <i class="fas fa-chevron-down"></i></a>
-                    <div class="submenu">
-                        <div class="submenu-content">
-                            <div class="submenu-column">
-                                <h3>Calzado</h3>
-                                <ul>
-                                    <li><a href="#zapatillas-ninos">Zapatillas Deportivas</a></li>
-                                    <li><a href="#casual-ninos">Zapatos Casuales</a></li>
-                                    <li><a href="#sandalias-ninos">Sandalias</a></li>
-                                    <li><a href="#botas-ninos">Botas</a></li>
-                                </ul>
-                            </div>
-                            <div class="submenu-column">
-                                <h3>Accesorios</h3>
-                                <ul>
-                                    <li><a href="#mochilas">Mochilas</a></li>
-                                    <li><a href="#gorras">Gorras</a></li>
-                                    <li><a href="#calcetines">Calcetines</a></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </li>
-            </ul>
-            
-            <!-- Iconos a la derecha -->
-            <div class="nav-icons">
-                <a href="#" class="nav-icon search-icon">
-                    <i class="fas fa-search"></i>
-                </a>
-                <a href="#" class="nav-icon">
-                    <i class="fas fa-user"></i>
-                </a>
-                <a href="#" class="nav-icon cart-icon">
-                    <i class="fas fa-shopping-bag"></i>
-                    <span class="cart-count">0</span>
-                </a>
+                <div class="hamburger">
+                    <span></span><span></span><span></span>
+                </div>
             </div>
-            
-            <!-- SOLO UN hamburger -->
-            <div class="hamburger">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-        </div>
-    </nav>
-</header>
+        </nav>
+    </header>
 
-    <!-- Hero Section -->
     <section id="inicio" class="hero">
         <div class="hero-content">
             <h1>Nueva Colección Primavera 2025</h1>
@@ -137,7 +80,6 @@
         </div>
     </section>
 
-    <!-- Search Overlay -->
     <div id="searchOverlay" class="search-overlay">
         <div class="search-container">
             <span class="close-search">&times;</span>
@@ -145,9 +87,7 @@
                 <h2>Buscar Productos</h2>
                 <form class="search-form">
                     <input type="text" placeholder="¿Qué estás buscando?" class="search-input">
-                    <button type="submit" class="search-button">
-                        <i class="fas fa-search"></i>
-                    </button>
+                    <button type="submit" class="search-button"><i class="fas fa-search"></i></button>
                 </form>
                 <div class="search-suggestions">
                     <h3>Sugerencias de búsqueda</h3>
@@ -156,25 +96,20 @@
                         <span class="tag">Zapatos Casuales</span>
                         <span class="tag">Bolsos</span>
                         <span class="tag">Tacones</span>
-                        <span class="tag">Cinturones</span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Featured Products -->
     <section id="productos" class="featured-products">
         <div class="container">
             <h2 class="section-title">Productos Destacados</h2>
             <div class="products-grid">
-                <!-- Productos aquí (mantener igual que antes) -->
                 <div class="product-card">
                     <div class="product-image">
                         <img src="https://via.placeholder.com/300x300" alt="Zapato elegante">
-                        <div class="product-overlay">
-                            <button class="quick-view">Vista Rápida</button>
-                        </div>
+                        <div class="product-overlay"><button class="quick-view">Vista Rápida</button></div>
                     </div>
                     <div class="product-info">
                         <h3>Zapato Elegante Negro</h3>
@@ -182,13 +117,10 @@
                         <button class="add-to-cart">Añadir al Carrito</button>
                     </div>
                 </div>
-                
                 <div class="product-card">
                     <div class="product-image">
                         <img src="https://via.placeholder.com/300x300" alt="Bolso de cuero">
-                        <div class="product-overlay">
-                            <button class="quick-view">Vista Rápida</button>
-                        </div>
+                        <div class="product-overlay"><button class="quick-view">Vista Rápida</button></div>
                     </div>
                     <div class="product-info">
                         <h3>Bolso de Cuero Premium</h3>
@@ -196,13 +128,10 @@
                         <button class="add-to-cart">Añadir al Carrito</button>
                     </div>
                 </div>
-                
                 <div class="product-card">
                     <div class="product-image">
                         <img src="https://via.placeholder.com/300x300" alt="Zapatilla deportiva">
-                        <div class="product-overlay">
-                            <button class="quick-view">Vista Rápida</button>
-                        </div>
+                        <div class="product-overlay"><button class="quick-view">Vista Rápida</button></div>
                     </div>
                     <div class="product-info">
                         <h3>Zapatilla Deportiva</h3>
@@ -210,13 +139,10 @@
                         <button class="add-to-cart">Añadir al Carrito</button>
                     </div>
                 </div>
-                
                 <div class="product-card">
                     <div class="product-image">
                         <img src="https://via.placeholder.com/300x300" alt="Cinturón clásico">
-                        <div class="product-overlay">
-                            <button class="quick-view">Vista Rápida</button>
-                        </div>
+                        <div class="product-overlay"><button class="quick-view">Vista Rápida</button></div>
                     </div>
                     <div class="product-info">
                         <h3>Cinturón Clásico</h3>
@@ -228,9 +154,6 @@
         </div>
     </section>
 
-    <!-- Resto del contenido se mantiene igual -->
-    <!-- About Section, Categories, Contact, Footer -->
-     <!-- Footer -->
     <footer>
         <div class="container">
             <div class="footer-content">
@@ -276,16 +199,14 @@
         </div>
     </footer>
 
-    <!-- Quick View Modal -->
     <div id="quickViewModal" class="modal">
         <div class="modal-content">
             <span class="close-modal">&times;</span>
             <div class="modal-body">
-                <!-- Contenido dinámico del modal -->
-            </div>
+                </div>
         </div>
     </div>
 
-    <script src="../js/script.js"></script>
+    <script src="js/script.js"></script>
 </body>
 </html>

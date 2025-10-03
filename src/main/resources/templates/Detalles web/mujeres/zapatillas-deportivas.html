@@ -4,73 +4,72 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zapatillas Deportivas para Mujeres - Detalles</title>
-    
-    <link rel="stylesheet" href="/styles.css">
-    
+    <link rel="stylesheet" href="../styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <base href="/src/main/resources/templates/Detalles%20web/">
 </head>
 <body>
-    <!-- Header (igual que en tu página principal) -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="hamburger">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-            
-            <div class="logo">
-                <h1>Tienda</h1>
-            </div>
-            
-            <ul class="nav-menu">
-                <li><a href="index.html">Inicio</a></li>
-                <li class="menu-item-has-children">
-                    <a href="#">Mujer <i class="fas fa-chevron-down"></i></a>
-                    <div class="submenu">
-                        <div class="submenu-content">
-                            <div class="submenu-column">
-                                <h3>Calzado</h3>
-                                <ul>
-                                    <li><a href="zapatos-casuales.html">Zapatos Casuales</a></li>
-                                    <li><a href="zapatillas-deportivas.html">Zapatillas Deportivas</a></li>
-                                    <li><a href="tacones.html">Tacones</a></li>
-                                    <li><a href="botas.html">Botas</a></li>
-                                </ul>
-                            </div>
-                            <div class="submenu-column">
-                                <h3>Accesorios</h3>
-                                <ul>
-                                    <li><a href="#">Bolsos</a></li>
-                                    <li><a href="#">Carteras</a></li>
-                                    <li><a href="#">Joyeria</a></li>
-                                </ul>
+    <header>
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="logo">
+                    <h1>Detalles</h1>
+                </div>
+                
+                <ul class="nav-menu">
+                    <li><a href="index.html">Inicio</a></li>
+                    
+                    <li class="menu-item-has-children">
+                        <a href="#mujeres">Mujeres <i class="fas fa-chevron-down"></i></a>
+                        <div class="submenu">
+                            <div class="submenu-content">
+                                <div class="submenu-column">
+                                    <h3>Calzado</h3>
+                                    <ul>
+                                        <li><a href="mujeres-accesorios/bolsos.html">Zapatillas Deportivas</a></li>
+                                        <li><a href="mujeres/zapatos-casuales.html">Zapatos Casuales</a></li>
+                                        <li><a href="mujeres/tacones.html">Tacones</a></li>
+                                         <li><a href="mujeres/sandalias.html">Sandalias</a></li>
+                                        <li><a href="mujeres/botas.html">Botas</a></li>
+                                    </ul>
+                                </div>
+                                <div class="submenu-column">
+                                    <h3>Accesorios</h3>
+                                    <ul>
+                                        <li><a href="mujeres-accesorios/bolsos.html">Bolsos</a></li>
+                                        <li><a href="#">Billeteras</a></li>
+                                        <li><a href="#">Gafas de Sol</a></li>
+                                        <li><a href="#">Cinturones</a></li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </li>
-                <li><a href="#">Hombre</a></li>
-                <li><a href="#">Niños</a></li>
-                <li><a href="#">Ofertas</a></li>
-            </ul>
-            
-            <div class="nav-icons">
-                <a href="#" class="nav-icon search-icon">
-                    <i class="fas fa-search"></i>
-                </a>
-                <a href="#" class="nav-icon favorites-icon">
-                    <i class="far fa-heart"></i>
-                    <span class="favorites-count">0</span>
-                </a>
-                <a href="#" class="nav-icon cart-icon">
-                    <i class="fas fa-shopping-bag"></i>
-                    <span class="cart-count">0</span>
-                </a>
+                    </li>
+                    
+                    <li class="menu-item-has-children">
+                        <a href="#">Hombres <i class="fas fa-chevron-down"></i></a>
+                        </li>
+                    
+                    <li class="menu-item-has-children">
+                        <a href="#">Niños <i class="fas fa-chevron-down"></i></a>
+                        </li>
+                </ul>
+                
+                <div class="nav-icons">
+                    <a href="#" class="nav-icon search-icon"><i class="fas fa-search"></i></a>
+                    <a href="#" class="nav-icon"><i class="fas fa-user"></i></a>
+                    <a href="#" class="nav-icon cart-icon">
+                        <i class="fas fa-shopping-bag"></i>
+                        <span class="cart-count">0</span>
+                    </a>
+                </div>
+                
+                <div class="hamburger">
+                    <span></span><span></span><span></span>
+                </div>
             </div>
-        </div>
-    </nav>
-
+        </nav>
+    </header>
     <!-- Search Overlay -->
     <div class="search-overlay" id="searchOverlay">
         <div class="search-container">
@@ -130,6 +129,9 @@
                         <div class="size-option">38</div>
                         <div class="size-option">39</div>
                         <div class="size-option">40</div>
+                        <div class="size-option">41</div>
+                        <div class="size-option">42</div>
+                        <div class="size-option">43</div>
                     </div>
                 </div>
 
@@ -183,6 +185,31 @@
                         </label>
                     </div>
                 </div>
+
+                <div class="filter-section">
+                    <h3>Material</h3>
+                    <div class="brand-filter">
+                        <div class="brand-option">
+                            <input type="checkbox" id="cuero" checked>
+                            <label for="cuero">Cuero</label>
+                        </div>
+                        <div class="brand-option">
+                            <input type="checkbox" id="sintetico" checked>
+                            <label for="sintetico">Sintético</label>
+                        </div>
+                        <div class="brand-option">
+                            <input type="checkbox" id="lona">
+                            <label for="lona">Lona</label>
+                        </div>
+                        <div class="brand-option">
+                            <input type="checkbox" id="gamusa">
+                            <label for="gamusa">Gamusa</label>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn-add-cart" style="width: 100%; margin-top: 1rem;">
+                    Aplicar Filtros
+                </button>
             </aside>
 
             <!-- Products Main Content -->
@@ -390,6 +417,6 @@
         </div>
     </footer>
 
-    <script src="/js/script.js"></script>
+    <script src="js/script.js"></script>
 </body>
 </html>
