@@ -34,6 +34,19 @@ function loadSidebar(containerId) {
         });
 }
 
+function closeAllSubmenus(except = null) {
+    const submenus = document.querySelectorAll('.submenu');
+    submenus.forEach(submenu => {
+        if (submenu !== except) {
+            submenu.classList.remove('open');
+            const trigger = submenu.previousElementSibling;
+            if (trigger && trigger.classList.contains('has-submenu')) {
+                trigger.classList.remove('open', 'active-parent');
+            }
+        }
+    });
+}
+
 //Establecer la página activa según la URL actual
 function setActivePage() {
     const currentPage = getCurrentPage();
@@ -41,16 +54,14 @@ function setActivePage() {
     
     // Primero remover todas las clases activas
     navLinks.forEach(link => {
-        link.classList.remove('active');
-        // También remover la clase open de los padres
-        link.classList.remove('open');
+        link.classList.remove('active', 'active-parent');
+        if (link.classList.contains('has-submenu')) {
+            link.classList.remove('open');
+        }
     });
-    
+
     // Cerrar todos los submenus
-    const submenus = document.querySelectorAll('.submenu');
-    submenus.forEach(submenu => {
-        submenu.classList.remove('open');
-    });
+    closeAllSubmenus();
     
     navLinks.forEach(link => {
         const pageData = link.getAttribute('data-page');
@@ -68,7 +79,7 @@ function setActivePage() {
                 
                 if (parentMenuItem && parentMenuItem.classList.contains('has-submenu')) {
                     // Solo agregar 'open' para expandir, NO 'active'
-                    parentMenuItem.classList.add('open');
+                    parentMenuItem.classList.add('open', 'active-parent');
                     parentSubmenu.classList.add('open');
                 }
             }
@@ -130,35 +141,34 @@ function addSidebarClickHandlers() {
     
     navLinks.forEach(link => {
         link.addEventListener('click', function(e) {
-            // Si tiene submenu, toggle el submenu (sin marcarlo como activo)
-            if (this.classList.contains('has-submenu')) {
+            const hasSubmenu = this.classList.contains('has-submenu');
+            const parentSubmenu = this.closest('.submenu');
+
+            if (hasSubmenu) {
                 e.preventDefault();
                 const submenu = this.parentElement.querySelector('.submenu');
-                
-                if (submenu) {
-                    submenu.classList.toggle('open');
-                    this.classList.toggle('open');
-                }
+                if (!submenu) return;
+
+                closeAllSubmenus(submenu);
+                submenu.classList.add('open');
+                this.classList.add('open', 'active-parent');
                 return;
             }
-            
-            // Para enlaces normales (incluye subopciones), actualizar solo ese elemento como activo
-            navLinks.forEach(l => l.classList.remove('active'));
+
+            document.querySelectorAll('.nav-menu a').forEach(l => l.classList.remove('active'));
+            document.querySelectorAll('.nav-menu a.has-submenu').forEach(trigger => trigger.classList.remove('active-parent'));
+
             this.classList.add('active');
-            
-            // Si es una subopción, mantener el submenu abierto
-            const parentLi = this.closest('li');
-            const isInSubmenu = parentLi && parentLi.closest('.submenu');
-            
-            if (isInSubmenu) {
-                const parentSubmenu = parentLi.closest('.submenu');
+
+            if (parentSubmenu) {
                 const parentMenuItem = parentSubmenu.previousElementSibling;
-                
+                closeAllSubmenus(parentSubmenu);
+                parentSubmenu.classList.add('open');
                 if (parentMenuItem && parentMenuItem.classList.contains('has-submenu')) {
-                    // Mantener el submenu abierto, pero NO marcar el parent como activo
-                    parentMenuItem.classList.add('open');
-                    parentSubmenu.classList.add('open');
+                    parentMenuItem.classList.add('open', 'active-parent');
                 }
+            } else {
+                closeAllSubmenus();
             }
         });
     });

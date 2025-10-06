@@ -21,6 +21,14 @@
 
   document.addEventListener('DOMContentLoaded', init);
 
+  async function askConfirmation(options){
+    if (window.confirmationModal?.confirm){
+      return window.confirmationModal.confirm(options);
+    }
+    const message = options?.message || '¿Deseas continuar con esta acción?';
+    return Promise.resolve(window.confirm(message));
+  }
+
   async function init(){
     registrarEventosBasicos();
     try {
@@ -426,7 +434,7 @@
     actualizarPreview();
   }
 
-  function manejarAccionesTabla(event){
+  async function manejarAccionesTabla(event){
     const button = event.target.closest('button[data-action]');
     if (!button) return;
     const { action, id } = button.dataset;
@@ -438,8 +446,23 @@
       return;
     }
     if (action === 'edit'){
+      const confirmed = await askConfirmation({
+        title: 'Editar calzado',
+        message: `¿Deseas editar "${producto.nombre}"?`,
+        confirmText: 'Sí, editar',
+        cancelText: 'Cancelar'
+      });
+      if (!confirmed) return;
       abrirModal(producto);
     } else if (action === 'delete'){
+      const confirmed = await askConfirmation({
+        title: 'Desactivar calzado',
+        message: `Esta acción desactivará el calzado "${producto.nombre}". ¿Deseas continuar?`,
+        confirmText: 'Sí, desactivar',
+        cancelText: 'Cancelar',
+        variant: 'danger'
+      });
+      if (!confirmed) return;
       eliminarProducto(numericId);
     } else if (action === 'view'){
       mostrarDetalle(producto);
@@ -447,7 +470,6 @@
   }
 
   async function eliminarProducto(id){
-    if (!confirm('¿Desea desactivar el calzado seleccionado?')) return;
     try {
       await apiDelete(`${PRODUCT_API}/${id}`);
       await cargarProductos();

@@ -40,6 +40,14 @@
   // Cache de altura mínima por tabla para mantener estable la posición de la paginación
   const heightCache = {};
 
+  async function askConfirmation(options){
+    if (window.confirmationModal?.confirm){
+      return window.confirmationModal.confirm(options);
+    }
+    const message = options?.message || '¿Deseas continuar con esta acción?';
+    return Promise.resolve(window.confirm(message));
+  }
+
   async function apiFetch(path, options = {}){
     const baseHeaders = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
     const opts = { method: options.method || 'GET', headers: baseHeaders, ...options };
@@ -594,9 +602,23 @@
   document.body.addEventListener('click', async (e)=>{
     const btn = e.target.closest('.action-buttons-cell .btn-icon');
     if (!btn) return;
-    const scope = btn.dataset.scope; const id = Number(btn.dataset.id);
+    const scope = btn.dataset.scope;
+    const rawId = btn.dataset.id;
+  const numericId = Number(rawId);
+  const idForUrl = Number.isNaN(numericId) ? rawId : numericId;
+  const id = Number.isNaN(numericId) ? rawId : numericId;
     const sets = { marca:marcas, modelo:modelos, material:materiales, unidad:unidades, tipo:tipos };
     const list = sets[scope]; if (!list) return;
+    const item = list.find(entry => String(entry.id) === String(rawId));
+    const itemName = item?.nombre || item?.marca || item?.descripcion || `ID ${rawId}`;
+    const scopeTitleMap = {
+      marca: 'Marca',
+      modelo: 'Modelo',
+      material: 'Material',
+      unidad: 'Unidad de medida',
+      tipo: 'Tipo de producto'
+    };
+    const scopeTitle = scopeTitleMap[scope] || 'Registro';
     if (btn.classList.contains('btn-view')){
       if (scope==='marca') viewMarca(id);
       if (scope==='modelo') viewModelo(id);
@@ -604,29 +626,43 @@
       if (scope==='unidad') viewUnidad(id);
       if (scope==='tipo') viewTipo(id);
     } else if (btn.classList.contains('btn-edit')){
+      const confirmed = await askConfirmation({
+        title: `Editar ${scopeTitle.toLowerCase()}`,
+        message: `¿Deseas editar ${scopeTitle.toLowerCase()} "${itemName}"?`,
+        confirmText: 'Sí, editar',
+        cancelText: 'Cancelar'
+      });
+      if (!confirmed) return;
       if (scope==='marca') editMarca(id);
       if (scope==='modelo') editModelo(id);
       if (scope==='material') editMaterial(id);
       if (scope==='unidad') editUnidad(id);
       if (scope==='tipo') editTipo(id);
     } else if (btn.classList.contains('btn-delete')){
-      if (!confirm('¿Eliminar registro?')) return;
+      const confirmed = await askConfirmation({
+        title: `Eliminar ${scopeTitle.toLowerCase()}`,
+        message: `Esta acción eliminará ${scopeTitle.toLowerCase()} "${itemName}". ¿Deseas continuar?`,
+        confirmText: 'Sí, eliminar',
+        cancelText: 'Cancelar',
+        variant: 'danger'
+      });
+      if (!confirmed) return;
       try {
         if (scope==='marca'){
-          await apiFetch(`/marcas/${id}`, { method:'DELETE' });
+          await apiFetch(`/marcas/${idForUrl}`, { method:'DELETE' });
           await loadMarcas();
           await loadModelos();
         } else if (scope==='modelo'){
-          await apiFetch(`/modelos/${id}`, { method:'DELETE' });
+          await apiFetch(`/modelos/${rawId}`, { method:'DELETE' });
           await loadModelos();
         } else if (scope==='material'){
-          await apiFetch(`/materiales/${id}`, { method:'DELETE' });
+          await apiFetch(`/materiales/${idForUrl}`, { method:'DELETE' });
           await loadMateriales();
         } else if (scope==='unidad'){
-          await apiFetch(`/unidades/${id}`, { method:'DELETE' });
+          await apiFetch(`/unidades/${idForUrl}`, { method:'DELETE' });
           await loadUnidades();
         } else if (scope==='tipo'){
-          await apiFetch(`/tipos/${id}`, { method:'DELETE' });
+          await apiFetch(`/tipos/${idForUrl}`, { method:'DELETE' });
           await loadTipos();
         }
       } catch (error) {

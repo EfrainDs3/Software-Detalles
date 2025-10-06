@@ -23,6 +23,14 @@
 
   document.addEventListener('DOMContentLoaded', init);
 
+  async function askConfirmation(options){
+    if (window.confirmationModal?.confirm){
+      return window.confirmationModal.confirm(options);
+    }
+    const message = options?.message || '¿Deseas continuar con esta acción?';
+    return Promise.resolve(window.confirm(message));
+  }
+
   async function init(){
     registrarEventos();
     try {
@@ -401,7 +409,7 @@
     actualizarPreview();
   }
 
-  function manejarAccionesTabla(event){
+  async function manejarAccionesTabla(event){
     const button = event.target.closest('button[data-action]');
     if (!button) return;
     const { action, id } = button.dataset;
@@ -414,8 +422,23 @@
     }
 
     if (action === 'edit'){
+      const confirmed = await askConfirmation({
+        title: 'Editar accesorio',
+        message: `¿Deseas editar "${accesorio.nombre}"?`,
+        confirmText: 'Sí, editar',
+        cancelText: 'Cancelar'
+      });
+      if (!confirmed) return;
       abrirModal(accesorio);
     } else if (action === 'delete'){
+      const confirmed = await askConfirmation({
+        title: 'Desactivar accesorio',
+        message: `Esta acción desactivará el accesorio "${accesorio.nombre}". ¿Deseas continuar?`,
+        confirmText: 'Sí, desactivar',
+        cancelText: 'Cancelar',
+        variant: 'danger'
+      });
+      if (!confirmed) return;
       eliminarProducto(numericId);
     } else if (action === 'view'){
       mostrarDetalle(accesorio);
@@ -423,7 +446,6 @@
   }
 
   async function eliminarProducto(id){
-    if (!confirm('¿Desea desactivar el accesorio seleccionado?')) return;
     try {
       await apiDelete(`${PRODUCT_API}/${id}`);
       await cargarProductos();
