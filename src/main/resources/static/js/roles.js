@@ -75,7 +75,7 @@ function initRolesModule() {
     }
 
     if (selectAllCheckbox) {
-        selectAllCheckbox.addEventListener('change', handleSelectAll);
+        selectAllCheckbox.addEventListener('change', handleSelectAllCheckboxes);
     }
 
     // Add select all permissions functionality
@@ -117,6 +117,8 @@ function loadRoles() {
     updatePaginationInfo();
     // Attach action listeners to buttons created dynamically
     addActionButtonListeners();
+    // Attach checkbox listeners
+    attachCheckboxListeners();
 }
 
 // Create role row
@@ -803,3 +805,164 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// ==================== FUNCIONES DE CHECKBOXES ====================
+
+// Manejar selección de todos los checkboxes
+function handleSelectAllCheckboxes(event) {
+    const isChecked = event.target.checked;
+    const checkboxes = document.querySelectorAll('.role-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = isChecked;
+    });
+    
+    updateSelectedCount();
+    updateBulkActionsVisibility();
+}
+
+// Manejar checkboxes individuales
+function handleIndividualCheckbox() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.role-checkbox');
+    const checkedCheckboxes = document.querySelectorAll('.role-checkbox:checked');
+    
+    // Actualizar estado del checkbox "Seleccionar Todo"
+    if (checkedCheckboxes.length === 0) {
+        selectAll.checked = false;
+        selectAll.indeterminate = false;
+    } else if (checkedCheckboxes.length === checkboxes.length) {
+        selectAll.checked = true;
+        selectAll.indeterminate = false;
+    } else {
+        selectAll.checked = false;
+        selectAll.indeterminate = true;
+    }
+    
+    updateSelectedCount();
+    updateBulkActionsVisibility();
+}
+
+// Actualizar contador de seleccionados
+function updateSelectedCount() {
+    const checkedCount = document.querySelectorAll('.role-checkbox:checked').length;
+    const selectedCountElement = document.getElementById('selectedCount');
+    
+    if (selectedCountElement) {
+        selectedCountElement.textContent = checkedCount;
+    }
+}
+
+// Mostrar/ocultar barra de acciones masivas
+function updateBulkActionsVisibility() {
+    const bulkActions = document.getElementById('bulkActions');
+    const checkedCount = document.querySelectorAll('.role-checkbox:checked').length;
+    
+    if (bulkActions) {
+        if (checkedCount > 0) {
+            bulkActions.style.display = 'flex';
+        } else {
+            bulkActions.style.display = 'none';
+        }
+    }
+}
+
+// Obtener IDs de roles seleccionados
+function getSelectedRoleIds() {
+    const checkedCheckboxes = document.querySelectorAll('.role-checkbox:checked');
+    const selectedIds = [];
+    
+    checkedCheckboxes.forEach(checkbox => {
+        const roleId = checkbox.getAttribute('data-role-id');
+        if (roleId) {
+            selectedIds.push(roleId);
+        }
+    });
+    
+    return selectedIds;
+}
+
+// Eliminar roles seleccionados
+function deleteSelectedRoles() {
+    const selectedIds = getSelectedRoleIds();
+    
+    if (selectedIds.length === 0) {
+        showNotification('No hay roles seleccionados', 'error');
+        return;
+    }
+    
+    const confirmMessage = `¿Está seguro de eliminar ${selectedIds.length} rol(es) seleccionado(s)?`;
+    
+    if (confirm(confirmMessage)) {
+        // Eliminar roles del array
+        selectedIds.forEach(id => {
+            const index = roles.findIndex(role => role.id === id);
+            if (index !== -1) {
+                roles.splice(index, 1);
+            }
+        });
+        
+        // Recargar tabla
+        loadRoles();
+        
+        // Limpiar selección
+        const selectAll = document.getElementById('selectAll');
+        if (selectAll) {
+            selectAll.checked = false;
+            selectAll.indeterminate = false;
+        }
+        
+        // Notificar éxito
+        showNotification(`${selectedIds.length} rol(es) eliminado(s) exitosamente`, 'success');
+    }
+}
+
+// Exportar roles seleccionados a CSV
+function exportSelectedRoles() {
+    const selectedIds = getSelectedRoleIds();
+    
+    if (selectedIds.length === 0) {
+        showNotification('No hay roles seleccionados', 'error');
+        return;
+    }
+    
+    // Filtrar roles seleccionados
+    const selectedRoles = roles.filter(role => selectedIds.includes(role.id));
+    
+    // Crear contenido CSV
+    let csvContent = 'ID,Nombre,Descripción,Permisos,Usuarios Asignados,Estado\n';
+    
+    selectedRoles.forEach(role => {
+        const permissions = role.permissions.join('; ');
+        const line = `${role.id},"${role.name}","${role.description}","${permissions}",${role.userCount},${role.status}\n`;
+        csvContent += line;
+    });
+    
+    // Crear blob y descargar
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `roles_${Date.now()}.csv`);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showNotification(`${selectedIds.length} rol(es) exportado(s) exitosamente`, 'success');
+}
+
+// Adjuntar eventos a checkboxes
+function attachCheckboxListeners() {
+    const checkboxes = document.querySelectorAll('.role-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', handleIndividualCheckbox);
+    });
+}
+
+// Exponer funciones globalmente
+window.deleteSelectedRoles = deleteSelectedRoles;
+window.exportSelectedRoles = exportSelectedRoles;

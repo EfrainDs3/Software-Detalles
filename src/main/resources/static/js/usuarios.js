@@ -68,7 +68,7 @@ function initUsuariosModule() {
     }
 
     if (selectAllCheckbox) {
-        selectAllCheckbox.addEventListener('change', handleSelectAll);
+        selectAllCheckbox.addEventListener('change', handleSelectAllCheckboxes);
     }
 
     if (closeModalBtn) {
@@ -115,6 +115,8 @@ function loadUsers() {
     
     // volver a enlazar listeners de botones
     addActionButtonListeners();
+    // Adjuntar listeners de checkboxes
+    attachCheckboxListeners();
 }
 
 // Crear fila de usuario
@@ -800,3 +802,167 @@ function updatePaginationInfo() {
         paginationInfo.textContent = `Mostrando ${visibleRows} de ${totalUsers} usuarios`;
     }
 }
+
+// ==================== FUNCIONES DE CHECKBOXES ====================
+
+// Manejar selección de todos los checkboxes
+function handleSelectAllCheckboxes(event) {
+    const isChecked = event.target.checked;
+    const checkboxes = document.querySelectorAll('.user-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = isChecked;
+    });
+    
+    updateSelectedCount();
+    updateBulkActionsVisibility();
+}
+
+// Manejar checkboxes individuales
+function handleIndividualCheckbox() {
+    const selectAll = document.getElementById('selectAll');
+    const checkboxes = document.querySelectorAll('.user-checkbox');
+    const checkedCheckboxes = document.querySelectorAll('.user-checkbox:checked');
+    
+    // Actualizar estado del checkbox "Seleccionar Todo"
+    if (checkedCheckboxes.length === 0) {
+        selectAll.checked = false;
+        selectAll.indeterminate = false;
+    } else if (checkedCheckboxes.length === checkboxes.length) {
+        selectAll.checked = true;
+        selectAll.indeterminate = false;
+    } else {
+        selectAll.checked = false;
+        selectAll.indeterminate = true;
+    }
+    
+    updateSelectedCount();
+    updateBulkActionsVisibility();
+}
+
+// Actualizar contador de seleccionados
+function updateSelectedCount() {
+    const checkedCount = document.querySelectorAll('.user-checkbox:checked').length;
+    const selectedCountElement = document.getElementById('selectedCount');
+    
+    if (selectedCountElement) {
+        selectedCountElement.textContent = checkedCount;
+    }
+}
+
+// Mostrar/ocultar barra de acciones masivas
+function updateBulkActionsVisibility() {
+    const bulkActions = document.getElementById('bulkActions');
+    const checkedCount = document.querySelectorAll('.user-checkbox:checked').length;
+    
+    if (bulkActions) {
+        if (checkedCount > 0) {
+            bulkActions.style.display = 'flex';
+        } else {
+            bulkActions.style.display = 'none';
+        }
+    }
+}
+
+// Obtener IDs de usuarios seleccionados
+function getSelectedUserIds() {
+    const checkedCheckboxes = document.querySelectorAll('.user-checkbox:checked');
+    const selectedIds = [];
+    
+    checkedCheckboxes.forEach(checkbox => {
+        // Buscar el ID en la fila padre
+        const row = checkbox.closest('tr');
+        if (row) {
+            const idCell = row.querySelector('td:nth-child(2)'); // Segunda columna tiene el ID
+            if (idCell) {
+                selectedIds.push(idCell.textContent.trim());
+            }
+        }
+    });
+    
+    return selectedIds;
+}
+
+// Eliminar usuarios seleccionados
+function deleteSelectedUsers() {
+    const selectedIds = getSelectedUserIds();
+    
+    if (selectedIds.length === 0) {
+        showNotification('No hay usuarios seleccionados', 'error');
+        return;
+    }
+    
+    const confirmMessage = `¿Está seguro de eliminar ${selectedIds.length} usuario(s) seleccionado(s)?`;
+    
+    if (confirm(confirmMessage)) {
+        // Eliminar usuarios del array
+        selectedIds.forEach(id => {
+            const index = users.findIndex(user => user.id === id);
+            if (index !== -1) {
+                users.splice(index, 1);
+            }
+        });
+        
+        // Recargar tabla
+        loadUsers();
+        
+        // Limpiar selección
+        const selectAll = document.getElementById('selectAll');
+        if (selectAll) {
+            selectAll.checked = false;
+            selectAll.indeterminate = false;
+        }
+        
+        // Notificar éxito
+        showNotification(`${selectedIds.length} usuario(s) eliminado(s) exitosamente`, 'success');
+    }
+}
+
+// Exportar usuarios seleccionados a CSV
+function exportSelectedUsers() {
+    const selectedIds = getSelectedUserIds();
+    
+    if (selectedIds.length === 0) {
+        showNotification('No hay usuarios seleccionados', 'error');
+        return;
+    }
+    
+    // Filtrar usuarios seleccionados
+    const selectedUsers = users.filter(user => selectedIds.includes(user.id));
+    
+    // Crear contenido CSV
+    let csvContent = 'ID,Nombre,Email,Rol,Estado,Teléfono,Último Acceso\n';
+    
+    selectedUsers.forEach(user => {
+        const line = `${user.id},"${user.name}","${user.email}",${user.role},${user.status},"${user.phone}","${user.lastAccess}"\n`;
+        csvContent += line;
+    });
+    
+    // Crear blob y descargar
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `usuarios_${Date.now()}.csv`);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showNotification(`${selectedIds.length} usuario(s) exportado(s) exitosamente`, 'success');
+}
+
+// Adjuntar eventos a checkboxes
+function attachCheckboxListeners() {
+    const checkboxes = document.querySelectorAll('.user-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', handleIndividualCheckbox);
+    });
+}
+
+// Exponer funciones globalmente
+window.deleteSelectedUsers = deleteSelectedUsers;
+window.exportSelectedUsers = exportSelectedUsers;
