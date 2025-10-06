@@ -35,6 +35,14 @@ const detalleIds = {
     email: 'detalle-email'
 };
 
+async function askConfirmation(options){
+    if (window.confirmationModal?.confirm){
+        return window.confirmationModal.confirm(options);
+    }
+    const message = options?.message || '¿Deseas continuar con esta acción?';
+    return Promise.resolve(window.confirm(message));
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initializeEventListeners();
     loadProveedores();
@@ -182,11 +190,26 @@ function renderProveedoresTable(data = proveedores) {
     });
 
     proveedoresTableBody.querySelectorAll('.btn-edit').forEach(button => {
-        button.addEventListener('click', () => editProveedor(Number(button.dataset.id)));
+        button.addEventListener('click', async () => {
+            const id = Number(button.dataset.id);
+            const proveedor = proveedores.find(p => p.idProveedor === id);
+            const nombre = proveedor?.razonSocial || `Proveedor #${id}`;
+            const confirmed = await askConfirmation({
+                title: 'Editar proveedor',
+                message: `¿Deseas editar al proveedor "${nombre}"?`,
+                confirmText: 'Sí, editar',
+                cancelText: 'Cancelar'
+            });
+            if (!confirmed) return;
+            editProveedor(id);
+        });
     });
 
     proveedoresTableBody.querySelectorAll('.btn-delete').forEach(button => {
-        button.addEventListener('click', () => deleteProveedor(Number(button.dataset.id)));
+        button.addEventListener('click', async () => {
+            const id = Number(button.dataset.id);
+            await deleteProveedor(id);
+        });
     });
 
     proveedoresTableBody.querySelectorAll('.btn-view').forEach(button => {
@@ -283,7 +306,13 @@ async function deleteProveedor(id) {
         return;
     }
 
-    const confirmado = confirm(`¿Estás seguro de eliminar a "${proveedor.razonSocial}"?`);
+    const confirmado = await askConfirmation({
+        title: 'Eliminar proveedor',
+        message: `Esta acción eliminará al proveedor "${proveedor.razonSocial}". ¿Deseas continuar?`,
+        confirmText: 'Sí, eliminar',
+        cancelText: 'Cancelar',
+        variant: 'danger'
+    });
     if (!confirmado) {
         return;
     }

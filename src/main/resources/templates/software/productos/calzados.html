@@ -6,6 +6,7 @@
     <title>Gestión de Calzados - Detalles</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/css/dashboard.css">
+    <link rel="stylesheet" href="/css/confirmation.css">
     <link rel="stylesheet" href="/css/calzados.css">
 </head>
 <body>
@@ -60,7 +61,7 @@
                         <th>
                             <input type="checkbox" id="selectAll">
                         </th>
-                        <th>ID</th>
+                        <th>#</th>
                         <th>Imagen</th>
                         <th>Nombre</th>
                         <th>Marca</th>
@@ -116,45 +117,26 @@
                             <input type="text" id="calzadoName" name="name" required placeholder="Ej: Zapatillas Deportivas Nike">
                         </div>
                         <div class="form-group">
-                            <label for="calzadoBrand">Marca *</label>
-                            <select id="calzadoBrand" name="brand" required>
-                                <option value="">Seleccionar marca</option>
-                                <option value="Nike">Nike</option>
-                                <option value="Adidas">Adidas</option>
-                                <option value="Clarks">Clarks</option>
-                                <option value="Timberland">Timberland</option>
-                                <option value="Converse">Converse</option>
-                                <option value="Vans">Vans</option>
-                                <option value="Otro">Otro</option>
+                            <label for="calzadoModel">Modelo *</label>
+                            <select id="calzadoModel" required>
+                                <option value="">Cargando modelos...</option>
                             </select>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="calzadoModel">Modelo *</label>
-                            <input type="text" id="calzadoModel" name="model" required placeholder="Ej: Air Max 270">
+                            <label for="calzadoBrandName">Marca</label>
+                            <input type="text" id="calzadoBrandName" placeholder="Selecciona un modelo" readonly>
                         </div>
                         <div class="form-group">
                             <label for="calzadoColor">Color *</label>
-                            <select id="calzadoColor" name="color" required>
-                                <option value="">Seleccionar color</option>
-                                <option value="Negro">Negro</option>
-                                <option value="Blanco">Blanco</option>
-                                <option value="Marrón">Marrón</option>
-                                <option value="Café">Café</option>
-                                <option value="Azul">Azul</option>
-                                <option value="Rojo">Rojo</option>
-                                <option value="Verde">Verde</option>
-                                <option value="Gris">Gris</option>
-                                <option value="Beige">Beige</option>
-                                <option value="Multicolor">Multicolor</option>
-                            </select>
+                            <input type="text" id="calzadoColor" required placeholder="Ej: Negro / Multicolor">
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="calzadoType">Tipo *</label>
-                            <select id="calzadoType" name="type" required>
+                            <select id="calzadoType" required>
                                 <option value="">Seleccionar tipo</option>
                                 <option value="Hombre">Hombre</option>
                                 <option value="Mujer">Mujer</option>
@@ -164,53 +146,30 @@
                         </div>
                         <div class="form-group">
                             <label for="calzadoProveedor">Proveedor</label>
-                            <select id="calzadoProveedor" name="proveedor">
-                                <option value="">Seleccionar proveedor</option>
-                                <option value="Distribuidora Nike S.A.">Distribuidora Nike S.A.</option>
-                                <option value="Calzados Premium Ltda.">Calzados Premium Ltda.</option>
-                                <option value="Accesorios Fashion">Accesorios Fashion</option>
-                                <option value="Sportswear Internacional">Sportswear Internacional</option>
-                                <option value="Otro">Otro</option>
+                            <select id="calzadoProveedor">
+                                <option value="">Cargando proveedores...</option>
                             </select>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="calzadoMaterial">Material *</label>
-                            <select id="calzadoMaterial" name="material" required>
-                                <option value="">Seleccionar material</option>
-                                <option value="Cuero">Cuero</option>
-                                <option value="Cuero Sintético">Cuero Sintético</option>
-                                <option value="Lona">Lona</option>
-                                <option value="Textil">Textil</option>
-                                <option value="Mesh">Mesh</option>
-                                <option value="Gamuza">Gamuza</option>
-                                <option value="Nobuck">Nobuck</option>
-                                <option value="Caucho">Caucho</option>
-                                <option value="EVA">EVA</option>
-                                <option value="Mixto">Mixto</option>
+                            <select id="calzadoMaterial" required>
+                                <option value="">Cargando materiales...</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label for="calzadoCategory">Tipo Producto</label>
-                            <select id="calzadoCategory" name="category">
-                                <option value="Deportivo">Deportivo</option>
-                                <option value="Formal">Formal</option>
-                                <option value="Casual">Casual</option>
-                                <option value="Botas">Botas</option>
-                                <option value="Sandalias">Sandalias</option>
+                            <select id="calzadoCategory">
+                                <option value="">Cargando tipos...</option>
                             </select>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="calzadoUnidad">Unidad de Medida</label>
-                            <select id="calzadoUnidad" name="unidad">
-                                <option value="">Seleccionar unidad</option>
-                                <option value="Par">Par</option>
-                                <option value="Unidad">Unidad</option>
-                                <option value="Caja">Caja</option>
-                                <option value="Docena">Docena</option>
+                            <select id="calzadoUnidad">
+                                <option value="">Cargando unidades...</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -220,11 +179,18 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="calzadoPeso">Peso</label>
-                            <input type="text" id="calzadoPeso" name="peso" placeholder="Ej: 0.8 kg">
+                            <label for="calzadoPeso">Peso (kg o g)</label>
+                            <input type="text" id="calzadoPeso" placeholder="Ej: 0.8 o 800">
                         </div>
                         <div class="form-group">
-                            <!-- vacío para alineación de 2 columnas -->
+                            <label for="calzadoCodigoBarra">Código de barras</label>
+                            <input type="text" id="calzadoCodigoBarra" placeholder="Opcional">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label for="calzadoDescription">Descripción</label>
+                            <textarea id="calzadoDescription" rows="3" placeholder="Describe las características principales"></textarea>
                         </div>
                     </div>
                 </div>
@@ -240,6 +206,7 @@
                         <i class="fas fa-plus"></i>
                         Agregar Talla
                     </button>
+                    <p class="talla-hint">Escribe la talla tal como deseas registrarla (ej. 38, 39-40, EU 42). Puedes añadir todas las variaciones necesarias.</p>
                 </div>
 
                 <!-- Imagen del Producto -->
@@ -251,13 +218,8 @@
                     <div class="image-upload-container">
                         <div class="image-preview" id="imagePreview">
                             <i class="fas fa-camera"></i>
-                            <span>Click para subir imagen</span>
                         </div>
                         <input type="file" id="calzadoImage" name="image" accept="image/*" style="display: none;">
-                        <button type="button" class="btn btn-secondary" id="selectImageBtn">
-                            <i class="fas fa-upload"></i>
-                            Seleccionar Imagen
-                        </button>
                     </div>
                 </div>
 
@@ -301,6 +263,7 @@
 
     <script src="/js/sidebar.js"></script>
     <script src="/js/logout.js"></script>
+    <script src="/js/confirmation.js"></script>
     <script src="/js/calzados.js"></script>
 </body>
 </html>

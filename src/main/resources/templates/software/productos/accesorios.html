@@ -6,6 +6,7 @@
     <title>Gestión de Accesorios - Detalles</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/css/dashboard.css">
+    <link rel="stylesheet" href="/css/confirmation.css">
     <link rel="stylesheet" href="/css/accesorios.css">
 </head>
 <body>
@@ -60,11 +61,12 @@
                         <th>
                             <input type="checkbox" id="selectAll">
                         </th>
-                        <th>ID</th>
+                        <th>#</th>
                         <th>Imagen</th>
                         <th>Nombre</th>
-                        <th>Color</th>
+                        <th>Modelo</th>
                         <th>Marca</th>
+                        <th>Color</th>
                         <th>Material</th>
                         <th>Acciones</th>
                     </tr>
@@ -115,88 +117,59 @@
                             <input type="text" id="accesorioName" name="name" required placeholder="Ej: Cinturón de Cuero">
                         </div>
                         <div class="form-group">
-                            <label for="accesorioBrand">Marca *</label>
-                            <select id="accesorioBrand" name="brand" required>
-                                <option value="">Seleccionar marca</option>
-                                <option value="Levi's">Levi's</option>
-                                <option value="Tommy Hilfiger">Tommy Hilfiger</option>
-                                <option value="Coach">Coach</option>
-                                <option value="Michael Kors">Michael Kors</option>
-                                <option value="Ray-Ban">Ray-Ban</option>
-                                <option value="Fossil">Fossil</option>
-                                <option value="Otro">Otro</option>
+                            <label for="accesorioModel">Modelo</label>
+                            <select id="accesorioModel">
+                                <option value="">Cargando modelos...</option>
                             </select>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
+                            <label for="accesorioBrandName">Marca</label>
+                            <input type="text" id="accesorioBrandName" placeholder="Selecciona un modelo" readonly>
+                        </div>
+                        <div class="form-group">
                             <label for="accesorioColor">Color *</label>
-                            <select id="accesorioColor" name="color" required>
-                                <option value="">Seleccionar color</option>
-                                <option value="Negro">Negro</option>
-                                <option value="Blanco">Blanco</option>
-                                <option value="Marrón">Marrón</option>
-                                <option value="Café">Café</option>
-                                <option value="Azul">Azul</option>
-                                <option value="Rojo">Rojo</option>
-                                <option value="Verde">Verde</option>
-                                <option value="Gris">Gris</option>
-                                <option value="Beige">Beige</option>
-                                <option value="Multicolor">Multicolor</option>
+                            <input type="text" id="accesorioColor" required placeholder="Ej: Dorado / Negro">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="accesorioType">Tipo *</label>
+                            <select id="accesorioType" required>
+                                <option value="">Seleccionar tipo</option>
+                                <option value="Hombre">Hombre</option>
+                                <option value="Mujer">Mujer</option>
+                                <option value="Unisex">Unisex</option>
+                                <option value="Niños">Niños</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label for="accesorioMaterial">Material *</label>
-                            <select id="accesorioMaterial" name="material" required>
-                                <option value="">Seleccionar material</option>
-                                <option value="Cuero">Cuero</option>
-                                <option value="Cuero Sintético">Cuero Sintético</option>
-                                <option value="Metal">Metal</option>
-                                <option value="Plástico">Plástico</option>
-                                <option value="Tela">Tela</option>
-                                <option value="Lana">Lana</option>
-                                <option value="Algodón">Algodón</option>
-                                <option value="Seda">Seda</option>
-                                <option value="Vidrio">Vidrio</option>
-                                <option value="Mixto">Mixto</option>
+                            <select id="accesorioMaterial" required>
+                                <option value="">Cargando materiales...</option>
                             </select>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="accesorioCategory">Tipo Producto</label>
-                            <select id="accesorioCategory" name="category">
-                                <option value="Cinturones">Cinturones</option>
-                                <option value="Carteras">Carteras</option>
-                                <option value="Sombreros">Sombreros</option>
-                                <option value="Joyas">Joyas</option>
-                                <option value="Gafas">Gafas</option>
-                                <option value="Relojes">Relojes</option>
-                                <option value="Bufandas">Bufandas</option>
-                                <option value="Otros">Otros</option>
+                            <select id="accesorioCategory">
+                                <option value="">Cargando tipos...</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label for="accesorioProveedor">Proveedor</label>
-                            <select id="accesorioProveedor" name="proveedor">
-                                <option value="">Seleccionar proveedor</option>
-                                <option value="Distribuidora Nike S.A.">Distribuidora Nike S.A.</option>
-                                <option value="Calzados Premium Ltda.">Calzados Premium Ltda.</option>
-                                <option value="Accesorios Fashion">Accesorios Fashion</option>
-                                <option value="Sportswear Internacional">Sportswear Internacional</option>
-                                <option value="Otro">Otro</option>
+                            <select id="accesorioProveedor">
+                                <option value="">Cargando proveedores...</option>
                             </select>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="accesorioUnidad">Unidad de Medida</label>
-                            <select id="accesorioUnidad" name="unidad">
-                                <option value="">Seleccionar unidad</option>
-                                <option value="Unidad">Unidad</option>
-                                <option value="Par">Par</option>
-                                <option value="Caja">Caja</option>
-                                <option value="Docena">Docena</option>
+                            <select id="accesorioUnidad">
+                                <option value="">Cargando unidades...</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -206,11 +179,12 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="accesorioWeight">Peso</label>
-                            <input type="text" id="accesorioWeight" name="weight" placeholder="Ej: 250 g">
+                            <label for="accesorioWeight">Peso (kg o g)</label>
+                            <input type="text" id="accesorioWeight" placeholder="Ej: 0.25 o 250">
                         </div>
                         <div class="form-group">
-                            <!-- vacío para alineación de 2 columnas -->
+                            <label for="accesorioCodigoBarra">Código de barras</label>
+                            <input type="text" id="accesorioCodigoBarra" placeholder="Opcional">
                         </div>
                     </div>
                     <div class="form-row">
@@ -232,6 +206,7 @@
                         <i class="fas fa-plus"></i>
                         Agregar Talla
                     </button>
+                    <p class="talla-hint">Escribe manualmente la medida o talla que necesitas (ej. Única, 55 cm, Talla M). Puedes registrar varias variaciones.</p>
                 </div>
 
                 <!-- Imagen del Producto -->
@@ -243,13 +218,8 @@
                     <div class="image-upload-container">
                         <div class="image-preview" id="imagePreview">
                             <i class="fas fa-camera"></i>
-                            <span>Click para subir imagen</span>
                         </div>
                         <input type="file" id="accesorioImage" name="image" accept="image/*" style="display: none;">
-                        <button type="button" class="btn btn-secondary" id="selectImageBtn">
-                            <i class="fas fa-upload"></i>
-                            Seleccionar Imagen
-                        </button>
                     </div>
                 </div>
 
@@ -269,6 +239,7 @@
                                 <p id="previewAccesorioDetails">Marca del accesorio</p>
                                 <div class="preview-specs">
                                     <span class="preview-color">Color: --</span>
+                                    <span class="preview-type">Tipo: --</span>
                                     <span class="preview-material">Material: --</span>
                                     <span class="preview-size">Tallas: 0 registradas</span>
                                     <span class="preview-dimensions">Dimensiones: --</span>
@@ -295,6 +266,7 @@
     <!-- Scripts -->
     <script src="/js/sidebar.js"></script>
     <script src="/js/logout.js"></script>
+    <script src="/js/confirmation.js"></script>
     <script src="/js/accesorios.js"></script>
 
 </body>

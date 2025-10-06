@@ -48,6 +48,24 @@
             </div>
         </div>
 
+        <!-- Barra de Acciones Masivas -->
+        <div id="bulkActions" class="bulk-actions" style="display: none;">
+            <div class="bulk-info">
+                <i class="fas fa-check-circle"></i>
+                <span><strong id="selectedCount">0</strong> rol(es) seleccionado(s)</span>
+            </div>
+            <div class="bulk-buttons">
+                <button class="btn btn-danger" onclick="deleteSelectedRoles()">
+                    <i class="fas fa-trash"></i>
+                    Eliminar Seleccionados
+                </button>
+                <button class="btn btn-secondary" onclick="exportSelectedRoles()">
+                    <i class="fas fa-download"></i>
+                    Exportar CSV
+                </button>
+            </div>
+        </div>
+
         <!-- Roles-->
         <div class="table-container">
             <table class="users-table">

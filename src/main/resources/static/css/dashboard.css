@@ -63,6 +63,11 @@ body {
     border-left: 4px solid white;
 }
 
+.nav-menu a.active-parent {
+    background-color: rgba(255, 255, 255, 0.18);
+    border-left: 4px solid rgba(255, 255, 255, 0.8);
+}
+
 .nav-menu a i {
     width: 20px;
     text-align: center;

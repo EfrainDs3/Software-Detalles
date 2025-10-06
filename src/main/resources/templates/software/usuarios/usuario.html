@@ -45,6 +45,24 @@
             </div>
         </div>
 
+        <!-- Barra de Acciones Masivas -->
+        <div id="bulkActions" class="bulk-actions" style="display: none;">
+            <div class="bulk-info">
+                <i class="fas fa-check-circle"></i>
+                <span><strong id="selectedCount">0</strong> usuario(s) seleccionado(s)</span>
+            </div>
+            <div class="bulk-buttons">
+                <button class="btn btn-danger" onclick="deleteSelectedUsers()">
+                    <i class="fas fa-trash"></i>
+                    Eliminar Seleccionados
+                </button>
+                <button class="btn btn-secondary" onclick="exportSelectedUsers()">
+                    <i class="fas fa-download"></i>
+                    Exportar CSV
+                </button>
+            </div>
+        </div>
+
         <!-- Usuarios-->
         <div class="table-container">
             <table class="users-table">
