@@ -249,19 +249,19 @@
 
     <!-- Modal Eliminar Cliente -->
     <div id="deleteClientModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content modal-delete-small">
             <div class="modal-header">
-                <h3 class="modal-title">Eliminar Cliente</h3>
+                <h3 class="modal-title delete-title">Eliminar Cliente</h3>
                 <button class="modal-close" id="closeDeleteClientModal">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <div class="modal-body">
-                <p>¿Estás seguro de que deseas eliminar a <span id="deleteClientName"></span>? Esta acción no puede deshacerse.</p>
+            <div class="modal-body delete-body">
+                <p class="delete-message">¿Estás seguro de que deseas eliminar a <strong id="deleteClientName"></strong>? Esta acción no puede deshacerse.</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" id="cancelDeleteClientBtn">Cancelar</button>
-                <button type="button" class="btn btn-primary" id="confirmDeleteClientBtn">Eliminar</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteClientBtn">Eliminar</button>
             </div>
         </div>
     </div>
@@ -270,22 +270,37 @@
     <div id="viewClientModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title">Ver Cliente</h3>
+                <h3 class="modal-title">Detalles del Cliente</h3>
                 <button class="modal-close" id="closeViewClientModal">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="modal-body">
-                <p><strong>Nombre:</strong> <span id="viewClientName"></span></p>
-                <p><strong>Apellido:</strong> <span id="viewClientLastName"></span></p>
-                <p><strong>Tipo de Documento:</strong> <span id="viewClientDocType"></span></p>
-                <p><strong>Nro Documento:</strong> <span id="viewClientDocNumber"></span></p>
-                <p><strong>Email:</strong> <span id="viewClientEmail"></span></p>
-                <p><strong>Teléfono:</strong> <span id="viewClientPhone"></span></p>
-                <p><strong>Dirección:</strong> <span id="viewClientAddress"></span></p>
+                <div class="user-details-container">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-info-box">
+                        <h3 class="user-name" id="viewClientFullName">Juan Pérez</h3>
+                        <p class="user-detail"><strong>ID:</strong> <span id="viewClientId">001</span></p>
+                        <p class="user-detail"><strong>Tipo de Documento:</strong> <span id="viewClientDocType">DNI</span></p>
+                        <p class="user-detail"><strong>Nro Documento:</strong> <span id="viewClientDocNumber">12345678</span></p>
+                        <p class="user-detail"><strong>Email:</strong> <span id="viewClientEmail">juan@email.com</span></p>
+                        <p class="user-detail"><strong>Teléfono:</strong> <span id="viewClientPhone">987654321</span></p>
+                        <p class="user-detail"><strong>Dirección:</strong> <span id="viewClientAddress">Av. Principal 123</span></p>
+                        <p class="user-detail"><strong>Estado:</strong> <span id="viewClientStatus">Activo</span></p>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="closeViewClientBtn">Cerrar</button>
+                <button type="button" class="btn btn-secondary" id="closeViewClientBtn">
+                    <i class="fas fa-times"></i>
+                    Cerrar
+                </button>
+                <button type="button" class="btn btn-primary" id="editFromViewBtn">
+                    <i class="fas fa-edit"></i>
+                    Editar Cliente
+                </button>
             </div>
         </div>
     </div>
