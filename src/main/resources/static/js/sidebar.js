@@ -89,50 +89,52 @@ function setActivePage() {
 
 // Obtener la página actual del URL de manera genérica
 function getCurrentPage() {
-    const path = window.location.pathname;
-    const filename = path.split('/').pop();
-    
-    // Mapeo específico para casos especiales
-    const pageMap = {
-        'dashboard.html': 'dashboard',
-        'usuario.html': 'usuarios',
-        'roles.html': 'roles',
-        'permisos.html': 'permisos',
-        'calzados.html': 'calzado',
-        'accesorios.html': 'accesorios',
-        'clientes.html': 'clientes',
-        'ventas.html': 'gestion-ventas',
-        'caja.html': 'caja',
-        'stock.html': 'stock',
-        'reportes.html': 'reportes',
-        'auditoria.html': 'auditoria',
-        'index.html': 'usuarios', // respaldo index
-        '': 'dashboard' // root path
+    const rawPath = window.location.pathname || '/';
+    const normalizedPath = rawPath.replace(/\/+$/, ''); // quitar slash final
+    const segments = normalizedPath.split('/').filter(Boolean);
+    const routeKey = segments.join('/');
+
+    const routeMap = {
+        '': 'dashboard',
+        'dashboard': 'dashboard',
+        'usuarios': 'usuarios',
+        'roles': 'roles',
+        'permisos': 'permisos',
+        'productos': 'productos',
+        'productos/calzados': 'calzado',
+        'productos/accesorios': 'accesorios',
+        'productos/catalogos': 'catalogo',
+        'clientes': 'clientes',
+        'ventas': 'gestion-ventas',
+        'ventas/caja': 'caja',
+        'compras': 'gestion-compras',
+        'compras/proveedores': 'proveedores',
+        'inventario': 'inventario',
+        'reportes': 'reportes',
+        'auditoria': 'auditoria'
     };
-    
-    // Si existe en el mapeo, usarlo
-    if (pageMap[filename]) {
-        return pageMap[filename];
+
+    if (routeMap.hasOwnProperty(routeKey)) {
+        return routeMap[routeKey];
     }
-    
-    // Si no existe en el mapeo, extraer automáticamente del nombre del archivo
-    if (filename && filename.includes('.html')) {
-        const baseName = filename.replace('.html', '');
-        
-        // Manejar casos plurales/singulares automáticamente
-        if (baseName.endsWith('s') && baseName !== 'roles' && baseName !== 'permisos') {
-            return baseName; // clientes, usuarios, etc.
-        }
-        
-        return baseName;
-    }
-    
-    // Comprueba si estamos en el panel raíz
-    if (path.endsWith('/') || path.endsWith('/templates/') || path.endsWith('/templates/dashboard.html')) {
+
+    const lastSegment = segments[segments.length - 1] || '';
+
+    if (!lastSegment) {
         return 'dashboard';
     }
-    
-    return 'dashboard'; // fallback
+
+    if (lastSegment.endsWith('.html')) {
+        const baseName = lastSegment.replace('.html', '');
+        return routeMap[baseName] || baseName;
+    }
+
+    // Ej. /usuarios/ -> usuarios
+    if (routeMap.hasOwnProperty(lastSegment)) {
+        return routeMap[lastSegment];
+    }
+
+    return lastSegment;
 }
 
 // Agregar controladores de clic a los enlaces de la barra lateral
