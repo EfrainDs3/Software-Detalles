@@ -306,7 +306,6 @@ function handleDeleteClient() {
 function setupViewModal() {
     const closeBtn = document.getElementById('closeViewClientModal');
     const closeFooterBtn = document.getElementById('closeViewClientBtn');
-    const editFromViewBtn = document.getElementById('editFromViewBtn');
     
     if (closeBtn) {
         closeBtn.addEventListener('click', closeViewModal);
@@ -314,14 +313,6 @@ function setupViewModal() {
     
     if (closeFooterBtn) {
         closeFooterBtn.addEventListener('click', closeViewModal);
-    }
-    
-    if (editFromViewBtn) {
-        editFromViewBtn.addEventListener('click', function() {
-            const clientId = document.getElementById('viewClientId').textContent;
-            closeViewModal();
-            openEditClientModal(clientId);
-        });
     }
 }
 
@@ -334,15 +325,14 @@ function openViewClientModal(clientId) {
         return;
     }
     
-    // Populate view modal with new structure
-    document.getElementById('viewClientFullName').textContent = `${cliente.nombre} ${cliente.apellido}`;
-    document.getElementById('viewClientId').textContent = cliente.id;
+    // Populate view modal
+    document.getElementById('viewClientName').textContent = cliente.nombre;
+    document.getElementById('viewClientLastName').textContent = cliente.apellido;
     document.getElementById('viewClientDocType').textContent = cliente.tipoDocumento;
     document.getElementById('viewClientDocNumber').textContent = cliente.numeroDocumento;
     document.getElementById('viewClientEmail').textContent = cliente.email || 'N/A';
     document.getElementById('viewClientPhone').textContent = cliente.telefono || 'N/A';
     document.getElementById('viewClientAddress').textContent = cliente.direccion;
-    document.getElementById('viewClientStatus').textContent = cliente.estado === 'activo' ? 'Activo' : 'Inactivo';
     
     // Show modal
     const modal = document.getElementById('viewClientModal');
@@ -381,31 +371,31 @@ function createClienteRow(cliente) {
     const tr = document.createElement('tr');
     
     tr.innerHTML = `
-        <td><input type="checkbox" class="client-checkbox"></td>
-        <td><span class="badge-id">${cliente.id}</span></td>
-        <td><strong>${cliente.nombre}</strong></td>
-        <td>${cliente.apellido}</td>
+        <td>${cliente.id}</td>
+        <td>${cliente.nombre} ${cliente.apellido}</td>
         <td>
-            <span class="doc-badge ${cliente.tipoDocumento.toLowerCase()}">
+            <span class="doc-badge doc-badge-${cliente.tipoDocumento.toLowerCase()}">
                 ${cliente.tipoDocumento}
             </span>
         </td>
-        <td><code>${cliente.numeroDocumento}</code></td>
+        <td>${cliente.numeroDocumento}</td>
         <td>${cliente.email || 'N/A'}</td>
         <td>${cliente.telefono || 'N/A'}</td>
-        <td class="address-cell" title="${cliente.direccion}">${cliente.direccion}</td>
         <td>
-            <div class="action-buttons-cell">
-                <button class="btn-icon btn-edit" onclick="openEditClientModal('${cliente.id}')" title="Editar">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn-icon btn-delete" onclick="openDeleteClientModal('${cliente.id}')" title="Eliminar">
-                    <i class="fas fa-trash"></i>
-                </button>
-                <button class="btn-icon btn-view" onclick="openViewClientModal('${cliente.id}')" title="Ver detalles">
-                    <i class="fas fa-eye"></i>
-                </button>
-            </div>
+            <span class="status-badge status-${cliente.estado}">
+                ${cliente.estado === 'activo' ? 'Activo' : 'Inactivo'}
+            </span>
+        </td>
+        <td class="action-buttons-cell">
+            <button class="btn-icon btn-view" onclick="openViewClientModal('${cliente.id}')" title="Ver">
+                <i class="fas fa-eye"></i>
+            </button>
+            <button class="btn-icon btn-edit" onclick="openEditClientModal('${cliente.id}')" title="Editar">
+                <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn-icon btn-delete" onclick="openDeleteClientModal('${cliente.id}')" title="Eliminar">
+                <i class="fas fa-trash"></i>
+            </button>
         </td>
     `;
     
