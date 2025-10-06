@@ -1,989 +1,777 @@
-// Calzados Module JavaScript
+(function(){
+  const PRODUCT_API = '/api/productos/calzados';
+  const PROVIDER_API = '/api/proveedores';
+  const CATALOG_BASE = '/api/catalogos';
+  const PLACEHOLDER_IMG = '/img/calzado-default.jpg';
 
-// Global variables
-// Nuevo modelo: las tallas y precios se manejan en un arreglo `tallas`
-// tallas: [{ talla: '42', precioVenta: 249.9, precioCompra: 180 }]
-let calzados = [
-    {
-        id: '001',
-        name: 'Zapatillas Deportivas Nike',
-        brand: 'Nike',
-        model: 'Air Max 270',
-        color: 'Negro',
-        type: 'Unisex',
-        proveedor: 'Distribuidora Nike S.A.',
-        unidad: 'Par',
-    dimensiones: '30 x 20 x 12 cm',
-    peso: '0.8 kg',
-        material: 'Mesh',
-        category: 'Deportivo',
-        image: '../../../static/img/calzado-default.jpg',
-        tallas: [
-            { talla: '41', precioVenta: 239.90, precioCompra: 170.00 },
-            { talla: '42', precioVenta: 249.90, precioCompra: 180.00 },
-            { talla: '43', precioVenta: 259.90, precioCompra: 190.00 }
-        ],
-        stock: 15,
-        status: 'active'
+  const state = {
+    items: [],
+    combos: {
+      modelos: [],
+      materiales: [],
+      unidades: [],
+      tipos: [],
+      proveedores: []
     },
-    {
-        id: '002',
-        name: 'Zapatos Formales Clarks',
-        brand: 'Clarks',
-        model: 'Desert Boot',
-        color: 'Marrón',
-        type: 'Hombre',
-        proveedor: 'Calzados Premium Ltda.',
-        unidad: 'Par',
-    dimensiones: '28 x 18 x 11 cm',
-    peso: '0.75 kg',
-        material: 'Cuero',
-        category: 'Formal',
-        image: '../../../static/img/calzado-default.jpg',
-        tallas: [
-            { talla: '40', precioVenta: 179.90, precioCompra: 130.00 },
-            { talla: '41', precioVenta: 189.90, precioCompra: 135.00 }
-        ],
-        stock: 8,
-        status: 'active'
+    filtros: {
+      busqueda: ''
     },
-    {
-        id: '003',
-        name: 'Botas de Cuero Timberland',
-        brand: 'Timberland',
-        model: '6 Inch Premium',
-        color: 'Café',
-        type: 'Mujer',
-        proveedor: 'Sportswear Internacional',
-        unidad: 'Par',
-    dimensiones: '32 x 22 x 13 cm',
-    peso: '0.9 kg',
-        material: 'Cuero',
-        category: 'Casual',
-        image: '../../../static/img/calzado-default.jpg',
-        tallas: [
-            { talla: '42', precioVenta: 379.90, precioCompra: 270.00 },
-            { talla: '43', precioVenta: 389.90, precioCompra: 280.00 }
-        ],
-        stock: 5,
-        status: 'active'
+    editandoId: null
+  };
+
+  document.addEventListener('DOMContentLoaded', init);
+
+  async function init(){
+    registrarEventosBasicos();
+    try {
+      await Promise.all([cargarCatalogos(), cargarProductos()]);
+      showNotification('Catálogo de calzados actualizado');
+    } catch (error) {
+      console.error(error);
+      showNotification(error.message || 'No se pudo cargar la información inicial', 'error');
     }
-];
+  }
 
-let currentEditId = null;
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize calzados module
-    initCalzadosModule();
-    // Load initial data
-    loadCalzados();
-});
-
-function initCalzadosModule() {
-    // Get DOM elements
+  function registrarEventosBasicos(){
     const searchInput = document.getElementById('searchInput');
-    const addCalzadoBtn = document.getElementById('addCalzadoBtn');
-    const filterBtn = document.getElementById('filterBtn');
-    const calzadoModal = document.getElementById('calzadoModal');
-    const closeModal = document.getElementById('closeModal');
+    const addBtn = document.getElementById('addCalzadoBtn');
+  const filterBtn = document.getElementById('filterBtn');
+  const selectAll = document.getElementById('selectAll');
+    const form = document.getElementById('calzadoForm');
     const cancelBtn = document.getElementById('cancelBtn');
-    const calzadoForm = document.getElementById('calzadoForm');
-    const selectAllCheckbox = document.getElementById('selectAll');
-    const selectImageBtn = document.getElementById('selectImageBtn');
-    const calzadoImage = document.getElementById('calzadoImage');
-    const imagePreview = document.getElementById('imagePreview');
-    const logoutBtn = document.querySelector('.logout-btn');
+    const closeModalBtn = document.getElementById('closeModal');
+    const modal = document.getElementById('calzadoModal');
 
-    // Event listeners
-    if (searchInput) {
-        searchInput.addEventListener('input', handleSearch);
+    if (searchInput){
+      searchInput.addEventListener('input', (e)=>{
+        state.filtros.busqueda = e.target.value.toLowerCase();
+        renderTabla();
+      });
     }
 
-    if (addCalzadoBtn) {
-        addCalzadoBtn.addEventListener('click', openAddCalzadoModal);
+    if (addBtn){
+      addBtn.addEventListener('click', ()=> abrirModal());
     }
 
-    if (filterBtn) {
-        filterBtn.addEventListener('click', handleFilter);
+    if (filterBtn){
+      filterBtn.addEventListener('click', ()=> showNotification('Los filtros avanzados estarán disponibles próximamente', 'info'));
     }
 
-    if (closeModal) {
-        closeModal.addEventListener('click', closeModalFunction);
-    }
-
-    if (cancelBtn) {
-        cancelBtn.addEventListener('click', closeModalFunction);
-    }
-
-    if (calzadoForm) {
-        calzadoForm.addEventListener('submit', handleFormSubmit);
-    }
-
-    if (selectAllCheckbox) {
-        selectAllCheckbox.addEventListener('change', handleSelectAll);
-    }
-
-    if (selectImageBtn) {
-        selectImageBtn.addEventListener('click', () => {
-            calzadoImage.click();
+    if (selectAll){
+      selectAll.addEventListener('change', (event)=>{
+        document.querySelectorAll('.calzado-checkbox').forEach(cb => {
+          cb.checked = event.target.checked;
         });
+      });
     }
 
-    if (calzadoImage) {
-        calzadoImage.addEventListener('change', handleImageUpload);
+    if (cancelBtn){
+      cancelBtn.addEventListener('click', ()=> cerrarModal());
     }
 
-    if (imagePreview) {
-        imagePreview.addEventListener('click', () => {
-            calzadoImage.click();
-        });
+    if (closeModalBtn){
+      closeModalBtn.addEventListener('click', ()=> cerrarModal());
     }
 
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', handleLogout);
+    if (modal){
+      modal.addEventListener('click', (e)=>{
+        if (e.target === modal){
+          cerrarModal();
+        }
+      });
     }
 
-    // Close modal when clicking outside
-    if (calzadoModal) {
-        calzadoModal.addEventListener('click', (e) => {
-            if (e.target === calzadoModal) {
-                closeModalFunction();
-            }
-        });
+    if (form){
+      form.addEventListener('submit', async (e)=>{
+        e.preventDefault();
+        try {
+          await guardarProducto();
+          cerrarModal();
+          await cargarProductos();
+          showNotification('Producto guardado correctamente');
+        } catch (error) {
+          console.error(error);
+          showNotification(error.message || 'No se pudo guardar el producto', 'error');
+        }
+      });
     }
 
-    // Add event listeners to action buttons
-    addActionButtonListeners();
-    
-    // Add real-time preview updates
-    addPreviewUpdates();
-}
+    document.getElementById('selectImageBtn')?.addEventListener('click', ()=>{
+      document.getElementById('calzadoImage')?.click();
+    });
 
-// Load calzados into table
-function loadCalzados() {
+    document.getElementById('calzadoImage')?.addEventListener('change', manejarImagenSeleccionada);
+
+    const addTallaBtn = document.getElementById('addTallaBtn');
+    if (addTallaBtn){
+      addTallaBtn.addEventListener('click', ()=>{
+        agregarTalla();
+        actualizarPreview();
+      });
+    }
+
+    const modelSelect = document.getElementById('calzadoModel');
+    if (modelSelect){
+      modelSelect.addEventListener('change', ()=>{
+        actualizarMarcaDesdeModelo();
+        actualizarImagenDesdeModelo();
+        actualizarPreview();
+      });
+    }
+
+    ['calzadoName','calzadoModel','calzadoCategory','calzadoColor','calzadoType','calzadoMaterial','calzadoUnidad','calzadoDimensiones','calzadoPeso','calzadoBrandName'].forEach(id=>{
+      const el = document.getElementById(id);
+      if (el){
+        el.addEventListener('input', actualizarPreview);
+        el.addEventListener('change', actualizarPreview);
+      }
+    });
+
+    document.getElementById('calzadoDescription')?.addEventListener('input', actualizarPreview);
+
+    document.getElementById('calzadoCategory')?.addEventListener('change', actualizarPreview);
+
+    document.getElementById('calzadosTableBody')?.addEventListener('click', manejarAccionesTabla);
+  }
+
+  async function cargarCatalogos(){
+    try {
+      const [modelos, materiales, unidades, tipos, proveedores] = await Promise.all([
+        apiGet(`${CATALOG_BASE}/modelos`),
+        apiGet(`${CATALOG_BASE}/materiales`),
+        apiGet(`${CATALOG_BASE}/unidades`),
+        apiGet(`${CATALOG_BASE}/tipos`),
+        apiGet(PROVIDER_API)
+      ]);
+      state.combos.modelos = Array.isArray(modelos) ? modelos : [];
+      state.combos.materiales = Array.isArray(materiales) ? materiales : [];
+      state.combos.unidades = Array.isArray(unidades) ? unidades : [];
+      state.combos.tipos = Array.isArray(tipos) ? tipos : [];
+      state.combos.proveedores = Array.isArray(proveedores) ? proveedores : [];
+      poblarSelects();
+    } catch (error) {
+      throw new Error('No se pudieron cargar los catálogos base');
+    }
+  }
+
+  function poblarSelects(){
+    poblarSelect('calzadoModel', state.combos.modelos, { value: 'id', label: 'nombre', extra: 'marca' }, 'Sin modelos registrados');
+    poblarSelect('calzadoMaterial', state.combos.materiales, { value: 'id', label: 'nombre' });
+    poblarSelect('calzadoUnidad', state.combos.unidades, { value: 'id', label: 'nombre', extra: 'abreviatura' });
+    poblarSelect('calzadoCategory', state.combos.tipos, { value: 'id', label: 'nombre' });
+    poblarSelect('calzadoProveedor', state.combos.proveedores, { value: 'idProveedor', label: 'razonSocial', extra: 'nombreComercial' });
+    actualizarMarcaDesdeModelo();
+    actualizarImagenDesdeModelo();
+    actualizarPreview();
+  }
+
+  function poblarSelect(id, items, { value, label, extra } = {}){
+    const select = document.getElementById(id);
+    if (!select) return;
+    const current = select.value;
+    select.innerHTML = '<option value="">Seleccionar opción</option>';
+    items.forEach(item => {
+      const option = document.createElement('option');
+      option.value = item[value];
+      option.textContent = extra && item[extra] ? `${item[label]} (${item[extra]})` : item[label];
+      select.appendChild(option);
+    });
+    if (current){
+      select.value = current;
+    }
+  }
+
+  function obtenerModeloSeleccionado(){
+    const selectModelo = document.getElementById('calzadoModel');
+    if (!selectModelo) return null;
+    const value = parseInt(selectModelo.value, 10);
+    if (Number.isNaN(value)){
+      return null;
+    }
+    return state.combos.modelos.find(modelo => Number(modelo.id) === value) || null;
+  }
+
+  function actualizarMarcaDesdeModelo(){
+    const marcaInput = document.getElementById('calzadoBrandName');
+    if (!marcaInput) return;
+    const modeloSeleccionado = obtenerModeloSeleccionado();
+    marcaInput.value = modeloSeleccionado?.marca || '';
+  }
+
+  function actualizarImagenDesdeModelo(){
+    const preview = document.getElementById('imagePreview');
+    if (!preview) return;
+    if (preview.dataset.userImage === 'true'){
+      return;
+    }
+    const modeloSeleccionado = obtenerModeloSeleccionado();
+    if (modeloSeleccionado?.imagen){
+      preview.innerHTML = `<img src="${modeloSeleccionado.imagen}" alt="${modeloSeleccionado.nombre}">`;
+      preview.style.backgroundImage = '';
+      preview.dataset.source = modeloSeleccionado.imagen;
+      preview.dataset.modelImage = 'true';
+    } else {
+      preview.innerHTML = '<i class="fas fa-camera"></i><span>Click para subir imagen</span>';
+      preview.style.backgroundImage = '';
+      delete preview.dataset.source;
+      delete preview.dataset.modelImage;
+    }
+  }
+
+  async function cargarProductos(){
+    const data = await apiGet(PRODUCT_API);
+    state.items = Array.isArray(data) ? data.map(mapearProducto) : [];
+    renderTabla();
+  }
+
+  function mapearProducto(item){
+    return {
+      id: item.id,
+      nombre: item.nombre,
+      descripcion: item.descripcion,
+      categoria: item.categoria,
+      marca: item.marca,
+      modelo: item.modelo,
+      material: item.material,
+      unidad: item.unidad,
+      proveedor: item.proveedor,
+      precioVenta: item.precioVenta,
+      costoCompra: item.costoCompra,
+      color: item.color,
+      tipo: item.tipo,
+      dimensiones: item.dimensiones,
+      pesoGramos: item.pesoGramos,
+      tallas: Array.isArray(item.tallas) ? item.tallas : [],
+      tiposProducto: Array.isArray(item.tiposProducto) ? item.tiposProducto : [],
+      imagenModelo: item.modelo?.imagen || null,
+      activo: item.activo !== false
+    };
+  }
+
+  function renderTabla(){
     const tbody = document.getElementById('calzadosTableBody');
     if (!tbody) return;
-
-    tbody.innerHTML = '';
-    
-    calzados.forEach(calzado => {
-        const row = createCalzadoRow(calzado);
-        tbody.appendChild(row);
+    const filtro = state.filtros.busqueda;
+    const registros = !filtro ? state.items : state.items.filter(item => {
+      const texto = [item.nombre, item.marca?.nombre, item.modelo?.nombre, item.color, item.tipo]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return texto.includes(filtro);
     });
 
-    // Re-add event listeners to new elements
-    addActionButtonListeners();
-
-    // Update pagination info
-    updatePaginationInfo();
-}
-
-// Create calzado row
-function createCalzadoRow(calzado) {
-    const row = document.createElement('tr');
-
-    row.innerHTML = `
-        <td><input type="checkbox" class="calzado-checkbox" data-calzado-id="${calzado.id}"></td>
-        <td>${calzado.id}</td>
-        <td>
-            <div class="product-image">
-                <div class="placeholder-image">
-                    <i class="fas fa-shoe-prints"></i>
-                </div>
-            </div>
-        </td>
-        <td>
-            <div class="product-info">
-                <div class="product-details">
-                    <span class="product-name">${calzado.name}</span>
-                    <span class="product-category ${calzado.category.toLowerCase()}">${calzado.category}</span>
-                </div>
-            </div>
-        </td>
-        <td><span class="brand-badge">${calzado.brand}</span></td>
-        <td>${calzado.model}</td>
-        <td><span class="color-badge ${calzado.color.toLowerCase()}">${calzado.color}</span></td>
-        <td><span class="type-badge ${calzado.type.toLowerCase()}">${calzado.type}</span></td>
-        <td>
-            <div class="action-buttons-cell">
-                <button class="btn-icon btn-edit" title="Editar" data-calzado-id="${calzado.id}">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn-icon btn-delete" title="Eliminar" data-calzado-id="${calzado.id}">
-                    <i class="fas fa-trash"></i>
-                </button>
-                <button class="btn-icon btn-view" title="Ver detalles" data-calzado-id="${calzado.id}">
-                    <i class="fas fa-eye"></i>
-                </button>
-            </div>
-        </td>
-    `;
-    
-    return row;
-}
-
-// Search functionality
-function handleSearch(e) {
-    const searchTerm = e.target.value.toLowerCase();
-    const tableRows = document.querySelectorAll('#calzadosTableBody tr');
-
-    tableRows.forEach(row => {
-        const text = row.textContent.toLowerCase();
-        const shouldShow = text.includes(searchTerm);
-        row.style.display = shouldShow ? '' : 'none';
-    });
-}
-
-// Filter functionality
-function handleFilter() {
-    const filterModal = createFilterModal();
-    document.body.appendChild(filterModal);
-}
-
-function createFilterModal() {
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.style.display = 'block';
-    
-    modal.innerHTML = `
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Filtros de Calzados</h3>
-                <button class="modal-close" onclick="this.closest('.modal').remove()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="filterBrand">Marca</label>
-                        <select id="filterBrand">
-                            <option value="">Todas las marcas</option>
-                            <option value="Nike">Nike</option>
-                            <option value="Adidas">Adidas</option>
-                            <option value="Clarks">Clarks</option>
-                            <option value="Timberland">Timberland</option>
-                            <option value="Converse">Converse</option>
-                            <option value="Vans">Vans</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="filterCategory">Categoría</label>
-                        <select id="filterCategory">
-                            <option value="">Todas las categorías</option>
-                            <option value="Deportivo">Deportivo</option>
-                            <option value="Formal">Formal</option>
-                            <option value="Casual">Casual</option>
-                            <option value="Botas">Botas</option>
-                            <option value="Sandalias">Sandalias</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="filterSize">Talla</label>
-                        <select id="filterSize">
-                            <option value="">Todas las tallas</option>
-                            <option value="38">38</option>
-                            <option value="39">39</option>
-                            <option value="40">40</option>
-                            <option value="41">41</option>
-                            <option value="42">42</option>
-                            <option value="43">43</option>
-                            <option value="44">44</option>
-                            <option value="45">45</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="filterPriceRange">Rango de Precio</label>
-                        <select id="filterPriceRange">
-                            <option value="">Todos los precios</option>
-                            <option value="0-100">S/ 0 - S/ 100</option>
-                            <option value="100-200">S/ 100 - S/ 200</option>
-                            <option value="200-300">S/ 200 - S/ 300</option>
-                            <option value="300+">S/ 300+</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancelar</button>
-                <button type="button" class="btn btn-primary" onclick="applyFilters()">Aplicar Filtros</button>
-            </div>
-        </div>
-    `;
-    
-    return modal;
-}
-
-function applyFilters() {
-    const brandFilter = document.getElementById('filterBrand').value;
-    const categoryFilter = document.getElementById('filterCategory').value;
-    const sizeFilter = document.getElementById('filterSize').value;
-    const priceRangeFilter = document.getElementById('filterPriceRange').value;
-    
-    let filteredCalzados = calzados;
-    
-    if (brandFilter) {
-        filteredCalzados = filteredCalzados.filter(calzado => calzado.brand === brandFilter);
-    }
-    
-    if (categoryFilter) {
-        filteredCalzados = filteredCalzados.filter(calzado => calzado.category === categoryFilter);
-    }
-    
-    if (sizeFilter) {
-        filteredCalzados = filteredCalzados.filter(calzado => (calzado.tallas || []).some(t => t.talla === sizeFilter));
-    }
-    
-    if (priceRangeFilter) {
-        const [min, max] = priceRangeFilter.split('-').map(p => parseFloat(p) || 0);
-        if (priceRangeFilter === '300+') {
-            filteredCalzados = filteredCalzados.filter(calzado => (calzado.tallas || []).some(t => t.precioVenta >= 300));
-        } else {
-            filteredCalzados = filteredCalzados.filter(calzado => 
-                (calzado.tallas || []).some(t => t.precioVenta >= min && (max ? t.precioVenta <= max : true))
-            );
-        }
-    }
-    
-    // Update table with filtered data
-    const tbody = document.getElementById('calzadosTableBody');
-    tbody.innerHTML = '';
-    
-    filteredCalzados.forEach(calzado => {
-        const row = createCalzadoRow(calzado);
-        tbody.appendChild(row);
-    });
-    
-    // Close modal
-    document.querySelector('.modal').remove();
-    
-    // Re-add event listeners
-    addActionButtonListeners();
-    
-    showNotification(`Filtros aplicados: ${filteredCalzados.length} calzados encontrados`);
-}
-
-// Modal functions
-function openAddCalzadoModal() {
-    const modal = document.getElementById('calzadoModal');
-    const modalTitle = document.getElementById('modalTitle');
-    const form = document.getElementById('calzadoForm');
-
-    if (modalTitle) {
-        modalTitle.textContent = 'Nuevo Calzado';
-    }
-
-    if (form) {
-        form.reset();
-        currentEditId = null;
-    }
-
-    // Reset image preview
-    const imagePreview = document.getElementById('imagePreview');
-    if (imagePreview) {
-        imagePreview.innerHTML = `
-            <i class="fas fa-camera"></i>
-            <span>Click para subir imagen</span>
-        `;
-    }
-
-    // Reiniciar tallas
-    const tallasContainer = document.getElementById('tallasContainer');
-    if (tallasContainer) {
-        tallasContainer.innerHTML = '';
-    }
-    addTallaInput();
-
-    if (modal) {
-        modal.style.display = 'block';
-    }
-
-    updateCalzadoPreview();
-}
-
-function openEditCalzadoModal(calzadoId) {
-    const modal = document.getElementById('calzadoModal');
-    const modalTitle = document.getElementById('modalTitle');
-    const form = document.getElementById('calzadoForm');
-
-    if (modalTitle) {
-        modalTitle.textContent = 'Editar Calzado';
-    }
-
-    if (form) {
-        populateCalzadoForm(calzadoId);
-        currentEditId = calzadoId;
-    }
-
-    if (modal) {
-        modal.style.display = 'block';
-    }
-
-    updateCalzadoPreview();
-}
-
-function closeModalFunction() {
-    const modal = document.getElementById('calzadoModal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-    currentEditId = null;
-}
-
-// Image upload handling
-function handleImageUpload(e) {
-    const file = e.target.files[0];
-    const imagePreview = document.getElementById('imagePreview');
-    
-    if (file && imagePreview) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            imagePreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
-        };
-        reader.readAsDataURL(file);
-    }
-}
-
-// Form handling
-function handleFormSubmit(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(e.target);
-    const calzadoData = Object.fromEntries(formData.entries());
-    
-    // Obtener tallas del formulario
-    const tallas = [];
-    document.querySelectorAll('#tallasContainer .talla-item').forEach(item => {
-        const talla = item.querySelector('.talla-select')?.value || '';
-        const precioVenta = parseFloat(item.querySelector('.talla-precio-venta')?.value || '0');
-        const precioCompra = parseFloat(item.querySelector('.talla-precio-compra')?.value || '0');
-        if (talla) {
-            tallas.push({ talla, precioVenta, precioCompra });
-        }
-    });
-    calzadoData.tallas = tallas;
-    // capturar proveedor y unidad (ya vienen en formData, pero garantizamos propiedades)
-    calzadoData.proveedor = calzadoData.proveedor || '';
-    calzadoData.unidad = calzadoData.unidad || '';
-    calzadoData.dimensiones = calzadoData.dimensiones || '';
-    calzadoData.peso = calzadoData.peso || '';
-    
-    // Validate form
-    if (!validateCalzadoForm(calzadoData)) {
-        return;
-    }
-
-    // Show loading state
-    const saveBtn = document.getElementById('saveBtn');
-    if (saveBtn) {
-        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
-        saveBtn.disabled = true;
-    }
-
-    // Simulate API call
-    setTimeout(() => {
-        if (currentEditId) {
-            calzadoData.id = currentEditId;
-            updateCalzado(calzadoData);
-        } else {
-            createCalzado(calzadoData);
-        }
-
-        closeModalFunction();
-        
-        if (saveBtn) {
-            saveBtn.innerHTML = '<i class="fas fa-save"></i> Guardar Calzado';
-            saveBtn.disabled = false;
-        }
-    }, 1500);
-}
-
-function validateCalzadoForm(data) {
-    const errors = [];
-
-    if (!data.name || data.name.trim().length < 2) {
-        errors.push('El nombre debe tener al menos 2 caracteres');
-    }
-
-    if (!data.brand) {
-        errors.push('Debe seleccionar una marca');
-    }
-
-    if (!data.model || data.model.trim().length < 2) {
-        errors.push('El modelo debe tener al menos 2 caracteres');
-    }
-
-    // Validación de tallas
-    const tallas = data.tallas || [];
-    if (tallas.length === 0) {
-        errors.push('Debe registrar al menos una talla con precios');
+    if (!registros.length){
+      tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state">No hay calzados registrados todavía.</div></td></tr>`;
     } else {
-        tallas.forEach((t, idx) => {
-            if (!t.talla) errors.push(`La talla en la fila ${idx + 1} es obligatoria`);
-            if (isNaN(t.precioVenta) || t.precioVenta <= 0) errors.push(`El precio de venta en la fila ${idx + 1} debe ser mayor a 0`);
-            if (isNaN(t.precioCompra) || t.precioCompra < 0) errors.push(`El precio de compra en la fila ${idx + 1} no puede ser negativo`);
-        });
+      tbody.innerHTML = registros.map((item, index) => renderFila(item, index)).join('');
     }
-
-    if (errors.length > 0) {
-        showNotification('Por favor corrige los siguientes errores:\n• ' + errors.join('\n• '), 'error');
-        return false;
+    actualizarInfoPaginacion(registros.length, state.items.length);
+    const selectAll = document.getElementById('selectAll');
+    if (selectAll){
+      selectAll.checked = registros.length > 0 && registros.every(item => document.querySelector(`.calzado-checkbox[data-calzado-id="${item.id}"]`)?.checked);
     }
+  }
 
-    return true;
-}
+  function renderFila(item, index){
+    const marcaNombre = item.marca?.nombre || '-';
+    const modeloNombre = item.modelo?.nombre || '-';
+    const color = item.color || '-';
+    const tipo = item.tipo || '-';
+    const totalTallas = Array.isArray(item.tallas) ? item.tallas.length : 0;
+    const imagenUrl = obtenerImagenProducto(item);
+    const esPlaceholder = imagenUrl === PLACEHOLDER_IMG;
+    const detallesSecundarios = [color && color !== '-' ? `Color: ${color}` : null, totalTallas ? `${totalTallas} tallas` : null]
+      .filter(Boolean)
+      .join(' • ');
+    return `
+      <tr>
+        <td><input type="checkbox" class="calzado-checkbox" data-calzado-id="${item.id}"></td>
+        <td>${index + 1}</td>
+        <td>
+          <div class="product-image">
+            <img src="${imagenUrl}" alt="${item.nombre}" class="calzado-img${esPlaceholder ? ' is-placeholder' : ''}" loading="lazy">
+          </div>
+        </td>
+        <td>
+          <div class="product-info">
+            <div class="product-details">
+              <span class="product-name">${item.nombre}</span>
+              <span class="product-category">${detallesSecundarios || 'Sin detalles'}</span>
+            </div>
+          </div>
+        </td>
+        <td><span class="brand-badge">${marcaNombre}</span></td>
+        <td>${modeloNombre}</td>
+        <td><span class="color-badge">${color}</span></td>
+        <td><span class="type-badge">${tipo}</span></td>
+        <td>
+          <div class="action-buttons-cell">
+            <button class="btn-icon btn-edit" data-action="edit" data-id="${item.id}" title="Editar"><i class="fas fa-edit"></i></button>
+            <button class="btn-icon btn-delete" data-action="delete" data-id="${item.id}" title="Eliminar"><i class="fas fa-trash"></i></button>
+            <button class="btn-icon btn-view" data-action="view" data-id="${item.id}" title="Ver detalles"><i class="fas fa-eye"></i></button>
+          </div>
+        </td>
+      </tr>`;
+  }
 
-// Calzado CRUD operations
-function createCalzado(calzadoData) {
-    // Generate new ID
-    const newId = String(calzados.length + 1).padStart(3, '0');
-    
-    // Create new calzado object
-    const newCalzado = {
-        id: newId,
-        name: calzadoData.name,
-        brand: calzadoData.brand,
-        model: calzadoData.model,
-        color: calzadoData.color,
-        type: calzadoData.type,
-        proveedor: calzadoData.proveedor,
-        unidad: calzadoData.unidad,
-    dimensiones: calzadoData.dimensiones,
-    peso: calzadoData.peso,
-        material: calzadoData.material,
-        category: calzadoData.category || 'Casual',
-        image: '../../../static/img/calzado-default.jpg',
-        tallas: calzadoData.tallas || [],
-        stock: 0,
-        status: 'active'
-    };
-    
-    // Add to calzados array
-    calzados.push(newCalzado);
-    
-    // Refresh table
-    loadCalzados();
-    
-    showNotification('Calzado creado exitosamente', 'success');
-}
-
-function updateCalzado(calzadoData) {
-    // Find calzado index
-    const calzadoIndex = calzados.findIndex(calzado => calzado.id === calzadoData.id);
-    
-    if (calzadoIndex !== -1) {
-        // Update calzado data
-        calzados[calzadoIndex] = {
-            ...calzados[calzadoIndex],
-            name: calzadoData.name,
-            brand: calzadoData.brand,
-            model: calzadoData.model,
-            color: calzadoData.color,
-            type: calzadoData.type,
-            proveedor: calzadoData.proveedor,
-            unidad: calzadoData.unidad,
-            dimensiones: calzadoData.dimensiones,
-            peso: calzadoData.peso,
-            material: calzadoData.material,
-            category: calzadoData.category || 'Casual'
-            ,tallas: calzadoData.tallas || [],
-        };
-        
-        // Refresh table
-        loadCalzados();
-        
-        showNotification('Calzado actualizado exitosamente', 'success');
+  function obtenerImagenProducto(item){
+    if (item?.imagenModelo){
+      return item.imagenModelo;
     }
-}
+    return PLACEHOLDER_IMG;
+  }
 
-function deleteCalzado(calzadoId) {
-    if (confirm('¿Está seguro de que desea eliminar este calzado?')) {
-        // Find and remove calzado
-        const calzadoIndex = calzados.findIndex(calzado => calzado.id === calzadoId);
-        
-        if (calzadoIndex !== -1) {
-            calzados.splice(calzadoIndex, 1);
-            loadCalzados();
-            showNotification('Calzado eliminado exitosamente', 'success');
-        }
+  function actualizarInfoPaginacion(actual, total){
+    const info = document.querySelector('.pagination-info');
+    if (!info) return;
+    if (total === 0){
+      info.textContent = 'Sin registros';
+      return;
     }
-}
+    info.textContent = `Mostrando ${actual} de ${total} calzados`;
+  }
 
-function viewCalzado(calzadoId) {
-    const calzado = calzados.find(c => c.id === calzadoId);
-    
-    if (calzado) {
-        const viewModal = createViewCalzadoModal(calzado);
-        document.body.appendChild(viewModal);
-    }
-}
-
-function createViewCalzadoModal(calzado) {
-    const modal = document.createElement('div');
-    modal.className = 'modal';
+  function abrirModal(item){
+    const modal = document.getElementById('calzadoModal');
+    if (!modal) return;
     modal.style.display = 'block';
-    
-    modal.innerHTML = `
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Detalles del Calzado</h3>
-                <button class="modal-close" onclick="this.closest('.modal').remove()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="calzado-details-view">
-                    <div class="calzado-image-large">
-                        <div class="placeholder-image" style="width: 150px; height: 150px; font-size: 60px;">
-                            <i class="fas fa-shoe-prints"></i>
-                        </div>
-                    </div>
-                    <div class="calzado-info-details">
-                        <h4>${calzado.name}</h4>
-                        <p><strong>ID:</strong> ${calzado.id}</p>
-                        <p><strong>Marca:</strong> <span class="brand-badge">${calzado.brand}</span></p>
-                        <p><strong>Modelo:</strong> ${calzado.model}</p>
-                        <p><strong>Color:</strong> <span class="color-badge ${calzado.color.toLowerCase()}">${calzado.color}</span></p>
-                        <p><strong>Tipo:</strong> <span class="type-badge ${calzado.type.toLowerCase()}">${calzado.type}</span></p>
-                        <p><strong>Proveedor:</strong> ${calzado.proveedor || '-'}</p>
-                        <p><strong>Unidad de Medida:</strong> ${calzado.unidad || '-'}</p>
-                        <p><strong>Material:</strong> ${calzado.material}</p>
-                        <p><strong>Dimensiones:</strong> ${calzado.dimensiones || '-'}</p>
-                        <p><strong>Peso:</strong> ${calzado.peso || '-'}</p>
-                        <p><strong>Tipo Producto:</strong> <span class="product-category ${calzado.category.toLowerCase()}">${calzado.category}</span></p>
-                        <div class="tallas-details">
-                            <h5><i class="fas fa-ruler"></i> Tallas Registradas</h5>
-                            <div class="productos-table-container">
-                                <table class="detalle-productos-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Talla</th>
-                                            <th class="text-right">Precio Venta</th>
-                                            <th class="text-right">Precio Compra</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${(calzado.tallas || []).map(t => `
-                                            <tr>
-                                                <td><span class=\"size-badge\">${t.talla}</span></td>
-                                                <td class=\"text-right\">S/ ${Number(t.precioVenta || 0).toFixed(2)}</td>
-                                                <td class=\"text-right\">S/ ${Number(t.precioCompra || 0).toFixed(2)}</td>
-                                            </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                        <p><strong>Stock:</strong> ${calzado.stock} unidades</p>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cerrar</button>
-                <button type="button" class="btn btn-primary" onclick="openEditCalzadoModal('${calzado.id}'); this.closest('.modal').remove();">Editar Calzado</button>
-            </div>
-        </div>
+    document.body.style.overflow = 'hidden';
+    resetFormulario();
+    if (item){
+      state.editandoId = item.id;
+      document.getElementById('modalTitle').textContent = 'Editar Calzado';
+      cargarEnFormulario(item);
+    } else {
+      state.editandoId = null;
+      document.getElementById('modalTitle').textContent = 'Nuevo Calzado';
+      agregarTalla();
+      actualizarPreview();
+    }
+  }
+
+  function cerrarModal(){
+    const modal = document.getElementById('calzadoModal');
+    if (!modal) return;
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+    resetFormulario();
+    state.editandoId = null;
+  }
+
+  function resetFormulario(){
+    document.getElementById('calzadoForm')?.reset();
+    const marcaInput = document.getElementById('calzadoBrandName');
+    if (marcaInput){
+      marcaInput.value = '';
+    }
+    const tallasContainer = document.getElementById('tallasContainer');
+    if (tallasContainer){
+      tallasContainer.innerHTML = '';
+    }
+    const preview = document.getElementById('imagePreview');
+    if (preview){
+      preview.innerHTML = '<i class="fas fa-camera"></i><span>Click para subir imagen</span>';
+      preview.style.backgroundImage = '';
+      delete preview.dataset.source;
+      delete preview.dataset.modelImage;
+      delete preview.dataset.userImage;
+    }
+    actualizarPreview();
+  }
+
+  function cargarEnFormulario(item){
+  const nombreInput = document.getElementById('calzadoName');
+  if (nombreInput) nombreInput.value = item.nombre || '';
+  const modeloSelect = document.getElementById('calzadoModel');
+  if (modeloSelect) modeloSelect.value = item.modelo?.id || '';
+  actualizarMarcaDesdeModelo();
+  const marcaInput = document.getElementById('calzadoBrandName');
+  if (marcaInput) marcaInput.value = item.marca?.nombre || '';
+  const colorSelect = document.getElementById('calzadoColor');
+  if (colorSelect) colorSelect.value = item.color || '';
+  const tipoSelect = document.getElementById('calzadoType');
+  if (tipoSelect) tipoSelect.value = item.tipo || '';
+  const proveedorSelect = document.getElementById('calzadoProveedor');
+  if (proveedorSelect) proveedorSelect.value = item.proveedor?.id || '';
+  const materialSelect = document.getElementById('calzadoMaterial');
+  if (materialSelect) materialSelect.value = item.material?.id || '';
+  const tipoProductoSelect = document.getElementById('calzadoCategory');
+  if (tipoProductoSelect) tipoProductoSelect.value = item.tiposProducto?.[0]?.id || '';
+  const unidadSelect = document.getElementById('calzadoUnidad');
+  if (unidadSelect) unidadSelect.value = item.unidad?.id || '';
+  const dimensionesInput = document.getElementById('calzadoDimensiones');
+  if (dimensionesInput) dimensionesInput.value = item.dimensiones || '';
+  const pesoInput = document.getElementById('calzadoPeso');
+  if (pesoInput) pesoInput.value = item.pesoGramos ? (item.pesoGramos / 1000) : '';
+  const descripcionInput = document.getElementById('calzadoDescription');
+  if (descripcionInput) descripcionInput.value = item.descripcion || '';
+  const codigoBarraInput = document.getElementById('calzadoCodigoBarra');
+  if (codigoBarraInput) codigoBarraInput.value = item.codigoBarra || '';
+
+    const tallasContainer = document.getElementById('tallasContainer');
+    if (tallasContainer){
+      tallasContainer.innerHTML = '';
+      (item.tallas || []).forEach(talla => {
+        agregarTalla({
+          talla: talla.talla,
+          precioVenta: talla.precioVenta,
+          precioCompra: talla.costoCompra
+        });
+      });
+      if (!item.tallas || item.tallas.length === 0){
+        agregarTalla();
+      }
+    }
+    actualizarImagenDesdeModelo();
+    actualizarPreview();
+  }
+
+  function manejarAccionesTabla(event){
+    const button = event.target.closest('button[data-action]');
+    if (!button) return;
+    const { action, id } = button.dataset;
+    if (!id) return;
+    const numericId = Number(id);
+    const producto = state.items.find(item => item.id === numericId);
+    if (!producto){
+      showNotification('No se encontró el producto seleccionado', 'error');
+      return;
+    }
+    if (action === 'edit'){
+      abrirModal(producto);
+    } else if (action === 'delete'){
+      eliminarProducto(numericId);
+    } else if (action === 'view'){
+      mostrarDetalle(producto);
+    }
+  }
+
+  async function eliminarProducto(id){
+    if (!confirm('¿Desea desactivar el calzado seleccionado?')) return;
+    try {
+      await apiDelete(`${PRODUCT_API}/${id}`);
+      await cargarProductos();
+      showNotification('Calzado desactivado correctamente');
+    } catch (error) {
+      console.error(error);
+  showNotification(error.message || 'No se pudo desactivar el calzado', 'error');
+    }
+  }
+
+  async function guardarProducto(){
+    const request = construirPayload();
+    if (state.editandoId){
+      await apiPut(`${PRODUCT_API}/${state.editandoId}`, request);
+    } else {
+      await apiPost(PRODUCT_API, request);
+    }
+  }
+
+  function construirPayload(){
+    const nombre = obtenerValor('calzadoName');
+    if (!nombre){
+      throw new Error('El nombre es obligatorio');
+    }
+    const proveedorId = convertirEntero(obtenerValor('calzadoProveedor'));
+    const modeloId = convertirEntero(obtenerValor('calzadoModel'));
+    const materialId = convertirEntero(obtenerValor('calzadoMaterial'));
+    const unidadId = convertirEntero(obtenerValor('calzadoUnidad'));
+    const tipoProductoId = convertirEntero(obtenerValor('calzadoCategory'));
+    const color = obtenerValor('calzadoColor');
+    const tipo = obtenerValor('calzadoType');
+    const dimensiones = obtenerValor('calzadoDimensiones');
+    const descripcion = obtenerValor('calzadoDescription');
+    const codigoBarra = obtenerValor('calzadoCodigoBarra');
+
+    const pesoEntrada = obtenerValor('calzadoPeso');
+    const pesoGramos = convertirPesoAGramos(pesoEntrada);
+
+    const tallas = recolectarTallas();
+
+    return {
+      nombre,
+      descripcion,
+      codigoBarra,
+      proveedorId,
+      modeloId,
+      materialId,
+      unidadId,
+      tipoProductoId,
+      precioVenta: null,
+      costoCompra: null,
+      color,
+      tipo,
+      dimensiones,
+      pesoGramos,
+      tallas
+    };
+  }
+
+  function convertirPesoAGramos(valor){
+    if (!valor) return null;
+    const numero = parseFloat(String(valor).replace(',', '.'));
+    if (Number.isNaN(numero)) return null;
+    if (numero < 10){
+      return Math.round(numero * 1000);
+    }
+    return Math.round(numero);
+  }
+
+  function recolectarTallas(){
+    const container = document.getElementById('tallasContainer');
+    if (!container) return [];
+    const items = Array.from(container.querySelectorAll('.talla-item'));
+    return items.map(item => {
+      const talla = item.querySelector('.talla-input')?.value?.trim();
+      const precioVenta = parseFloat(item.querySelector('.talla-precio-venta')?.value || '');
+      const precioCompra = parseFloat(item.querySelector('.talla-precio-compra')?.value || '');
+      if (!talla){
+        return null;
+      }
+      return {
+        talla,
+        precioVenta: Number.isNaN(precioVenta) ? null : precioVenta,
+        costoCompra: Number.isNaN(precioCompra) ? null : precioCompra
+      };
+    }).filter(Boolean);
+  }
+
+  function agregarTalla(data = { talla: '', precioVenta: '', precioCompra: '' }){
+    const container = document.getElementById('tallasContainer');
+    if (!container) return;
+    const item = document.createElement('div');
+    item.className = 'talla-item';
+    item.style.display = 'grid';
+    item.style.gridTemplateColumns = '1fr 1fr 1fr auto';
+    item.style.gap = '12px';
+    item.style.alignItems = 'end';
+
+    item.innerHTML = `
+      <div class="form-group">
+        <label>Talla</label>
+        <input type="text" class="talla-input" placeholder="Ej: 38, 39-40, EU 41" value="${data.talla ?? ''}">
+      </div>
+      <div class="form-group">
+        <label>Precio Venta (S/)</label>
+        <input type="number" class="talla-precio-venta" step="0.01" min="0" value="${data.precioVenta ?? ''}">
+      </div>
+      <div class="form-group">
+        <label>Precio Compra (S/)</label>
+        <input type="number" class="talla-precio-compra" step="0.01" min="0" value="${data.precioCompra ?? ''}">
+      </div>
+      <button type="button" class="btn-icon btn-delete remove-talla-btn" title="Eliminar Talla"><i class="fas fa-minus-circle"></i></button>
     `;
-    
-    return modal;
-}
 
-// Table management
-function refreshCalzadosTable() {
-    loadCalzados();
-}
-
-function populateCalzadoForm(calzadoId) {
-    const calzado = calzados.find(c => c.id === calzadoId);
-    if (calzado) {
-        document.getElementById('calzadoName').value = calzado.name;
-        document.getElementById('calzadoBrand').value = calzado.brand;
-        document.getElementById('calzadoModel').value = calzado.model;
-        document.getElementById('calzadoColor').value = calzado.color;
-        document.getElementById('calzadoType').value = calzado.type;
-        if (document.getElementById('calzadoProveedor')) document.getElementById('calzadoProveedor').value = calzado.proveedor || '';
-        if (document.getElementById('calzadoUnidad')) document.getElementById('calzadoUnidad').value = calzado.unidad || '';
-    if (document.getElementById('calzadoDimensiones')) document.getElementById('calzadoDimensiones').value = calzado.dimensiones || '';
-    if (document.getElementById('calzadoPeso')) document.getElementById('calzadoPeso').value = calzado.peso || '';
-        document.getElementById('calzadoMaterial').value = calzado.material;
-        document.getElementById('calzadoCategory').value = calzado.category;
-        
-        // Update image preview
-        const imagePreview = document.getElementById('imagePreview');
-        if (imagePreview && calzado.image) {
-            imagePreview.innerHTML = `<img src="${calzado.image}" alt="Preview">`;
-        }
-
-        // Cargar tallas en el formulario
-        const tallasContainer = document.getElementById('tallasContainer');
-        if (tallasContainer) {
-            tallasContainer.innerHTML = '';
-            (calzado.tallas || []).forEach(t => addTallaInput({ talla: t.talla, precioVenta: t.precioVenta, precioCompra: t.precioCompra }));
-            if ((calzado.tallas || []).length === 0) addTallaInput();
-        }
-    }
-}
-
-// Checkbox management
-function handleSelectAll(e) {
-    const isChecked = e.target.checked;
-    const checkboxes = document.querySelectorAll('.calzado-checkbox');
-    
-    checkboxes.forEach(checkbox => {
-        checkbox.checked = isChecked;
-    });
-}
-
-function handleIndividualCheckbox() {
-    const checkboxes = document.querySelectorAll('.calzado-checkbox');
-    const selectAllCheckbox = document.getElementById('selectAll');
-    
-    const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
-    const someChecked = Array.from(checkboxes).some(checkbox => checkbox.checked);
-    
-    if (selectAllCheckbox) {
-        selectAllCheckbox.checked = allChecked;
-        selectAllCheckbox.indeterminate = someChecked && !allChecked;
-    }
-}
-
-// Action button listeners
-function addActionButtonListeners() {
-    // Edit buttons
-    document.querySelectorAll('.btn-edit').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const calzadoId = e.currentTarget.getAttribute('data-calzado-id');
-            openEditCalzadoModal(calzadoId);
-        });
+    item.querySelectorAll('input, select, textarea').forEach(el => el.addEventListener('input', actualizarPreview));
+    item.querySelector('.remove-talla-btn').addEventListener('click', ()=>{
+      item.remove();
+      actualizarPreview();
     });
 
-    // Delete buttons
-    document.querySelectorAll('.btn-delete').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const calzadoId = e.currentTarget.getAttribute('data-calzado-id');
-            deleteCalzado(calzadoId);
-        });
-    });
+    container.appendChild(item);
+  }
 
-    // View buttons
-    document.querySelectorAll('.btn-view').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const calzadoId = e.currentTarget.getAttribute('data-calzado-id');
-            viewCalzado(calzadoId);
-        });
-    });
+  function actualizarPreview(){
+    const nombre = obtenerValor('calzadoName') || 'Nombre del Calzado';
+    const modeloSeleccionado = obtenerModeloSeleccionado();
+  const marca = obtenerValor('calzadoBrandName') || (modeloSeleccionado?.marca ?? 'Marca');
+  const modeloNombre = modeloSeleccionado?.nombre || 'Modelo';
+    const tallas = recolectarTallas();
 
-    // Individual checkboxes
-    document.querySelectorAll('.calzado-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', handleIndividualCheckbox);
-    });
-}
-
-// Logout functionality
-function handleLogout() {
-    if (confirm('¿Está seguro de que desea cerrar sesión?')) {
-        window.location.href = '../login.html';
-    }
-}
-
-// Update pagination info
-function updatePaginationInfo() {
-    const paginationInfo = document.querySelector('.pagination-info');
-    if (paginationInfo) {
-        const total = calzados.length;
-        paginationInfo.textContent = `Mostrando 1-${total} de ${total} calzados`;
-    }
-}
-
-// Preview updates
-function addPreviewUpdates() {
-    const inputs = ['calzadoName', 'calzadoBrand', 'calzadoModel', 'calzadoCategory'];
-    
-    inputs.forEach(inputId => {
-        const input = document.getElementById(inputId);
-        if (input) {
-            input.addEventListener('input', updateCalzadoPreview);
-        }
-    });
-}
-
-function updateCalzadoPreview() {
-    const name = document.getElementById('calzadoName')?.value || 'Nombre del Calzado';
-    const brand = document.getElementById('calzadoBrand')?.value || 'Marca';
-    const model = document.getElementById('calzadoModel')?.value || 'Modelo';
-    // calcular precios mínimos y conteo de tallas
-    const tallaItems = document.querySelectorAll('#tallasContainer .talla-item');
-    const tallasCount = tallaItems.length;
-    let minVenta = Infinity;
-    let minCompra = Infinity;
-    tallaItems.forEach(item => {
-        const pv = parseFloat(item.querySelector('.talla-precio-venta')?.value || '');
-        const pc = parseFloat(item.querySelector('.talla-precio-compra')?.value || '');
-        if (!isNaN(pv)) minVenta = Math.min(minVenta, pv);
-        if (!isNaN(pc)) minCompra = Math.min(minCompra, pc);
-    });
-    if (minVenta === Infinity) minVenta = 0;
-    if (minCompra === Infinity) minCompra = 0;
-    
     const previewName = document.getElementById('previewCalzadoName');
-    const previewDetails = document.getElementById('previewCalzadoDetails');
-    const previewSize = document.querySelector('.preview-size');
-    const previewPriceSale = document.querySelector('.preview-price-sale');
-    const previewPricePurchase = document.querySelector('.preview-price-purchase');
-    
-    if (previewName) previewName.textContent = name;
-    if (previewDetails) previewDetails.textContent = `${brand} - ${model}`;
-    if (previewSize) previewSize.textContent = `Tallas: ${tallasCount} registradas`;
-    if (previewPriceSale) previewPriceSale.textContent = `Venta desde: S/ ${Number(minVenta).toFixed(2)}`;
-    if (previewPricePurchase) previewPricePurchase.textContent = `Compra desde: S/ ${Number(minCompra).toFixed(2)}`;
-}
+    if (previewName) previewName.textContent = nombre;
+  const previewDetails = document.getElementById('previewCalzadoDetails');
+  if (previewDetails) previewDetails.textContent = `${marca} - ${modeloNombre}`;
+    const colorLabel = document.querySelector('.preview-color');
+    if (colorLabel) colorLabel.textContent = `Color: ${obtenerValor('calzadoColor') || '--'}`;
+    const typeLabel = document.querySelector('.preview-type');
+    if (typeLabel) typeLabel.textContent = `Tipo: ${obtenerValor('calzadoType') || '--'}`;
+    const materialLabel = document.querySelector('.preview-material');
+    if (materialLabel){
+      const materialSeleccionado = state.combos.materiales.find(m => String(m.id) === obtenerValor('calzadoMaterial'));
+      materialLabel.textContent = `Material: ${materialSeleccionado?.nombre || '--'}`;
+    }
+    const sizeLabel = document.querySelector('.preview-size');
+    if (sizeLabel) sizeLabel.textContent = `Tallas: ${tallas.length} registradas`;
+  }
 
-// Utility functions
-function showNotification(message, type = 'success') {
-    // Create notification element
+  function mostrarDetalle(item){
+    const modalId = 'calzadoDetalleModal';
+    let modal = document.getElementById(modalId);
+    if (!modal){
+      modal = document.createElement('div');
+      modal.className = 'modal';
+      modal.id = modalId;
+      modal.innerHTML = `
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>Detalle de Calzado</h3>
+            <button class="modal-close" data-close="${modalId}"><i class="fas fa-times"></i></button>
+          </div>
+          <div class="modal-body" id="calzadoDetalleBody"></div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-close="${modalId}">Cerrar</button>
+          </div>
+        </div>`;
+      document.body.appendChild(modal);
+      modal.addEventListener('click', (e)=>{
+        if (e.target === modal || e.target.closest('[data-close]')){
+          modal.style.display = 'none';
+        }
+      });
+    }
+
+    const body = modal.querySelector('#calzadoDetalleBody');
+    if (body){
+  const imagenUrl = obtenerImagenProducto(item);
+  const formatPrecio = (valor) => (valor !== undefined && valor !== null) ? `S/ ${Number(valor).toFixed(2)}` : '--';
+      const peso = item.pesoGramos ? `${(item.pesoGramos / 1000).toFixed(2)} kg` : '--';
+      const tallasRows = (item.tallas || []).map(t => `
+        <tr>
+          <td>${t.talla}</td>
+          <td>${formatPrecio(t.precioVenta)}</td>
+          <td>${t.costoCompra != null ? formatPrecio(t.costoCompra) : '--'}</td>
+        </tr>`).join('');
+      const tallasBadges = (item.tallas || []).map(t => `<span class="detalle-tag">${t.talla}</span>`).join('');
+
+      body.innerHTML = `
+        <div class="detalle-producto">
+          <div class="detalle-producto__hero">
+            <div class="detalle-producto__image">
+              <img src="${imagenUrl}" alt="${item.nombre}">
+            </div>
+            <div class="detalle-producto__summary">
+              <span class="detalle-estado ${item.activo !== false ? 'estado-activo' : 'estado-inactivo'}">${item.activo !== false ? 'Activo' : 'Inactivo'}</span>
+              <h4>${item.nombre}</h4>
+              <div class="detalle-producto__tags">
+                ${item.marca?.nombre ? `<span class="detalle-tag tag-marca">${item.marca.nombre}</span>` : ''}
+                ${item.modelo?.nombre ? `<span class="detalle-tag">Modelo ${item.modelo.nombre}</span>` : ''}
+                ${item.color ? `<span class="detalle-tag tag-color">${item.color}</span>` : ''}
+                ${item.tipo ? `<span class="detalle-tag">${item.tipo}</span>` : ''}
+              </div>
+              <p class="detalle-producto__descripcion">${item.descripcion || 'Sin descripción disponible.'}</p>
+              <div class="detalle-producto__info-grid">
+                <div class="detalle-item"><span>Código interno</span><strong>${item.id}</strong></div>
+                <div class="detalle-item"><span>Código de barras</span><strong>${item.codigoBarra || '--'}</strong></div>
+                <div class="detalle-item"><span>Proveedor</span><strong>${item.proveedor?.razonSocial || '--'}</strong></div>
+                <div class="detalle-item"><span>Material</span><strong>${item.material?.nombre || '--'}</strong></div>
+                <div class="detalle-item"><span>Unidad</span><strong>${item.unidad?.nombre || '--'}</strong></div>
+                <div class="detalle-item"><span>Dimensiones</span><strong>${item.dimensiones || '--'}</strong></div>
+                <div class="detalle-item"><span>Peso</span><strong>${peso}</strong></div>
+              </div>
+            </div>
+          </div>
+          <div class="detalle-producto__tallas">
+            <div class="detalle-producto__tallas-header">
+              <h5>Tallas registradas</h5>
+              <div class="detalle-producto__tallas-tags">${tallasBadges || '<span class="detalle-tag detalle-tag--empty">Sin tallas</span>'}</div>
+            </div>
+            ${(item.tallas && item.tallas.length) ? `
+              <table class="detalle-producto__table">
+                <thead>
+                  <tr>
+                    <th>Talla</th>
+                    <th>Precio venta</th>
+                    <th>Precio compra</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${tallasRows}
+                </tbody>
+              </table>
+            ` : '<div class="detalle-producto__empty">Sin tallas registradas</div>'}
+          </div>
+        </div>`;
+    }
+
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function manejarImagenSeleccionada(event){
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      const preview = document.getElementById('imagePreview');
+      if (preview){
+        preview.innerHTML = `<img src="${e.target?.result}" alt="Previsualización">`;
+        preview.dataset.source = e.target?.result;
+        preview.dataset.userImage = 'true';
+        delete preview.dataset.modelImage;
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function obtenerValor(id){
+    const el = document.getElementById(id);
+    return el ? el.value.trim() : '';
+  }
+
+  function convertirEntero(valor){
+    if (!valor) return null;
+    const numero = parseInt(valor, 10);
+    return Number.isNaN(numero) ? null : numero;
+  }
+
+  async function apiGet(url){
+    const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    if (!response.ok){
+      throw new Error(await extraerMensajeError(response));
+    }
+    return response.status === 204 ? null : response.json();
+  }
+
+  async function apiPost(url, body){
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!response.ok){
+      throw new Error(await extraerMensajeError(response));
+    }
+    return response.json();
+  }
+
+  async function apiPut(url, body){
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!response.ok){
+      throw new Error(await extraerMensajeError(response));
+    }
+    return response.json();
+  }
+
+  async function apiDelete(url){
+    const response = await fetch(url, { method: 'DELETE' });
+    if (!response.ok){
+      throw new Error(await extraerMensajeError(response));
+    }
+  }
+
+  async function extraerMensajeError(response){
+    try {
+      const data = await response.json();
+      return data?.message || data?.error || response.statusText || 'Error desconocido';
+    } catch (_){
+      return response.statusText || 'Error desconocido';
+    }
+  }
+
+  function showNotification(message, type = 'success'){
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 15px 20px;
-        background-color: ${type === 'success' ? '#28a745' : '#dc3545'};
-        color: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        z-index: 1001;
-        animation: slideInRight 0.3s ease;
-        max-width: 400px;
-    `;
-    
-    notification.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i>
-            <span>${message}</span>
-            <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer; margin-left: auto;">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-    `;
-    
+    notification.style.cssText = `position:fixed;top:20px;right:20px;padding:12px 18px;border-radius:8px;color:#fff;z-index:2000;display:flex;gap:8px;align-items:center;box-shadow:0 4px 12px rgba(0,0,0,.15);background:${type==='error' ? '#dc3545' : type === 'info' ? '#0d6efd' : '#28a745'};`;
+    notification.innerHTML = `<i class="fas ${type==='error' ? 'fa-times-circle' : type==='info' ? 'fa-info-circle' : 'fa-check-circle'}"></i><span>${message}</span>`;
     document.body.appendChild(notification);
-    
-    // Auto remove after 5 seconds
-    setTimeout(() => {
-        if (notification.parentElement) {
-            notification.style.animation = 'slideOutRight 0.3s ease';
-            setTimeout(() => notification.remove(), 300);
-        }
-    }, 5000);
-}
-
-// Add CSS animations
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideInRight {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-    
-    @keyframes slideOutRight {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
-    }
-    
-    .calzado-details-view {
-        display: flex;
-        align-items: flex-start;
-        gap: 20px;
-        margin-bottom: 20px;
-    }
-    
-    .calzado-info-details {
-        flex: 1;
-    }
-    
-    .calzado-info-details h4 {
-        margin: 0 0 15px 0;
-        color: #333;
-        font-size: 24px;
-    }
-    
-    .calzado-info-details p {
-        margin: 8px 0;
-        color: #666;
-        font-size: 14px;
-    }
-    
-    .calzado-info-details strong {
-        color: #333;
-        font-weight: 600;
-    }
-`;
-document.head.appendChild(style);
-
-// --- Gestión de tallas en el formulario ---
-function addTallaInput(data = { talla: '', precioVenta: '', precioCompra: '' }) {
-    const tallasContainer = document.getElementById('tallasContainer');
-    if (!tallasContainer) return;
-
-    const itemDiv = document.createElement('div');
-    itemDiv.classList.add('talla-item');
-    itemDiv.style.display = 'grid';
-    itemDiv.style.gridTemplateColumns = '1fr 1fr 1fr auto';
-    itemDiv.style.gap = '12px';
-    itemDiv.style.alignItems = 'end';
-
-    itemDiv.innerHTML = `
-        <div class="form-group">
-            <label>Talla</label>
-            <select class="talla-select">
-                <option value="">Seleccionar talla</option>
-                <option value="38" ${data.talla === '38' ? 'selected' : ''}>38</option>
-                <option value="39" ${data.talla === '39' ? 'selected' : ''}>39</option>
-                <option value="40" ${data.talla === '40' ? 'selected' : ''}>40</option>
-                <option value="41" ${data.talla === '41' ? 'selected' : ''}>41</option>
-                <option value="42" ${data.talla === '42' ? 'selected' : ''}>42</option>
-                <option value="43" ${data.talla === '43' ? 'selected' : ''}>43</option>
-                <option value="44" ${data.talla === '44' ? 'selected' : ''}>44</option>
-                <option value="45" ${data.talla === '45' ? 'selected' : ''}>45</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Precio Venta (S/)</label>
-            <input type="number" class="talla-precio-venta" value="${data.precioVenta}" step="0.01" min="0" placeholder="0.00">
-        </div>
-        <div class="form-group">
-            <label>Precio Compra (S/)</label>
-            <input type="number" class="talla-precio-compra" value="${data.precioCompra}" step="0.01" min="0" placeholder="0.00">
-        </div>
-        <button type="button" class="btn-icon btn-delete remove-talla-btn" title="Eliminar Talla">
-            <i class="fas fa-minus-circle"></i>
-        </button>
-    `;
-
-    tallasContainer.appendChild(itemDiv);
-
-    // Actualiza la vista previa al cambiar cualquier input
-    itemDiv.querySelectorAll('select, input').forEach(el => {
-        el.addEventListener('input', updateCalzadoPreview);
-    });
-
-    // Eliminar talla
-    itemDiv.querySelector('.remove-talla-btn').addEventListener('click', () => {
-        itemDiv.remove();
-        updateCalzadoPreview();
-    });
-}
-
-// Botón para agregar talla
-document.addEventListener('DOMContentLoaded', function() {
-    const addTallaBtn = document.getElementById('addTallaBtn');
-    if (addTallaBtn) {
-        addTallaBtn.addEventListener('click', () => {
-            addTallaInput();
-            updateCalzadoPreview();
-        });
-    }
-});
+    setTimeout(()=>{
+      notification.style.opacity = '0';
+      setTimeout(()=> notification.remove(), 300);
+    }, 4000);
+  }
+})();
