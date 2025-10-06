@@ -74,6 +74,13 @@ function initClientesModule() {
         console.log('Filter button attached');
     }
     
+    // Select All checkbox
+    const selectAllCheckbox = document.getElementById('selectAll');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', handleSelectAll);
+        console.log('Select All checkbox attached');
+    }
+    
     // Add Client Modal
     setupAddModal();
     
@@ -374,7 +381,17 @@ function loadClientes() {
         tbody.appendChild(row);
     });
     
+    // Attach event listeners to checkboxes
+    attachCheckboxListeners();
+    
     console.log('Loaded', clientes.length, 'clients');
+}
+
+function attachCheckboxListeners() {
+    const checkboxes = document.querySelectorAll('.client-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', handleIndividualCheckbox);
+    });
 }
 
 function createClienteRow(cliente) {
@@ -590,6 +607,154 @@ function showNotification(message, type = 'success') {
     }, 3000);
 }
 
+// ========== CHECKBOX FUNCTIONALITY ==========
+function handleSelectAll(event) {
+    const isChecked = event.target.checked;
+    const checkboxes = document.querySelectorAll('.client-checkbox');
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = isChecked;
+    });
+    
+    updateSelectedCount();
+    updateBulkActionsVisibility();
+}
+
+function handleIndividualCheckbox() {
+    const checkboxes = document.querySelectorAll('.client-checkbox');
+    const selectAllCheckbox = document.getElementById('selectAll');
+    
+    // Check if all checkboxes are checked
+    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+    const someChecked = Array.from(checkboxes).some(cb => cb.checked);
+    
+    if (selectAllCheckbox) {
+        selectAllCheckbox.checked = allChecked;
+        selectAllCheckbox.indeterminate = someChecked && !allChecked;
+    }
+    
+    updateSelectedCount();
+    updateBulkActionsVisibility();
+}
+
+function updateSelectedCount() {
+    const selectedCheckboxes = document.querySelectorAll('.client-checkbox:checked');
+    const count = selectedCheckboxes.length;
+    
+    // Update counter if exists
+    const counter = document.getElementById('selectedCount');
+    if (counter) {
+        counter.textContent = count;
+    }
+    
+    console.log(`Selected clients: ${count}`);
+}
+
+function updateBulkActionsVisibility() {
+    const selectedCheckboxes = document.querySelectorAll('.client-checkbox:checked');
+    const bulkActions = document.getElementById('bulkActions');
+    
+    if (bulkActions) {
+        if (selectedCheckboxes.length > 0) {
+            bulkActions.style.display = 'flex';
+        } else {
+            bulkActions.style.display = 'none';
+        }
+    }
+}
+
+function getSelectedClientIds() {
+    const selectedCheckboxes = document.querySelectorAll('.client-checkbox:checked');
+    const ids = [];
+    
+    selectedCheckboxes.forEach(checkbox => {
+        const row = checkbox.closest('tr');
+        const idCell = row.querySelector('td:nth-child(2) .badge-id');
+        if (idCell) {
+            ids.push(idCell.textContent.trim());
+        }
+    });
+    
+    return ids;
+}
+
+function deleteSelectedClients() {
+    const selectedIds = getSelectedClientIds();
+    
+    if (selectedIds.length === 0) {
+        showNotification('No hay clientes seleccionados', 'error');
+        return;
+    }
+    
+    const confirmMsg = `¿Estás seguro de que deseas eliminar ${selectedIds.length} cliente(s)? Esta acción no puede deshacerse.`;
+    
+    if (confirm(confirmMsg)) {
+        selectedIds.forEach(id => {
+            const index = clientes.findIndex(c => c.id === id);
+            if (index !== -1) {
+                clientes.splice(index, 1);
+            }
+        });
+        
+        loadClientes();
+        
+        // Uncheck select all
+        const selectAllCheckbox = document.getElementById('selectAll');
+        if (selectAllCheckbox) {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = false;
+        }
+        
+        updateBulkActionsVisibility();
+        showNotification(`${selectedIds.length} cliente(s) eliminado(s) exitosamente`, 'success');
+    }
+}
+
+function exportSelectedClients() {
+    const selectedIds = getSelectedClientIds();
+    
+    if (selectedIds.length === 0) {
+        showNotification('No hay clientes seleccionados', 'error');
+        return;
+    }
+    
+    const selectedClients = clientes.filter(c => selectedIds.includes(c.id));
+    
+    // Create CSV content
+    let csvContent = 'ID,Nombre,Apellido,Tipo Documento,Nro Documento,Email,Teléfono,Dirección,Estado\n';
+    
+    selectedClients.forEach(cliente => {
+        const row = [
+            cliente.id,
+            cliente.nombre,
+            cliente.apellido,
+            cliente.tipoDocumento,
+            cliente.numeroDocumento,
+            cliente.email || 'N/A',
+            cliente.telefono || 'N/A',
+            `"${cliente.direccion}"`,
+            cliente.estado
+        ].join(',');
+        
+        csvContent += row + '\n';
+    });
+    
+    // Create download link
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `clientes_${new Date().getTime()}.csv`);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showNotification(`${selectedIds.length} cliente(s) exportado(s) exitosamente`, 'success');
+}
+
 // Make functions globally accessible
 window.openEditClientModal = openEditClientModal;
 window.openDeleteClientModal = openDeleteClientModal;
@@ -597,3 +762,5 @@ window.openViewClientModal = openViewClientModal;
 window.closeFilterModal = closeFilterModal;
 window.applyFilters = applyFilters;
 window.clearFilters = clearFilters;
+window.deleteSelectedClients = deleteSelectedClients;
+window.exportSelectedClients = exportSelectedClients;
