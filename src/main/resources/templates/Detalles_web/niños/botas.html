@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Botas para Niños - Detalles</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <base href="/src/main/resources/templates/Detalles%20web/">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="logo">
+                    <h1>Detalles</h1>
+                </div>
+                
+                <ul class="nav-menu">
+                    <li><a href="../index.html">Inicio</a></li>
+                    <li class="menu-item-has-children">
+                        <a href="#mujeres">Mujeres <i class="fas fa-chevron-down"></i></a>
+                        <div class="submenu">
+                            <div class="submenu-content">
+                                <div class="submenu-column">
+                                    <h3>Calzado</h3>
+                                    <ul>
+                                        <li><a href="../mujeres/zapatillas-deportivas.html">Zapatillas Deportivas</a></li>
+                                        <li><a href="../mujeres/zapatos-casuales.html">Zapatos Casuales</a></li>
+                                        <li><a href="../mujeres/tacones.html">Tacones</a></li>
+                                        <li><a href="../mujeres/sandalias.html">Sandalias</a></li>
+                                        <li><a href="../mujeres/botas.html">Botas</a></li>
+                                    </ul>
+                                </div>
+                                <div class="submenu-column">
+                                    <h3>Accesorios</h3>
+                                    <ul>
+                                        <li><a href="../mujeres-accesorios/bolsos.html">Bolsos</a></li>
+                                        <li><a href="../mujeres-accesorios/billeteras.html">Billeteras</a></li>
+                                        <li><a href="../mujeres-accesorios/gafas-de-sol.html">Gafas de Sol</a></li>
+                                        <li><a href="../mujeres-accesorios/cinturones.html">Cinturones</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    
+                    <li class="menu-item-has-children">
+                        <a href="#">Hombres <i class="fas fa-chevron-down"></i></a>
+                    </li>
+                    
+                    <li class="menu-item-has-children">
+                        <a href="#">Niños <i class="fas fa-chevron-down"></i></a>
+                        <div class="submenu">
+                            <div class="submenu-content">
+                                <div class="submenu-column">
+                                    <h3>Calzado</h3>
+                                    <ul>
+                                        <li><a href="zapatillas-deportivas.html">Zapatillas Deportivas</a></li>
+                                        <li><a href="zapatos-escolares.html">Zapatos Escolares</a></li>
+                                        <li><a href="sandalias.html">Sandalias</a></li>
+                                        <li><a href="botas.html">Botas</a></li>
+                                        <li><a href="pantuflas.html">Pantuflas</a></li>
+                                        <li><a href="zapatos-casuales.html">Zapatos Casuales</a></li>
+                                    </ul>
+                                </div>
+                    
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+                
+                <div class="nav-icons">
+                    <a href="#" class="nav-icon search-icon">
+                        <i class="fas fa-search"></i>
+                    </a>
+                    <a href="#" class="nav-icon">
+                        <i class="fas fa-user"></i>
+                    </a>
+                    <a href="#" class="nav-icon cart-icon">
+                        <i class="fas fa-shopping-bag"></i>
+                        <span class="cart-count">0</span>
+                    </a>
+                </div>
+                
+                <div class="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <div class="breadcrumb-content">
+            <span>Botas para Niños</span>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <section class="products-page">
+        <div class="products-container">
+            <!-- Filtros Sidebar -->
+            <aside class="filters-sidebar">
+                <div class="filter-section">
+                    <h3>Precio</h3>
+                    <div class="price-filter">
+                        <input type="range" class="price-range" min="0" max="130" value="65">
+                        <div class="price-inputs">
+                            <input type="number" placeholder="Mín" value="0">
+                            <input type="number" placeholder="Máx" value="130">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <h3>Talla</h3>
+                    <div class="size-filter">
+                        <div class="size-option">20</div>
+                        <div class="size-option">21</div>
+                        <div class="size-option">22</div>
+                        <div class="size-option">23</div>
+                        <div class="size-option">24</div>
+                        <div class="size-option">25</div>
+                        <div class="size-option">26</div>
+                        <div class="size-option">27</div>
+                        <div class="size-option">28</div>
+                        <div class="size-option">29</div>
+                        <div class="size-option">30</div>
+                        <div class="size-option">31</div>
+                        <div class="size-option">32</div>
+                        <div class="size-option">33</div>
+                        <div class="size-option">34</div>
+                        <div class="size-option">35</div>
+                        <div class="size-option">36</div>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <h3>Color</h3>
+                    <div class="color-filter">
+                        <div class="color-option selected" style="background: #000;" title="Negro"></div>
+                        <div class="color-option" style="background: #795548;" title="Café"></div>
+                        <div class="color-option" style="background: #8B4513;" title="Marrón"></div>
+                        <div class="color-option" style="background: #e91e63;" title="Rosado"></div>
+                        <div class="color-option" style="background: #2196F3;" title="Azul"></div>
+                        <div class="color-option" style="background: #f44336;" title="Rojo"></div>
+                        <div class="color-option" style="background: #4CAF50;" title="Verde"></div>
+                        <div class="color-option" style="background: #9C27B0;" title="Morado"></div>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <h3>Marca</h3>
+                    <div class="brand-filter">
+                        <label class="brand-option">
+                            <input type="checkbox"> Timberland
+                        </label>
+                        <label class="brand-option">
+                            <input type="checkbox"> Hunter
+                        </label>
+                        <label class="brand-option">
+                            <input type="checkbox"> Dr. Martens
+                        </label>
+                        <label class="brand-option">
+                            <input type="checkbox"> Geox
+                        </label>
+                        <label class="brand-option">
+                            <input type="checkbox"> UGG
+                        </label>
+                        <label class="brand-option">
+                            <input type="checkbox"> Columbia
+                        </label>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <h3>Género</h3>
+                    <div class="brand-filter">
+                        <label class="brand-option">
+                            <input type="checkbox"> Niño
+                        </label>
+                        <label class="brand-option">
+                            <input type="checkbox"> Niña
+                        </label>
+                        <label class="brand-option">
+                            <input type="checkbox"> Unisex
+                        </label>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <h3>Tipo</h3>
+                    <div class="brand-filter">
+                        <label class="brand-option">
+                            <input type="checkbox"> Botas de Lluvia
+                        </label>
+                        <label class="brand-option">
+                            <input type="checkbox"> Botines Casuales
+                        </label>
+                        <label class="brand-option">
+                            <input type="checkbox"> Botas de Invierno
+                        </label>
+                        <label class="brand-option">
+                            <input type="checkbox"> Botas de Montaña
+                        </label>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <h3>Material</h3>
+                    <div class="brand-filter">
+                        <div class="brand-option">
+                            <input type="checkbox" id="cuero" checked>
+                            <label for="cuero">Cuero</label>
+                        </div>
+                        <div class="brand-option">
+                            <input type="checkbox" id="sintetico">
+                            <label for="sintetico">Sintético</label>
+                        </div>
+                        <div class="brand-option">
+                            <input type="checkbox" id="goma" checked>
+                            <label for="goma">Goma</label>
+                        </div>
+                        <div class="brand-option">
+                            <input type="checkbox" id="nylon">
+                            <label for="nylon">Nylon</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <h3>Características</h3>
+                    <div class="brand-filter">
+                        <label class="brand-option">
+                            <input type="checkbox"> Impermeables
+                        </label>
+                        <label class="brand-option">
+                            <input type="checkbox"> Con Forro
+                        </label>
+                        <label class="brand-option">
+                            <input type="checkbox"> Antideslizantes
+                        </label>
+                        <label class="brand-option">
+                            <input type="checkbox"> Con Cremallera
+                        </label>
+                    </div>
+                </div>
+
+                <button class="btn-add-cart" style="width: 100%; margin-top: 1rem;">
+                    Aplicar Filtros
+                </button>
+            </aside>
+
+            <!-- Productos Main -->
+            <main class="products-main">
+                <div class="products-header">
+                    <h1>Botas para Niños</h1>
+                    <div class="sort-options">
+                        <span class="products-count">16 productos</span>
+                        <select>
+                            <option>Ordenar por: Más relevantes</option>
+                            <option>Precio: Menor a Mayor</option>
+                            <option>Precio: Mayor a Menor</option>
+                            <option>Mejor valorados</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="products-grid-detailed">
+                    <!-- Producto 1 -->
+                    <div class="product-card-detailed" data-product-id="401">
+                        <div class="product-image-detailed">
+                            <img src="https://via.placeholder.com/300x300" alt="Hunter Original">
+                            <div class="product-badge">Nuevo</div>
+                        </div>
+                        <div class="product-info-detailed">
+                            <div class="product-brand">Hunter</div>
+                            <h3 class="product-title-detailed">Original Kids Rain Boot</h3>
+                            <div class="product-price">
+                                <span class="current-price">$64.99</span>
+                                <span class="original-price">$84.99</span>
+                                <span class="discount">-24%</span>
+                            </div>
+                            <div class="product-actions">
+                                <button class="btn-add-cart">Añadir al Carrito</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Producto 2 -->
+                    <div class="product-card-detailed" data-product-id="402">
+                        <div class="product-image-detailed">
+                            <img src="https://via.placeholder.com/300x300" alt="Timberland Boot">
+                        </div>
+                        <div class="product-info-detailed">
+                            <div class="product-brand">Timberland</div>
+                            <h3 class="product-title-detailed">6 Inch Premium Boot Junior</h3>
+                            <div class="product-price">
+                                <span class="current-price">$89.99</span>
+                            </div>
+                            <div class="product-actions">
+                                <button class="btn-add-cart">Añadir al Carrito</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Producto 3 -->
+                    <div class="product-card-detailed" data-product-id="403">
+                        <div class="product-image-detailed">
+                            <img src="https://via.placeholder.com/300x300" alt="UGG Bailey">
+                            <div class="product-badge">Oferta</div>
+                        </div>
+                        <div class="product-info-detailed">
+                            <div class="product-brand">UGG</div>
+                            <h3 class="product-title-detailed">Bailey Bow II Kids Boot</h3>
+                            <div class="product-price">
+                                <span class="current-price">$79.99</span>
+                                <span class="original-price">$109.99</span>
+                                <span class="discount">-27%</span>
+                            </div>
+                            <div class="product-actions">
+                                <button class="btn-add-cart">Añadir al Carrito</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Producto 4 -->
+                    <div class="product-card-detailed" data-product-id="404">
+                        <div class="product-image-detailed">
+                            <img src="https://via.placeholder.com/300x300" alt="Columbia Snow">
+                        </div>
+                        <div class="product-info-detailed">
+                            <div class="product-brand">Columbia</div>
+                            <h3 class="product-title-detailed">Powderbug Plus II Snow Boot</h3>
+                            <div class="product-price">
+                                <span class="current-price">$54.99</span>
+                            </div>
+                            <div class="product-actions">
+                                <button class="btn-add-cart">Añadir al Carrito</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Producto 5 -->
+                    <div class="product-card-detailed" data-product-id="405">
+                        <div class="product-image-detailed">
+                            <img src="https://via.placeholder.com/300x300" alt="Dr Martens">
+                        </div>
+                        <div class="product-info-detailed">
+                            <div class="product-brand">Dr. Martens</div>
+                            <h3 class="product-title-detailed">1460 Kids Boot Negro</h3>
+                            <div class="product-price">
+                                <span class="current-price">$74.99</span>
+                            </div>
+                            <div class="product-actions">
+                                <button class="btn-add-cart">Añadir al Carrito</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Producto 6 -->
+                    <div class="product-card-detailed" data-product-id="406">
+                        <div class="product-image-detailed">
+                            <img src="https://via.placeholder.com/300x300" alt="Geox Amphibiox">
+                            <div class="product-badge">Oferta</div>
+                        </div>
+                        <div class="product-info-detailed">
+                            <div class="product-brand">Geox</div>
+                            <h3 class="product-title-detailed">Amphibiox Waterproof Boot</h3>
+                            <div class="product-price">
+                                <span class="current-price">$59.99</span>
+                                <span class="original-price">$79.99</span>
+                                <span class="discount">-25%</span>
+                            </div>
+                            <div class="product-actions">
+                                <button class="btn-add-cart">Añadir al Carrito</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Detalles</h3>
+                    <p>Tu destino para calzados y accesorios de calidad.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3>Enlaces Rápidos</h3>
+                    <ul>
+                        <li><a href="../index.html">Inicio</a></li>
+                        <li><a href="../mujeres/calzado.html">Mujeres</a></li>
+                        <li><a href="../hombres/calzado.html">Hombres</a></li>
+                        <li><a href="../ninos/calzado.html">Niños</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Servicios</h3>
+                    <ul>
+                        <li><a href="#">Envíos a Domicilio</a></li>
+                        <li><a href="#">Cambios y Devoluciones</a></li>
+                        <li><a href="#">Guía de Talles</a></li>
+                        <li><a href="#">Preguntas Frecuentes</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Newsletter</h3>
+                    <p>Suscríbete para recibir ofertas exclusivas</p>
+                    <form class="newsletter-form">
+                        <input type="email" placeholder="Tu email" required>
+                        <button type="submit">Suscribirse</button>
+                    </form>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Detalles. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../js/script.js"></script>
+</body>
+</html>
