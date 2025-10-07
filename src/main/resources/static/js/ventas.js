@@ -230,7 +230,8 @@ document.addEventListener('DOMContentLoaded', () => {
             ventaRazonSocialInput.removeAttribute('required');
             ventaRUCInput.value = '';
             ventaRazonSocialInput.value = '';
-        }
+            
+        } 
 
         // Si es 'Ticket/Venta Rápida' (valor 3), limpiar el campo cliente
         if (ventaTipoComprobanteSelect.value === '3') {
@@ -354,7 +355,7 @@ document.addEventListener('DOMContentLoaded', () => {
  * Llama al backend para generar el PDF y fuerza la descarga.
  */
     function exportarVentaAPDF(id) {
-        const url = `/api/ventas/${id}/pdf`;
+        const url = `/ventas/${id}/pdf`;
         
         // Usamos window.open o una etiqueta <a> invisible para forzar la descarga
         // ya que el backend devolverá un archivo binario.
