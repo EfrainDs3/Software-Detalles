@@ -2,6 +2,7 @@ package fisi.software.detalles.controller.api;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ValidationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -36,6 +37,11 @@ public class RestExceptionHandler {
     @ExceptionHandler(DisabledException.class)
     public ResponseEntity<Map<String, Object>> handleDisabled(DisabledException ex) {
         return buildErrorResponse(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleDataIntegrity(DataIntegrityViolationException ex) {
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Los datos proporcionados ya existen en el sistema");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

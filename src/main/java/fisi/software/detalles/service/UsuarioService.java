@@ -47,7 +47,7 @@ public class UsuarioService {
     }
 
     public UsuarioResponse crearUsuario(UsuarioCreateRequest request) {
-        validarDatosUnicos(null, request.username(), request.email());
+        validarDatosUnicos(null, request.username(), request.email(), request.tipoDocumentoId(), request.numeroDocumento());
         Usuario usuario = new Usuario();
         mapearDatosBasicos(usuario, request.nombres(), request.apellidos(), request.username(), request.email(),
             request.celular(), request.direccion(), request.numeroDocumento(), request.tipoDocumentoId(), request.estado());
@@ -60,7 +60,7 @@ public class UsuarioService {
     public UsuarioResponse actualizarUsuario(Integer id, UsuarioUpdateRequest request) {
         Usuario usuario = usuarioRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
-        validarDatosUnicos(usuario.getId(), request.username(), request.email());
+        validarDatosUnicos(usuario.getId(), request.username(), request.email(), request.tipoDocumentoId(), request.numeroDocumento());
         mapearDatosBasicos(usuario, request.nombres(), request.apellidos(), request.username(), request.email(),
             request.celular(), request.direccion(), request.numeroDocumento(), request.tipoDocumentoId(), request.estado());
         if (StringUtils.hasText(request.password())) {
@@ -129,7 +129,7 @@ public class UsuarioService {
         usuario.setRoles(roles);
     }
 
-    private void validarDatosUnicos(Integer idUsuario, String username, String email) {
+    private void validarDatosUnicos(Integer idUsuario, String username, String email, Integer tipoDocumentoId, String numeroDocumento) {
         usuarioRepository.findByUsernameIgnoreCase(username)
             .ifPresent(existing -> {
                 if (!existing.getId().equals(idUsuario)) {
@@ -142,5 +142,13 @@ public class UsuarioService {
                     throw new ValidationException("El correo electrónico ya está registrado");
                 }
             });
+        if (StringUtils.hasText(numeroDocumento) && tipoDocumentoId != null) {
+            usuarioRepository.findByTipoDocumento_IdTipoDocumentoAndNumeroDocumento(tipoDocumentoId, numeroDocumento)
+                .ifPresent(existing -> {
+                    if (!existing.getId().equals(idUsuario)) {
+                        throw new ValidationException("El número de documento ya está registrado para el tipo seleccionado");
+                    }
+                });
+        }
     }
 }
