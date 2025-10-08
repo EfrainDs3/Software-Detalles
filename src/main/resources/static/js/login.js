@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Verificar si ya hay una sesión activa
     function checkExistingSession() {
         const usuarioLogueado = localStorage.getItem('usuarioLogueado');
+        const nombreMostrado = localStorage.getItem('usuarioNombre') || usuarioLogueado;
         const loginTime = localStorage.getItem('loginTime');
         
         if (usuarioLogueado && loginTime) {
@@ -18,13 +19,15 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (hoursDiff < 24) {
                 // Sesión válida, redirigir al dashboard
-                showMessage(`Bienvenido de nuevo, ${usuarioLogueado}!`, 'success');
+                showMessage(`Bienvenido de nuevo, ${nombreMostrado || usuarioLogueado}!`, 'success');
                 window.location.href = '/dashboard';
                 return true;
             } else {
                 // Sesión expirada, limpiar localStorage
                 localStorage.removeItem('usuarioLogueado');
+                localStorage.removeItem('usuarioNombre');
                 localStorage.removeItem('loginTime');
+                localStorage.removeItem('usuarioRoles');
             }
         }
         return false;
@@ -60,16 +63,35 @@ document.addEventListener('DOMContentLoaded', function() {
         return isValid;
     }
 
-    // Credenciales válidas (simuladas)
-    const validCredentials = {
-        'admin': '123456',
-        'usuario': 'password',
-        'test': 'test123',
-        'demo': 'demo123'
-    };
+    async function authenticateUser(usuario, password) {
+        const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                usernameOrEmail: usuario,
+                password
+            })
+        });
+
+        let payload = null;
+        try {
+            payload = await response.json();
+        } catch (error) {
+            // Ignorar si no hay cuerpo JSON
+        }
+
+        if (!response.ok) {
+            const message = payload?.error || 'Usuario o contraseña incorrectos';
+            throw new Error(message);
+        }
+
+        return payload;
+    }
 
     // Manejo del envío del formulario
-    loginForm.addEventListener('submit', function(e) {
+    loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
         const usuario = usuarioInput.value.trim();
@@ -91,34 +113,34 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Simular proceso de login
         loginBtn.textContent = 'INGRESANDO...';
         loginBtn.disabled = true;
         
-        // Simular delay de autenticación
-        setTimeout(() => {
-            // Verificar credenciales
-            if (validCredentials[usuario] && validCredentials[usuario] === password) {
-                // Login exitoso
-                showMessage('¡Bienvenido! Redirigiendo...', 'success');
-                
-                // Guardar sesión en localStorage
-                localStorage.setItem('usuarioLogueado', usuario);
-                localStorage.setItem('loginTime', new Date().toISOString());
-                
-                // Redirigir al dashboard inmediatamente
-                window.location.href = '/dashboard';
-            } else {
-                // Login fallido
-                showMessage('Usuario o contraseña incorrectos', 'error');
-                loginBtn.textContent = 'INGRESAR';
-                loginBtn.disabled = false;
-                
-                // Limpiar campos
-                passwordInput.value = '';
-                passwordInput.focus();
-            }
-        }, 1500);
+        try {
+            const data = await authenticateUser(usuario, password);
+
+            // Login exitoso
+            showMessage('¡Bienvenido! Redirigiendo...', 'success');
+
+            const nombreCompleto = data?.nombreCompleto || usuario;
+            const roles = data?.roles || [];
+
+            // Guardar sesión en localStorage
+            localStorage.setItem('usuarioLogueado', data?.username || usuario);
+            localStorage.setItem('usuarioNombre', nombreCompleto);
+            localStorage.setItem('usuarioRoles', JSON.stringify(roles));
+            localStorage.setItem('loginTime', new Date().toISOString());
+
+            // Redirigir al dashboard inmediatamente
+            window.location.href = '/dashboard';
+        } catch (error) {
+            showMessage(error.message || 'No se pudo iniciar sesión', 'error');
+            passwordInput.value = '';
+            passwordInput.focus();
+        } finally {
+            loginBtn.textContent = 'INGRESAR';
+            loginBtn.disabled = false;
+        }
     });
 
     // Función para mostrar mensajes
@@ -153,6 +175,8 @@ document.addEventListener('DOMContentLoaded', function() {
             messageDiv.style.backgroundColor = '#dc2626';
         } else if (type === 'success') {
             messageDiv.style.backgroundColor = '#10b981';
+        } else if (type === 'info') {
+            messageDiv.style.backgroundColor = '#2563eb';
         }
         
         // Agregar animación CSS
@@ -248,7 +272,9 @@ document.addEventListener('DOMContentLoaded', function() {
 // Función para limpiar la sesión (disponible globalmente)
 function limpiarSesion() {
     localStorage.removeItem('usuarioLogueado');
+    localStorage.removeItem('usuarioNombre');
     localStorage.removeItem('loginTime');
+    localStorage.removeItem('usuarioRoles');
     alert('Sesión limpiada. Puedes iniciar sesión nuevamente.');
     location.reload(); // Recargar la página
 }

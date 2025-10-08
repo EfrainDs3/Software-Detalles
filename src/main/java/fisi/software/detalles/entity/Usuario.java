@@ -1,81 +1,83 @@
 package fisi.software.detalles.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "usuarios")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class Usuario {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @Column(nullable = false, unique = true)
+    @Column(name = "id_usuario")
+    private Integer id;
+
+    @NotBlank
+    @Column(name = "nombres", nullable = false, length = 100)
+    private String nombres;
+
+    @NotBlank
+    @Column(name = "apellidos", nullable = false, length = 100)
+    private String apellidos;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_tipodocumento")
+    private TipoDocumento tipoDocumento;
+
+    @Column(name = "numero_documento", length = 20)
+    private String numeroDocumento;
+
+    @Column(name = "celular", length = 20)
+    private String celular;
+
+    @Column(name = "direccion", length = 255)
+    private String direccion;
+
+    @NotBlank
+    @Column(name = "username", nullable = false, length = 50, unique = true)
     private String username;
-    
-    @Column(nullable = false)
-    private String password;
-    
-    @Column(nullable = false)
-    private String nombre;
-    
-    @Column(nullable = false)
-    private String apellido;
-    
-    @Column(nullable = false, unique = true)
+
+    @NotBlank
+    @Email
+    @Column(name = "email", nullable = false, length = 100, unique = true)
     private String email;
-    
-    @Column(name = "telefono")
-    private String telefono;
-    
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Rol rol = Rol.USUARIO;
-    
-    @Column(name = "activo")
-    private Boolean activo = true;
-    
-    @Column(name = "fecha_creacion")
+
+    @Column(name = "contraseña_hash", nullable = false, length = 255)
+    private String passwordHash;
+
+    @Column(name = "estado", nullable = false)
+    private Boolean estado = Boolean.TRUE;
+
+    @Column(name = "fecha_creacion", updatable = false)
     private LocalDateTime fechaCreacion;
-    
-    @Column(name = "ultimo_acceso")
-    private LocalDateTime ultimoAcceso;
-    
+
+    @Column(name = "fecha_ultima_sesion")
+    private LocalDateTime fechaUltimaSesion;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "usuario_roles",
+        joinColumns = @JoinColumn(name = "id_usuario"),
+        inverseJoinColumns = @JoinColumn(name = "id_rol")
+    )
+    private Set<Rol> roles = new HashSet<>();
+
     @PrePersist
     protected void onCreate() {
-        fechaCreacion = LocalDateTime.now();
-    }
-    
-    @PreUpdate
-    protected void onUpdate() {
-        ultimoAcceso = LocalDateTime.now();
-    }
-    
-    public enum Rol {
-        ADMINISTRADOR,
-        SUPERVISOR,
-        USUARIO,
-        VENDEDOR
-    }
-    
-    // Métodos de conveniencia
-    public String getNombreCompleto() {
-        return nombre + " " + apellido;
-    }
-    
-    public boolean isAdmin() {
-        return rol == Rol.ADMINISTRADOR;
-    }
-    
-    public boolean isSupervisor() {
-        return rol == Rol.SUPERVISOR;
+        this.fechaCreacion = LocalDateTime.now();
+        if (this.estado == null) {
+            this.estado = Boolean.TRUE;
+        }
     }
 }

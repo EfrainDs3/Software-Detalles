@@ -235,6 +235,34 @@ input[type="checkbox"]:indeterminate {
     vertical-align: middle;
 }
 
+.users-table th:first-child,
+.users-table td:first-child {
+    width: 48px;
+    text-align: center;
+}
+
+.users-table th:nth-child(2),
+.users-table td:nth-child(2) {
+    width: 70px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.users-table th:nth-child(5),
+.users-table td:nth-child(5),
+.users-table th:nth-child(6),
+.users-table td:nth-child(6),
+.users-table th:nth-child(7),
+.users-table td:nth-child(7),
+.users-table th:nth-child(8),
+.users-table td:nth-child(8) {
+    text-align: center;
+}
+
+.users-table td:nth-child(7) {
+    white-space: nowrap;
+}
+
 .users-table tbody tr:hover {
     background-color: #f8f9fa;
 }
