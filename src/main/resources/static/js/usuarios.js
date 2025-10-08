@@ -1,75 +1,112 @@
 // Módulo de usuarios
 
 // Variables globales
-let users = [
-    {
-        id: '001',
-        name: 'Juan Pérez',
-        email: 'juan.perez@empresa.com',
-        role: 'admin',
-        status: 'active',
-        phone: '+51 999 888 777',
-        lastAccess: '2024-01-15 14:30'
-    },
-    {
-        id: '002',
-        name: 'María García',
-        email: 'maria.garcia@empresa.com',
-        role: 'user',
-        status: 'active',
-        phone: '+51 999 777 666',
-        lastAccess: '2024-01-15 12:15'
-    },
-    {
-        id: '003',
-        name: 'Carlos López',
-        email: 'carlos.lopez@empresa.com',
-        role: 'manager',
-        status: 'inactive',
-        phone: '+51 999 666 555',
-        lastAccess: '2024-01-10 09:45'
-    }
-];
-
+const API_BASE = '/api/usuarios';
+let users = [];
+let roles = [];
+let documentTypes = [];
 let currentEditId = null;
+let searchTerm = '';
+let filters = { roleId: '', estado: '' };
+
+const elements = {};
+
+async function fetchJson(url, options = {}) {
+    const headers = options.headers ? new Headers(options.headers) : new Headers();
+    if (!(options.body instanceof FormData)) {
+        headers.set('Accept', 'application/json');
+        if (options.body) {
+            headers.set('Content-Type', 'application/json');
+        }
+    }
+
+    const response = await fetch(url, {
+        credentials: 'same-origin',
+        ...options,
+        headers
+    });
+
+    if (!response.ok) {
+        let errorMessage = `Error ${response.status}`;
+        try {
+            const errorData = await response.json();
+            if (errorData?.message) {
+                errorMessage = errorData.message;
+            } else if (Array.isArray(errorData?.errors)) {
+                errorMessage = errorData.errors.join(', ');
+            }
+        } catch (parseError) {
+            // ignore parse errors, keep default message
+        }
+        throw new Error(errorMessage);
+    }
+
+    if (response.status === 204) {
+        return null;
+    }
+
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+        return await response.json();
+    }
+
+    return null;
+}
 
 // Inicialización del módulo
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', () => {
+    cacheElements();
     initUsuariosModule();
-    loadUsers();
 });
 
-function initUsuariosModule() {
-    // Configurar eventos básicos
-    const searchInput = document.getElementById('searchInput');
-    const addUserBtn = document.getElementById('addUserBtn');
-    const filterBtn = document.getElementById('filterBtn');
-    const selectAllCheckbox = document.getElementById('selectAll');
-    const userModal = document.getElementById('userModal');
-    const closeModalBtn = document.getElementById('closeModal');
-    const cancelBtn = document.getElementById('cancelBtn');
-    const userForm = document.getElementById('userForm');
+function cacheElements() {
+    elements.searchInput = document.getElementById('searchInput');
+    elements.addUserBtn = document.getElementById('addUserBtn');
+    elements.filterBtn = document.getElementById('filterBtn');
+    elements.selectAllCheckbox = document.getElementById('selectAll');
+    elements.userModal = document.getElementById('userModal');
+    elements.userForm = document.getElementById('userForm');
+    elements.usersTableBody = document.getElementById('usersTableBody');
+    elements.paginationInfo = document.querySelector('.pagination-info');
+    elements.bulkActions = document.getElementById('bulkActions');
+    elements.selectedCount = document.getElementById('selectedCount');
+    elements.saveBtn = document.getElementById('saveBtn');
+    elements.roleDescription = document.getElementById('roleDescription');
+}
 
-    if (searchInput) {
-        searchInput.addEventListener('input', handleSearch);
+function initUsuariosModule() {
+    bindCoreListeners();
+    addPreviewListeners();
+    setTableLoading(true);
+    loadInitialData();
+}
+
+function bindCoreListeners() {
+    if (elements.searchInput) {
+        elements.searchInput.addEventListener('input', handleSearch);
     }
 
-    if (addUserBtn) {
-        addUserBtn.addEventListener('click', function(e) {
-            e.preventDefault();
+    if (elements.addUserBtn) {
+        elements.addUserBtn.addEventListener('click', event => {
+            event.preventDefault();
             openAddUserModal();
         });
-    } else {
-        console.error('addUserBtn not found!');
     }
 
-    if (filterBtn) {
-        filterBtn.addEventListener('click', handleFilter);
+    if (elements.filterBtn) {
+        elements.filterBtn.addEventListener('click', handleFilter);
     }
 
-    if (selectAllCheckbox) {
-        selectAllCheckbox.addEventListener('change', handleSelectAllCheckboxes);
+    if (elements.selectAllCheckbox) {
+        elements.selectAllCheckbox.addEventListener('change', handleSelectAllCheckboxes);
     }
+
+    if (elements.userForm) {
+        elements.userForm.addEventListener('submit', handleFormSubmit);
+    }
+
+    const closeModalBtn = document.getElementById('closeModal');
+    const cancelBtn = document.getElementById('cancelBtn');
 
     if (closeModalBtn) {
         closeModalBtn.addEventListener('click', closeModal);
@@ -79,43 +116,137 @@ function initUsuariosModule() {
         cancelBtn.addEventListener('click', closeModal);
     }
 
-    if (userForm) {
-        userForm.addEventListener('submit', handleFormSubmit);
-    }
-
-    // Cerrar modal al hacer clic fuera
-    if (userModal) {
-        userModal.addEventListener('click', function(e) {
-            if (e.target === userModal) {
+    if (elements.userModal) {
+        elements.userModal.addEventListener('click', event => {
+            if (event.target === elements.userModal) {
                 closeModal();
             }
         });
     }
+}
 
-    // Agregar listeners a botones de acción
-    addActionButtonListeners();
-    
-    // Agregar listeners para preview en tiempo real
-    addPreviewListeners();
+async function loadInitialData() {
+    try {
+        const [rolesResponse, documentTypesResponse, usersResponse] = await Promise.all([
+            fetchJson(`${API_BASE}/roles`),
+            fetchJson(`${API_BASE}/tipos-documento`),
+            fetchJson(`${API_BASE}`)
+        ]);
+
+        roles = Array.isArray(rolesResponse) ? rolesResponse : [];
+        documentTypes = Array.isArray(documentTypesResponse) ? documentTypesResponse : [];
+        users = Array.isArray(usersResponse) ? usersResponse : [];
+
+    populateRoleSelects();
+    populateDocumentTypes();
+    loadUsers();
+        updateRoleDescription();
+        showNotification('Usuarios cargados correctamente', 'success');
+    } catch (error) {
+        console.error('Error al cargar datos de usuarios', error);
+        showNotification('Ocurrió un error al cargar los usuarios', 'error');
+        setEmptyState('No se pudieron cargar los usuarios. Intenta nuevamente.');
+    } finally {
+        setTableLoading(false);
+    }
+}
+
+function populateRoleSelects() {
+    const roleSelect = document.getElementById('userRole');
+
+    if (!roleSelect) {
+        return;
+    }
+
+    const previousValue = roleSelect.value;
+    roleSelect.innerHTML = '<option value="">Seleccionar rol</option>';
+
+    roles.forEach(role => {
+        const option = document.createElement('option');
+        option.value = role.id;
+        option.textContent = role.nombre;
+        roleSelect.appendChild(option);
+    });
+
+    if (previousValue) {
+        roleSelect.value = previousValue;
+    }
+
+    updateRoleDescription();
+}
+
+function populateDocumentTypes() {
+    const documentSelect = document.getElementById('userDocumentType');
+    if (!documentSelect) {
+        return;
+    }
+
+    const previousValue = documentSelect.value;
+    documentSelect.innerHTML = '<option value="">Seleccionar</option>';
+
+    documentTypes.forEach(tipo => {
+        const option = document.createElement('option');
+        option.value = tipo.idTipoDocumento;
+        option.textContent = tipo.nombreTipoDocumento;
+        documentSelect.appendChild(option);
+    });
+
+    if (previousValue) {
+        documentSelect.value = previousValue;
+    }
+}
+
+function setTableLoading(isLoading) {
+    if (!elements.usersTableBody) {
+        return;
+    }
+
+    if (isLoading) {
+        elements.usersTableBody.innerHTML = `
+            <tr>
+                <td colspan="8" class="loading-state">
+                    <i class="fas fa-spinner fa-spin"></i> Cargando usuarios...
+                </td>
+            </tr>
+        `;
+    }
+}
+
+function setEmptyState(message) {
+    if (!elements.usersTableBody) {
+        return;
+    }
+
+    elements.usersTableBody.innerHTML = `
+        <tr>
+            <td colspan="8" class="empty-state">${message}</td>
+        </tr>
+    `;
+    updatePaginationInfo(0, 0);
 }
 
 // Cargar usuarios en la tabla
 function loadUsers() {
-    const tbody = document.getElementById('usersTableBody');
-    if (!tbody) return;
+    if (!elements.usersTableBody) {
+        return;
+    }
 
-    tbody.innerHTML = '';
-    
-    users.forEach(user => {
+    const filtered = getFilteredUsers();
+
+    if (!filtered.length) {
+        setEmptyState('No se encontraron usuarios');
+        return;
+    }
+
+    elements.usersTableBody.innerHTML = '';
+
+    filtered.forEach(user => {
         const row = createUserRow(user);
-        tbody.appendChild(row);
+        elements.usersTableBody.appendChild(row);
     });
 
-    updatePaginationInfo();
-    
-    // volver a enlazar listeners de botones
+    updatePaginationInfo(filtered.length, users.length);
     addActionButtonListeners();
-    // Adjuntar listeners de checkboxes
     attachCheckboxListeners();
 }
 
@@ -123,45 +254,28 @@ function loadUsers() {
 function createUserRow(user) {
     const row = document.createElement('tr');
     
-    const roleText = {
-        'admin': 'Administrador',
-        'manager': 'Gerente',
-        'user': 'Usuario'
-    };
-    
-    const statusText = {
-        'active': 'Activo',
-        'inactive': 'Inactivo'
-    };
-    
-    const roleClass = {
-        'admin': 'badge-admin',
-        'manager': 'badge-manager',
-        'user': 'badge-user'
-    };
-    
-    const statusClass = {
-        'active': 'badge-active',
-        'inactive': 'badge-inactive'
-    };
+    const primaryRole = getPrimaryRole(user);
+    const formattedId = formatUserId(user.id);
+    const statusInfo = getStatusInfo(user.estado);
+    const lastAccess = formatDate(user.fechaUltimaSesion);
 
     row.innerHTML = `
         <td><input type="checkbox" class="user-checkbox" data-user-id="${user.id}"></td>
-        <td>${user.id}</td>
+        <td>${formattedId}</td>
         <td>
             <div class="user-info">
                 <div class="user-avatar">
                     <i class="fas fa-user"></i>
                 </div>
                 <div class="user-details">
-                    <span class="user-name">${user.name}</span>
+                    <span class="user-name">${formatFullName(user)}</span>
                 </div>
             </div>
         </td>
-        <td>${user.email}</td>
-        <td><span class="badge ${roleClass[user.role]}">${roleText[user.role]}</span></td>
-        <td><span class="badge ${statusClass[user.status]}">${statusText[user.status]}</span></td>
-        <td>${user.lastAccess}</td>
+        <td>${user.email ?? ''}</td>
+        <td>${formatRoleBadge(primaryRole)}</td>
+        <td>${statusInfo.badge}</td>
+        <td>${lastAccess}</td>
         <td>
             <div class="action-buttons-cell">
                 <button class="btn-icon btn-edit" title="Editar" data-user-id="${user.id}">
@@ -180,24 +294,99 @@ function createUserRow(user) {
     return row;
 }
 
-// Funcionalidad de búsqueda
-function handleSearch(e) {
-    const searchTerm = e.target.value.toLowerCase();
-    const tableRows = document.querySelectorAll('#usersTableBody tr');
-
-    tableRows.forEach(row => {
-        const userName = row.querySelector('.user-name')?.textContent.toLowerCase() || '';
-        const userEmail = row.cells[3]?.textContent.toLowerCase() || '';
-        const userRole = row.cells[4]?.textContent.toLowerCase() || '';
-
-        if (userName.includes(searchTerm) || 
-            userEmail.includes(searchTerm) || 
-            userRole.includes(searchTerm)) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
+function getFilteredUsers() {
+    const term = searchTerm.trim();
+    const normalizedTerm = term.toLowerCase();
+    return users.filter(user => {
+        const matchesSearch = !normalizedTerm || matchesSearchTerm(user, normalizedTerm);
+        const matchesRole = !filters.roleId || user.roles?.some(r => String(r.id) === filters.roleId);
+        const matchesState = !filters.estado || String(Boolean(user.estado)) === filters.estado;
+        return matchesSearch && matchesRole && matchesState;
     });
+}
+
+function matchesSearchTerm(user, term) {
+    const values = [
+        formatFullName(user).toLowerCase(),
+        user.email?.toLowerCase() || '',
+        user.username?.toLowerCase() || '',
+        (user.roles || []).map(r => r.nombre?.toLowerCase() || '').join(' ')
+    ];
+
+    return values.some(value => value.includes(term));
+}
+
+function formatFullName(user) {
+    const nombres = user.nombres || '';
+    const apellidos = user.apellidos || '';
+    return `${nombres} ${apellidos}`.trim() || user.nombreCompleto || nombres || apellidos || 'Sin nombre';
+}
+
+function formatUserId(id) {
+    if (id === null || id === undefined) {
+        return '—';
+    }
+    const idNumber = Number(id);
+    if (Number.isNaN(idNumber)) {
+        return String(id);
+    }
+    return idNumber.toString().padStart(3, '0');
+}
+
+function getPrimaryRole(user) {
+    return Array.isArray(user.roles) && user.roles.length > 0 ? user.roles[0] : null;
+}
+
+function formatRoleBadge(role) {
+    if (!role) {
+        return '<span class="badge badge-secondary">Sin rol</span>';
+    }
+
+    const roleClass = getRoleClass(role.nombre);
+    return `<span class="badge ${roleClass}">${role.nombre}</span>`;
+}
+
+function getRoleClass(nombreRol = '') {
+    const normalized = nombreRol.toLowerCase();
+    if (normalized.includes('admin')) return 'badge-admin';
+    if (normalized.includes('gerente') || normalized.includes('manager')) return 'badge-manager';
+    if (normalized.includes('super')) return 'badge-supervisor';
+    return 'badge-user';
+}
+
+function getStatusInfo(isActive) {
+    const active = Boolean(isActive);
+    return {
+        badge: active
+            ? '<span class="badge badge-active">Activo</span>'
+            : '<span class="badge badge-inactive">Inactivo</span>',
+        value: active
+    };
+}
+
+function formatDate(value) {
+    if (!value) {
+        return '—';
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+        return String(value).replace('T', ' ');
+    }
+
+    return date.toLocaleString('es-PE', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+// Funcionalidad de búsqueda
+function handleSearch(event) {
+    searchTerm = event.target.value.toLowerCase();
+    loadUsers();
 }
 
 // Funcionalidad de filtros
@@ -209,12 +398,12 @@ function handleFilter() {
 function createFilterModal() {
     const modal = document.createElement('div');
     modal.className = 'modal center-modal show modal-top';
-    
+
     modal.innerHTML = `
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Filtros de Usuarios</h3>
-                <button class="modal-close" onclick="this.closest('.modal').remove()">
+                <button type="button" class="modal-close" data-action="close-modal">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -222,66 +411,86 @@ function createFilterModal() {
                 <div class="form-row">
                     <div class="form-group">
                         <label for="filterRole">Rol</label>
-                        <select id="filterRole">
-                            <option value="">Todos los roles</option>
-                            <option value="admin">Administrador</option>
-                            <option value="manager">Gerente</option>
-                            <option value="user">Usuario</option>
-                        </select>
+                        <select id="filterRole" class="form-select"></select>
                     </div>
                     <div class="form-group">
                         <label for="filterStatus">Estado</label>
-                        <select id="filterStatus">
-                            <option value="">Todos los estados</option>
-                            <option value="active">Activo</option>
-                            <option value="inactive">Inactivo</option>
-                        </select>
+                        <select id="filterStatus" class="form-select"></select>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="this.closest('.modal').remove()">Cancelar</button>
-                <button type="button" class="btn btn-primary" onclick="applyFilters()">Aplicar Filtros</button>
+                <button type="button" class="btn btn-secondary" data-action="close-modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" data-action="apply-filters">Aplicar Filtros</button>
             </div>
         </div>
     `;
-    
+
+    const roleSelect = modal.querySelector('#filterRole');
+    if (roleSelect) {
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = 'Todos los roles';
+        roleSelect.appendChild(defaultOption);
+
+        roles.forEach(role => {
+            const option = document.createElement('option');
+            option.value = String(role.id);
+            option.textContent = role.nombre;
+            roleSelect.appendChild(option);
+        });
+
+        roleSelect.value = filters.roleId ?? '';
+    }
+
+    const statusSelect = modal.querySelector('#filterStatus');
+    if (statusSelect) {
+        const statusOptions = [
+            { value: '', label: 'Todos los estados' },
+            { value: 'true', label: 'Activo' },
+            { value: 'false', label: 'Inactivo' }
+        ];
+
+        statusOptions.forEach(optionInfo => {
+            const option = document.createElement('option');
+            option.value = optionInfo.value;
+            option.textContent = optionInfo.label;
+            statusSelect.appendChild(option);
+        });
+
+        statusSelect.value = filters.estado ?? '';
+    }
+
+    const closeButtons = modal.querySelectorAll('[data-action="close-modal"]');
+    closeButtons.forEach(button => {
+        button.addEventListener('click', () => modal.remove());
+    });
+
+    const applyButton = modal.querySelector('[data-action="apply-filters"]');
+    if (applyButton) {
+        applyButton.addEventListener('click', () => applyFilters(modal));
+    }
+
     return modal;
 }
 
-function applyFilters() {
-    const roleFilter = document.getElementById('filterRole').value;
-    const statusFilter = document.getElementById('filterStatus').value;
-    
-    let filteredUsers = users;
-    
-    if (roleFilter) {
-        filteredUsers = filteredUsers.filter(user => user.role === roleFilter);
+function applyFilters(modalElement) {
+    const roleFilter = document.getElementById('filterRole')?.value ?? '';
+    const statusFilter = document.getElementById('filterStatus')?.value ?? '';
+
+    filters = {
+        roleId: roleFilter,
+        estado: statusFilter
+    };
+
+    loadUsers();
+
+    if (modalElement) {
+        modalElement.remove();
     }
-    
-    if (statusFilter) {
-        filteredUsers = filteredUsers.filter(user => user.status === statusFilter);
-    }
-    
-    // Actualizar tabla con datos filtrados
-    const tbody = document.getElementById('usersTableBody');
-    tbody.innerHTML = '';
-    
-    filteredUsers.forEach(user => {
-        const row = createUserRow(user);
-        tbody.appendChild(row);
-    });
-    
-    // Cerrar modal de filtros
-    const filterModal = document.querySelector('.center-modal');
-    if (filterModal) {
-        filterModal.remove();
-    }
-    
-    // Reagregar listeners
-    addActionButtonListeners();
-    
-    showNotification(`Filtros aplicados: ${filteredUsers.length} usuarios encontrados`);
+
+    const resultsCount = getFilteredUsers().length;
+    showNotification(`Filtros aplicados: ${resultsCount} usuario${resultsCount === 1 ? '' : 's'} encontrado${resultsCount === 1 ? '' : 's'}`);
 }
 
 // Manejo de checkboxes
@@ -354,14 +563,14 @@ function editUser(userId) {
 }
 
 function deleteUser(userId) {
-    const user = users.find(u => u.id === userId);
-    const userName = user ? user.name : '';
+    const user = users.find(u => String(u.id) === String(userId));
+    const userName = user ? formatFullName(user) : '';
     const deleteModal = createDeleteUserModal(userId, userName);
     document.body.appendChild(deleteModal);
 }
 
 function viewUser(userId) {
-    const user = users.find(u => u.id === userId);
+    const user = users.find(u => String(u.id) === String(userId));
     if (user) {
         const viewModal = createViewUserModal(user);
         document.body.appendChild(viewModal);
@@ -382,8 +591,23 @@ function openAddUserModal() {
         form.reset();
         // Limpiar cualquier ID de usuario existente
         currentEditId = null;
-        
-        // Restablecer preview
+        const passwordSection = form.querySelector('[data-password-section]');
+        if (passwordSection) {
+            passwordSection.style.display = 'block';
+        }
+
+        const passwordInput = form.querySelector('#userPassword');
+        const confirmInput = form.querySelector('#confirmPassword');
+        if (passwordInput) {
+            passwordInput.required = true;
+            passwordInput.value = '';
+        }
+        if (confirmInput) {
+            confirmInput.required = true;
+            confirmInput.value = '';
+        }
+
+        updateRoleDescription();
         updatePreview();
     }
 
@@ -410,20 +634,51 @@ function openEditUserModal(userId) {
         currentEditId = userId;
         
         // Encontrar y poblar datos del usuario
-        const user = users.find(u => u.id === userId);
+        const user = users.find(u => String(u.id) === String(userId));
         if (user) {
-            document.getElementById('userName').value = user.name || '';
-            document.getElementById('userEmail').value = user.email || '';
-            document.getElementById('userPhone').value = user.phone || '';
-            document.getElementById('userStatus').value = user.status || '';
-            document.getElementById('userRole').value = user.role || '';
-            
-            // Ocultar campos de contraseña en edición
-            const passwordSection = form.querySelector('.form-section:nth-child(2)');
-            if (passwordSection) {
-                passwordSection.style.display = 'none';
+            const firstNameInput = form.querySelector('#userFirstName');
+            const lastNameInput = form.querySelector('#userLastName');
+            const emailInput = form.querySelector('#userEmail');
+            const phoneInput = form.querySelector('#userPhone');
+            const statusSelect = form.querySelector('#userStatus');
+            const usernameInput = form.querySelector('#userUsername');
+            const documentTypeSelect = form.querySelector('#userDocumentType');
+            const documentNumberInput = form.querySelector('#userDocumentNumber');
+            const addressInput = form.querySelector('#userAddress');
+
+            if (firstNameInput) firstNameInput.value = user.nombres || '';
+            if (lastNameInput) lastNameInput.value = user.apellidos || '';
+            if (emailInput) emailInput.value = user.email || '';
+            if (phoneInput) phoneInput.value = user.celular || '';
+            if (statusSelect) statusSelect.value = String(Boolean(user.estado));
+            if (usernameInput) usernameInput.value = user.username || '';
+            if (documentTypeSelect) documentTypeSelect.value = user.tipoDocumentoId ? String(user.tipoDocumentoId) : '';
+            if (documentNumberInput) documentNumberInput.value = user.numeroDocumento || '';
+            if (addressInput) addressInput.value = user.direccion || '';
+
+            const roleSelect = form.querySelector('#userRole');
+            if (roleSelect) {
+                const primaryRoleId = Array.isArray(user.roles) && user.roles.length ? String(user.roles[0].id) : '';
+                roleSelect.value = primaryRoleId;
             }
-            
+
+            const passwordSection = form.querySelector('[data-password-section]');
+            if (passwordSection) {
+                passwordSection.style.display = 'block';
+            }
+
+            const passwordInput = form.querySelector('#userPassword');
+            const confirmInput = form.querySelector('#confirmPassword');
+            if (passwordInput) {
+                passwordInput.required = false;
+                passwordInput.value = '';
+            }
+            if (confirmInput) {
+                confirmInput.required = false;
+                confirmInput.value = '';
+            }
+
+            updateRoleDescription();
             updatePreview();
         }
     }
@@ -446,9 +701,19 @@ function closeModal() {
     // Mostrar campos de contraseña de nuevo para próxima vez
     const form = document.getElementById('userForm');
     if (form) {
-        const passwordSection = form.querySelector('.form-section:nth-child(2)');
+        const passwordSection = form.querySelector('[data-password-section]');
         if (passwordSection) {
             passwordSection.style.display = 'block';
+        }
+        const passwordInput = form.querySelector('#userPassword');
+        const confirmInput = form.querySelector('#confirmPassword');
+        if (passwordInput) {
+            passwordInput.required = true;
+            passwordInput.value = '';
+        }
+        if (confirmInput) {
+            confirmInput.required = true;
+            confirmInput.value = '';
         }
     }
     
@@ -482,14 +747,23 @@ function createDeleteUserModal(userId, userName) {
     `;
 
     // Agregar handler para confirmar eliminación
-    modal.querySelector('#confirmDeleteBtn').addEventListener('click', function() {
-        const userIndex = users.findIndex(user => user.id === userId);
-        if (userIndex !== -1) {
-            users.splice(userIndex, 1);
-            loadUsers();
+    modal.querySelector('#confirmDeleteBtn').addEventListener('click', async function() {
+        const button = this;
+        const originalContent = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Eliminando...';
+
+        try {
+            await fetchJson(`${API_BASE}/${userId}`, { method: 'DELETE' });
+            await refreshUsers();
             showNotification('Usuario eliminado exitosamente', 'success');
+            modal.remove();
+        } catch (error) {
+            console.error('Error al eliminar usuario', error);
+            showNotification(error.message || 'No se pudo eliminar el usuario', 'error');
+            button.disabled = false;
+            button.innerHTML = originalContent;
         }
-        modal.remove();
     });
 
     return modal;
@@ -501,17 +775,14 @@ function createViewUserModal(user) {
     modal.className = 'modal show';
     modal.style.display = 'flex';
     
-    const roleText = {
-        'admin': 'Administrador',
-        'manager': 'Gerente',
-        'user': 'Usuario'
-    };
-    
-    const statusText = {
-        'active': 'Activo',
-        'inactive': 'Inactivo'
-    };
-    
+    const rolesTexto = Array.isArray(user.roles) && user.roles.length
+        ? user.roles.map(role => role.nombre).join(', ')
+        : 'Sin roles asignados';
+
+    const estadoTexto = user.estado ? 'Activo' : 'Inactivo';
+    const fechaCreacion = formatDate(user.fechaCreacion);
+    const fechaUltimaSesion = formatDate(user.fechaUltimaSesion);
+
     modal.innerHTML = `
         <div class="modal-content">
             <div class="modal-header">
@@ -527,13 +798,18 @@ function createViewUserModal(user) {
                             <i class="fas fa-user"></i>
                         </div>
                         <div class="preview-details">
-                            <h5>${user.name}</h5>
-                            <p><strong>ID:</strong> ${user.id}</p>
-                            <p><strong>Email:</strong> ${user.email}</p>
-                            <p><strong>Teléfono:</strong> ${user.phone || 'No especificado'}</p>
-                            <p><strong>Rol:</strong> ${roleText[user.role] || user.role}</p>
-                            <p><strong>Estado:</strong> ${statusText[user.status] || user.status}</p>
-                            <p><strong>Último Acceso:</strong> ${user.lastAccess}</p>
+                            <h5>${formatFullName(user)}</h5>
+                            <p><strong>ID:</strong> ${formatUserId(user.id)}</p>
+                            <p><strong>Nombre de usuario:</strong> ${user.username || '—'}</p>
+                            <p><strong>Email:</strong> ${user.email || '—'}</p>
+                            <p><strong>Teléfono:</strong> ${user.celular || '—'}</p>
+                            <p><strong>Roles:</strong> ${rolesTexto}</p>
+                            <p><strong>Estado:</strong> ${estadoTexto}</p>
+                            <p><strong>Tipo de documento:</strong> ${user.tipoDocumentoNombre || '—'}</p>
+                            <p><strong>Número de documento:</strong> ${user.numeroDocumento || '—'}</p>
+                            <p><strong>Dirección:</strong> ${user.direccion || '—'}</p>
+                            <p><strong>Fecha de creación:</strong> ${fechaCreacion}</p>
+                            <p><strong>Última sesión:</strong> ${fechaUltimaSesion}</p>
                         </div>
                     </div>
                 </div>
@@ -555,79 +831,153 @@ function createViewUserModal(user) {
 }
 
 // Manejo del formulario
-function handleFormSubmit(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(e.target);
-    const userData = Object.fromEntries(formData.entries());
-    
-    // Validar formulario
-    if (!validateForm(userData)) {
+async function handleFormSubmit(event) {
+    event.preventDefault();
+
+    if (!elements.userForm) {
         return;
     }
 
-    // Mostrar estado de carga
-    const saveBtn = document.getElementById('saveBtn');
-    if (saveBtn) {
-        saveBtn.disabled = true;
-        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+    const formData = new FormData(elements.userForm);
+    const payload = buildUserPayload(formData);
+    const errors = validateForm(payload, Boolean(currentEditId));
+
+    if (errors.length) {
+        showNotification(errors.join(', '), 'error');
+        return;
     }
 
-    // Simular llamada API
-    setTimeout(() => {
+    const saveBtn = elements.saveBtn || document.getElementById('saveBtn');
+    setButtonLoading(saveBtn, true);
+
+    try {
         if (currentEditId) {
-            // Actualizar usuario existente
-            userData.id = currentEditId;
-            updateUser(userData);
+            const updatePayload = toUpdatePayload(payload);
+            await fetchJson(`${API_BASE}/${currentEditId}`, {
+                method: 'PUT',
+                body: JSON.stringify(updatePayload)
+            });
+            showNotification('Usuario actualizado correctamente', 'success');
         } else {
-            // Crear nuevo usuario
-            createUser(userData);
+            const createPayload = toCreatePayload(payload);
+            await fetchJson(`${API_BASE}`, {
+                method: 'POST',
+                body: JSON.stringify(createPayload)
+            });
+            showNotification('Usuario creado correctamente', 'success');
         }
 
-        // Cerrar modal
+        await refreshUsers();
         closeModal();
-        
-        // Restablecer botón
-        if (saveBtn) {
-            saveBtn.disabled = false;
-            saveBtn.innerHTML = '<i class="fas fa-save"></i> Guardar Usuario';
-        }
-    }, 1500);
+    } catch (error) {
+        console.error('Error al guardar usuario', error);
+        showNotification(error.message || 'No se pudo guardar el usuario', 'error');
+    } finally {
+        setButtonLoading(saveBtn, false);
+    }
 }
 
-// Validación del formulario
-function validateForm(data) {
+function buildUserPayload(formData) {
+    const toTrimmedValue = name => {
+        const value = formData.get(name);
+        return typeof value === 'string' ? value.trim() : '';
+    };
+
+    const roleValues = formData.getAll('rolIds').filter(Boolean);
+
+    return {
+        nombres: toTrimmedValue('nombres'),
+        apellidos: toTrimmedValue('apellidos'),
+        email: toTrimmedValue('email'),
+        celular: toTrimmedValue('celular') || null,
+        username: toTrimmedValue('username'),
+        estado: formData.get('estado') === 'false' ? false : true,
+        password: formData.get('password') || '',
+        confirmPassword: formData.get('confirmPassword') || '',
+        numeroDocumento: toTrimmedValue('numeroDocumento') || null,
+        direccion: toTrimmedValue('direccion') || null,
+        tipoDocumentoId: toTrimmedValue('tipoDocumentoId') ? Number(toTrimmedValue('tipoDocumentoId')) : null,
+        rolIds: roleValues.length ? roleValues.map(value => Number(value)) : []
+    };
+}
+
+function validateForm(payload, isEditMode) {
     const errors = [];
 
-    if (!data.name || data.name.trim().length < 2) {
-        errors.push('El nombre debe tener al menos 2 caracteres');
+    if (!payload.nombres || payload.nombres.length < 2) {
+        errors.push('Ingresa los nombres del usuario');
     }
 
-    if (!data.email || !isValidEmail(data.email)) {
-        errors.push('El email no es válido');
+    if (!payload.apellidos || payload.apellidos.length < 2) {
+        errors.push('Ingresa los apellidos del usuario');
     }
 
-    if (!data.role) {
-        errors.push('Debe seleccionar un rol');
+    if (!payload.email || !isValidEmail(payload.email)) {
+        errors.push('Ingresa un correo electrónico válido');
     }
 
-    // Solo validar contraseña para usuarios nuevos
-    if (!currentEditId) {
-        if (!data.password || data.password.length < 6) {
-            errors.push('La contraseña debe tener al menos 6 caracteres');
+    if (!payload.username || payload.username.length < 3) {
+        errors.push('Ingresa un nombre de usuario válido');
+    }
+
+    if (!payload.rolIds.length) {
+        errors.push('Selecciona al menos un rol');
+    }
+
+    if (!isEditMode) {
+        if (!payload.password || payload.password.length < 8) {
+            errors.push('La contraseña debe tener al menos 8 caracteres');
         }
-
-        if (data.password !== data.confirmPassword) {
+        if (payload.password !== payload.confirmPassword) {
+            errors.push('Las contraseñas no coinciden');
+        }
+    } else if (payload.password) {
+        if (payload.password.length < 8) {
+            errors.push('La contraseña debe tener al menos 8 caracteres');
+        }
+        if (payload.password !== payload.confirmPassword) {
             errors.push('Las contraseñas no coinciden');
         }
     }
 
-    if (errors.length > 0) {
-        showNotification(errors.join(', '), 'error');
-        return false;
+    return errors;
+}
+
+function toCreatePayload(payload) {
+    return {
+        nombres: payload.nombres,
+        apellidos: payload.apellidos,
+        email: payload.email,
+        celular: payload.celular,
+        username: payload.username,
+        password: payload.password,
+        numeroDocumento: payload.numeroDocumento,
+        direccion: payload.direccion,
+        tipoDocumentoId: payload.tipoDocumentoId,
+        estado: payload.estado,
+        rolIds: payload.rolIds
+    };
+}
+
+function toUpdatePayload(payload) {
+    const updatePayload = {
+        nombres: payload.nombres,
+        apellidos: payload.apellidos,
+        email: payload.email,
+        celular: payload.celular,
+        username: payload.username,
+        numeroDocumento: payload.numeroDocumento,
+        direccion: payload.direccion,
+        tipoDocumentoId: payload.tipoDocumentoId,
+        estado: payload.estado,
+        rolIds: payload.rolIds
+    };
+
+    if (payload.password) {
+        updatePayload.password = payload.password;
     }
 
-    return true;
+    return updatePayload;
 }
 
 function isValidEmail(email) {
@@ -635,67 +985,47 @@ function isValidEmail(email) {
     return emailRegex.test(email);
 }
 
-// Operaciones CRUD
-function createUser(userData) {
-    // Generar nuevo ID
-    const newId = String(users.length + 1).padStart(3, '0');
-    
-    // Crear nuevo objeto usuario
-    const newUser = {
-        id: newId,
-        name: userData.name,
-        email: userData.email,
-        role: userData.role,
-        status: userData.status,
-        phone: userData.phone || '',
-        lastAccess: new Date().toLocaleString('es-ES', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit'
-        })
-    };
-    
-    // Agregar al array de usuarios
-    users.push(newUser);
-    
-    // Actualizar tabla
-    loadUsers();
-    
-    showNotification('Usuario creado exitosamente', 'success');
+async function refreshUsers() {
+    try {
+        const usuarios = await fetchJson(`${API_BASE}`);
+        users = Array.isArray(usuarios) ? usuarios : [];
+        loadUsers();
+    } catch (error) {
+        console.error('Error al recargar usuarios', error);
+    }
 }
 
-function updateUser(userData) {
-    // Encontrar índice del usuario
-    const userIndex = users.findIndex(user => user.id === userData.id);
-    
-    if (userIndex !== -1) {
-        // Actualizar datos del usuario
-        users[userIndex] = {
-            ...users[userIndex],
-            name: userData.name,
-            email: userData.email,
-            role: userData.role,
-            status: userData.status,
-            phone: userData.phone || users[userIndex].phone
-        };
-        
-        // Actualizar tabla
-        loadUsers();
-        
-        showNotification('Usuario actualizado exitosamente', 'success');
+function setButtonLoading(button, isLoading) {
+    if (!button) {
+        return;
+    }
+
+    if (isLoading) {
+        button.disabled = true;
+        button.dataset.originalContent = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+    } else {
+        button.disabled = false;
+        const original = button.dataset.originalContent;
+        if (original) {
+            button.innerHTML = original;
+        }
     }
 }
 
 // Preview en tiempo real
 function addPreviewListeners() {
-    const nameInput = document.getElementById('userName');
+    const firstNameInput = document.getElementById('userFirstName');
+    const lastNameInput = document.getElementById('userLastName');
     const emailInput = document.getElementById('userEmail');
     const roleSelect = document.getElementById('userRole');
 
-    if (nameInput) {
-        nameInput.addEventListener('input', updatePreview);
+    if (firstNameInput) {
+        firstNameInput.addEventListener('input', updatePreview);
+    }
+
+    if (lastNameInput) {
+        lastNameInput.addEventListener('input', updatePreview);
     }
 
     if (emailInput) {
@@ -703,7 +1033,7 @@ function addPreviewListeners() {
     }
 
     if (roleSelect) {
-        roleSelect.addEventListener('change', function() {
+        roleSelect.addEventListener('change', () => {
             updateRoleDescription();
             updatePreview();
         });
@@ -711,11 +1041,12 @@ function addPreviewListeners() {
 }
 
 function updatePreview() {
-    const nameInput = document.getElementById('userName');
+    const firstNameInput = document.getElementById('userFirstName');
+    const lastNameInput = document.getElementById('userLastName');
     const emailInput = document.getElementById('userEmail');
     const roleSelect = document.getElementById('userRole');
 
-    if (!nameInput && !emailInput && !roleSelect) {
+    if (!firstNameInput && !lastNameInput && !emailInput && !roleSelect) {
         return;
     }
 
@@ -723,8 +1054,11 @@ function updatePreview() {
     const previewEmail = document.getElementById('previewUserEmail');
     const previewRole = document.getElementById('previewUserRole');
 
-    if (previewName && nameInput) {
-        previewName.textContent = nameInput.value || 'Nombre del Usuario';
+    if (previewName && (firstNameInput || lastNameInput)) {
+        const firstName = firstNameInput?.value?.trim() || '';
+        const lastName = lastNameInput?.value?.trim() || '';
+        const fullName = `${firstName} ${lastName}`.trim() || 'Nombre del Usuario';
+        previewName.textContent = fullName;
     }
 
     if (previewEmail && emailInput) {
@@ -732,12 +1066,8 @@ function updatePreview() {
     }
 
     if (previewRole && roleSelect) {
-        const roleText = {
-            'admin': 'Administrador',
-            'manager': 'Gerente',
-            'user': 'Usuario'
-        };
-        previewRole.textContent = roleText[roleSelect.value] || 'Sin rol asignado';
+        const selectedRole = roles.find(role => String(role.id) === roleSelect.value);
+        previewRole.textContent = selectedRole?.nombre || 'Sin rol asignado';
     }
 }
 
@@ -747,14 +1077,14 @@ function updateRoleDescription() {
     
     if (!roleSelect || !roleDescription) return;
     
-    const descriptions = {
-        'admin': 'Acceso completo al sistema con permisos de administración total',
-        'manager': 'Gestión de equipos, reportes y operaciones de nivel medio',
-        'user': 'Acceso básico al sistema con permisos limitados'
-    };
-    
-    const selectedRole = roleSelect.value;
-    roleDescription.textContent = descriptions[selectedRole] || 'Selecciona un rol para ver su descripción';
+    const selectedRole = roles.find(role => String(role.id) === roleSelect.value);
+    if (selectedRole?.descripcion) {
+        roleDescription.textContent = selectedRole.descripcion;
+    } else if (selectedRole) {
+        roleDescription.textContent = `Rol: ${selectedRole.nombre}`;
+    } else {
+        roleDescription.textContent = 'Selecciona un rol para ver su descripción';
+    }
 }
 
 
@@ -792,15 +1122,16 @@ function showNotification(message, type = 'info') {
 }
 
 // Función de paginación
-function updatePaginationInfo() {
-    const totalUsers = users.length;
-    const visibleRows = document.querySelectorAll('#usersTableBody tr:not([style*="display: none"])').length;
-    
-    // Actualizar información si existe elemento de paginación
-    const paginationInfo = document.querySelector('.pagination-info');
-    if (paginationInfo) {
-        paginationInfo.textContent = `Mostrando ${visibleRows} de ${totalUsers} usuarios`;
+function updatePaginationInfo(visibleCount, totalCount) {
+    const paginationInfo = elements.paginationInfo || document.querySelector('.pagination-info');
+    if (!paginationInfo) {
+        return;
     }
+
+    const total = Number.isFinite(totalCount) ? totalCount : users.length;
+    const visible = Number.isFinite(visibleCount) ? visibleCount : total;
+
+    paginationInfo.textContent = `Mostrando ${visible} de ${total} usuarios`;
 }
 
 // ==================== FUNCIONES DE CHECKBOXES ====================
@@ -867,24 +1198,13 @@ function updateBulkActionsVisibility() {
 // Obtener IDs de usuarios seleccionados
 function getSelectedUserIds() {
     const checkedCheckboxes = document.querySelectorAll('.user-checkbox:checked');
-    const selectedIds = [];
-    
-    checkedCheckboxes.forEach(checkbox => {
-        // Buscar el ID en la fila padre
-        const row = checkbox.closest('tr');
-        if (row) {
-            const idCell = row.querySelector('td:nth-child(2)'); // Segunda columna tiene el ID
-            if (idCell) {
-                selectedIds.push(idCell.textContent.trim());
-            }
-        }
-    });
-    
-    return selectedIds;
+    return Array.from(checkedCheckboxes)
+        .map(checkbox => checkbox.getAttribute('data-user-id'))
+        .filter(Boolean);
 }
 
 // Eliminar usuarios seleccionados
-function deleteSelectedUsers() {
+async function deleteSelectedUsers() {
     const selectedIds = getSelectedUserIds();
     
     if (selectedIds.length === 0) {
@@ -895,26 +1215,21 @@ function deleteSelectedUsers() {
     const confirmMessage = `¿Está seguro de eliminar ${selectedIds.length} usuario(s) seleccionado(s)?`;
     
     if (confirm(confirmMessage)) {
-        // Eliminar usuarios del array
-        selectedIds.forEach(id => {
-            const index = users.findIndex(user => user.id === id);
-            if (index !== -1) {
-                users.splice(index, 1);
+        try {
+            await Promise.all(selectedIds.map(id => fetchJson(`${API_BASE}/${id}`, { method: 'DELETE' })));
+            await refreshUsers();
+
+            const selectAll = document.getElementById('selectAll');
+            if (selectAll) {
+                selectAll.checked = false;
+                selectAll.indeterminate = false;
             }
-        });
-        
-        // Recargar tabla
-        loadUsers();
-        
-        // Limpiar selección
-        const selectAll = document.getElementById('selectAll');
-        if (selectAll) {
-            selectAll.checked = false;
-            selectAll.indeterminate = false;
+
+            showNotification(`${selectedIds.length} usuario(s) eliminado(s) exitosamente`, 'success');
+        } catch (error) {
+            console.error('Error al eliminar usuarios seleccionados', error);
+            showNotification(error.message || 'No se pudieron eliminar todos los usuarios seleccionados', 'error');
         }
-        
-        // Notificar éxito
-        showNotification(`${selectedIds.length} usuario(s) eliminado(s) exitosamente`, 'success');
     }
 }
 
@@ -928,13 +1243,16 @@ function exportSelectedUsers() {
     }
     
     // Filtrar usuarios seleccionados
-    const selectedUsers = users.filter(user => selectedIds.includes(user.id));
+    const selectedUsers = users.filter(user => selectedIds.includes(String(user.id)));
     
     // Crear contenido CSV
-    let csvContent = 'ID,Nombre,Email,Rol,Estado,Teléfono,Último Acceso\n';
+    let csvContent = 'ID,Nombres,Apellidos,Email,Roles,Estado,Teléfono,Fecha Creación\n';
     
     selectedUsers.forEach(user => {
-        const line = `${user.id},"${user.name}","${user.email}",${user.role},${user.status},"${user.phone}","${user.lastAccess}"\n`;
+        const roleNames = Array.isArray(user.roles) && user.roles.length ? user.roles.map(role => role.nombre).join(' | ') : 'Sin roles';
+        const estadoTexto = user.estado ? 'Activo' : 'Inactivo';
+        const fechaCreacion = formatDate(user.fechaCreacion);
+        const line = `${formatUserId(user.id)},"${user.nombres || ''}","${user.apellidos || ''}","${user.email || ''}","${roleNames}",${estadoTexto},"${user.celular || ''}","${fechaCreacion}"\n`;
         csvContent += line;
     });
     
