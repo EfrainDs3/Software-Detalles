@@ -1,5 +1,7 @@
 package fisi.software.detalles.controller.dto.usuario;
 
+import fisi.software.detalles.controller.dto.permiso.PermisoResumenResponse;
+import fisi.software.detalles.controller.dto.rol.RolResponse;
 import fisi.software.detalles.entity.Usuario;
 
 import java.time.LocalDateTime;
@@ -21,11 +23,13 @@ public record UsuarioResponse(
     String tipoDocumentoNombre,
     LocalDateTime fechaCreacion,
     LocalDateTime fechaUltimaSesion,
-    List<RolResponse> roles
+    List<RolResponse> roles,
+    List<PermisoResumenResponse> permisosDirectos
 ) {
 
     public static UsuarioResponse fromEntity(Usuario usuario) {
         var tipoDocumento = Optional.ofNullable(usuario.getTipoDocumento());
+        List<PermisoResumenResponse> permisosDirectos = List.of();
         return new UsuarioResponse(
             usuario.getId(),
             usuario.getNombres(),
@@ -42,8 +46,9 @@ public record UsuarioResponse(
             usuario.getFechaCreacion(),
             usuario.getFechaUltimaSesion(),
             usuario.getRoles().stream()
-                .map(RolResponse::fromEntity)
-                .toList()
+                .map(rol -> RolResponse.fromEntity(rol, 0L, List.of()))
+                .toList(),
+            permisosDirectos
         );
     }
 }

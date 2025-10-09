@@ -1,6 +1,6 @@
 package fisi.software.detalles.controller.api;
 
-import fisi.software.detalles.controller.dto.usuario.RolResponse;
+import fisi.software.detalles.controller.dto.rol.RolResponse;
 import fisi.software.detalles.controller.dto.usuario.UsuarioCreateRequest;
 import fisi.software.detalles.controller.dto.usuario.UsuarioResponse;
 import fisi.software.detalles.controller.dto.usuario.UsuarioUpdateRequest;
@@ -54,9 +54,7 @@ public class UsuarioApiController {
 
     @GetMapping("/roles")
     public List<RolResponse> listarRoles() {
-        return usuarioService.listarRoles().stream()
-            .map(RolResponse::fromEntity)
-            .toList();
+        return usuarioService.listarRoles();
     }
 
     @GetMapping("/tipos-documento")

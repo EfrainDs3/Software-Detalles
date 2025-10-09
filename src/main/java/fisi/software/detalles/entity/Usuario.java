@@ -73,6 +73,14 @@ public class Usuario {
     )
     private Set<Rol> roles = new HashSet<>();
 
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "usuario_permisos",
+        joinColumns = @JoinColumn(name = "id_usuario"),
+        inverseJoinColumns = @JoinColumn(name = "id_permiso")
+    )
+    private Set<Permiso> permisosExtra = new HashSet<>();
+
     @PrePersist
     protected void onCreate() {
         this.fechaCreacion = LocalDateTime.now();

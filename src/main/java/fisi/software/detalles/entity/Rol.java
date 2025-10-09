@@ -34,4 +34,12 @@ public class Rol {
 
     @ManyToMany(mappedBy = "roles", fetch = FetchType.LAZY)
     private Set<Usuario> usuarios = new HashSet<>();
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "rol_permisos",
+        joinColumns = @JoinColumn(name = "id_rol"),
+        inverseJoinColumns = @JoinColumn(name = "id_permiso")
+    )
+    private Set<Permiso> permisos = new HashSet<>();
 }

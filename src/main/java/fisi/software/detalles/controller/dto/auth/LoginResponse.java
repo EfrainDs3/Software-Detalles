@@ -1,6 +1,6 @@
 package fisi.software.detalles.controller.dto.auth;
 
-import fisi.software.detalles.controller.dto.usuario.RolResponse;
+import fisi.software.detalles.controller.dto.rol.RolResponse;
 import fisi.software.detalles.entity.Usuario;
 
 import java.time.LocalDateTime;
@@ -30,7 +30,9 @@ public record LoginResponse(
             usuario.getEmail(),
             usuario.getEstado(),
             usuario.getFechaUltimaSesion(),
-            usuario.getRoles().stream().map(RolResponse::fromEntity).toList(),
+            usuario.getRoles().stream()
+                .map(rol -> RolResponse.fromEntity(rol, 0L, List.of()))
+                .toList(),
             "Autenticación exitosa"
         );
     }

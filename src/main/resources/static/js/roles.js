@@ -1,32 +1,11 @@
 // Roles Module JavaScript
 
-// Global variables
-let roles = [
-    {
-        id: '001',
-        name: 'Administrador',
-        description: 'Acceso completo al sistema',
-        permissions: ['users.view', 'users.create', 'users.edit', 'users.delete', 'products.view', 'products.create', 'products.edit', 'products.delete', 'reports.view', 'reports.export', 'system.settings', 'system.audit'],
-        userCount: 3,
-        status: 'active'
-    },
-    {
-        id: '002',
-        name: 'Gerente',
-        description: 'Gestión de equipos y reportes',
-        permissions: ['users.view', 'users.edit', 'reports.view', 'reports.export'],
-        userCount: 5,
-        status: 'active'
-    },
-    {
-        id: '003',
-        name: 'Usuario',
-        description: 'Acceso básico al sistema',
-        permissions: ['products.view', 'reports.view'],
-        userCount: 12,
-        status: 'active'
-    }
-];
+const ROLE_API_URL = '/api/roles';
+
+// Global state
+let roles = [];
+let isLoadingRoles = false;
+let hasRoleLoadError = false;
 
 let currentEditId = null;
 
@@ -34,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize roles module
     initRolesModule();
     // Load initial data
-    loadRoles();
+    fetchAndRenderRoles();
 });
 
 function initRolesModule() {
@@ -101,13 +80,217 @@ function initRolesModule() {
     addPreviewUpdates();
 }
 
+async function fetchAndRenderRoles(filters = {}) {
+    isLoadingRoles = true;
+    hasRoleLoadError = false;
+    renderRolesPlaceholder('Cargando roles...', 'fa-spinner fa-spin');
+
+    try {
+        const data = await fetchRolesFromApi(filters);
+        roles = data.map(mapRoleResponseToViewModel);
+    } catch (error) {
+        console.error('Error al cargar los roles', error);
+        hasRoleLoadError = true;
+        roles = [];
+        renderRolesPlaceholder(error.message || 'No se pudieron cargar los roles.', 'fa-triangle-exclamation');
+        showNotification(error.message || 'No se pudieron cargar los roles.', 'error');
+        return;
+    } finally {
+        isLoadingRoles = false;
+    }
+
+    loadRoles();
+}
+
+async function fetchRolesFromApi(filters = {}) {
+    const params = new URLSearchParams();
+
+    if (filters.soloActivos !== undefined && filters.soloActivos !== null) {
+        params.append('soloActivos', filters.soloActivos);
+    }
+
+    const url = `${ROLE_API_URL}${params.toString() ? `?${params.toString()}` : ''}`;
+    const response = await fetch(url, {
+        headers: {
+            'Accept': 'application/json'
+        },
+        credentials: 'include'
+    });
+
+    if (!response.ok) {
+        let message = 'No se pudieron cargar los roles.';
+        try {
+            const errorBody = await response.json();
+            message = errorBody.message || errorBody.error || message;
+        } catch (_error) {
+            // ignore JSON parsing errors
+        }
+        throw new Error(message);
+    }
+
+    return response.json();
+}
+
+function mapRoleResponseToViewModel(role) {
+    const rawPermissions = Array.isArray(role.permisos) ? role.permisos : [];
+
+    const permissionDetails = rawPermissions
+        .map((permiso) => {
+            if (!permiso) {
+                return null;
+            }
+
+            if (typeof permiso === 'string') {
+                return {
+                    id: null,
+                    codigo: permiso,
+                    nombre: permiso
+                };
+            }
+
+            return {
+                id: permiso.id ?? null,
+                codigo: permiso.codigo ?? permiso.nombre ?? null,
+                nombre: permiso.nombre ?? permiso.codigo ?? ''
+            };
+        })
+        .filter(Boolean);
+
+    const permissionCodes = permissionDetails
+        .map((detalle) => detalle.codigo)
+        .filter((codigo) => typeof codigo === 'string' && codigo.length);
+
+    const normalizedId = role.id !== null && role.id !== undefined ? String(role.id) : null;
+
+    return {
+        id: normalizedId,
+    code: formatRoleId(normalizedId),
+        name: role.nombre,
+        description: role.descripcion || 'Sin descripción',
+        permissions: permissionCodes,
+        permissionDetails,
+        userCount: typeof role.totalUsuarios === 'number' ? role.totalUsuarios : 0,
+        status: role.estado ? 'active' : 'inactive',
+        assignedUsers: Array.isArray(role.usuarios) ? role.usuarios : [],
+        raw: role
+    };
+}
+
+function formatRoleId(id) {
+    if (id === null || id === undefined) {
+        return '--';
+    }
+
+    const numericId = Number(id);
+    if (Number.isNaN(numericId)) {
+        return String(id);
+    }
+
+    return numericId.toString().padStart(3, '0');
+}
+
+function renderRolesPlaceholder(message, iconClass = 'fa-circle-info') {
+    const tbody = document.getElementById('rolesTableBody');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+    const row = document.createElement('tr');
+    const cell = document.createElement('td');
+    cell.colSpan = 8;
+    cell.className = 'table-placeholder';
+    cell.innerHTML = `<i class="fas ${iconClass}"></i> <span>${message}</span>`;
+    row.appendChild(cell);
+    tbody.appendChild(row);
+}
+
+function formatUserFullName(user) {
+    if (!user) {
+        return '';
+    }
+    if (user.nombreCompleto) {
+        return user.nombreCompleto;
+    }
+    const nombres = [user.nombres, user.apellidos].filter(Boolean).join(' ').trim();
+    return nombres || user.email || '';
+}
+
+async function getResponseErrorMessage(response, fallbackMessage) {
+    if (!response) {
+        return fallbackMessage;
+    }
+
+    let message = fallbackMessage;
+
+    try {
+        const clone = response.clone();
+        const data = await clone.json();
+        message = data.message || data.error || message;
+    } catch (_jsonError) {
+        try {
+            const text = await response.text();
+            if (text) {
+                message = text;
+            }
+        } catch (_textError) {
+            // ignore secondary errors
+        }
+    }
+
+    return message;
+}
+
+function buildRoleRequestPayload(roleData) {
+    return {
+        nombre: roleData.name ? roleData.name.trim() : '',
+        descripcion: roleData.description ? (roleData.description.trim().length ? roleData.description.trim() : null) : null,
+        estado: roleData.status ? roleData.status === 'active' : true
+    };
+}
+
+async function deleteRoleFromApi(roleId) {
+    if (!roleId) {
+        throw new Error('Rol no válido para eliminar.');
+    }
+
+    const response = await fetch(`${ROLE_API_URL}/${roleId}`, {
+        method: 'DELETE',
+        headers: {
+            'Accept': 'application/json'
+        },
+        credentials: 'include'
+    });
+
+    if (!response.ok) {
+        const message = await getResponseErrorMessage(response, 'No se pudo eliminar el rol.');
+        throw new Error(message);
+    }
+}
+
 // Load roles into table
 function loadRoles() {
     const tbody = document.getElementById('rolesTableBody');
     if (!tbody) return;
 
     tbody.innerHTML = '';
-    
+
+    if (isLoadingRoles) {
+        renderRolesPlaceholder('Cargando roles...', 'fa-spinner fa-spin');
+        return;
+    }
+
+    if (hasRoleLoadError) {
+        renderRolesPlaceholder('No se pudieron cargar los roles.', 'fa-triangle-exclamation');
+        return;
+    }
+
+    if (!roles.length) {
+        renderRolesPlaceholder('No se encontraron roles registrados.', 'fa-inbox');
+        updatePaginationInfo();
+        updateSelectedCount();
+        updateBulkActionsVisibility();
+        return;
+    }
+
     roles.forEach(role => {
         const row = createRoleRow(role);
         tbody.appendChild(row);
@@ -119,6 +302,8 @@ function loadRoles() {
     addActionButtonListeners();
     // Attach checkbox listeners
     attachCheckboxListeners();
+    updateSelectedCount();
+    updateBulkActionsVisibility();
 }
 
 // Create role row
@@ -143,17 +328,26 @@ function createRoleRow(role) {
         return 'fas fa-user';
     };
 
-    // Create permissions badges
-    const permissionsHtml = role.permissions.slice(0, 2).map(permission => 
+    const permissionDetails = Array.isArray(role.permissionDetails) ? role.permissionDetails : [];
+    const permissionsHtml = permissionDetails.slice(0, 2).map(permission => 
         `<span class="badge badge-permission">${getPermissionDisplayName(permission)}</span>`
     ).join('');
 
-    const morePermissions = role.permissions.length > 2 ? 
-        `<span class="badge badge-permission">+${role.permissions.length - 2} más</span>` : '';
+    const morePermissions = permissionDetails.length > 2 ? 
+        `<span class="badge badge-permission">+${permissionDetails.length - 2} más</span>` : '';
+
+    const assignedUsers = Array.isArray(role.assignedUsers) ? role.assignedUsers : [];
+    const assignedUsersLabel = role.userCount === 1 ? 'usuario' : 'usuarios';
+    const assignedUsersTooltip = assignedUsers.length
+        ? assignedUsers.map(formatUserFullName).filter(Boolean).join(', ')
+        : 'Sin usuarios asignados';
+
+    const statusBadgeClass = statusClass[role.status] || 'badge-inactive';
+    const statusBadgeText = statusText[role.status] || 'Inactivo';
 
     row.innerHTML = `
         <td><input type="checkbox" class="role-checkbox" data-role-id="${role.id}"></td>
-        <td>${role.id}</td>
+        <td>${role.code}</td>
         <td>
             <div class="user-info">
                 <div class="user-avatar">
@@ -167,12 +361,12 @@ function createRoleRow(role) {
         <td>${role.description}</td>
         <td>
             <div class="permissions-list">
-                ${permissionsHtml}
-                ${morePermissions}
+            ${permissionsHtml}
+            ${permissionDetails.length === 0 ? '<span class="badge badge-permission badge-empty">Sin permisos</span>' : morePermissions}
             </div>
         </td>
-        <td><span class="badge badge-count">${role.userCount} usuarios</span></td>
-        <td><span class="badge ${statusClass[role.status]}">${statusText[role.status]}</span></td>
+        <td><span class="badge badge-count" title="${assignedUsersTooltip}">${role.userCount} ${assignedUsersLabel}</span></td>
+        <td><span class="badge ${statusBadgeClass}">${statusBadgeText}</span></td>
         <td>
             <div class="action-buttons-cell">
                 <button class="btn-icon btn-edit" title="Editar" data-role-id="${role.id}">
@@ -193,6 +387,18 @@ function createRoleRow(role) {
 
 // Get permission display name
 function getPermissionDisplayName(permission) {
+    if (!permission) {
+        return '';
+    }
+
+    const codigo = typeof permission === 'string'
+        ? permission
+        : (permission.codigo ?? permission.nombre ?? '');
+
+    const nombre = typeof permission === 'object' && permission.nombre
+        ? permission.nombre
+        : codigo;
+
     const permissionNames = {
         'users.view': 'Ver usuarios',
         'users.create': 'Crear usuarios',
@@ -207,7 +413,7 @@ function getPermissionDisplayName(permission) {
         'system.settings': 'Configuración',
         'system.audit': 'Auditoría'
     };
-    return permissionNames[permission] || permission;
+    return permissionNames[codigo] || nombre || codigo;
 }
 
 // Search functionality
@@ -368,46 +574,51 @@ function closeModal() {
 }
 
 // Form handling
-function handleFormSubmit(e) {
+async function handleFormSubmit(e) {
     e.preventDefault();
-    
+
     const formData = new FormData(e.target);
     const roleData = Object.fromEntries(formData.entries());
-    
+
     // Get selected permissions
     const selectedPermissions = Array.from(document.querySelectorAll('input[name="permissions"]:checked'))
         .map(checkbox => checkbox.value);
-    
+
     roleData.permissions = selectedPermissions;
-    
+
     // Validate form
     if (!validateRoleForm(roleData)) {
         return;
     }
 
-    // Show loading state
     const saveBtn = document.getElementById('saveBtn');
+    const originalButtonHtml = saveBtn ? saveBtn.innerHTML : '';
+
     if (saveBtn) {
         saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
         saveBtn.disabled = true;
     }
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
         if (roleData.id) {
-            updateRole(roleData);
+            await updateRole(roleData);
         } else {
-            createRole(roleData);
+            await createRole(roleData);
         }
-        
-        // Reset button
+
+        closeModal();
+        e.target.reset();
+        clearAllPermissions();
+        updateRolePreview();
+    } catch (error) {
+        console.error('Error al guardar el rol', error);
+        showNotification(error.message || 'No se pudo guardar el rol.', 'error');
+    } finally {
         if (saveBtn) {
-            saveBtn.innerHTML = 'Guardar';
+            saveBtn.innerHTML = originalButtonHtml || '<i class="fas fa-save"></i> Guardar Rol';
             saveBtn.disabled = false;
         }
-        
-        closeModal();
-    }, 1500);
+    }
 }
 
 function validateRoleForm(data) {
@@ -417,12 +628,8 @@ function validateRoleForm(data) {
         errors.push('El nombre del rol debe tener al menos 2 caracteres');
     }
 
-    if (!data.description || data.description.trim().length < 10) {
+    if (data.description && data.description.trim().length > 0 && data.description.trim().length < 10) {
         errors.push('La descripción debe tener al menos 10 caracteres');
-    }
-
-    if (!data.permissions || data.permissions.length === 0) {
-        errors.push('Debe seleccionar al menos un permiso');
     }
 
     if (errors.length > 0) {
@@ -434,48 +641,55 @@ function validateRoleForm(data) {
 }
 
 // Role CRUD operations
-function createRole(roleData) {
-    // Generate new ID
-    const newId = String(roles.length + 1).padStart(3, '0');
-    
-    // Create new role object
-    const newRole = {
-        id: newId,
-        name: roleData.name,
-        description: roleData.description,
-        permissions: roleData.permissions,
-        userCount: 0,
-        status: roleData.status
-    };
-    
-    // Add to roles array
-    roles.push(newRole);
-    
-    // Refresh table
-    loadRoles();
-    
+async function createRole(roleData) {
+    const payload = buildRoleRequestPayload(roleData);
+
+    const response = await fetch(ROLE_API_URL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+        const message = await getResponseErrorMessage(response, 'No se pudo crear el rol.');
+        throw new Error(message);
+    }
+
+    const newRole = await response.json();
     showNotification('Rol creado exitosamente', 'success');
+    await fetchAndRenderRoles();
+    return newRole;
 }
 
-function updateRole(roleData) {
-    // Find role index
-    const roleIndex = roles.findIndex(role => role.id === roleData.id);
-    
-    if (roleIndex !== -1) {
-        // Update role data
-        roles[roleIndex] = {
-            ...roles[roleIndex],
-            name: roleData.name,
-            description: roleData.description,
-            permissions: roleData.permissions,
-            status: roleData.status
-        };
-        
-        // Refresh table
-        loadRoles();
-        
-        showNotification('Rol actualizado exitosamente', 'success');
+async function updateRole(roleData) {
+    if (!roleData.id) {
+        throw new Error('No se pudo identificar el rol a actualizar.');
     }
+
+    const payload = buildRoleRequestPayload(roleData);
+    const response = await fetch(`${ROLE_API_URL}/${roleData.id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+        const message = await getResponseErrorMessage(response, 'No se pudo actualizar el rol.');
+        throw new Error(message);
+    }
+
+    const updatedRole = await response.json();
+    showNotification('Rol actualizado exitosamente', 'success');
+    await fetchAndRenderRoles();
+    return updatedRole;
 }
 
 function deleteRole(roleId) {
@@ -510,15 +724,17 @@ function createDeleteRoleModal(roleId, roleName) {
     `;
 
     // Attach handler for confirm delete
-    modal.querySelector('#confirmDeleteBtn').addEventListener('click', function() {
-        // perform delete
-        const roleIndex = roles.findIndex(role => role.id === roleId);
-        if (roleIndex !== -1) {
-            roles.splice(roleIndex, 1);
-            loadRoles();
+    modal.querySelector('#confirmDeleteBtn').addEventListener('click', async function() {
+        try {
+            await deleteRoleFromApi(roleId);
             showNotification('Rol eliminado exitosamente', 'success');
+            await fetchAndRenderRoles();
+        } catch (error) {
+            console.error('Error al eliminar rol', error);
+            showNotification(error.message || 'No se pudo eliminar el rol.', 'error');
+        } finally {
+            modal.remove();
         }
-        modal.remove();
     });
 
     return modal;
@@ -526,11 +742,34 @@ function createDeleteRoleModal(roleId, roleName) {
 
 function viewRole(roleId) {
     const role = roles.find(r => r.id === roleId);
-    
+
     if (role) {
         const viewModal = createViewRoleModal(role);
         document.body.appendChild(viewModal);
+        return;
     }
+
+    // fallback: try fetching directly
+    showNotification('Cargando detalles del rol...', 'success');
+    fetch(`${ROLE_API_URL}/${roleId}`, {
+        headers: { 'Accept': 'application/json' },
+        credentials: 'include'
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw response;
+            }
+            return response.json();
+        })
+        .then(roleResponse => {
+            const mappedRole = mapRoleResponseToViewModel(roleResponse);
+            const viewModal = createViewRoleModal(mappedRole);
+            document.body.appendChild(viewModal);
+        })
+        .catch(async error => {
+            const message = await getResponseErrorMessage(error, 'No se pudieron cargar los detalles del rol.');
+            showNotification(message, 'error');
+        });
 }
 
 function createViewRoleModal(role) {
@@ -562,13 +801,23 @@ function createViewRoleModal(role) {
                         <p><strong>Descripción:</strong> ${role.description}</p>
                         <p><strong>Estado:</strong> ${statusText[role.status]}</p>
                         <p><strong>Usuarios asignados:</strong> ${role.userCount}</p>
-                        <p><strong>Total de permisos:</strong> ${role.permissions.length}</p>
+                        <p><strong>Total de permisos:</strong> ${Array.isArray(role.permissionDetails) ? role.permissionDetails.length : 0}</p>
                     </div>
                 </div>
                 <div class="permissions-detail">
                     <h5>Permisos del Rol:</h5>
                     <div class="permission-list-detail">
-                        ${role.permissions.map(perm => `<span class="badge badge-permission">${getPermissionDisplayName(perm)}</span>`).join('')}
+                        ${Array.isArray(role.permissionDetails) && role.permissionDetails.length
+                            ? role.permissionDetails.map(perm => `<span class="badge badge-permission">${getPermissionDisplayName(perm)}</span>`).join('')
+                            : '<span class="badge badge-permission badge-empty">Sin permisos asignados</span>'}
+                    </div>
+                </div>
+                <div class="permissions-detail">
+                    <h5>Usuarios Asignados:</h5>
+                    <div class="permission-list-detail">
+                        ${role.assignedUsers.length
+                            ? role.assignedUsers.map(user => `<span class="badge badge-count">${formatUserFullName(user)}</span>`).join('')
+                            : '<span class="badge badge-empty">Sin usuarios asignados</span>'}
                     </div>
                 </div>
             </div>
@@ -591,7 +840,7 @@ function populateRoleForm(roleId) {
     const role = roles.find(r => r.id === roleId);
     if (role) {
         document.getElementById('roleName').value = role.name;
-        document.getElementById('roleDescription').value = role.description;
+        document.getElementById('roleDescription').value = role.description === 'Sin descripción' ? '' : role.description;
         document.getElementById('roleStatus').value = role.status;
         
         // Clear all checkboxes first
@@ -601,7 +850,7 @@ function populateRoleForm(roleId) {
         });
         
         // Check the role's permissions
-        role.permissions.forEach(permission => {
+        (role.permissions || []).forEach(permission => {
             const checkbox = document.querySelector(`input[name="permissions"][value="${permission}"]`);
             if (checkbox) {
                 checkbox.checked = true;
@@ -690,7 +939,11 @@ function updatePaginationInfo() {
     const paginationInfo = document.querySelector('.pagination-info');
     if (paginationInfo) {
         const totalRoles = roles.length;
-        paginationInfo.textContent = `Mostrando 1-${totalRoles} de ${totalRoles} roles`;
+        if (!totalRoles) {
+            paginationInfo.textContent = 'No hay roles para mostrar';
+        } else {
+            paginationInfo.textContent = `Mostrando 1-${totalRoles} de ${totalRoles} roles`;
+        }
     }
 }
 
@@ -797,11 +1050,28 @@ style.textContent = `
     .permissions-detail {
         margin-top: 20px;
     }
-    
+
     .permission-list-detail {
         display: flex;
         flex-wrap: wrap;
         gap: 5px;
+    }
+
+    .table-placeholder {
+        text-align: center;
+        padding: 24px 16px;
+        color: #6c757d;
+        font-size: 0.95rem;
+        background: #ffffff;
+    }
+
+    .table-placeholder i {
+        margin-right: 8px;
+    }
+
+    .badge-empty {
+        background-color: #e9ecef;
+        color: #495057;
     }
 `;
 document.head.appendChild(style);
@@ -894,26 +1164,25 @@ function deleteSelectedRoles() {
     const confirmMessage = `¿Está seguro de eliminar ${selectedIds.length} rol(es) seleccionado(s)?`;
     
     if (confirm(confirmMessage)) {
-        // Eliminar roles del array
-        selectedIds.forEach(id => {
-            const index = roles.findIndex(role => role.id === id);
-            if (index !== -1) {
-                roles.splice(index, 1);
-            }
-        });
-        
-        // Recargar tabla
-        loadRoles();
-        
-        // Limpiar selección
-        const selectAll = document.getElementById('selectAll');
-        if (selectAll) {
-            selectAll.checked = false;
-            selectAll.indeterminate = false;
-        }
-        
-        // Notificar éxito
-        showNotification(`${selectedIds.length} rol(es) eliminado(s) exitosamente`, 'success');
+        Promise.all(selectedIds.map(id => deleteRoleFromApi(id).catch(error => ({ error, id }))))
+            .then(async results => {
+                const failed = results.filter(result => result && result.error);
+                if (failed.length) {
+                    const firstError = failed[0];
+                    const message = await getResponseErrorMessage(firstError.error, `No se pudo eliminar el rol ${firstError.id}.`);
+                    showNotification(message, 'error');
+                } else {
+                    showNotification(`${selectedIds.length} rol(es) eliminado(s) exitosamente`, 'success');
+                }
+            })
+            .finally(async () => {
+                await fetchAndRenderRoles();
+                const selectAll = document.getElementById('selectAll');
+                if (selectAll) {
+                    selectAll.checked = false;
+                    selectAll.indeterminate = false;
+                }
+            });
     }
 }
 

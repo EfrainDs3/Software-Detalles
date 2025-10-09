@@ -239,6 +239,25 @@ input[type="checkbox"]:indeterminate {
     background-color: #f8f9fa;
 }
 
+.placeholder-row {
+    text-align: center;
+    padding: 24px 16px;
+    background: #ffffff;
+}
+
+.placeholder-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    color: #6c757d;
+    font-size: 0.95rem;
+}
+
+.placeholder-content i {
+    font-size: 1.1rem;
+}
+
 /* Role Info */
 .user-info {
     display: flex;

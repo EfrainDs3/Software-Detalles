@@ -1,5 +1,6 @@
 package fisi.software.detalles.service;
 
+import fisi.software.detalles.controller.dto.rol.RolResponse;
 import fisi.software.detalles.controller.dto.usuario.UsuarioCreateRequest;
 import fisi.software.detalles.controller.dto.usuario.UsuarioResponse;
 import fisi.software.detalles.controller.dto.usuario.UsuarioUpdateRequest;
@@ -31,11 +32,12 @@ public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final RolRepository rolRepository;
+    private final RolService rolService;
     private final TipoDocumentoRepository tipoDocumentoRepository;
     private final PasswordEncoder passwordEncoder;
 
     public List<UsuarioResponse> listarUsuarios() {
-        return usuarioRepository.findAll().stream()
+        return usuarioRepository.findAllByOrderByNombresAscApellidosAsc().stream()
             .map(UsuarioResponse::fromEntity)
             .collect(Collectors.toList());
     }
@@ -77,8 +79,8 @@ public class UsuarioService {
         usuarioRepository.deleteById(id);
     }
 
-    public List<Rol> listarRoles() {
-        return rolRepository.findAll();
+    public List<RolResponse> listarRoles() {
+    return rolService.listarRoles(true);
     }
 
     public Usuario autenticar(String identificador, String password) {
@@ -151,4 +153,5 @@ public class UsuarioService {
                 });
         }
     }
+
 }
