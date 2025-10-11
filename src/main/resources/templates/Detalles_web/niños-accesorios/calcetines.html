@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calcetines para Niños - Detalles</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <base href="/src/main/resources/templates/Detalles%20web/">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="logo">
+                    <h1>Detalles</h1>
+                </div>
+                
+                <ul class="nav-menu">
+                    <li><a href="../index.html">Inicio</a></li>
+                    <li class="menu-item-has-children">
+                        <a href="#mujeres">Mujeres <i class="fas fa-chevron-down"></i></a>
+                        <div class="submenu">
+                            <div class="submenu-content">
+                                <div class="submenu-column">
+                                    <h3>Calzado</h3>
+                                    <ul>
+                                        <li><a href="../mujeres/zapatillas-deportivas.html">Zapatillas Deportivas</a></li>
+                                        <li><a href="../mujeres/zapatos-casuales.html">Zapatos Casuales</a></li>
+                                        <li><a href="../mujeres/tacones.html">Tacones</a></li>
+                                        <li><a href="../mujeres/sandalias.html">Sandalias</a></li>
+                                        <li><a href="../mujeres/botas.html">Botas</a></li>
+                                    </ul>
+                                </div>
+                                <div class="submenu-column">
+                                    <h3>Accesorios</h3>
+                                    <ul>
+                                        <li><a href="../mujeres-accesorios/bolsos.html">Bolsos</a></li>
+                                        <li><a href="../mujeres-accesorios/billeteras.html">Billeteras</a></li>
+                                        <li><a href="../mujeres-accesorios/gafas-de-sol.html">Gafas de Sol</a></li>
+                                        <li><a href="../mujeres-accesorios/cinturones.html">Cinturones</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    
+                    <li class="menu-item-has-children">
+                        <a href="#">Hombres <i class="fas fa-chevron-down"></i></a>
+                    </li>
+                    
+                    <li class="menu-item-has-children">
+                        <a href="#">Niños <i class="fas fa-chevron-down"></i></a>
+                        <div class="submenu">
+                            <div class="submenu-content">
+                                <div class="submenu-column">
+                                    <h3>Calzado</h3>
+                                    <ul>
+                                        <li><a href="../ninos/zapatillas-deportivas.html">Zapatillas Deportivas</a></li>
+                                        <li><a href="../ninos/zapatos-escolares.html">Zapatos Escolares</a></li>
+                                        <li><a href="../ninos/sandalias.html">Sandalias</a></li>
+                                        <li><a href="../ninos/botas.html">Botas</a></li>
+                                        <li><a href="../ninos/pantuflas.html">Pantuflas</a></li>
+                                        <li><a href="../ninos/zapatos-casuales.html">Zapatos Casuales</a></li>
+                                    </ul>
+                                </div>
+                                <div class="submenu-column">
+                                    <h3>Accesorios</h3>
+                                    <ul>
+                                        <li><a href="gorras.html">Gorras</a></li>
+                                        <li><a href="calcetines.html">Calcetines</a></li>
+                                        <li><a href="lentes-de-sol.html">Lentes de Sol</a></li>
+                                        <li><a href="cinturones.html">Cinturones</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+                
+                <div class="nav-icons">
+                    <a href="#" class="nav-icon search-icon">
+                        <i class="fas fa-search"></i>
+                    </a>
+                    <a href="#" class="nav-icon">
+                        <i class="fas fa-user"></i>
+                    </a>
+                    <a href="#" class="nav-icon cart-icon">
+                        <i class="fas fa-shopping-bag"></i>
+                        <span class="cart-count">0</span>
+                    </a>
+                </div>
+                
+                <div class="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <div class="breadcrumb-content">
+            <span>Calcetines para Niños</span>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <section class="products-page">
+        <div class="products-container">
+            <!-- Filtros Sidebar -->
+            <aside class="filters-sidebar">
+                <div class="filter-section">
+                    <h3>Precio</h3>
+                    <div class="price-filter">
+                        <input type="range" class="price-range" min="0" max="40" value="20">
+                        <div class="price-inputs">
+                            <input type="number" placeholder="Mín" value="0">
+                            <input type="number" placeholder="Máx" value="40">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <h3>Talla</h3>
+                    <div class="size-filter">
+                        <div class="size-option">S</div>
+                        <div class="size-option">M</div>
+                        <div class="size-option">L</div>
+                        <div class="size-option">XL</div>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <h3>Color</h3>
+                    <div class="color-filter">
+                        <div class="color-option selected" style="background: #000;" title="Negro"></div>
+                        <div class="color-option" style="background: #fff; border: 1px solid #ddd;" title="Blanco"></div>
+                        <div class="color-option" style="background: #2196F3;" title="Azul"></div>
+                        <div class="color-option" style="background: #e91e63;" title="Rosado"></div>
+                        <div class="color-option" style="background: #f44336;" title="Rojo"></div>
+                        <div class="color-option" style="background: #4CAF50;" title="Verde"></div>
+                        <div class="color-option" style="background: #424242;" title="Gris"></div>
+                        <div class="color-option" style="background: #FF9800;" title="Naranja"></div>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <h3>Marca</h3>
+                    <div class="brand-filter">
+                        <label class="brand-option">
+                            <input type="checkbox"> Nike
+                        </label>
+                        <label class="brand-option">
+                            <input type="checkbox"> Adidas
+                        </label>
+                        <label class="brand-option">
+                            <input type="checkbox"> Puma
+                        </label>
+                        <label class="brand-option">
+                            <input type="checkbox"> Under Armour
+                        </label>
+                        <label class="brand-option">
+                            <input type="checkbox"> Hanes
+                        </label>
+                        <label class="brand-option">
+                            <input type="checkbox"> Disney
+                        </label>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <h3>Género</h3>
+                    <div class="brand-filter">
+                        <label class="brand-option">
+                            <input type="checkbox"> Niño
+                        </label>
+                        <label class="brand-option">
+                            <input type="checkbox"> Niña
+                        </label>
+                        <label class="brand-option">
+                            <input type="checkbox"> Unisex
+                        </label>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <h3>Tipo</h3>
+                    <div class="brand-filter">
+                        <label class="brand-option">
+                            <input type="checkbox"> Deportivos
+                        </label>
+                        <label class="brand-option">
+                            <input type="checkbox"> Escolares
+                        </label>
+                        <label class="brand-option">
+                            <input type="checkbox"> Casuales
+                        </label>
+                        <label class="brand-option">
+                            <input type="checkbox"> Tobilleros
+                        </label>
+                        <label class="brand-option">
+                            <input type="checkbox"> Largos
+                        </label>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <h3>Material</h3>
+                    <div class="brand-filter">
+                        <div class="brand-option">
+                            <input type="checkbox" id="algodon" checked>
+                            <label for="algodon">Algodón</label>
+                        </div>
+                        <div class="brand-option">
+                            <input type="checkbox" id="poliester">
+                            <label for="poliester">Poliéster</label>
+                        </div>
+                        <div class="brand-option">
+                            <input type="checkbox" id="lana">
+                            <label for="lana">Lana</label>
+                        </div>
+                        <div class="brand-option">
+                            <input type="checkbox" id="nylon">
+                            <label for="nylon">Nylon</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <h3>Cantidad</h3>
+                    <div class="brand-filter">
+                        <label class="brand-option">
+                            <input type="checkbox"> Pack 3 Pares
+                        </label>
+                        <label class="brand-option">
+                            <input type="checkbox"> Pack 6 Pares
+                        </label>
+                        <label class="brand-option">
+                            <input type="checkbox"> Individual
+                        </label>
+                    </div>
+                </div>
+
+                <button class="btn-add-cart" style="width: 100%; margin-top: 1rem;">
+                    Aplicar Filtros
+                </button>
+            </aside>
+
+            <!-- Productos Main -->
+            <main class="products-main">
+                <div class="products-header">
+                    <h1>Calcetines para Niños</h1>
+                    <div class="sort-options">
+                        <span class="products-count">32 productos</span>
+                        <select>
+                            <option>Ordenar por: Más relevantes</option>
+                            <option>Precio: Menor a Mayor</option>
+                            <option>Precio: Mayor a Menor</option>
+                            <option>Mejor valorados</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="products-grid-detailed">
+                    <!-- Producto 1 -->
+                    <div class="product-card-detailed" data-product-id="801">
+                        <div class="product-image-detailed">
+                            <img src="https://via.placeholder.com/300x300" alt="Nike Performance">
+                            <div class="product-badge">Nuevo</div>
+                        </div>
+                        <div class="product-info-detailed">
+                            <div class="product-brand">Nike</div>
+                            <h3 class="product-title-detailed">Performance Crew Kids 3 Pack</h3>
+                            <div class="product-price">
+                                <span class="current-price">$14.99</span>
+                                <span class="original-price">$19.99</span>
+                                <span class="discount">-25%</span>
+                            </div>
+                            <div class="product-actions">
+                                <button class="btn-add-cart">Añadir al Carrito</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Producto 2 -->
+                    <div class="product-card-detailed" data-product-id="802">
+                        <div class="product-image-detailed">
+                            <img src="https://via.placeholder.com/300x300" alt="Adidas Cushioned">
+                        </div>
+                        <div class="product-info-detailed">
+                            <div class="product-brand">Adidas</div>
+                            <h3 class="product-title-detailed">Cushioned Crew 6 Pack</h3>
+                            <div class="product-price">
+                                <span class="current-price">$19.99</span>
+                            </div>
+                            <div class="product-actions">
+                                <button class="btn-add-cart">Añadir al Carrito</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Producto 3 -->
+                    <div class="product-card-detailed" data-product-id="803">
+                        <div class="product-image-detailed">
+                            <img src="https://via.placeholder.com/300x300" alt="Puma Ankle">
+                            <div class="product-badge">Oferta</div>
+                        </div>
+                        <div class="product-info-detailed">
+                            <div class="product-brand">Puma</div>
+                            <h3 class="product-title-detailed">Ankle Socks Kids 3 Pack</h3>
+                            <div class="product-price">
+                                <span class="current-price">$9.99</span>
+                                <span class="original-price">$14.99</span>
+                                <span class="discount">-33%</span>
+                            </div>
+                            <div class="product-actions">
+                                <button class="btn-add-cart">Añadir al Carrito</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Producto 4 -->
+                    <div class="product-card-detailed" data-product-id="804">
+                        <div class="product-image-detailed">
+                            <img src="https://via.placeholder.com/300x300" alt="Under Armour">
+                        </div>
+                        <div class="product-info-detailed">
+                            <div class="product-brand">Under Armour</div>
+                            <h3 class="product-title-detailed">Youth HeatGear 3 Pack</h3>
+                            <div class="product-price">
+                                <span class="current-price">$16.99</span>
+                            </div>
+                            <div class="product-actions">
+                                <button class="btn-add-cart">Añadir al Carrito</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Producto 5 -->
+                    <div class="product-card-detailed" data-product-id="805">
+                        <div class="product-image-detailed">
+                            <img src="https://via.placeholder.com/300x300" alt="Hanes Comfort">
+                        </div>
+                        <div class="product-info-detailed">
+                            <div class="product-brand">Hanes</div>
+                            <h3 class="product-title-detailed">ComfortBlend Crew 6 Pack</h3>
+                            <div class="product-price">
+                                <span class="current-price">$12.99</span>
+                            </div>
+                            <div class="product-actions">
+                                <button class="btn-add-cart">Añadir al Carrito</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Producto 6 -->
+                    <div class="product-card-detailed" data-product-id="806">
+                        <div class="product-image-detailed">
+                            <img src="https://via.placeholder.com/300x300" alt="Disney Characters">
+                            <div class="product-badge">Oferta</div>
+                        </div>
+                        <div class="product-info-detailed">
+                            <div class="product-brand">Disney</div>
+                            <h3 class="product-title-detailed">Character Socks 3 Pack</h3>
+                            <div class="product-price">
+                                <span class="current-price">$8.99</span>
+                                <span class="original-price">$12.99</span>
+                                <span class="discount">-31%</span>
+                            </div>
+                            <div class="product-actions">
+                                <button class="btn-add-cart">Añadir al Carrito</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Detalles</h3>
+                    <p>Tu destino para calzados y accesorios de calidad.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3>Enlaces Rápidos</h3>
+                    <ul>
+                        <li><a href="../index.html">Inicio</a></li>
+                        <li><a href="../mujeres/calzado.html">Mujeres</a></li>
+                        <li><a href="../hombres/calzado.html">Hombres</a></li>
+                        <li><a href="../ninos/calzado.html">Niños</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Servicios</h3>
+                    <ul>
+                        <li><a href="#">Envíos a Domicilio</a></li>
+                        <li><a href="#">Cambios y Devoluciones</a></li>
+                        <li><a href="#">Guía de Talles</a></li>
+                        <li><a href="#">Preguntas Frecuentes</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Newsletter</h3>
+                    <p>Suscríbete para recibir ofertas exclusivas</p>
+                    <form class="newsletter-form">
+                        <input type="email" placeholder="Tu email" required>
+                        <button type="submit">Suscribirse</button>
+                    </form>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Detalles. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../js/script.js"></script>
+</body>
+</html>
