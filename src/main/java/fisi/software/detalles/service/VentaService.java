@@ -35,7 +35,7 @@ public class VentaService {
         Long nuevoIdComprobante = System.currentTimeMillis() % 1000 + 1000; 
         
         System.out.println("LOG: Venta registrada (MOCK) | Total: " + ventaDTO.getMonto_total());
-                           
+                            
         Map<String, Object> response = new HashMap<>();
         response.put("id_venta", nuevoIdComprobante);
         response.put("mensaje", "Venta registrada exitosamente (MOCK). ID: " + nuevoIdComprobante);
