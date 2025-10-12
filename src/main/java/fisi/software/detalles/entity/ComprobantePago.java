@@ -3,6 +3,7 @@ package fisi.software.detalles.entity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -28,6 +29,7 @@ import lombok.AllArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "usuario", "cliente", "tipoComprobante"})
 public class ComprobantePago {
 
     // Clave Primaria: id_comprobante (BIGINT, AUTO_INCREMENT)

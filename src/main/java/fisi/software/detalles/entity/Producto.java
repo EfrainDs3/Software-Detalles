@@ -12,8 +12,10 @@ import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @Entity
 @Table(name = "Productos")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "categoria", "proveedor", "modelo", "material", "unidad", "tiposProducto", "tallas"})
 public class Producto implements Serializable {
 
     @Id

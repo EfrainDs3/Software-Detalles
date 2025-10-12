@@ -80,10 +80,10 @@ document.addEventListener('DOMContentLoaded', () => {
         ventasTableBody.innerHTML = '';
         ventasData.forEach(venta => {
             // **IMPORTANTE**: Ajustar los nombres de las propiedades al formato de tu DTO/Entity de Java
-            const id = venta.idVenta || venta.id; // Asumo idVenta si usaste ese DTO
-            const cliente = venta.cliente ? venta.cliente.nombreCompleto : venta.nombre_cliente_temp; // Ejemplo de cómo acceder
+            const id = venta.idVenta || venta.id;
+            const cliente = venta.nombreClienteMostrado || venta.cliente || venta.nombre_cliente_temp;
             const fecha = venta.fecha_emision || venta.fecha; 
-            const metodoPago = venta.tipoPago ? venta.tipoPago.nombre : venta.metodoPago; // Asumiendo que el backend trae un objeto
+            const metodoPago = venta.tipoPago ? venta.tipoPago.nombre : venta.metodoPago;
             const estado = venta.estado_comprobante || venta.estado;
             const total = venta.monto_total || venta.total;
 
@@ -184,12 +184,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showDetalleModal(venta) {
-        detalleVentaId.textContent = venta.idVenta || venta.id;
-        detalleVentaCliente.textContent = venta.cliente ? venta.cliente.nombreCompleto : venta.nombre_cliente_temp;
-        detalleVentaFecha.textContent = venta.fecha_emision || venta.fecha;
-        detalleVentaMetodoPago.textContent = venta.tipoPago ? venta.tipoPago.nombre : venta.metodoPago;
-        detalleVentaEstado.textContent = venta.estado_comprobante || venta.estado;
-        detalleVentaTotal.textContent = `S/ ${(venta.monto_total || venta.total).toFixed(2)}`;
+    detalleVentaId.textContent = venta.idVenta || venta.id;
+    detalleVentaCliente.textContent = venta.nombreClienteMostrado || venta.cliente || venta.nombre_cliente_temp;
+    detalleVentaFecha.textContent = venta.fecha_emision || venta.fecha;
+    detalleVentaMetodoPago.textContent = venta.tipoPago ? venta.tipoPago.nombre : venta.metodoPago;
+    detalleVentaEstado.textContent = venta.estado_comprobante || venta.estado;
+    detalleVentaTotal.textContent = `S/ ${(venta.monto_total || venta.total).toFixed(2)}`;
 
         detalleProductosList.innerHTML = ''; // Limpiar la lista anterior
         const productosDetalle = venta.detalles || venta.productos;
@@ -293,15 +293,22 @@ document.addEventListener('DOMContentLoaded', () => {
     ventaForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        // 1. Recolectar detalles de productos (AJUSTADO PARA EL ENVÍO)
+        // 1. Recolectar detalles de productos (AJUSTADO PARA EL ENVÍO) con validación
         const detalles = [];
-        productosContainer.querySelectorAll('.product-item').forEach(item => {
+        let detallesValidos = true;
+        productosContainer.querySelectorAll('.product-item').forEach((item, idx) => {
+            const nombreProducto = item.querySelector('.product-name-input').value;
+            if (!nombreProducto || nombreProducto.trim() === "") {
+                alert(`El nombre del producto en el detalle #${idx + 1} no puede estar vacío.`);
+                detallesValidos = false;
+            }
             detalles.push({
-                nombre_producto: item.querySelector('.product-name-input').value, // Adaptado al DTO
+                nombre_producto_temp: nombreProducto,
                 cantidad: parseInt(item.querySelector('.product-qty-input').value),
                 precio_unitario: parseFloat(item.querySelector('.product-price-input').value)
             });
         });
+        if (!detallesValidos) return; // No envía la venta si hay error
 
         // 2. Construir el objeto de Venta (ComprobantePago)
         const ventaPayload = {

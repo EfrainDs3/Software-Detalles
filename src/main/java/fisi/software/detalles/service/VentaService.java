@@ -1,3 +1,7 @@
+    // ======================================================================
+    // MÉTODO: ACTUALIZAR VENTA EXISTENTE
+    // ======================================================================
+
 package fisi.software.detalles.service;
 
 import org.springframework.stereotype.Service;
@@ -42,6 +46,25 @@ import java.util.stream.Collectors;
 
 @Service
 public class VentaService {
+    // ======================================================================
+    // MÉTODO: ACTUALIZAR VENTA EXISTENTE
+    // ======================================================================
+    public Map<String, Object> updateVenta(VentaRequestDTO ventaDTO) {
+        if (ventaDTO.getId_comprobante() == null) {
+            throw new IllegalArgumentException("El ID de la venta a actualizar no puede ser nulo.");
+        }
+        Optional<ComprobantePago> ventaOpt = ventaRepository.findById(ventaDTO.getId_comprobante());
+        if (ventaOpt.isEmpty()) {
+            throw new IllegalArgumentException("No se encontró la venta con ID: " + ventaDTO.getId_comprobante());
+        }
+        ComprobantePago venta = convertDtoToEntity(ventaDTO);
+        venta.setIdComprobante(ventaDTO.getId_comprobante());
+        venta = ventaRepository.save(venta);
+        Map<String, Object> response = new HashMap<>();
+        response.put("id_venta", venta.getIdComprobante());
+        response.put("mensaje", "Venta actualizada exitosamente. ID: " + venta.getIdComprobante());
+        return response;
+    }
     
     // ⭐️ INYECCIÓN DE TODOS LOS REPOSITORIOS (Ahora incluyendo TipoComprobantePago)
     @Autowired 
@@ -98,9 +121,46 @@ public class VentaService {
     // ======================================================================
     // MÉTODO 3: LISTAR TODAS LAS VENTAS
     // ======================================================================
-    public List<ComprobantePago> listarTodasLasVentas() {
+    public List<fisi.software.detalles.controller.dto.VentaListDTO> listarTodasLasVentas() {
         System.out.println("LOG: Solicitud de listado de ventas (BD REAL).");
-        return ventaRepository.findAll(); 
+        List<ComprobantePago> ventas = ventaRepository.findAll();
+        List<fisi.software.detalles.controller.dto.VentaListDTO> lista = new ArrayList<>();
+        for (ComprobantePago v : ventas) {
+            String cliente = "";
+            String nombreClienteTemp = "";
+            if (v.getCliente() != null) {
+                cliente = v.getCliente().getNombreCompleto();
+            } else {
+                // Si no hay cliente real, usar nombre temporal si existe en los detalles
+                if (v.getDetalles() != null && !v.getDetalles().isEmpty()) {
+                    DetalleComprobantePago d0 = v.getDetalles().get(0);
+                    if (d0.getNombreClienteTemp() != null && !d0.getNombreClienteTemp().isEmpty()) {
+                        nombreClienteTemp = d0.getNombreClienteTemp();
+                    }
+                }
+            }
+            String metodoPago = "";
+            List<fisi.software.detalles.controller.dto.DetalleVentaListDTO> detalles = new ArrayList<>();
+            for (DetalleComprobantePago d : v.getDetalles()) {
+                String nombreProd = d.getProducto() != null ? d.getProducto().getNombre() : "";
+                detalles.add(new fisi.software.detalles.controller.dto.DetalleVentaListDTO(
+                    nombreProd,
+                    d.getCantidad(),
+                    d.getPrecioUnitario()
+                ));
+            }
+            lista.add(new fisi.software.detalles.controller.dto.VentaListDTO(
+                v.getIdComprobante(),
+                cliente,
+                nombreClienteTemp,
+                v.getFechaEmision(),
+                metodoPago,
+                v.getEstado(),
+                v.getTotal(),
+                detalles
+            ));
+        }
+        return lista;
     }
 
     // ======================================================================
@@ -161,17 +221,17 @@ public class VentaService {
         venta.setTipoComprobante(tipoComprobante);
         
         // id_cliente (OPCIONAL)
-        // Usaremos el ID 1 como cliente genérico si el DTO no lo especifica, asumiendo que existe.
+        // Asignar el cliente seleccionado si existe, si no, asignar el genérico solo si la columna es NOT NULL
+        Cliente clienteAsignado = null;
         if (ventaDTO.getId_cliente() != null) {
-            Optional<Cliente> clienteOpt = clienteRepository.findById(ventaDTO.getId_cliente());
-            clienteOpt.ifPresent(venta::setCliente);
-        } else {
-             // ⭐️ Opción de cliente genérico forzado si la columna es NOT NULL
-             // Si la columna es NULLABLE, simplemente omitir el setCliente
-             // Si la columna es NOT NULL y no lo especificas, usa el ID 1 (Cliente Genérico)
-             Integer idClienteGenerico = 1;
-             Optional<Cliente> clienteGenericoOpt = clienteRepository.findById(idClienteGenerico);
-             clienteGenericoOpt.ifPresent(venta::setCliente);
+            clienteAsignado = clienteRepository.findById(ventaDTO.getId_cliente()).orElse(null);
+        }
+        if (clienteAsignado == null) {
+            Integer idClienteGenerico = 1;
+            clienteAsignado = clienteRepository.findById(idClienteGenerico).orElse(null);
+        }
+        if (clienteAsignado != null) {
+            venta.setCliente(clienteAsignado);
         }
         
         // --- 3. Mapear Detalles y establecer la relación ---
@@ -179,9 +239,15 @@ public class VentaService {
              throw new IllegalArgumentException("La venta debe contener al menos un detalle de producto.");
         }
         
-        List<DetalleComprobantePago> detalles = ventaDTO.getDetalles().stream()
-             .map(detalleDTO -> convertDetalleDtoToEntity(detalleDTO, venta))
-             .collect(Collectors.toList());
+        List<DetalleComprobantePago> detalles = new ArrayList<>();
+        List<DetalleVentaDTO> detallesDTO = ventaDTO.getDetalles();
+        for (int i = 0; i < detallesDTO.size(); i++) {
+            try {
+                detalles.add(convertDetalleDtoToEntity(detallesDTO.get(i), venta));
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Error en el detalle #" + (i + 1) + ": " + e.getMessage());
+            }
+        }
 
         venta.setDetalles(detalles);
         
@@ -195,8 +261,13 @@ public class VentaService {
         DetalleComprobantePago detalle = new DetalleComprobantePago();
 
         // Asignar el comprobante padre
-        detalle.setComprobante(comprobante); 
-        
+        detalle.setComprobante(comprobante);
+
+        // Asignar nombreClienteTemp si existe en el DTO
+        if (detalleDTO.getNombre_cliente_temp() != null) {
+            detalle.setNombreClienteTemp(detalleDTO.getNombre_cliente_temp());
+        }
+
         String nombreProducto = detalleDTO.getNombre_producto_temp();
 
         // ⭐️ CORRECCIÓN CLAVE: Verificación de NULO o VACÍO (Resuelve tu error)
@@ -233,16 +304,33 @@ public class VentaService {
     // ======================================================================
 
     public byte[] generarComprobantePDF(Long idComprobante) throws DocumentException, IOException {
-        // ... (Tu código de PDF se mantiene igual)
         Optional<ComprobantePago> ventaOptional = ventaRepository.findById(idComprobante);
         if (ventaOptional.isEmpty()) {
             throw new RuntimeException("Comprobante de venta no encontrado con ID: " + idComprobante);
         }
-        Map<String, Object> ventaMap = mockGetVentaCompleta(idComprobante); 
-        
+        ComprobantePago venta = ventaOptional.get();
+        Map<String, Object> ventaMap = new HashMap<>();
+        ventaMap.put("tipoComprobante", venta.getTipoComprobante() != null ? venta.getTipoComprobante().getNombreTipo() : "");
+        ventaMap.put("cliente", venta.getCliente() != null ? venta.getCliente().getNombreCompleto() : "");
+        ventaMap.put("fechaEmision", venta.getFechaEmision() != null ? venta.getFechaEmision().toString() : "");
+        ventaMap.put("subtotal", venta.getSubtotal());
+        ventaMap.put("igv", venta.getIgv());
+        ventaMap.put("total", venta.getTotal());
+        List<Map<String, Object>> detalles = new ArrayList<>();
+        for (DetalleComprobantePago d : venta.getDetalles()) {
+            Map<String, Object> det = new HashMap<>();
+            det.put("codigo", d.getProducto() != null ? d.getProducto().getCodigoBarra() : "");
+            det.put("descripcion", d.getProducto() != null ? d.getProducto().getNombre() : "");
+            det.put("cantidad", d.getCantidad());
+            det.put("precioUnitario", d.getPrecioUnitario());
+            det.put("subtotalLinea", d.getSubtotalLinea());
+            detalles.add(det);
+        }
+        ventaMap.put("detalles", detalles);
+
         Document document = new Document(PageSize.A4);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        
+
         try {
             PdfWriter.getInstance(document, baos);
             document.open();

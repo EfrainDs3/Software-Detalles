@@ -2,19 +2,32 @@ package fisi.software.detalles.controller.dto;
 
 import java.math.BigDecimal;
 
+import jakarta.validation.constraints.NotBlank;
+
 // Este DTO representa cada línea de producto en la solicitud de venta.
 public class DetalleVentaDTO {
     
     // Usamos el nombre temporalmente hasta que se pueda buscar el ID real
+    @NotBlank(message = "El nombre del producto no puede ser nulo o vacío.")
+
     private String nombre_producto_temp; 
     private Integer cantidad;
     private BigDecimal precio_unitario;
     private BigDecimal descuento_aplicado; 
 
+    // Campo para transportar el nombre temporal del cliente
+    private String nombre_cliente_temp;
+
     // Constructor vacío (necesario para la deserialización de JSON por Spring)
     public DetalleVentaDTO() {}
 
     // Getters y Setters
+    public String getNombre_cliente_temp() {
+        return nombre_cliente_temp;
+    }
+    public void setNombre_cliente_temp(String nombre_cliente_temp) {
+        this.nombre_cliente_temp = nombre_cliente_temp;
+    }
     public String getNombre_producto_temp() {
         return nombre_producto_temp;
     }

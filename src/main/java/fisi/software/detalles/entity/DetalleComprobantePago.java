@@ -1,6 +1,7 @@
 package fisi.software.detalles.entity;
 
 import java.math.BigDecimal;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -24,6 +25,7 @@ import lombok.AllArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "producto"})
 public class DetalleComprobantePago {
 
     // Clave Primaria: id_detalle_comprobante (BIGINT, AUTO_INCREMENT)
@@ -39,6 +41,7 @@ public class DetalleComprobantePago {
     // id_comprobante (FK)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_comprobante", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private ComprobantePago comprobante; 
 
     // id_producto (FK)
@@ -55,6 +58,10 @@ public class DetalleComprobantePago {
     @Column(name = "cantidad", nullable = false)
     private Integer cantidad;
 
+    // nombre_cliente_temp (VARCHAR, puede ser null)
+    @Column(name = "nombre_cliente_temp")
+    private String nombreClienteTemp;
+
     // precio_unitario (DECIMAL(10,2))
     @Column(name = "precio_unitario", precision = 10, scale = 2, nullable = false)
     private BigDecimal precioUnitario;
@@ -66,4 +73,10 @@ public class DetalleComprobantePago {
     // subtotal_linea (DECIMAL(10,2))
     @Column(name = "subtotal_linea", precision = 10, scale = 2, nullable = false)
     private BigDecimal subtotalLinea;
+    public String getNombreClienteTemp() {
+        return nombreClienteTemp;
+    }
+    public void setNombreClienteTemp(String nombreClienteTemp) {
+        this.nombreClienteTemp = nombreClienteTemp;
+    }
 }
