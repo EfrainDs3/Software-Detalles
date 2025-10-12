@@ -58,10 +58,6 @@ public class DetalleComprobantePago {
     @Column(name = "cantidad", nullable = false)
     private Integer cantidad;
 
-    // nombre_cliente_temp (VARCHAR, puede ser null)
-    @Column(name = "nombre_cliente_temp")
-    private String nombreClienteTemp;
-
     // precio_unitario (DECIMAL(10,2))
     @Column(name = "precio_unitario", precision = 10, scale = 2, nullable = false)
     private BigDecimal precioUnitario;
@@ -73,10 +69,4 @@ public class DetalleComprobantePago {
     // subtotal_linea (DECIMAL(10,2))
     @Column(name = "subtotal_linea", precision = 10, scale = 2, nullable = false)
     private BigDecimal subtotalLinea;
-    public String getNombreClienteTemp() {
-        return nombreClienteTemp;
-    }
-    public void setNombreClienteTemp(String nombreClienteTemp) {
-        this.nombreClienteTemp = nombreClienteTemp;
-    }
 }

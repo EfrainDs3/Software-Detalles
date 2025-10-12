@@ -127,19 +127,13 @@ public class VentaService {
         List<fisi.software.detalles.controller.dto.VentaListDTO> lista = new ArrayList<>();
         for (ComprobantePago v : ventas) {
             String cliente = "";
-            String nombreClienteTemp = "";
             if (v.getCliente() != null) {
                 cliente = v.getCliente().getNombreCompleto();
-            } else {
-                // Si no hay cliente real, usar nombre temporal si existe en los detalles
-                if (v.getDetalles() != null && !v.getDetalles().isEmpty()) {
-                    DetalleComprobantePago d0 = v.getDetalles().get(0);
-                    if (d0.getNombreClienteTemp() != null && !d0.getNombreClienteTemp().isEmpty()) {
-                        nombreClienteTemp = d0.getNombreClienteTemp();
-                    }
-                }
+            } else if (v.getCliente() == null && v.getUsuario() != null) {
+                cliente = v.getUsuario().getNombres() + " " + v.getUsuario().getApellidos();
             }
             String metodoPago = "";
+            // ejemplo: metodoPago = v.getMetodoPago() != null ? v.getMetodoPago().getNombre() : "";
             List<fisi.software.detalles.controller.dto.DetalleVentaListDTO> detalles = new ArrayList<>();
             for (DetalleComprobantePago d : v.getDetalles()) {
                 String nombreProd = d.getProducto() != null ? d.getProducto().getNombre() : "";
@@ -152,7 +146,6 @@ public class VentaService {
             lista.add(new fisi.software.detalles.controller.dto.VentaListDTO(
                 v.getIdComprobante(),
                 cliente,
-                nombreClienteTemp,
                 v.getFechaEmision(),
                 metodoPago,
                 v.getEstado(),
@@ -221,17 +214,17 @@ public class VentaService {
         venta.setTipoComprobante(tipoComprobante);
         
         // id_cliente (OPCIONAL)
-        // Asignar el cliente seleccionado si existe, si no, asignar el genérico solo si la columna es NOT NULL
-        Cliente clienteAsignado = null;
+        // Usaremos el ID 1 como cliente genérico si el DTO no lo especifica, asumiendo que existe.
         if (ventaDTO.getId_cliente() != null) {
-            clienteAsignado = clienteRepository.findById(ventaDTO.getId_cliente()).orElse(null);
-        }
-        if (clienteAsignado == null) {
-            Integer idClienteGenerico = 1;
-            clienteAsignado = clienteRepository.findById(idClienteGenerico).orElse(null);
-        }
-        if (clienteAsignado != null) {
-            venta.setCliente(clienteAsignado);
+            Optional<Cliente> clienteOpt = clienteRepository.findById(ventaDTO.getId_cliente());
+            clienteOpt.ifPresent(venta::setCliente);
+        } else {
+             // ⭐️ Opción de cliente genérico forzado si la columna es NOT NULL
+             // Si la columna es NULLABLE, simplemente omitir el setCliente
+             // Si la columna es NOT NULL y no lo especificas, usa el ID 1 (Cliente Genérico)
+             Integer idClienteGenerico = 1;
+             Optional<Cliente> clienteGenericoOpt = clienteRepository.findById(idClienteGenerico);
+             clienteGenericoOpt.ifPresent(venta::setCliente);
         }
         
         // --- 3. Mapear Detalles y establecer la relación ---
@@ -261,13 +254,8 @@ public class VentaService {
         DetalleComprobantePago detalle = new DetalleComprobantePago();
 
         // Asignar el comprobante padre
-        detalle.setComprobante(comprobante);
-
-        // Asignar nombreClienteTemp si existe en el DTO
-        if (detalleDTO.getNombre_cliente_temp() != null) {
-            detalle.setNombreClienteTemp(detalleDTO.getNombre_cliente_temp());
-        }
-
+        detalle.setComprobante(comprobante); 
+        
         String nombreProducto = detalleDTO.getNombre_producto_temp();
 
         // ⭐️ CORRECCIÓN CLAVE: Verificación de NULO o VACÍO (Resuelve tu error)

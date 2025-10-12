@@ -80,10 +80,10 @@ document.addEventListener('DOMContentLoaded', () => {
         ventasTableBody.innerHTML = '';
         ventasData.forEach(venta => {
             // **IMPORTANTE**: Ajustar los nombres de las propiedades al formato de tu DTO/Entity de Java
-            const id = venta.idVenta || venta.id;
-            const cliente = venta.nombreClienteMostrado || venta.cliente || venta.nombre_cliente_temp;
+            const id = venta.idVenta || venta.id; // Asumo idVenta si usaste ese DTO
+            const cliente = venta.cliente ? venta.cliente.nombreCompleto : venta.nombre_cliente_temp; // Ejemplo de cómo acceder
             const fecha = venta.fecha_emision || venta.fecha; 
-            const metodoPago = venta.tipoPago ? venta.tipoPago.nombre : venta.metodoPago;
+            const metodoPago = venta.tipoPago ? venta.tipoPago.nombre : venta.metodoPago; // Asumiendo que el backend trae un objeto
             const estado = venta.estado_comprobante || venta.estado;
             const total = venta.monto_total || venta.total;
 
@@ -184,12 +184,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showDetalleModal(venta) {
-    detalleVentaId.textContent = venta.idVenta || venta.id;
-    detalleVentaCliente.textContent = venta.nombreClienteMostrado || venta.cliente || venta.nombre_cliente_temp;
-    detalleVentaFecha.textContent = venta.fecha_emision || venta.fecha;
-    detalleVentaMetodoPago.textContent = venta.tipoPago ? venta.tipoPago.nombre : venta.metodoPago;
-    detalleVentaEstado.textContent = venta.estado_comprobante || venta.estado;
-    detalleVentaTotal.textContent = `S/ ${(venta.monto_total || venta.total).toFixed(2)}`;
+        detalleVentaId.textContent = venta.idVenta || venta.id;
+        detalleVentaCliente.textContent = venta.cliente ? venta.cliente.nombreCompleto : venta.nombre_cliente_temp;
+        detalleVentaFecha.textContent = venta.fecha_emision || venta.fecha;
+        detalleVentaMetodoPago.textContent = venta.tipoPago ? venta.tipoPago.nombre : venta.metodoPago;
+        detalleVentaEstado.textContent = venta.estado_comprobante || venta.estado;
+        detalleVentaTotal.textContent = `S/ ${(venta.monto_total || venta.total).toFixed(2)}`;
 
         detalleProductosList.innerHTML = ''; // Limpiar la lista anterior
         const productosDetalle = venta.detalles || venta.productos;
