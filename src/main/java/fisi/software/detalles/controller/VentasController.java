@@ -12,6 +12,7 @@ import org.springframework.stereotype.Controller; // Importar @Controller
 import com.itextpdf.text.DocumentException; 
 import java.io.IOException; 
 import java.util.Map;
+import java.util.List; // 👈 IMPORTANTE: Se añade para el listado
 
 import fisi.software.detalles.controller.dto.VentaRequestDTO;
 import fisi.software.detalles.service.VentaService;
@@ -29,7 +30,7 @@ public class VentasController {
     
     /**
      * GET /ventas
-     * Muestra la lista de ventas.
+     * Muestra la lista de ventas (página principal).
      */
     @GetMapping
     public String showVentas() {
@@ -48,6 +49,23 @@ public class VentasController {
     // ======================================================================
     // MÉTODOS DE API REST (Devuelven JSON o Archivos)
     // ======================================================================
+    
+    /**
+     * GET /ventas/api/lista 👈 NUEVO ENDPOINT
+     * Recupera y devuelve la lista de ventas registradas en formato JSON.
+     */
+    @GetMapping("/api/lista") 
+    @ResponseBody // Necesario para que @Controller devuelva JSON/Datos
+    public ResponseEntity<List<?>> listarVentasAPI() { // ⚠️ Reemplaza '?' con tu clase Venta o DTO
+        try {
+            // **DEBES IMPLEMENTAR ESTE MÉTODO EN VentaService**
+            List<?> ventas = ventaService.listarTodasLasVentas(); 
+            return ResponseEntity.ok(ventas);
+        } catch (Exception e) {
+            System.err.println("Error al obtener la lista de ventas: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 
     /**
      * POST /ventas/api

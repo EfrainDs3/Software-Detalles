@@ -15,6 +15,14 @@ public class VentaRequestDTO {
     
     // --- Campos del Cliente (Temporal o FK) ---
     private String nombre_cliente_temp; // Usado para el registro inicial o la búsqueda.
+    private Integer id_cliente; // FK a cliente, puede ser null
+    public Integer getId_cliente() {
+        return id_cliente;
+    }
+
+    public void setId_cliente(Integer id_cliente) {
+        this.id_cliente = id_cliente;
+    }
     
     // --- Campos de la Venta ---
     private LocalDate fecha_emision;
