@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Variables y Referencias del DOM ---
     const ventasTableBody = document.getElementById('ventasTableBody');
-    // ... (otras constantes del DOM) ...
 
     const addVentaBtn = document.getElementById('addVentaBtn');
     const ventaModal = document.getElementById('ventaModal');
