@@ -9,83 +9,250 @@
     <link rel="stylesheet" href="/css/permisos.css">
 </head>
 <body>
+
     <div id="sidebar-container"></div>
+
     <main class="main-content">
         <div class="top-bar">
             <div class="page-header">
                 <div class="breadcrumb">
                     <a href="/dashboard" class="breadcrumb-link">
+                        <i class="fas fa-home"></i>
                         Dashboard
                     </a>
                     <span class="breadcrumb-separator">/</span>
                     <span class="breadcrumb-current">Permisos</span>
                 </div>
                 <h2 class="main-title">Gestión de Permisos</h2>
-                <p class="page-subtitle">Consulta los permisos del sistema</p>
+                <p class="page-subtitle">Administra códigos de acceso, revisa su historial y controla las asignaciones</p>
             </div>
-            <button class="logout-btn">
-                Cerrar Sesión
+            <button class="logout-btn" type="button">
+                <i class="fas fa-power-off"></i>
+                Cerrar sesión
             </button>
         </div>
-        <div class="action-bar">
+
+        <section class="action-bar">
             <div class="search-container">
                 <i class="fas fa-search"></i>
-                <input type="text" id="searchInput" placeholder="Buscar permisos...">
+                <input type="text" id="searchInput" placeholder="Buscar por código, nombre o descripción..." autocomplete="off">
             </div>
-        </div>
-        <div class="table-container">
-            <table class="permissions-table">
+            <div class="filter-group">
+                <label for="statusFilter" class="filter-label">
+                    <i class="fas fa-filter"></i>
+                    Estado
+                </label>
+                <select id="statusFilter" class="filter-select">
+                    <option value="TODOS">Todos</option>
+                    <option value="ACTIVO">Activos</option>
+                    <option value="INACTIVO">Inactivos</option>
+                </select>
+            </div>
+            <div class="action-buttons">
+                <button class="btn btn-light" id="refreshBtn" type="button">
+                    <i class="fas fa-rotate"></i>
+                    Actualizar
+                </button>
+                <button class="btn btn-primary" id="addPermissionBtn" type="button">
+                    <i class="fas fa-plus"></i>
+                    Nuevo permiso
+                </button>
+            </div>
+        </section>
+
+        <section class="card-surface stats-bar" id="summaryCard">
+            <div class="stat-item">
+                <span class="stat-value" id="totalPermits">0</span>
+                <span class="stat-label">Permisos totales</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="activePermits">0</span>
+                <span class="stat-label">Activos</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="inactivePermits">0</span>
+                <span class="stat-label">Inactivos</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="lastUpdated">—</span>
+                <span class="stat-label">Última actualización</span>
+            </div>
+        </section>
+
+        <section class="table-container">
+            <table class="permissions-table" aria-live="polite">
                 <thead>
                     <tr>
-                        <th>
-                            <input type="checkbox" id="selectAll">
-                        </th>
-                        <th>ID</th>
+                        <th>Código</th>
                         <th>Nombre</th>
                         <th>Descripción</th>
-                        <th>Acciones</th>
+                        <th>Asignaciones</th>
+                        <th>Estado</th>
+                        <th>Actualizado</th>
+                        <th class="align-right">Acciones</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td><input type="checkbox" class="permission-checkbox"></td>
-                        <td><span>1</span></td>
-                        <td>Ver usuarios</td>
-                        <td><span class="badge-description">Permite visualizar la lista de usuarios</span></td>
-                        <td>
-                            <div class="action-buttons-cell">
-                                <button class="btn-icon btn-edit" title="Editar">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="btn-icon btn-delete" title="Eliminar">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                                <button class="btn-icon btn-view" title="Ver detalles">
-                                    <i class="fas fa-eye"></i>
-                                </button>
+                <tbody id="permissionsTableBody">
+                    <tr class="table-placeholder">
+                        <td colspan="7">
+                            <div class="placeholder-content">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <span>Cargando permisos...</span>
                             </div>
                         </td>
                     </tr>
                 </tbody>
             </table>
-        </div>
+        </section>
 
-        <!-- Paginación -->
-        <div class="pagination-container">
-            <div class="pagination-info">
-                Mostrando 1-1 de 1 permiso
-            </div>
-            <div class="pagination">
-                <button class="btn-pagination" disabled>
+        <section class="pagination-container" id="pagination" hidden>
+            <div class="pagination-info" id="paginationInfo"></div>
+            <div class="pagination-actions">
+                <button type="button" class="btn btn-light" id="prevPage" disabled>
                     <i class="fas fa-chevron-left"></i>
                 </button>
-                <button class="btn-pagination active">1</button>
-                <button class="btn-pagination" disabled>
+                <button type="button" class="btn btn-light" id="nextPage" disabled>
                     <i class="fas fa-chevron-right"></i>
                 </button>
             </div>
-        </div>
+        </section>
     </main>
+
+    <div id="permissionModal" class="modal" aria-hidden="true" role="dialog">
+        <div class="modal-content" role="document">
+            <div class="modal-header">
+                <h3 id="permissionModalTitle">Nuevo permiso</h3>
+                <button type="button" class="modal-close" id="permissionModalClose" aria-label="Cerrar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="permissionForm" class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="permissionCode">Código *</label>
+                        <input type="text" id="permissionCode" name="codigo" maxlength="100" required placeholder="Ej. usuarios.listar">
+                        <small class="field-hint">Usa un identificador único en minúsculas y con puntos.</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="permissionName">Nombre *</label>
+                        <input type="text" id="permissionName" name="nombre" maxlength="150" required placeholder="Descripción corta y clara">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="permissionDescription">Descripción</label>
+                    <textarea id="permissionDescription" name="descripcion" maxlength="255" rows="3" placeholder="Explica para qué sirve este permiso"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="permissionStatus">Estado</label>
+                        <select id="permissionStatus" name="estado">
+                            <option value="ACTIVO">Activo</option>
+                            <option value="INACTIVO">Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" id="permissionModalCancel">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="permissionModalSubmit">
+                        <i class="fas fa-save"></i>
+                        Guardar cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="confirmModal" class="modal center-modal" aria-hidden="true" role="dialog">
+        <div class="modal-content delete-modal-content" role="document">
+            <div class="modal-header">
+                <h3>Eliminar permiso</h3>
+                <button type="button" class="modal-close" id="confirmModalClose" aria-label="Cerrar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage">¿Deseas eliminar este permiso?</p>
+                <p class="text-muted small" id="confirmWarning"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" id="confirmCancelBtn">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirmAcceptBtn">
+                    <i class="fas fa-trash"></i>
+                    Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="detailsModal" class="modal" aria-hidden="true" role="dialog">
+        <div class="modal-content details-modal-content" role="document">
+            <div class="modal-header">
+                <h3>Detalle del permiso</h3>
+                <button type="button" class="modal-close" id="detailsModalClose" aria-label="Cerrar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="detailsBody">
+                <div class="details-header">
+                    <div>
+                        <span class="badge badge-large" id="detailsCode">—</span>
+                        <h4 id="detailsName">—</h4>
+                        <p id="detailsDescription" class="text-muted">—</p>
+                    </div>
+                    <div class="details-status">
+                        <span class="status-badge" id="detailsStatus">—</span>
+                    </div>
+                </div>
+                <div class="details-grid">
+                    <div class="details-card">
+                        <span class="details-label">Roles con este permiso</span>
+                        <span class="details-value" id="detailsRoles">0</span>
+                    </div>
+                    <div class="details-card">
+                        <span class="details-label">Asignaciones directas</span>
+                        <span class="details-value" id="detailsUsers">0</span>
+                    </div>
+                    <div class="details-card">
+                        <span class="details-label">Creado por</span>
+                        <span class="details-value" id="detailsCreatedBy">—</span>
+                        <span class="details-caption" id="detailsCreatedAt">—</span>
+                    </div>
+                    <div class="details-card">
+                        <span class="details-label">Última actualización</span>
+                        <span class="details-value" id="detailsUpdated">—</span>
+                        <span class="details-caption" id="detailsUpdatedBy">—</span>
+                    </div>
+                </div>
+                <section class="details-roles">
+                    <h4>Roles asignados</h4>
+                    <div id="detailsRoleList" class="roles-list roles-list-inline">
+                        <span class="roles-list-empty">Sin roles asignados</span>
+                    </div>
+                </section>
+                <section class="details-audit">
+                    <div class="details-audit-header">
+                        <h4>
+                            <i class="fas fa-history"></i>
+                            Historial reciente
+                        </h4>
+                        <button class="btn btn-light" type="button" id="refreshAuditBtn">
+                            <i class="fas fa-rotate"></i>
+                            Actualizar historial
+                        </button>
+                    </div>
+                    <ul class="audit-timeline" id="auditTimeline">
+                        <li class="audit-placeholder">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>Cargando historial...</span>
+                        </li>
+                    </ul>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container" aria-live="assertive" aria-atomic="true"></div>
+
     <script src="/js/sidebar.js"></script>
     <script src="/js/logout.js"></script>
     <script src="/js/permisos.js"></script>

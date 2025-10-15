@@ -91,6 +91,32 @@ spring.datasource.username=rest
 spring.datasource.password=Danny2004@
 ```
 
+### Actualización de esquema para permisos
+
+Si trabajas con la base de datos MySQL existente, aplica la siguiente migración manual antes de iniciar la aplicación. Añade metadatos de auditoría al catálogo de permisos y crea la tabla de historial:
+
+```sql
+ALTER TABLE permisos
+    ADD COLUMN creado_por VARCHAR(100) NULL AFTER estado,
+    ADD COLUMN actualizado_por VARCHAR(100) NULL AFTER creado_por,
+    ADD COLUMN fecha_creacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER actualizado_por,
+    ADD COLUMN fecha_actualizacion DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER fecha_creacion;
+
+CREATE TABLE IF NOT EXISTS permisos_auditoria (
+    id_auditoria BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id_permiso BIGINT NULL,
+    accion VARCHAR(40) NOT NULL,
+    detalle VARCHAR(500) NULL,
+    usuario VARCHAR(100) NULL,
+    permiso_codigo VARCHAR(100) NULL,
+    permiso_nombre VARCHAR(150) NULL,
+    fecha DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_permisos_auditoria_permiso (id_permiso)
+);
+```
+
+> ℹ️ La tabla `permisos_auditoria` no define una restricción `FOREIGN KEY` para permitir conservar el historial incluso cuando un permiso sea eliminado.
+
 ### Puerto del Servidor
 Por defecto: **8080**
 

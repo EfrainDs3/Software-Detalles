@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -42,6 +43,33 @@ public class Permiso {
     @ManyToMany(mappedBy = "permisos", fetch = FetchType.LAZY)
     private Set<Rol> roles = new HashSet<>();
 
-    @ManyToMany(mappedBy = "permisosExtra", fetch = FetchType.LAZY)
-    private Set<Usuario> usuarios = new HashSet<>();
+    @Column(name = "creado_por", length = 100, updatable = false)
+    private String creadoPor;
+
+    @Column(name = "actualizado_por", length = 100)
+    private String actualizadoPor;
+
+    @Column(name = "fecha_creacion", nullable = false, updatable = false)
+    private LocalDateTime fechaCreacion;
+
+    @Column(name = "fecha_actualizacion", nullable = false)
+    private LocalDateTime fechaActualizacion;
+
+    @PrePersist
+    protected void onCreate() {
+        LocalDateTime ahora = LocalDateTime.now();
+        this.fechaCreacion = ahora;
+        this.fechaActualizacion = ahora;
+        if (this.estado == null) {
+            this.estado = "ACTIVO";
+        }
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.fechaActualizacion = LocalDateTime.now();
+        if (this.estado == null) {
+            this.estado = "ACTIVO";
+        }
+    }
 }

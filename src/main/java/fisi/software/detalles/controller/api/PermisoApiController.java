@@ -17,8 +17,12 @@ public class PermisoApiController {
     private final PermisoService permisoService;
 
     @GetMapping
-    public List<PermisoResponse> listarPermisos(@RequestParam(name = "soloActivos", required = false) Boolean soloActivos) {
-        return permisoService.listarPermisos(soloActivos);
+    public List<PermisoResponse> listarPermisos(
+        @RequestParam(name = "soloActivos", required = false) Boolean soloActivos,
+        @RequestParam(name = "estado", required = false) String estado,
+        @RequestParam(name = "termino", required = false) String termino
+    ) {
+        return permisoService.listarPermisos(soloActivos, estado, termino);
     }
 
     @GetMapping("/{id}")
@@ -41,6 +45,14 @@ public class PermisoApiController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void eliminarPermiso(@PathVariable Long id) {
         permisoService.eliminarPermiso(id);
+    }
+
+    @GetMapping("/auditoria")
+    public List<PermisoAuditoriaResponse> listarAuditoria(
+        @RequestParam(name = "permisoId", required = false) Long permisoId,
+        @RequestParam(name = "limite", required = false) Integer limite
+    ) {
+        return permisoService.obtenerAuditoriaPermisos(permisoId, limite);
     }
 
     @GetMapping("/roles/{rolId}")

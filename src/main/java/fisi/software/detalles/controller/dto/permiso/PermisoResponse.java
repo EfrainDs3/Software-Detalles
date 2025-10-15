@@ -2,6 +2,10 @@ package fisi.software.detalles.controller.dto.permiso;
 
 import fisi.software.detalles.entity.Permiso;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Objects;
+
 public record PermisoResponse(
     Long id,
     String codigo,
@@ -9,12 +13,28 @@ public record PermisoResponse(
     String descripcion,
     String estado,
     Long totalRoles,
-    Long totalUsuarios
+    List<String> rolesAsignados,
+    Long totalUsuarios,
+    String creadoPor,
+    LocalDateTime fechaCreacion,
+    String actualizadoPor,
+    LocalDateTime fechaActualizacion
 ) {
 
     public static PermisoResponse fromEntity(Permiso permiso) {
+        return fromEntity(permiso, 0L);
+    }
+
+    public static PermisoResponse fromEntity(Permiso permiso, long totalUsuarios) {
         long roles = permiso.getRoles() != null ? permiso.getRoles().size() : 0L;
-        long usuarios = permiso.getUsuarios() != null ? permiso.getUsuarios().size() : 0L;
+        List<String> rolesAsignados = permiso.getRoles() == null
+            ? List.of()
+            : permiso.getRoles().stream()
+                .map(rol -> rol != null ? rol.getNombre() : null)
+                .filter(Objects::nonNull)
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .toList();
+
         return new PermisoResponse(
             permiso.getIdPermiso(),
             permiso.getCodigo(),
@@ -22,7 +42,12 @@ public record PermisoResponse(
             permiso.getDescripcion(),
             permiso.getEstado(),
             roles,
-            usuarios
+            rolesAsignados,
+            totalUsuarios,
+            permiso.getCreadoPor(),
+            permiso.getFechaCreacion(),
+            permiso.getActualizadoPor(),
+            permiso.getFechaActualizacion()
         );
     }
 }

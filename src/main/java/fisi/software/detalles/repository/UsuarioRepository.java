@@ -30,4 +30,8 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
     @EntityGraph(attributePaths = {"roles", "roles.permisos", "permisosExtra"})
     Optional<Usuario> findWithRolesAndPermisosById(Integer id);
+
+    boolean existsByPermisosExtra_IdPermiso(Long permisoId);
+
+    long countByPermisosExtra_IdPermiso(Long permisoId);
 }
