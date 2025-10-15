@@ -1,3 +1,5 @@
+    // ID de la venta (para edición)
+   
 package fisi.software.detalles.controller.dto;
 
 import java.math.BigDecimal;
@@ -6,6 +8,16 @@ import java.util.List;
 
 // Este DTO representa toda la solicitud de venta que viene del front-end.
 public class VentaRequestDTO {
+    // ID de la venta (para edición)
+    private Long id_comprobante;
+
+    public Long getId_comprobante() {
+        return id_comprobante;
+    }
+
+    public void setId_comprobante(Long id_comprobante) {
+        this.id_comprobante = id_comprobante;
+    }
     
     // --- Campos de Encabezado de Comprobante ---
     private Integer id_tipo_comprobante; // Boleta (1), Factura (2), etc.
@@ -15,6 +27,14 @@ public class VentaRequestDTO {
     
     // --- Campos del Cliente (Temporal o FK) ---
     private String nombre_cliente_temp; // Usado para el registro inicial o la búsqueda.
+    private Integer id_cliente; // FK a cliente, puede ser null
+    public Integer getId_cliente() {
+        return id_cliente;
+    }
+
+    public void setId_cliente(Integer id_cliente) {
+        this.id_cliente = id_cliente;
+    }
     
     // --- Campos de la Venta ---
     private LocalDate fecha_emision;

@@ -11,7 +11,7 @@ import java.util.Optional;
 
 @Repository
 public interface ProductoRepository extends JpaRepository<Producto, Long> {
-
+        Optional<Producto> findByNombre(String nombre);
     @Query("SELECT DISTINCT p FROM Producto p " +
             "LEFT JOIN FETCH p.categoria " +
             "LEFT JOIN FETCH p.proveedor " +

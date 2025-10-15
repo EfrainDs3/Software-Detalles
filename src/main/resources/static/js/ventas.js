@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Variables y Referencias del DOM ---
     const ventasTableBody = document.getElementById('ventasTableBody');
+
     const addVentaBtn = document.getElementById('addVentaBtn');
     const ventaModal = document.getElementById('ventaModal');
     const closeModalBtn = document.getElementById('closeModal');
@@ -36,72 +37,76 @@ document.addEventListener('DOMContentLoaded', () => {
     const detalleVentaTotal = document.getElementById('detalleVentaTotal');
     const detalleProductosList = document.getElementById('detalleProductosList');
 
-    // --- Datos de Ejemplo (Simulación de una API) ---
-    let ventasData = [
-        {
-            id: '001',
-            cliente: 'Juan Pérez',
-            fecha: '2025-09-15',
-            metodoPago: 'Tarjeta',
-            estado: 'Completada',
-            total: 350.50,
-            productos: [
-                { nombre: 'Zapatillas Deportivas', cantidad: 1, precio: 250.00 },
-                { nombre: 'Calcetines (pack)', cantidad: 2, precio: 50.25 }
-            ]
-        },
-        {
-            id: '002',
-            cliente: 'Ana García',
-            fecha: '2025-09-14',
-            metodoPago: 'Efectivo',
-            estado: 'Pendiente',
-            total: 120.00,
-            productos: [
-                { nombre: 'Botas de Invierno', cantidad: 1, precio: 120.00 }
-            ]
-        },
-        {
-            id: '003',
-            cliente: 'Carlos López',
-            fecha: '2025-09-13',
-            metodoPago: 'Transferencia',
-            estado: 'Completada',
-            total: 55.75,
-            productos: [
-                { nombre: 'Zapatos de Vestir', cantidad: 1, precio: 55.75 }
-            ]
+    // ❌ ELIMINAMOS LOS DATOS DE EJEMPLO E INICIALIZAMOS LA VARIABLE VACÍA
+    let ventasData = []; 
+
+    // --- NUEVAS FUNCIONES DE LECTURA DE API ---
+
+    /**
+     * @description Carga las ventas desde el backend y las guarda en ventasData.
+     */
+    async function fetchAndRenderVentas() {
+        console.log("Cargando ventas desde la API...");
+        try {
+            // Llamada al endpoint creado en VentasController.java
+            const response = await fetch('/ventas/api/lista'); 
+            
+            if (!response.ok) {
+                // Si la respuesta no es OK (ej. 500 Internal Server Error)
+                throw new Error(`Error ${response.status}: No se pudo obtener la lista de ventas del servidor.`);
+            }
+
+            // Guardamos los datos reales del backend en la variable global
+            ventasData = await response.json(); 
+            console.log("Datos de ventas cargados:", ventasData);
+
+            // Una vez cargados, se renderizan en la tabla
+            renderVentas(); 
+
+        } catch (error) {
+            console.error('Fallo al cargar las ventas desde la base de datos:', error);
+            // Opcional: Mostrar un mensaje de error al usuario en la tabla
+            ventasTableBody.innerHTML = `<tr><td colspan="8" class="text-center">Error al cargar ventas: ${error.message}</td></tr>`;
         }
-    ];
+    }
 
-    // --- Funciones del Dashboard ---
 
-    // Función para renderizar la tabla
+    // --- Funciones del Dashboard (Mantenemos la lógica de manipulación) ---
+
+    // Función para renderizar la tabla (Ahora usa 'ventasData' llenada por la API)
     function renderVentas() {
+        // Hacemos que la función sea compatible con el formato que devuelve el backend
         ventasTableBody.innerHTML = '';
         ventasData.forEach(venta => {
+            // **IMPORTANTE**: Ajustar los nombres de las propiedades al formato de tu DTO/Entity de Java
+            const id = venta.idVenta || venta.id; // Asumo idVenta si usaste ese DTO
+            const cliente = venta.cliente ? venta.cliente.nombreCompleto : venta.nombre_cliente_temp; // Ejemplo de cómo acceder
+            const fecha = venta.fecha_emision || venta.fecha; 
+            const metodoPago = venta.tipoPago ? venta.tipoPago.nombre : venta.metodoPago; // Asumiendo que el backend trae un objeto
+            const estado = venta.estado_comprobante || venta.estado;
+            const total = venta.monto_total || venta.total;
+
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td><input type="checkbox" class="venta-checkbox"></td>
-                <td>${venta.id}</td>
-                <td>${venta.cliente}</td>
-                <td>${venta.fecha}</td>
-                <td>${venta.metodoPago}</td>
-                <td><span class="status-badge ${venta.estado.toLowerCase()}">${venta.estado}</span></td>
-                <td><span class="price">S/ ${venta.total.toFixed(2)}</span></td>
+                <td>${id}</td>
+                <td>${cliente}</td>
+                <td>${fecha}</td>
+                <td>${metodoPago}</td>
+                <td><span class="status-badge ${estado.toLowerCase()}">${estado}</span></td>
+                <td><span class="price">S/ ${total ? total.toFixed(2) : '0.00'}</span></td>
                 <td>
                     <div class="action-buttons-cell">
-                        <button class="btn-icon btn-edit" data-id="${venta.id}" title="Editar">
+                        <button class="btn-icon btn-edit" data-id="${id}" title="Editar">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn-icon btn-delete" data-id="${venta.id}" title="Eliminar">
+                        <button class="btn-icon btn-delete" data-id="${id}" title="Eliminar">
                             <i class="fas fa-trash"></i>
                         </button>
-                        <button class="btn-icon btn-view" data-id="${venta.id}" title="Ver detalles">
+                        <button class="btn-icon btn-view" data-id="${id}" title="Ver detalles">
                             <i class="fas fa-eye"></i>
                         </button>
-
-                        <button class="btn-icon btn-pdf" data-id="${venta.id}" title="Generar PDF">
+                        <button class="btn-icon btn-pdf" data-id="${id}" title="Generar PDF">
                             <i class="fas fa-file-pdf"></i>
                         </button>
                     </div>
@@ -109,8 +114,11 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             ventasTableBody.appendChild(row);
         });
+        updateSelectAllCheckbox();
     }
-
+    
+    // ... (Resto de las funciones: calculateTotal, addProductInput, openModal, closeModal, showDetalleModal, fillForm, toggleFacturaFields) ...
+    
     // Función para calcular el total de la venta
     function calculateTotal() {
         let total = 0;
@@ -158,87 +166,101 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-        // Función para abrir el modal
-        function openModal() {
-            ventaModal.style.display = 'block';
-        }
+    // Función para abrir el modal
+    function openModal() {
+        ventaModal.style.display = 'block';
+        toggleFacturaFields(); // Esto inicializa los campos
+    }
 
-        // Función para cerrar el modal
-        function closeModal() {
-            ventaModal.style.display = 'none';
-            ventaForm.reset();
-            ventaIdInput.value = '';
-            modalTitle.textContent = 'Nueva Venta';
-            productosContainer.innerHTML = '';
-            calculateTotal();
-        }
+    // Función para cerrar el modal
+    function closeModal() {
+        ventaModal.style.display = 'none';
+        ventaForm.reset();
+        ventaIdInput.value = '';
+        modalTitle.textContent = 'Nueva Venta';
+        productosContainer.innerHTML = '';
+        calculateTotal();
+    }
 
-        function showDetalleModal(venta) {
-            detalleVentaId.textContent = venta.id;
-            detalleVentaCliente.textContent = venta.cliente;
-            detalleVentaFecha.textContent = venta.fecha;
-            detalleVentaMetodoPago.textContent = venta.metodoPago;
-            detalleVentaEstado.textContent = venta.estado;
-            detalleVentaTotal.textContent = `S/ ${venta.total.toFixed(2)}`;
+    function showDetalleModal(venta) {
+        detalleVentaId.textContent = venta.idVenta || venta.id;
+        detalleVentaCliente.textContent = venta.cliente ? venta.cliente.nombreCompleto : venta.nombre_cliente_temp;
+        detalleVentaFecha.textContent = venta.fecha_emision || venta.fecha;
+        detalleVentaMetodoPago.textContent = venta.tipoPago ? venta.tipoPago.nombre : venta.metodoPago;
+        detalleVentaEstado.textContent = venta.estado_comprobante || venta.estado;
+        detalleVentaTotal.textContent = `S/ ${(venta.monto_total || venta.total).toFixed(2)}`;
 
-            detalleProductosList.innerHTML = ''; // Limpiar la lista anterior
-            venta.productos.forEach(producto => {
-                const li = document.createElement('li');
-                li.innerHTML = `
-                    <span>${producto.cantidad} x ${producto.nombre}</span>
-                    <strong>S/ ${(producto.cantidad * producto.precio).toFixed(2)}</strong>
-                `;
-                detalleProductosList.appendChild(li);
-            });
+        detalleProductosList.innerHTML = ''; // Limpiar la lista anterior
+        const productosDetalle = venta.detalles || venta.productos;
+        productosDetalle.forEach(producto => {
+            const li = document.createElement('li');
+            // Adaptar la visualización según el nombre de la propiedad
+            const nombreProd = producto.nombre_producto || producto.nombre; 
+            const cantidadProd = producto.cantidad || producto.cantidad;
+            const precioProd = producto.precio_unitario || producto.precio;
+            
+            li.innerHTML = `
+                <span>${cantidadProd} x ${nombreProd}</span>
+                <strong>S/ ${(cantidadProd * precioProd).toFixed(2)}</strong>
+            `;
+            detalleProductosList.appendChild(li);
+        });
 
-            detalleVentaModal.style.display = 'block';
-        }
+        detalleVentaModal.style.display = 'block';
+    }
 
     // Función para llenar el modal con datos de una venta
     function fillForm(venta) {
-        ventaIdInput.value = venta.id;
-        ventaClienteInput.value = venta.cliente;
-        ventaFechaInput.value = venta.fecha;
-        ventaMetodoPagoSelect.value = venta.metodoPago;
-        ventaEstadoSelect.value = venta.estado;
+        ventaIdInput.value = venta.idVenta || venta.id;
+        // Asumiendo que el backend envía el nombre_cliente_temp para el campo de texto
+        ventaClienteInput.value = venta.nombre_cliente_temp || venta.cliente; 
+        ventaFechaInput.value = venta.fecha_emision || venta.fecha;
+        // Asumiendo que el select usa el ID del tipo de pago
+        ventaMetodoPagoSelect.value = venta.id_tipopago || venta.metodoPago; 
+        ventaEstadoSelect.value = venta.estado_comprobante || venta.estado;
         
+        // Cargar campos de factura si existen
+        if(venta.id_tipo_comprobante) ventaTipoComprobanteSelect.value = venta.id_tipo_comprobante.toString();
+        ventaRUCInput.value = venta.ruc || '';
+        ventaRazonSocialInput.value = venta.razon_social || '';
+        toggleFacturaFields(); // Aplicar reglas de visibilidad
+
         productosContainer.innerHTML = '';
-        venta.productos.forEach(product => addProductInput(product));
+        const productosDetalle = venta.detalles || venta.productos;
+        productosDetalle.forEach(product => {
+             // Adaptar la carga al formato del DTO (detalles o productos)
+             addProductInput({ 
+                nombre: product.nombre_producto || product.nombre,
+                cantidad: product.cantidad || product.cantidad,
+                precio: product.precio_unitario || product.precio,
+             });
+        });
         
         calculateTotal();
     }
 
     // --- Funciones para manejar la lógica de Factura/Boleta ---
-
-    /**
-     * Muestra u oculta los campos de RUC y Razón Social 
-     * y gestiona su requisito.
-     */
     function toggleFacturaFields() {
-        // El ID 2 debe corresponder al valor de 'Factura' en tu select/base de datos.
+        // ... (Tu código original de toggleFacturaFields se mantiene aquí) ...
         const isFactura = ventaTipoComprobanteSelect.value === '2'; 
         
         if (isFactura) {
             facturaFieldsDiv.style.display = 'flex';
-            // Hacer que RUC y Razón Social sean obligatorios para Factura
             ventaRUCInput.setAttribute('required', 'required');
             ventaRazonSocialInput.setAttribute('required', 'required');
         } else {
             facturaFieldsDiv.style.display = 'none';
-            // Limpiar y quitar el requisito si no es Factura
             ventaRUCInput.removeAttribute('required');
             ventaRazonSocialInput.removeAttribute('required');
-            ventaRUCInput.value = '';
-            ventaRazonSocialInput.value = '';
-            
+            // Opcional: limpiar campos si se cambia de Factura
+            // ventaRUCInput.value = '';
+            // ventaRazonSocialInput.value = '';
         } 
 
-        // Si es 'Ticket/Venta Rápida' (valor 3), limpiar el campo cliente
         if (ventaTipoComprobanteSelect.value === '3') {
             ventaClienteInput.value = 'Cliente Varios';
             ventaClienteInput.setAttribute('disabled', 'disabled');
         } else {
-            // Si es Boleta (1) o Factura (2), asegurar que el campo esté activo y limpio
             ventaClienteInput.removeAttribute('disabled');
             if (ventaClienteInput.value === 'Cliente Varios') {
                 ventaClienteInput.value = '';
@@ -246,7 +268,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+
     // --- Event Listeners ---
+    // ... (Tu código de Event Listeners se mantiene aquí) ...
 
     // Abrir modal para crear nueva venta
     addVentaBtn.addEventListener('click', () => {
@@ -264,144 +288,38 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Manejar el envío del formulario (Crear o Editar)
-    ventaForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-
-        const productos = [];
-        productosContainer.querySelectorAll('.product-item').forEach(item => {
-            productos.push({
-                nombre: item.querySelector('.product-name-input').value,
-                cantidad: parseInt(item.querySelector('.product-qty-input').value),
-                precio: parseFloat(item.querySelector('.product-price-input').value)
-            });
-        });
-
-        const newVenta = {
-            id: ventaIdInput.value || (ventasData.length + 1).toString().padStart(3, '0'),
-            cliente: ventaClienteInput.value,
-            fecha: ventaFechaInput.value,
-            metodoPago: ventaMetodoPagoSelect.value,
-            estado: ventaEstadoSelect.value,
-            total: parseFloat(ventaTotalSpan.textContent.replace('S/ ', '')),
-            productos: productos
-        };
-
-        if (ventaIdInput.value) {
-            // Lógica para Editar
-            const index = ventasData.findIndex(v => v.id === newVenta.id);
-            if (index !== -1) {
-                ventasData[index] = newVenta;
-                alert('Venta actualizada exitosamente.');
-            }
-        } else {
-            // Lógica para Crear
-            ventasData.push(newVenta);
-            alert('Nueva venta agregada exitosamente.');
-        }
-
-        renderVentas();
-        closeModal();
-    });
-
-    // Agregar nuevo producto al formulario de venta
-    addProductBtn.addEventListener('click', () => {
-        addProductInput();
-    });
-
-    // Delegación de eventos para los botones de la tabla
-    ventasTableBody.addEventListener('click', (e) => {
-        const btn = e.target.closest('.btn-icon');
-        if (!btn) return;
-
-        const ventaId = btn.dataset.id;
-
-        if (btn.classList.contains('btn-edit')) {
-            const ventaToEdit = ventasData.find(v => v.id === ventaId);
-            if (ventaToEdit) {
-                fillForm(ventaToEdit);
-                modalTitle.textContent = 'Editar Venta';
-                openModal();
-            }
-        } else if (btn.classList.contains('btn-delete')) {
-            if (confirm('¿Estás seguro de que deseas eliminar esta venta?')) {
-                ventasData = ventasData.filter(v => v.id !== ventaId);
-                renderVentas();
-                alert('Venta eliminada exitosamente.');
-            }
-        } else if (btn.classList.contains('btn-view')) {
-            const ventaToView = ventasData.find(v => v.id === ventaId);
-            if (ventaToView) {
-                let detallesProductos = ventaToView.productos.map(p => ` - ${p.nombre} (${p.cantidad} unidades a S/ ${p.precio.toFixed(2)} c/u)`).join('\n');
-                showDetalleModal(ventaToView);
-                
-                //alert(`Detalles de la Venta:
-                //ID: ${ventaToView.id}
-                //Cliente: ${ventaToView.cliente}
-                //Fecha: ${ventaToView.fecha}
-                //Total: S/ ${ventaToView.total.toFixed(2)}
-                
-                //Productos:
-                //${detallesProductos}`);
-            }
-        } else if (btn.classList.contains('btn-pdf')) {
-            // --- NUEVA LÓGICA DE EXPORTACIÓN A PDF ---
-            exportarVentaAPDF(ventaId);
-        }
-    });
-
-
-    /**
- * Llama al backend para generar el PDF y fuerza la descarga.
- */
-    function exportarVentaAPDF(id) {
-        const url = `/ventas/${id}/pdf`;
-        
-        // Usamos window.open o una etiqueta <a> invisible para forzar la descarga
-        // ya que el backend devolverá un archivo binario.
-        
-        // Abrir una nueva pestaña para el PDF (el navegador gestiona la descarga/visualización)
-        window.open(url, '_blank');
-        
-        // Si necesitas un control más fino o un mensaje de error:
-        /*
-        fetch(url)
-            .then(response => {
-                if (!response.ok) {
-                    // Si el backend lanza un error, notifica al usuario
-                    throw new Error('Error al generar el PDF. El servidor no pudo crear el archivo.');
-                }
-                // Esto solo es necesario si el servidor devuelve un Blob (binario)
-                // En este caso, 'window.open' es más sencillo.
-            })
-            .catch(error => {
-                console.error('Error al exportar PDF:', error);
-                alert('Hubo un problema al generar el PDF: ' + error.message);
-            });
-        */
-    }
-
-    // Añadir el listener para el cambio de tipo de comprobante
-    ventaTipoComprobanteSelect.addEventListener('change', toggleFacturaFields);
-
-
-    // ... (ADAPTACIÓN del evento submit para incluir los nuevos campos) ...
+    // Manejar el envío del formulario (DEBEMOS CONVERTIR LA LÓGICA DE 'EDITAR' A UNA LLAMADA DE API)
     ventaForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        // 1. Recolectar detalles de productos (mismo código)
-        // ...
+        // 1. Recolectar detalles de productos (AJUSTADO PARA EL ENVÍO) con validación
+        const detalles = [];
+        let detallesValidos = true;
+        productosContainer.querySelectorAll('.product-item').forEach((item, idx) => {
+            const nombreProducto = item.querySelector('.product-name-input').value;
+            if (!nombreProducto || nombreProducto.trim() === "") {
+                alert(`El nombre del producto en el detalle #${idx + 1} no puede estar vacío.`);
+                detallesValidos = false;
+            }
+            detalles.push({
+                nombre_producto_temp: nombreProducto,
+                cantidad: parseInt(item.querySelector('.product-qty-input').value),
+                precio_unitario: parseFloat(item.querySelector('.product-price-input').value)
+            });
+        });
+        if (!detallesValidos) return; // No envía la venta si hay error
 
         // 2. Construir el objeto de Venta (ComprobantePago)
         const ventaPayload = {
-            id_comprobante: ventaIdInput.value || null,
+            // Mantenemos el nombre 'id_comprobante' para POST/PUT
+            id_comprobante: ventaIdInput.value || null, 
             
-            // NUEVOS CAMPOS AGREGADOS:
-            id_tipo_comprobante: parseInt(ventaTipoComprobanteSelect.value), // Usar el ID
+            // CAMPOS DEL COMPROBANTE
+            id_tipo_comprobante: parseInt(ventaTipoComprobanteSelect.value),
             ruc: ventaRUCInput.value || null,
             razon_social: ventaRazonSocialInput.value || null,
-            // ---------------------
             
+            // OTROS CAMPOS
             nombre_cliente_temp: ventaClienteInput.value, 
             fecha_emision: ventaFechaInput.value,
             id_tipopago: ventaMetodoPagoSelect.value,
@@ -410,26 +328,108 @@ document.addEventListener('DOMContentLoaded', () => {
             detalles: detalles
         };
 
-        if (await saveVenta(ventaPayload)) {
-            renderVentas();
+        const success = await saveVenta(ventaPayload);
+
+        if (success) {
+            // ⭐️ LLAMAMOS A LA FUNCIÓN QUE TRAE LOS DATOS REALES DE LA BASE DE DATOS
+            await fetchAndRenderVentas(); 
             closeModal();
         }
     });
-
-    // ... (Resto de tu código, incluyendo la llamada final a renderVentas()) ...
     
-    // Al abrir el modal, llama a la función para establecer el estado inicial.
-    // Asegúrate de modificar la función openModal para que también llame a toggleFacturaFields
-    function openModal() {
-        ventaModal.style.display = 'block';
-        // Esto inicializa los campos
-        toggleFacturaFields(); 
+    // Función Asíncrona para guardar/actualizar la venta
+    async function saveVenta(payload) {
+        const isUpdate = payload.id_comprobante && payload.id_comprobante !== '0';
+        const method = isUpdate ? 'PUT' : 'POST'; // Asumo que tienes un PUT para editar
+        const url = '/ventas/api'; 
+        
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+            
+            const data = await response.json();
+
+            if (!response.ok) {
+                const errorMessage = data.error || `Error ${response.status}: Fallo en el ${method} de la venta.`;
+                alert(`Error: ${errorMessage}`);
+                return false;
+            }
+
+            alert(`Venta ${isUpdate ? 'actualizada' : 'registrada'} exitosamente. ID: ${data.id_comprobante || data.id}`);
+            return true;
+        } catch (error) {
+            console.error('Error al guardar la venta:', error);
+            alert('Hubo un error de conexión al guardar la venta.');
+            return false;
+        }
     }
-    
-    // Iniciar la aplicación renderizando la tabla con los datos iniciales
-    renderVentas();
 
-        // --- Seleccionar/Deseleccionar todos los checkboxes ---
+
+    // Agregar nuevo producto al formulario de venta
+    addProductBtn.addEventListener('click', () => {
+        addProductInput();
+    });
+
+    // Delegación de eventos para los botones de la tabla
+    ventasTableBody.addEventListener('click', async (e) => { // Agregamos 'async' aquí
+        const btn = e.target.closest('.btn-icon');
+        if (!btn) return;
+
+        const ventaId = btn.dataset.id;
+        // Obtenemos la venta del arreglo cargado previamente
+        const venta = ventasData.find(v => (v.idVenta || v.id) == ventaId); 
+        
+        if (btn.classList.contains('btn-edit')) {
+            if (venta) {
+                fillForm(venta);
+                modalTitle.textContent = 'Editar Venta';
+                openModal();
+            }
+        } else if (btn.classList.contains('btn-delete')) {
+            if (confirm('¿Estás seguro de que deseas eliminar esta venta? Esta acción no se puede deshacer.')) {
+                 // **[PENDIENTE]** Debes crear un endpoint DELETE en VentasController.java
+                 const deleteUrl = `/ventas/api/${ventaId}`;
+                 try {
+                    const response = await fetch(deleteUrl, { method: 'DELETE' });
+                    if (!response.ok) throw new Error('Error al eliminar en el servidor.');
+                    
+                    alert('Venta eliminada exitosamente.');
+                    // Vuelve a cargar y renderizar los datos
+                    await fetchAndRenderVentas(); 
+                    
+                 } catch (error) {
+                    console.error('Error al eliminar la venta:', error);
+                    alert('Fallo la eliminación de la venta: ' + error.message);
+                 }
+            }
+        } else if (btn.classList.contains('btn-view')) {
+            if (venta) {
+                showDetalleModal(venta);
+            }
+        } else if (btn.classList.contains('btn-pdf')) {
+            // --- LÓGICA DE EXPORTACIÓN A PDF ---
+            exportarVentaAPDF(ventaId);
+        }
+    });
+
+
+    /**
+    * Llama al backend para generar el PDF y fuerza la descarga.
+    */
+    function exportarVentaAPDF(id) {
+        const url = `/ventas/${id}/pdf`;
+        window.open(url, '_blank');
+    }
+
+    // Añadir el listener para el cambio de tipo de comprobante
+    ventaTipoComprobanteSelect.addEventListener('change', toggleFacturaFields);
+
+    // --- Seleccionar/Deseleccionar todos los checkboxes ---
     const selectAll = document.getElementById('selectAll');
 
     function updateSelectAllCheckbox() {
@@ -457,13 +457,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Actualizar el estado del checkbox "selectAll" cada vez que se renderiza la tabla
-    const originalRenderVentas = renderVentas;
-    renderVentas = function () {
-        originalRenderVentas();
-        updateSelectAllCheckbox();
-    };
-
     //EL DETALLE DE LA VENTA
     closeDetalleModalBtn.addEventListener('click', () => {
         detalleVentaModal.style.display = 'none';
@@ -480,12 +473,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Agrega este bloque de código al final de tu archivo ventas.js
-
-    window.addEventListener('click', (event) => {
-        // Si el clic ocurrió fuera del contenido del modal
-        if (event.target === detalleVentaModal) {
-            detalleVentaModal.style.display = 'none';
-        }
-    });
+    // ⭐️ INICIO DE LA APLICACIÓN: Llamar a la función para cargar datos de la API
+    // Reemplaza el antiguo 'renderVentas()' estático.
+    fetchAndRenderVentas(); 
 });
