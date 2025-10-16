@@ -326,30 +326,80 @@ body {
     color: white;
 }
 
-/* Hero Section Actualizada */
-.hero {
-    background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), 
-                url('img/hero-banner.jpg') center/cover;
+/* ===== CARRUSEL HERO (Manteniendo tu estilo) ===== */
+.hero-slider {
+    position: relative;
     height: 80vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    color: white;
     margin-top: 80px;
+    overflow: hidden;
 }
 
-.hero-content h1 {
+.slider-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.slide.active {
+    opacity: 1;
+}
+
+.slide-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* Mantenemos tu overlay original */
+.slide-image::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4));
+}
+
+/* Mantenemos tu contenido hero original */
+.slide-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: white;
+    z-index: 2;
+    width: 90%;
+    max-width: 800px;
+}
+
+.slide-content h1 {
     font-size: 3.5rem;
     margin-bottom: 1.5rem;
     font-weight: 200;
     text-transform: uppercase;
     letter-spacing: 1px;
     font-family: 'Lora', serif;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3); /* Sombra sutil para legibilidad */
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
 }
 
-.hero-content p {
+.slide-content p {
     font-size: 1.3rem;
     margin-bottom: 2.5rem;
     font-weight: 300;
@@ -360,6 +410,158 @@ body {
     line-height: 1.6;
     letter-spacing: 1px;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+/* Mantenemos tu botón original */
+.cta-button {
+    background: #e91e63;
+    color: white;
+    border: none;
+    padding: 15px 40px;
+    font-size: 1.1rem;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 500;
+}
+
+.cta-button:hover {
+    background: #c2185b;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(233, 30, 99, 0.3);
+}
+
+/* Controles del carrusel */
+.slider-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 2rem;
+    padding: 15px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 3;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+}
+
+.slider-btn:hover {
+    background: rgba(233, 30, 99, 0.8);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.prev-btn {
+    left: 2rem;
+}
+
+.next-btn {
+    right: 2rem;
+}
+
+/* Indicadores */
+.slider-indicators {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 1rem;
+    z-index: 3;
+}
+
+.indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.indicator.active {
+    background: #e91e63;
+    transform: scale(1.2);
+}
+
+.indicator:hover {
+    background: #e91e63;
+}
+
+/* Responsive - Manteniendo tus breakpoints */
+@media (max-width: 768px) {
+    .hero-slider {
+        height: 80vh;
+    }
+    
+    .slide-content h1 {
+        font-size: 3.5rem;
+        margin-bottom: 1.5rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-family: 'Lora', serif;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .slide-content p {
+        font-size: 1.3rem;
+        margin-bottom: 2.5rem;
+        font-weight: 300;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+        font-family: 'Montserrat', sans-serif;
+    }
+
+    .slide-content p {
+        font-size: 1.1rem;
+        padding: 0 1rem;
+    }
+    
+    .slider-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+        padding: 12px 15px;
+    }
+    
+    .prev-btn {
+        left: 1rem;
+    }
+    
+    .next-btn {
+        right: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-slider {
+        height: 80vh;
+    }
+    
+    .slide-content h1 {
+        font-size: 2rem;
+    }
+    
+    .slide-content p {
+        font-size: 1rem;
+    }
+    
+    .slider-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
 }
 
 .cta-button {
@@ -842,31 +1044,6 @@ footer {
         gap: 1rem;
     }
 
-    .hero-content h1 {
-        font-size: 3.5rem;
-        margin-bottom: 1.5rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        font-family: 'Lora', serif;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.3); /* Sombra sutil para legibilidad */
-    }
-
-    .hero-content p {
-        font-size: 1.3rem;
-        margin-bottom: 2.5rem;
-        font-weight: 300;
-        max-width: 600px;
-        margin-left: auto;
-        margin-right: auto;
-        font-family: 'Montserrat', sans-serif;
-    }
-
-    .hero-content p {
-        font-size: 1.1rem;
-        padding: 0 1rem;
-    }
-
     .about-content,
     .contact-content {
         grid-template-columns: 1fr;
@@ -898,14 +1075,6 @@ footer {
     
     .logo h1 {
         font-size: 1.5rem;
-    }
-    
-    .hero-content h1 {
-        font-size: 2rem;
-    }
-    
-    .hero-content p {
-        font-size: 1rem;
     }
     
     .cta-button {

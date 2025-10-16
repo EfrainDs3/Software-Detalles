@@ -184,4 +184,81 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-}); // <-- SOLO UN DOMContentLoaded
+     // ===== CARRUSEL HERO =====
+    const slides = document.querySelectorAll('.slide');
+    const indicators = document.querySelectorAll('.indicator');
+    const prevBtn = document.querySelector('.prev-btn');
+    const nextBtn = document.querySelector('.next-btn');
+    
+    // Solo inicializar si existe el carrusel
+    if (slides.length > 0) {
+        let currentSlide = 0;
+        let slideInterval;
+
+        // Función para mostrar slide
+        function showSlide(n) {
+            slides.forEach(slide => slide.classList.remove('active'));
+            indicators.forEach(indicator => indicator.classList.remove('active'));
+            
+            currentSlide = (n + slides.length) % slides.length;
+            
+            slides[currentSlide].classList.add('active');
+            indicators[currentSlide].classList.add('active');
+        }
+
+        // Función para siguiente slide
+        function nextSlide() {
+            showSlide(currentSlide + 1);
+        }
+
+        // Función para slide anterior
+        function prevSlide() {
+            showSlide(currentSlide - 1);
+        }
+
+        // Iniciar carrusel automático
+        function startSlider() {
+            slideInterval = setInterval(nextSlide, 8000); // Cambia cada 5 segundos
+        }
+
+        // Detener carrusel automático
+        function stopSlider() {
+            clearInterval(slideInterval);
+        }
+
+        // Event listeners
+        if (nextBtn && prevBtn) {
+            nextBtn.addEventListener('click', () => {
+                nextSlide();
+                stopSlider();
+                startSlider();
+            });
+
+            prevBtn.addEventListener('click', () => {
+                prevSlide();
+                stopSlider();
+                startSlider();
+            });
+        }
+
+        // Event listeners para indicadores
+        indicators.forEach((indicator, index) => {
+            indicator.addEventListener('click', () => {
+                showSlide(index);
+                stopSlider();
+                startSlider();
+            });
+        });
+
+        // Pausar carrusel al hacer hover
+        const heroSlider = document.querySelector('.hero-slider');
+        if (heroSlider) {
+            heroSlider.addEventListener('mouseenter', stopSlider);
+            heroSlider.addEventListener('mouseleave', startSlider);
+        }
+
+        // Iniciar carrusel
+        startSlider();
+    }
+
+}); // <-- FIN DEL DOMContentLoaded

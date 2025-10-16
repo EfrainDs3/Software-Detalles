@@ -121,11 +121,53 @@
         </nav>
     </header>
 
-    <section id="inicio" class="hero">
-        <div class="hero-content">
-            <h1>Nueva Colección Primavera 2025</h1>
-            <p>Descubre las últimas tendencias en calzado y accesorios para toda la familia</p>
-            <button class="cta-button">Comprar Ahora</button>
+        <!-- Carrusel Hero Manteniendo tu Estilo -->
+    <section id="inicio" class="hero-slider">
+        <div class="slider-container">
+            <!-- Slide 1 - Tu contenido actual -->
+            <div class="slide active">
+                <div class="slide-image" style="background-image: url('img/hero-banner.jpg');"></div>
+                <div class="slide-content">
+                    <h1>Nueva Colección Primavera 2025</h1>
+                    <p>Descubre las últimas tendencias en calzado y accesorios para toda la familia</p>
+                    <button class="cta-button">Comprar Ahora</button>
+                </div>
+            </div>
+            
+            <!-- Slide 2 - Mismo estilo, diferente imagen -->
+            <div class="slide">
+                <div class="slide-image" style="background-image: url('img/hero-banner-2.jpg');"></div>
+                <div class="slide-content">
+                    <h1>Elegancia en cada Paso</h1>
+                    <p>Calzado diseñado para tu confort y elegancia</p>
+                    <button class="cta-button">Comprar Ahora</button>
+                </div>
+            </div>
+            
+            <!-- Slide 3 - Mismo estilo, diferente imagen -->
+            <div class="slide">
+                <div class="slide-image" style="background-image: url('img/hero-banner-3.jpg');"></div>
+                <div class="slide-content">
+                    <h1>Complementa tu Estilo</h1>
+                    <p>Encuentra el accesorio perfecto para cada ocasión</p>
+                    <button class="cta-button">Comprar Ahora</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Controles del Carrusel -->
+        <button class="slider-btn prev-btn">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="slider-btn next-btn">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+        
+        <!-- Indicadores -->
+        <div class="slider-indicators">
+            <span class="indicator active"></span>
+            <span class="indicator"></span>
+            <span class="indicator"></span>
         </div>
     </section>
 
