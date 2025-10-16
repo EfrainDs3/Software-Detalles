@@ -1396,11 +1396,16 @@ footer {
 /* --- Estilos para la Página del Carrito --- */
 .cart-page {
     padding: 2rem 1rem;
+    min-height: 56vh; /* Altura mínima para empujar el footer */
+    display: flex;
+    flex-direction: column;
 }
 
 .cart-container {
     max-width: 1200px;
     margin: 0 auto;
+    flex: 1; /* Ocupa el espacio disponible */
+    width: 100%;
 }
 
 .cart-container h1 {
@@ -1481,6 +1486,55 @@ footer {
     color: #e91e63;
 }
 
+/* Estilos mejorados para el botón Vaciar Carrito */
+.btn-vaciar {
+    background-color: #e91e63;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin: 10px auto;
+    font-size: 14px;
+    font-weight: 600;
+    width: auto;
+    min-width: 160px;
+    transition: all 0.3s ease;
+    display: block;
+    text-align: center;
+}
+
+.btn-vaciar:hover {
+    background-color: #cc0000;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 68, 68, 0.3);
+}
+
+/* Estilos para el botón Seguir Comprando */
+.btn-primary {
+    background-color: #e91e63;
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s ease;
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.btn-primary:hover {
+    background-color: #c2185b;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(233, 30, 99, 0.3);
+    color: white;
+    text-decoration: none;
+}
+
 /* Estilos del Resumen del Pedido */
 .order-summary {
     background: #f9f9f9;
@@ -1488,7 +1542,9 @@ footer {
     border-radius: 8px;
     border: 1px solid #eee;
     position: sticky;
-    top: 2rem;
+    top: 100px; /* Deja espacio para el header */
+    max-height: calc(100vh - 120px); /* Limita la altura */
+    overflow-y: auto; /* Permite scroll si es muy largo */
 }
 
 .order-summary h2 {
@@ -1531,12 +1587,17 @@ footer {
 /* Mensaje de carrito vacío */
 .empty-cart-message {
     text-align: center;
-    padding: 3rem;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    margin: 2rem 0;
 }
 
 .empty-cart-message p {
-    font-size: 1.2rem;
-    margin-bottom: 1.5rem;
+    font-size: 1.3rem;
+    margin-bottom: 2rem;
+    color: #666;
 }
 
 /* Responsive para el carrito */
