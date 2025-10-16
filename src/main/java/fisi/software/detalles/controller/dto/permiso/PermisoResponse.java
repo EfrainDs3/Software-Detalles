@@ -50,4 +50,25 @@ public record PermisoResponse(
             permiso.getFechaActualizacion()
         );
     }
+
+    /**
+     * Builds a masked response that only preserves id and codigo.
+     * All other fields are left empty/null so the UI can display only the code.
+     */
+    public static PermisoResponse fromEntityMasked(Permiso permiso, long totalUsuarios) {
+        return new PermisoResponse(
+            permiso != null ? permiso.getIdPermiso() : null,
+            permiso != null ? permiso.getCodigo() : null,
+            null,
+            null,
+            null,
+            0L,
+            List.of(),
+            totalUsuarios,
+            null,
+            null,
+            null,
+            null
+        );
+    }
 }

@@ -269,8 +269,9 @@ function renderPermissions() {
     const fragment = document.createDocumentFragment();
 
     state.items.forEach((permiso) => {
-        const tr = document.createElement('tr');
-        tr.dataset.permissionId = permiso.id;
+            const tr = document.createElement('tr');
+            tr.dataset.permissionId = permiso.id;
+            const displayName = permiso.nombre && permiso.nombre.trim() !== '' ? permiso.nombre : permiso.codigo;
         const rolesMarkup = permiso.roles.length
             ? `<div class="roles-list">${permiso.roles
                 .map(rol => `<span class="role-chip">${escapeHtml(rol)}</span>`)
@@ -286,7 +287,7 @@ function renderPermissions() {
             </td>
             <td>
                 <div class="name-cell">
-                    <span class="name">${escapeHtml(permiso.nombre)}</span>
+                    <span class="name">${escapeHtml(displayName)}</span>
                 </div>
             </td>
             <td>
@@ -465,7 +466,8 @@ function openConfirmModal(permiso) {
     if (!dom.confirmModal) return;
 
     state.deleteTarget = permiso;
-    dom.confirmMessage.textContent = `¿Quieres eliminar el permiso \"${permiso.nombre}\"?`;
+    const confirmName = permiso.nombre && permiso.nombre.trim() !== '' ? permiso.nombre : permiso.codigo;
+    dom.confirmMessage.textContent = `¿Quieres eliminar el permiso \"${confirmName}\"?`;
 
     if ((permiso.totalRoles ?? 0) > 0 || (permiso.totalUsuarios ?? 0) > 0) {
         dom.confirmWarning.textContent = 'No se puede eliminar porque está asignado a roles o usuarios.';

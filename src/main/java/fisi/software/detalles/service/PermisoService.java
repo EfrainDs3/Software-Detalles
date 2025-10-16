@@ -8,7 +8,8 @@ import fisi.software.detalles.repository.PermisoRepository;
 import fisi.software.detalles.repository.RolRepository;
 import fisi.software.detalles.repository.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
+import org.hibernate.Hibernate;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,6 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class PermisoService {
 
     private static final String ESTADO_ACTIVO = "ACTIVO";
@@ -36,6 +36,28 @@ public class PermisoService {
     private final UsuarioRepository usuarioRepository;
     private final PermisoAuditoriaService permisoAuditoriaService;
 
+    // Permission codes that should be hidden for standard 'usuario' roles
+    private static final Set<String> RESTRICTED_PERMISSION_CODES_FOR_STANDARD_USER = Set.of(
+        "DASHBOARD_VIEW",
+        "COMPRAS_GESTIONAR",
+        "INVENTARIO_GESTIONAR",
+        "PERMISSIONS_MANAGE",
+        "ROLES_MANAGE",
+        "USERS_MANAGE",
+        "TEST_PERMISSION",
+        "VENTAS_REGISTRAR",
+        "PERMISSIONS_VIEW",
+        "ROLES_VIEW",
+        "USERS_VIEW"
+    );
+
+    // Permission codes that should be masked in the management listing (show only code)
+    private static final Set<String> MASKED_PERMISSION_CODES = Set.of(
+        "ROLES_VIEW",
+        "DASHBOARD_VIEW"
+    );
+
+    @Transactional(readOnly = true)
     public List<PermisoResponse> listarPermisos(Boolean soloActivos, String estado, String termino) {
         String estadoNormalizado = normalizarEstado(soloActivos, estado);
         String terminoNormalizado = normalizarBusqueda(termino);
@@ -45,16 +67,31 @@ public class PermisoService {
             terminoNormalizado
         );
 
+        // initialize roles collection for each permiso to avoid lazy init in DTO mapping
+        permisos.forEach(p -> Hibernate.initialize(p.getRoles()));
+
         return permisos.stream()
-            .map(permiso -> PermisoResponse.fromEntity(
-                permiso,
-                usuarioRepository.countByPermisosExtra_IdPermiso(permiso.getIdPermiso())
-            ))
+            .map(permiso -> {
+                long totalUsuarios = usuarioRepository.countByPermisosExtra_IdPermiso(permiso.getIdPermiso());
+                String codigo = Optional.ofNullable(permiso.getCodigo()).orElse("").toUpperCase(Locale.ROOT);
+                if (MASKED_PERMISSION_CODES.contains(codigo)) {
+                    return PermisoResponse.fromEntityMasked(permiso, totalUsuarios);
+                }
+                return PermisoResponse.fromEntity(permiso, totalUsuarios);
+            })
             .toList();
     }
 
     public PermisoResponse obtenerPermiso(Long id) {
         Permiso permiso = obtenerEntidad(id);
+        long totalUsuarios = usuarioRepository.countByPermisosExtra_IdPermiso(permiso.getIdPermiso());
+        return PermisoResponse.fromEntity(permiso, totalUsuarios);
+    }
+
+    @Transactional(readOnly = true)
+    public PermisoResponse obtenerPermisoConInicializacion(Long id) {
+        Permiso permiso = obtenerEntidad(id);
+        Hibernate.initialize(permiso.getRoles());
         long totalUsuarios = usuarioRepository.countByPermisosExtra_IdPermiso(permiso.getIdPermiso());
         return PermisoResponse.fromEntity(permiso, totalUsuarios);
     }
@@ -93,7 +130,19 @@ public class PermisoService {
     public PermisoRolDetalleResponse listarPermisosPorRol(Integer rolId) {
         Rol rol = rolRepository.findWithPermisosById(rolId)
             .orElseThrow(() -> new EntityNotFoundException("Rol no encontrado"));
-        List<PermisoResumenResponse> permisos = rol.getPermisos().stream()
+        // initialize permisos collection to avoid lazy loading in view
+        Hibernate.initialize(rol.getPermisos());
+        List<Permiso> permisosEnt = new ArrayList<>(rol.getPermisos());
+        // apply filtering for 'usuario' like roles
+        if (isStandardUserRole(rol)) {
+            permisosEnt = permisosEnt.stream()
+                .filter(p -> !RESTRICTED_PERMISSION_CODES_FOR_STANDARD_USER.contains(
+                    Optional.ofNullable(p.getCodigo()).orElse("").toUpperCase(Locale.ROOT)
+                ))
+                .toList();
+        }
+
+        List<PermisoResumenResponse> permisos = permisosEnt.stream()
             .sorted(Comparator.comparing(Permiso::getNombrePermiso, String.CASE_INSENSITIVE_ORDER))
             .map(PermisoResumenResponse::fromEntity)
             .toList();
@@ -154,6 +203,10 @@ public class PermisoService {
         Usuario usuario = usuarioRepository.findWithRolesAndPermisosById(usuarioId)
             .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
 
+        // asegurarnos de inicializar las colecciones lazy necesarias
+        Hibernate.initialize(usuario.getPermisosExtra());
+        usuario.getRoles().forEach(rol -> Hibernate.initialize(rol.getPermisos()));
+
         Map<Long, PermisoUsuarioDetalleBuilder> acumulador = new HashMap<>();
 
         usuario.getRoles().forEach(rol -> rol.getPermisos().forEach(permiso ->
@@ -166,10 +219,22 @@ public class PermisoService {
                 .marcarAsignadoDirecto()
         );
 
-        return acumulador.values().stream()
+        List<PermisoUsuarioDetalleResponse> resultado = acumulador.values().stream()
             .map(PermisoUsuarioDetalleBuilder::construir)
             .sorted(Comparator.comparing(o -> o.permiso().nombre(), String.CASE_INSENSITIVE_ORDER))
             .toList();
+
+        // If the user is effectively a standard 'usuario' (has a usuario-like role and no admin role),
+        // filter out restricted permission codes from the result
+        if (shouldFilterForStandardUsuario(usuario)) {
+            return resultado.stream()
+                .filter(r -> !RESTRICTED_PERMISSION_CODES_FOR_STANDARD_USER.contains(
+                    Optional.ofNullable(r.permiso().codigo()).orElse("").toUpperCase(Locale.ROOT)
+                ))
+                .toList();
+        }
+
+        return resultado;
     }
 
     public List<PermisoResumenResponse> actualizarPermisosUsuario(Integer usuarioId, List<Long> permisoIds) {
@@ -335,5 +400,27 @@ public class PermisoService {
                 rolesOrdenados
             );
         }
+    }
+
+    /**
+     * Detects roles that should be considered 'standard usuario' roles.
+     * Current heuristic: role name contains the token "usuario" (case-insensitive).
+     */
+    private boolean isStandardUserRole(Rol rol) {
+        if (rol == null || rol.getNombre() == null) return false;
+        return rol.getNombre().toLowerCase(Locale.ROOT).contains("usuario");
+    }
+
+    /**
+     * Decide whether to apply filtering for a user: user has at least one usuario-like role
+     * and does not have any role with 'admin' in its name (case-insensitive).
+     */
+    private boolean shouldFilterForStandardUsuario(Usuario usuario) {
+        if (usuario == null || usuario.getRoles() == null) return false;
+        boolean hasUsuarioRole = usuario.getRoles().stream()
+            .anyMatch(r -> r.getNombre() != null && r.getNombre().toLowerCase(Locale.ROOT).contains("usuario"));
+        boolean hasAdminRole = usuario.getRoles().stream()
+            .anyMatch(r -> r.getNombre() != null && r.getNombre().toLowerCase(Locale.ROOT).contains("admin"));
+        return hasUsuarioRole && !hasAdminRole;
     }
 }
