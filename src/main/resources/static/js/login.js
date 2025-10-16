@@ -262,11 +262,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Manejo del enlace "¿Olvidaste tu contraseña?"
-    const forgotLink = document.querySelector('.forgot-link');
-    forgotLink.addEventListener('click', function(e) {
-        e.preventDefault();
-        showMessage('Funcionalidad en desarrollo', 'info');
-    });
+    // La navegación al flujo de recuperación se maneja mediante el enlace directo en la vista
 });
 
 // Función para limpiar la sesión (disponible globalmente)

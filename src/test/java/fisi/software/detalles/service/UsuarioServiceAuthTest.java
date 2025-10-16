@@ -91,4 +91,47 @@ class UsuarioServiceAuthTest {
             .isInstanceOf(BadCredentialsException.class)
             .hasMessageContaining("Usuario o contraseña incorrectos");
     }
+
+    @Test
+    void verificarDatosRecuperacionConDatosValidos() {
+        Usuario verificado = usuarioService.verificarDatosRecuperacion(
+            "usuario.prueba",
+            "Usuario",
+            "Prueba",
+            "usuario.prueba@example.com",
+            "12345678"
+        );
+
+        assertThat(verificado.getId()).isNotNull();
+    }
+
+    @Test
+    void verificarDatosRecuperacionConDatosInvalidosLanzaExcepcion() {
+        assertThatThrownBy(() -> usuarioService.verificarDatosRecuperacion(
+            "usuario.prueba",
+            "Usuario",
+            "Prueba",
+            "usuario.prueba@example.com",
+            "00000000"
+        ))
+            .isInstanceOf(BadCredentialsException.class)
+            .hasMessageContaining("Los datos proporcionados no coinciden");
+    }
+
+    @Test
+    void restablecerPasswordActualizaHash() {
+        String nuevaClave = "ClaveNueva123";
+
+        usuarioService.restablecerPassword(
+            "usuario.prueba",
+            "Usuario",
+            "Prueba",
+            "usuario.prueba@example.com",
+            "12345678",
+            nuevaClave
+        );
+
+        Usuario actualizado = usuarioRepository.findByUsernameIgnoreCase("usuario.prueba").orElseThrow();
+        assertThat(passwordEncoder.matches(nuevaClave, actualizado.getPasswordHash())).isTrue();
+    }
 }
