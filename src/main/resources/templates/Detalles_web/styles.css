@@ -44,6 +44,30 @@ body {
     margin: 0;
 }
 
+/* Estilos para el logo */
+.logo-link {
+    display: inline-block;
+    text-decoration: none;
+    transition: opacity 0.3s ease;
+}
+
+.logo-link:hover {
+    opacity: 0.8;
+}
+
+.logo img {
+    height: 40px; /* Ajusta según el tamaño de tu logo */
+    width: auto;
+    display: block;
+}
+
+/* Para responsive */
+@media (max-width: 768px) {
+    .logo img {
+        height: 35px;
+    }
+}
+
 /* Menú central */
 .nav-menu {
     display: flex;
@@ -305,7 +329,7 @@ body {
 /* Hero Section Actualizada */
 .hero {
     background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), 
-                url('https://via.placeholder.com/1920x1080') center/cover;
+                url('img/hero-banner.jpg') center/cover;
     height: 80vh;
     display: flex;
     align-items: center;
@@ -318,9 +342,11 @@ body {
 .hero-content h1 {
     font-size: 3.5rem;
     margin-bottom: 1.5rem;
-    font-weight: 300;
+    font-weight: 200;
     text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: 1px;
+    font-family: 'Lora', serif;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3); /* Sombra sutil para legibilidad */
 }
 
 .hero-content p {
@@ -330,6 +356,10 @@ body {
     max-width: 600px;
     margin-left: auto;
     margin-right: auto;
+    font-family: 'Montserrat', sans-serif;
+    line-height: 1.6;
+    letter-spacing: 1px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
 }
 
 .cta-button {
@@ -379,6 +409,7 @@ body {
     font-size: 2.5rem;
     margin-bottom: 3rem;
     color: #333;
+    font-family: 'Montserrat', sans-serif;
 }
 
 .products-grid {
@@ -812,7 +843,23 @@ footer {
     }
 
     .hero-content h1 {
-        font-size: 2.5rem;
+        font-size: 3.5rem;
+        margin-bottom: 1.5rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-family: 'Lora', serif;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3); /* Sombra sutil para legibilidad */
+    }
+
+    .hero-content p {
+        font-size: 1.3rem;
+        margin-bottom: 2.5rem;
+        font-weight: 300;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+        font-family: 'Montserrat', sans-serif;
     }
 
     .hero-content p {
