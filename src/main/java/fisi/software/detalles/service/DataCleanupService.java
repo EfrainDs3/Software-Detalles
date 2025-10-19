@@ -21,6 +21,7 @@ public class DataCleanupService {
     private final RolRepository rolRepository;
     private final PermisoRepository permisoRepository;
 
+    @Transactional
     public void performFullCleanup() {
         deleteTestUsers();
         deleteUsuarioRole();

@@ -80,15 +80,24 @@ function populateTipoDocumentoSelects() {
     
     selects.forEach(select => {
         if (select) {
-            // Clear existing options except the first one
-            while (select.options.length > 1) {
-                select.remove(1);
+            // Clear all existing options
+            select.innerHTML = '';
+
+            // Add a sensible default option depending on the select
+            const defaultOption = document.createElement('option');
+            if (select.id === 'filterDocType') {
+                defaultOption.value = '';
+                defaultOption.textContent = 'Todos';
+            } else {
+                defaultOption.value = '';
+                defaultOption.textContent = 'Seleccionar tipo';
             }
-            
-            // Add tipo documento options
+            select.appendChild(defaultOption);
+
+            // Add tipo documento options (value = numeric id)
             tiposDocumento.forEach(tipo => {
                 const option = document.createElement('option');
-                option.value = tipo.idTipoDocumento;
+                option.value = tipo.idTipoDocumento; // numeric id expected by backend
                 option.textContent = tipo.nombreTipoDocumento;
                 select.appendChild(option);
             });
@@ -357,6 +366,12 @@ function setupAddModal() {
                 telefono: document.getElementById('clientPhone').value,
                 direccion: document.getElementById('clientAddress').value
             };
+
+            // Client-side validation: if document number provided, tipoDocumento must be selected
+            if (formData.numeroDocumento && (!formData.tipoDocumentoId || formData.tipoDocumentoId === '')) {
+                showNotification('Debe especificar el tipo de documento', 'error');
+                return;
+            }
             
             try {
                 await crearCliente(formData);
@@ -433,6 +448,12 @@ function setupEditModal() {
                 telefono: document.getElementById('editClientPhone').value,
                 direccion: document.getElementById('editClientAddress').value
             };
+
+            // Client-side validation: if document number provided, tipoDocumento must be selected
+            if (formData.numeroDocumento && (!formData.tipoDocumentoId || formData.tipoDocumentoId === '')) {
+                showNotification('Debe especificar el tipo de documento', 'error');
+                return;
+            }
             
             try {
                 await actualizarCliente(currentClientId, formData);
