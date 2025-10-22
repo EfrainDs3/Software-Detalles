@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import fisi.software.detalles.controller.dto.CajaEstadoDTO;
 import fisi.software.detalles.controller.dto.MovimientoCajaDTO;
 import fisi.software.detalles.entity.AperturaCaja;
-import fisi.software.detalles.entity.Cajas;
+import fisi.software.detalles.entity.Caja;
 import fisi.software.detalles.entity.CierreCaja;
 import fisi.software.detalles.entity.Usuario;
 import fisi.software.detalles.repository.AperturaCajaRepository;
@@ -36,7 +36,7 @@ public class CajaService {
     // Asumimos el ID 1 para la caja principal
     private static final Integer CAJA_PRINCIPAL_ID = 1; 
 
-    private Cajas getCajaPrincipal() {
+    private Caja getCajaPrincipal() {
         return cajaRepository.findById(CAJA_PRINCIPAL_ID)
                 .orElseThrow(() -> new EntityNotFoundException("Caja principal no encontrada."));
     }
@@ -46,7 +46,7 @@ public class CajaService {
     // ======================================================
     @Transactional(readOnly = true)
     public CajaEstadoDTO getEstadoCaja() {
-        Cajas caja = getCajaPrincipal();
+        Caja caja = getCajaPrincipal();
         Optional<AperturaCaja> aperturaActiva = aperturaRepository.findActiveAperturaByCajaId(caja.getIdCaja());
 
         if (aperturaActiva.isPresent()) {
@@ -77,7 +77,7 @@ public class CajaService {
 
         Usuario usuario = usuarioRepository.findById(idUsuario)
                 .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado."));
-        Cajas caja = getCajaPrincipal();
+        Caja caja = getCajaPrincipal();
 
         AperturaCaja nuevaApertura = new AperturaCaja();
         nuevaApertura.setCaja(caja);
@@ -116,7 +116,7 @@ public class CajaService {
         // -----------------------------------------------------------
 
         BigDecimal diferencia = montoFinal.subtract(montoEsperado);
-        Cajas caja = getCajaPrincipal();
+        Caja caja = getCajaPrincipal();
 
         CierreCaja cierre = new CierreCaja();
         cierre.setApertura(apertura);
