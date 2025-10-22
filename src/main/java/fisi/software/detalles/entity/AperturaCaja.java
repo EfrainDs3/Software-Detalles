@@ -26,7 +26,7 @@ public class AperturaCaja {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_caja", nullable = false)
-    private Cajas cajas;
+    private Caja caja;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_usuario", nullable = false)
@@ -53,12 +53,12 @@ public class AperturaCaja {
         this.idApertura = idApertura;
     }
 
-    public Cajas getCaja() {
-        return cajas;
+    public Caja getCaja() {
+        return caja;
     }
 
-    public void setCaja(Cajas caja) {
-        this.cajas = caja;
+    public void setCaja(Caja caja) {
+        this.caja = caja;
     }
 
     public Usuario getUsuario() {
