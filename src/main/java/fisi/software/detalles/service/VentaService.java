@@ -1,7 +1,3 @@
-    // ======================================================================
-    // MÉTODO: ACTUALIZAR VENTA EXISTENTE
-    // ======================================================================
-
 package fisi.software.detalles.service;
 
 import org.springframework.stereotype.Service;
