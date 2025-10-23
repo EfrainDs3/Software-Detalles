@@ -28,10 +28,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
     @EntityGraph(attributePaths = {"roles", "roles.permisos", "tipoDocumento"})
     List<Usuario> findAllByOrderByNombresAscApellidosAsc();
 
-    @EntityGraph(attributePaths = {"roles", "roles.permisos", "permisosExtra"})
+    @EntityGraph(attributePaths = {"roles", "roles.permisos", "tipoDocumento"})
     Optional<Usuario> findWithRolesAndPermisosById(Integer id);
 
-    boolean existsByPermisosExtra_IdPermiso(Long permisoId);
-
-    long countByPermisosExtra_IdPermiso(Long permisoId);
 }
