@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 // Importaciones del DTO
 import fisi.software.detalles.controller.dto.VentaRequestDTO;
 import fisi.software.detalles.controller.dto.DetalleVentaDTO;
+import fisi.software.detalles.controller.dto.VentaListDTO; // Asegúrate de que este DTO exista
+import fisi.software.detalles.controller.dto.DetalleVentaListDTO; // Asegúrate de que este DTO exista
 
 // Importaciones de Entidades
 import fisi.software.detalles.entity.ComprobantePago; 
@@ -14,7 +16,7 @@ import fisi.software.detalles.entity.Usuario;
 import fisi.software.detalles.entity.Cliente;
 import fisi.software.detalles.entity.TipoComprobantePago;
 import fisi.software.detalles.entity.Producto;
-import fisi.software.detalles.entity.TipoDocumento; // Necesario para buscar Cliente por documento
+import fisi.software.detalles.entity.TipoDocumento; 
 
 // Importaciones de Repositorios
 import fisi.software.detalles.repository.VentaRepository; 
@@ -42,6 +44,33 @@ import java.util.stream.Collectors;
 
 @Service
 public class VentaService {
+    // ⭐️ INYECCIÓN DE TODOS LOS REPOSITORIOS
+    @Autowired 
+    private VentaRepository ventaRepository; 
+
+    @Autowired
+    private UsuarioRepository usuarioRepository; 
+
+    @Autowired
+    private TipoComprobantePagoRepository tipoComprobantePagoRepository;
+
+    @Autowired
+    private ProductoRepository productoRepository;
+
+    @Autowired
+    private ClienteRepository clienteRepository; 
+
+    // --- Definición de Fuentes para PDF ---
+    private static final Font FONT_TITULO = new Font(Font.FontFamily.HELVETICA, 16, Font.BOLD, BaseColor.RED);
+    private static final Font FONT_NORMAL_BOLD = new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD);
+    private static final Font FONT_NORMAL = new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL);
+    private static final Font FONT_HEADER_TABLE = new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD, BaseColor.WHITE);
+
+    // Constante para IGV (18% - Ajustar si es necesario)
+    private static final BigDecimal IGV_RATE = new BigDecimal("0.18");
+    private static final BigDecimal IGV_FACTOR = new BigDecimal("1.18");
+
+
     // ======================================================================
     // MÉTODO: ACTUALIZAR VENTA EXISTENTE
     // ======================================================================
@@ -61,35 +90,6 @@ public class VentaService {
         response.put("mensaje", "Venta actualizada exitosamente. ID: " + venta.getIdComprobante());
         return response;
     }
-    
-    // ⭐️ INYECCIÓN DE TODOS LOS REPOSITORIOS (Ahora incluyendo TipoComprobantePago)
-    @Autowired 
-    private VentaRepository ventaRepository; 
-        
-    @Autowired
-    private UsuarioRepository usuarioRepository; 
-
-    @Autowired
-    private TipoComprobantePagoRepository tipoComprobantePagoRepository;
-        
-    @Autowired
-    private ProductoRepository productoRepository;
-        
-    @Autowired
-    private ClienteRepository clienteRepository; 
-        
-    // Asumo que tienes un repositorio para TipoDocumento si es necesario buscar clientes por RUC
-
-    // --- Definición de Fuentes para PDF ---
-    private static final Font FONT_TITULO = new Font(Font.FontFamily.HELVETICA, 16, Font.BOLD, BaseColor.RED);
-    private static final Font FONT_NORMAL_BOLD = new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD);
-    private static final Font FONT_NORMAL = new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL);
-    private static final Font FONT_HEADER_TABLE = new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD, BaseColor.WHITE);
-        
-    // Constante para IGV (18% - Ajustar si es necesario)
-    private static final BigDecimal IGV_RATE = new BigDecimal("0.18");
-    private static final BigDecimal IGV_FACTOR = new BigDecimal("1.18");
-
 
     // ======================================================================
     // MÉTODO 1: REGISTRAR NUEVA VENTA
@@ -117,29 +117,41 @@ public class VentaService {
     // ======================================================================
     // MÉTODO 3: LISTAR TODAS LAS VENTAS
     // ======================================================================
-    public List<fisi.software.detalles.controller.dto.VentaListDTO> listarTodasLasVentas() {
+    public List<VentaListDTO> listarTodasLasVentas() {
         System.out.println("LOG: Solicitud de listado de ventas (BD REAL).");
         List<ComprobantePago> ventas = ventaRepository.findAll();
-        List<fisi.software.detalles.controller.dto.VentaListDTO> lista = new ArrayList<>();
+        List<VentaListDTO> lista = new ArrayList<>();
         for (ComprobantePago v : ventas) {
-            String cliente = "";
+            String cliente = "Público General"; 
             if (v.getCliente() != null) {
-                cliente = v.getCliente().getNombreCompleto();
-            } else if (v.getCliente() == null && v.getUsuario() != null) {
-                cliente = v.getUsuario().getNombres() + " " + v.getUsuario().getApellidos();
+                 // Usamos getNombre() y getApellido()
+                 String nombres = v.getCliente().getNombre() != null ? v.getCliente().getNombre() : "";
+                 String apellidos = v.getCliente().getApellido() != null ? v.getCliente().getApellido() : "";
+                 
+                 if (!nombres.isEmpty() || !apellidos.isEmpty()) {
+                    cliente = (nombres + " " + apellidos).trim();
+                 } 
+                 // 🚨 CORRECCIÓN: Reemplazo de getDniRuc() por getNumeroDocumento()
+                 else if (v.getCliente().getNumeroDocumento() != null && !v.getCliente().getNumeroDocumento().isEmpty()) { 
+                    cliente = "Cliente Doc: " + v.getCliente().getNumeroDocumento();
+                 }
+            } else if (v.getUsuario() != null) {
+                // Si cliente es nulo, mantiene la lógica que usa el usuario como fallback
+                cliente = v.getUsuario().getNombres() + " " + v.getUsuario().getApellidos() + " (Usuario)";
             }
+            
             String metodoPago = "";
             // ejemplo: metodoPago = v.getMetodoPago() != null ? v.getMetodoPago().getNombre() : "";
-            List<fisi.software.detalles.controller.dto.DetalleVentaListDTO> detalles = new ArrayList<>();
+            List<DetalleVentaListDTO> detalles = new ArrayList<>();
             for (DetalleComprobantePago d : v.getDetalles()) {
                 String nombreProd = d.getProducto() != null ? d.getProducto().getNombre() : "";
-                detalles.add(new fisi.software.detalles.controller.dto.DetalleVentaListDTO(
+                detalles.add(new DetalleVentaListDTO(
                     nombreProd,
                     d.getCantidad(),
                     d.getPrecioUnitario()
                 ));
             }
-            lista.add(new fisi.software.detalles.controller.dto.VentaListDTO(
+            lista.add(new VentaListDTO(
                 v.getIdComprobante(),
                 cliente,
                 v.getFechaEmision(),
@@ -157,22 +169,21 @@ public class VentaService {
     // ======================================================================
 
     /**
-     * Convierte el DTO de Venta a la Entidad ComprobantePago,
-     * buscando las FKs y calculando subtotales.
-     */
+     * Convierte el DTO de Venta a la Entidad ComprobantePago,
+     * buscando las FKs y calculando subtotales.
+     */
     private ComprobantePago convertDtoToEntity(VentaRequestDTO ventaDTO) {
         ComprobantePago venta = new ComprobantePago();
         
         // --- 1. Mapeo de Totales y Fechas ---
         
         // Monto Total (OBLIGATORIO)
-        // Se valida que no sea nulo antes de operar
         if (ventaDTO.getMonto_total() == null) {
-             throw new IllegalArgumentException("El monto total de la venta no puede ser nulo.");
+            throw new IllegalArgumentException("El monto total de la venta no puede ser nulo.");
         }
         BigDecimal total = ventaDTO.getMonto_total().setScale(2, RoundingMode.HALF_UP);
         venta.setTotal(total); 
-
+    
         // Calculamos IGV y Subtotal asumiendo que el DTO solo trae el total
         BigDecimal subtotal = total.divide(IGV_FACTOR, 2, RoundingMode.HALF_UP);
         BigDecimal igv = total.subtract(subtotal); 
@@ -180,72 +191,67 @@ public class VentaService {
         // Estos campos son NOT NULL, ahora se llenan con los valores calculados.
         venta.setSubtotal(subtotal);
         venta.setIgv(igv);
-
+    
         // Fecha de Emisión (LocalDate a LocalDateTime)
         venta.setFechaEmision(ventaDTO.getFecha_emision() != null 
-             ? ventaDTO.getFecha_emision().atStartOfDay() 
-             : LocalDateTime.now());
-        
+            ? ventaDTO.getFecha_emision().atStartOfDay() 
+            : LocalDateTime.now());
         // Número de Comprobante (Placeholder)
-        venta.setNumeroComprobante("B001-" + String.format("%08d", ventaRepository.count() + 1)); 
-
-        // El estado ('Emitido') se inicializa en la Entidad, o se toma del DTO
-        venta.setEstado(ventaDTO.getEstado_comprobante() != null ? ventaDTO.getEstado_comprobante() : "Emitido");
-
-        // --- 2. Asignación de Entidades Relacionadas (Claves Foráneas) ---
-
-        // ⚠️ id_usuario (OBLIGATORIO - Se mantiene tu ID de prueba: 6)
-        // Asegúrate de que el ID 6 exista en tu tabla 'usuarios'.
-        Integer idUsuarioFijo = 6; 
-        Usuario usuario = usuarioRepository.findById(idUsuarioFijo)
-            .orElseThrow(() -> new RuntimeException("Error FK: Usuario que realiza la venta no encontrado con ID: " + idUsuarioFijo + ". Verifique tabla 'usuarios'."));
-        venta.setUsuario(usuario);
-
-        // ⚠️ id_tipo_comprobante (OBLIGATORIO - Se busca primero en el DTO, si es nulo se fuerza 1)
-        Integer idTipoComprobante = ventaDTO.getId_tipo_comprobante() != null ? ventaDTO.getId_tipo_comprobante() : 1;
-
-        // Se busca el tipo de comprobante usando el ID seguro
-        TipoComprobantePago tipoComprobante = tipoComprobantePagoRepository.findById(idTipoComprobante)
-            .orElseThrow(() -> new RuntimeException("Error FK: Tipo de Comprobante no encontrado con ID: " + idTipoComprobante + ". Verifique tabla 'tiposcomprobantepago'."));
-        venta.setTipoComprobante(tipoComprobante);
+    venta.setNumeroComprobante("B001-" + String.format("%08d", ventaRepository.count() + 1)); 
         
-        // id_cliente (OPCIONAL)
-        // Usaremos el ID 1 como cliente genérico si el DTO no lo especifica, asumiendo que existe.
-        if (ventaDTO.getId_cliente() != null) {
-            Optional<Cliente> clienteOpt = clienteRepository.findById(ventaDTO.getId_cliente());
-            clienteOpt.ifPresent(venta::setCliente);
-        } else {
-             // ⭐️ Opción de cliente genérico forzado si la columna es NOT NULL
-             // Si la columna es NULLABLE, simplemente omitir el setCliente
-             // Si la columna es NOT NULL y no lo especificas, usa el ID 1 (Cliente Genérico)
-             Integer idClienteGenerico = 1;
-             Optional<Cliente> clienteGenericoOpt = clienteRepository.findById(idClienteGenerico);
-             clienteGenericoOpt.ifPresent(venta::setCliente);
+    // El estado ('Emitido') se inicializa en la Entidad, o se toma del DTO
+    venta.setEstado(ventaDTO.getEstado_comprobante() != null ? ventaDTO.getEstado_comprobante() : "Emitido");
+        
+    // --- 2. Asignación de Entidades Relacionadas (Claves Foráneas) ---
+        
+    // ⚠️ id_usuario (OBLIGATORIO - Se mantiene tu ID de prueba: 6)
+    Integer idUsuarioFijo = 6; 
+    Usuario usuario = usuarioRepository.findById(idUsuarioFijo)
+        .orElseThrow(() -> new RuntimeException("Error FK: Usuario que realiza la venta no encontrado con ID: " + idUsuarioFijo + ". Verifique tabla 'usuarios'."));
+    venta.setUsuario(usuario);
+        
+    // ⚠️ id_tipo_comprobante (OBLIGATORIO - Se busca primero en el DTO, si es nulo se fuerza 1)
+    Integer idTipoComprobante = ventaDTO.getId_tipo_comprobante() != null ? ventaDTO.getId_tipo_comprobante() : 1;
+        
+    // Se busca el tipo de comprobante usando el ID seguro
+    TipoComprobantePago tipoComprobante = tipoComprobantePagoRepository.findById(idTipoComprobante)
+        .orElseThrow(() -> new RuntimeException("Error FK: Tipo de Comprobante no encontrado con ID: " + idTipoComprobante + ". Verifique tabla 'tiposcomprobantepago'."));
+    venta.setTipoComprobante(tipoComprobante);
+            
+    // id_cliente (OPCIONAL)
+    if (ventaDTO.getId_cliente() != null) {
+        Optional<Cliente> clienteOpt = clienteRepository.findById(ventaDTO.getId_cliente());
+        clienteOpt.ifPresent(venta::setCliente);
+    } else {
+        // Si la columna es NOT NULL y no lo especificas, usa el ID 1 (Cliente Genérico)
+        Integer idClienteGenerico = 1;
+        Optional<Cliente> clienteGenericoOpt = clienteRepository.findById(idClienteGenerico);
+        clienteGenericoOpt.ifPresent(venta::setCliente);
+    }
+
+    // --- 3. Mapear Detalles y establecer la relación ---
+    if (ventaDTO.getDetalles() == null || ventaDTO.getDetalles().isEmpty()) {
+        throw new IllegalArgumentException("La venta debe contener al menos un detalle de producto.");
+    }
+  
+    List<DetalleComprobantePago> detalles = new ArrayList<>();
+    List<DetalleVentaDTO> detallesDTO = ventaDTO.getDetalles();
+    for (int i = 0; i < detallesDTO.size(); i++) {
+        try {
+            detalles.add(convertDetalleDtoToEntity(detallesDTO.get(i), venta));
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Error en el detalle #" + (i + 1) + ": " + e.getMessage());
         }
+    }
         
-        // --- 3. Mapear Detalles y establecer la relación ---
-        if (ventaDTO.getDetalles() == null || ventaDTO.getDetalles().isEmpty()) {
-             throw new IllegalArgumentException("La venta debe contener al menos un detalle de producto.");
-        }
+    venta.setDetalles(detalles);
         
-        List<DetalleComprobantePago> detalles = new ArrayList<>();
-        List<DetalleVentaDTO> detallesDTO = ventaDTO.getDetalles();
-        for (int i = 0; i < detallesDTO.size(); i++) {
-            try {
-                detalles.add(convertDetalleDtoToEntity(detallesDTO.get(i), venta));
-            } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("Error en el detalle #" + (i + 1) + ": " + e.getMessage());
-            }
-        }
-
-        venta.setDetalles(detalles);
-        
-        return venta;
+    return venta;
     } 
-    
+
     /**
-     * Convierte el DetalleVentaDTO a la Entidad DetalleComprobantePago.
-     */
+     * Convierte el DetalleVentaDTO a la Entidad DetalleComprobantePago.
+     */
     private DetalleComprobantePago convertDetalleDtoToEntity(DetalleVentaDTO detalleDTO, ComprobantePago comprobante) {
         DetalleComprobantePago detalle = new DetalleComprobantePago();
 
@@ -254,18 +260,17 @@ public class VentaService {
         
         String nombreProducto = detalleDTO.getNombre_producto_temp();
 
-        // ⭐️ CORRECCIÓN CLAVE: Verificación de NULO o VACÍO (Resuelve tu error)
+        // Verificación de NULO o VACÍO
         if (nombreProducto == null || nombreProducto.trim().isEmpty()) {
             throw new IllegalArgumentException("El nombre_producto_temp en el detalle de la venta no puede ser nulo o vacío.");
         }
         
         // Buscar y asignar el producto por nombre.
-        // Se asume el nombre de convención JPA: findByNombreProducto
-        Optional<Producto> productoOpt = productoRepository.findByNombre(nombreProducto);
+        Optional<Producto> productoOpt = productoRepository.findByNombreIgnoreCase(nombreProducto);
         
         Producto producto = productoOpt
-            .orElseThrow(() -> new RuntimeException("Producto no encontrado por nombre: " + nombreProducto));
-        detalle.setProducto(producto); 
+            .orElseThrow(() -> new RuntimeException("ERROR: Producto no encontrado por nombre exacto: " + nombreProducto + ". Verifique que el nombre coincida exactamente en la base de datos (o use ID en el DTO)."));
+            detalle.setProducto(producto);
         
         // Asignar valores
         detalle.setCantidad(detalleDTO.getCantidad());
@@ -284,7 +289,7 @@ public class VentaService {
     }
 
     // ======================================================================
-    // MÉTODOS DE PDF (SIN CAMBIOS)
+    // MÉTODOS DE PDF
     // ======================================================================
 
     public byte[] generarComprobantePDF(Long idComprobante) throws DocumentException, IOException {
@@ -294,12 +299,22 @@ public class VentaService {
         }
         ComprobantePago venta = ventaOptional.get();
         Map<String, Object> ventaMap = new HashMap<>();
+        
+        // 🚨 CORRECCIÓN: Componer el nombre del cliente manualmente (sustituye el potencial error getNombreCompleto())
+        String clienteNombre = "";
+        if (venta.getCliente() != null) {
+            String nombres = venta.getCliente().getNombre() != null ? venta.getCliente().getNombre() : "";
+            String apellidos = venta.getCliente().getApellido() != null ? venta.getCliente().getApellido() : "";
+            clienteNombre = (nombres + " " + apellidos).trim();
+        }
+        
         ventaMap.put("tipoComprobante", venta.getTipoComprobante() != null ? venta.getTipoComprobante().getNombreTipo() : "");
-        ventaMap.put("cliente", venta.getCliente() != null ? venta.getCliente().getNombreCompleto() : "");
+        ventaMap.put("cliente", clienteNombre); // Uso del nombre corregido
         ventaMap.put("fechaEmision", venta.getFechaEmision() != null ? venta.getFechaEmision().toString() : "");
         ventaMap.put("subtotal", venta.getSubtotal());
         ventaMap.put("igv", venta.getIgv());
         ventaMap.put("total", venta.getTotal());
+        
         List<Map<String, Object>> detalles = new ArrayList<>();
         for (DetalleComprobantePago d : venta.getDetalles()) {
             Map<String, Object> det = new HashMap<>();
@@ -346,7 +361,7 @@ public class VentaService {
             headerTable.addCell(new Paragraph((String) venta.get("ruc"), FONT_NORMAL));
             headerTable.addCell(new Paragraph("Razón Social:", FONT_NORMAL_BOLD));
             headerTable.addCell(new Paragraph((String) venta.get("razonSocial"), FONT_NORMAL));
-        }
+        }   
         headerTable.addCell(new Paragraph("Cliente:", FONT_NORMAL_BOLD));
         headerTable.addCell(new Paragraph((String) venta.get("cliente"), FONT_NORMAL));
         headerTable.addCell(new Paragraph("Fecha:", FONT_NORMAL_BOLD));
@@ -366,7 +381,7 @@ public class VentaService {
             cell.setHorizontalAlignment(Element.ALIGN_CENTER);
             cell.setPadding(5);
             table.addCell(cell);
-        }
+        }    
         List<Map<String, Object>> detalles = (List<Map<String, Object>>) venta.get("detalles");
         for (Map<String, Object> detalle : detalles) {
             table.addCell(new Paragraph((String) detalle.get("codigo"), FONT_NORMAL));

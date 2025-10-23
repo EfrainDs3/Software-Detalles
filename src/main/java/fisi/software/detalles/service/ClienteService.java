@@ -71,6 +71,18 @@ public class ClienteService {
     }
     
     /**
+     * Obtiene un cliente por su tipo de documento y número de documento (DNI/RUC)
+     * * @param tipoDocumento Tipo de documento (Entity TipoDocumento)
+     * @param numeroDocumento Número de documento
+     * @return Optional con el cliente encontrado
+     */
+    @Transactional(readOnly = true)
+    public Optional<Cliente> obtenerPorTipoDocYNumeroDoc(TipoDocumento tipoDocumento, String numeroDocumento) {
+        // Busca por tipo de documento, número de documento y estado activo (true)
+        return clienteRepository.findByTipoDocumentoAndNumeroDocumentoAndEstadoTrue(tipoDocumento, numeroDocumento);
+    }
+
+    /**
      * Crea un nuevo cliente
      * 
      * @param cliente Cliente a crear

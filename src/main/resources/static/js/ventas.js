@@ -37,6 +37,178 @@ document.addEventListener('DOMContentLoaded', () => {
     const detalleVentaTotal = document.getElementById('detalleVentaTotal');
     const detalleProductosList = document.getElementById('detalleProductosList');
 
+
+    // CÓDIGO PARA COPIAR Y PEGAR EN /js/ventas.js (Reemplaza la sección de Cliente anterior)
+
+// ======================================================
+// CONSTANTES DE CLIENTE
+// ======================================================
+
+const clienteTipoDocInput = document.getElementById('clienteTipoDoc');
+const clienteNumDocInput = document.getElementById('clienteNumDoc');
+const buscarClienteBtn = document.getElementById('buscarClienteBtn');
+const clienteInfoDiv = document.getElementById('clienteInfo');
+const nombreClienteResultado = document.getElementById('nombreClienteResultado');
+const registrarClienteBtn = document.getElementById('registrarClienteBtn');
+const idClienteVentaInput = document.getElementById('idClienteVenta'); 
+
+// Constantes del Modal
+const clienteModal = document.getElementById('clienteModal');
+const cerrarModalClienteBtn = document.getElementById('cerrarModalClienteBtn');
+const cerrarModalClienteBtnTop = document.getElementById('cerrarModalClienteBtnTop');
+const guardarClienteBtn = document.getElementById('guardarClienteBtn');
+const modalClienteTipoDoc = document.getElementById('modalClienteTipoDoc');
+const modalClienteNumDoc = document.getElementById('modalClienteNumDoc');
+const modalClienteNombres = document.getElementById('modalClienteNombres');
+const modalClienteApellidos = document.getElementById('modalClienteApellidos');
+
+
+// Escuchadores de Eventos
+buscarClienteBtn.addEventListener('click', buscarClientePorDocumento);
+registrarClienteBtn.addEventListener('click', () => {
+    // 1. Prepara el modal con los datos de búsqueda
+    modalClienteTipoDoc.value = clienteTipoDocInput.value;
+    modalClienteNumDoc.value = clienteNumDocInput.value.trim();
+    modalClienteNombres.value = '';
+    modalClienteApellidos.value = '';
+    
+    // 2. Abre el modal
+    clienteModal.style.display = 'block';
+});
+
+cerrarModalClienteBtn.addEventListener('click', () => { clienteModal.style.display = 'none'; });
+cerrarModalClienteBtnTop.addEventListener('click', () => { clienteModal.style.display = 'none'; });
+guardarClienteBtn.addEventListener('click', registrarCliente);
+
+
+// ======================================================
+// LÓGICA DE BÚSQUEDA
+// ======================================================
+
+async function buscarClientePorDocumento() {
+    const idTipoDoc = clienteTipoDocInput.value;
+    const numDoc = clienteNumDocInput.value.trim();
+    if (!numDoc || idTipoDoc === '0') {
+        alert("Seleccione un tipo y número de documento válidos.");
+        return;
+    }
+
+    // Reset de estado visual
+    idClienteVentaInput.value = '1';
+    nombreClienteResultado.textContent = 'Buscando...';
+    clienteInfoDiv.style.display = 'block';
+    clienteInfoDiv.className = 'alert mt-2 alert-warning'; 
+    registrarClienteBtn.style.display = 'none';
+
+    try {
+        // Usa el nuevo endpoint
+        const response = await fetch(`/clientes/api/buscar-documento?idTipoDoc=${idTipoDoc}&numDoc=${numDoc}`);
+
+        if (response.ok) {
+            const cliente = await response.json();
+            
+            // Cliente ENCONTRADO
+            idClienteVentaInput.value = cliente.idCliente; // Asumo que el ID es 'idCliente'
+            nombreClienteResultado.textContent = `${cliente.nombres || ''} ${cliente.apellidos || ''}`.trim();
+            if (nombreClienteResultado.textContent === '') nombreClienteResultado.textContent = `Cliente #ID ${cliente.idCliente}`;
+
+            clienteInfoDiv.className = 'alert mt-2 alert-success'; // Fondo verde
+            registrarClienteBtn.style.display = 'none';
+            clienteTipoDocInput.disabled = true;
+            clienteNumDocInput.disabled = true;
+            buscarClienteBtn.disabled = true;
+
+        } else if (response.status === 404) {
+            // Cliente NO ENCONTRADO
+            nombreClienteResultado.textContent = `No existe cliente con ese documento.`;
+            clienteInfoDiv.className = 'alert mt-2 alert-danger'; // Fondo rojo
+            registrarClienteBtn.style.display = 'block'; 
+
+        } else {
+            // Otros errores
+            nombreClienteResultado.textContent = 'Error al buscar cliente. (Servidor)';
+            clienteInfoDiv.className = 'alert mt-2 alert-warning';
+        }
+    } catch (error) {
+        console.error('Error de conexión en búsqueda de cliente:', error);
+        nombreClienteResultado.textContent = 'Error de conexión con el servidor.';
+        clienteInfoDiv.className = 'alert mt-2 alert-warning';
+    }
+}
+
+
+// ======================================================
+// LÓGICA DE REGISTRO RÁPIDO
+// ======================================================
+
+async function registrarCliente() {
+    const idTipoDoc = modalClienteTipoDoc.value;
+    const numDoc = modalClienteNumDoc.value.trim();
+    const nombres = modalClienteNombres.value.trim();
+    const apellidos = modalClienteApellidos.value.trim();
+
+    if (idTipoDoc === '0' || !numDoc || !nombres) {
+        alert("Seleccione Tipo de Documento y complete Número/Nombres.");
+        return;
+    }
+
+    const clienteData = {
+        idTipoDocumento: parseInt(idTipoDoc),
+        numeroDocumento: numDoc,
+        nombres: nombres,
+        apellidos: apellidos
+    };
+
+    try {
+        const response = await fetch('/clientes/api', { 
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(clienteData)
+        });
+
+        if (response.status === 201) {
+            const nuevoCliente = await response.json();
+            
+            // 1. Cierra el modal
+            clienteModal.style.display = 'none'; 
+            
+            // 2. Asigna el nuevo cliente al formulario de venta (haciendo un "select")
+            clienteTipoDocInput.value = nuevoCliente.tipoDocumento.idTipoDocumento; 
+            clienteNumDocInput.value = nuevoCliente.numeroDocumento;
+            
+            buscarClientePorDocumento(); // Ejecuta la búsqueda para actualizar el estado
+            
+            alert("Cliente registrado y seleccionado correctamente.");
+        } else {
+            const error = await response.json();
+            alert(`Error al registrar el cliente: ${error.error || 'Datos inválidos o ya existe un cliente con ese documento.'}`);
+        }
+    } catch (error) {
+        console.error('Error de conexión en registro de cliente:', error);
+        alert("Error de conexión con el servidor al registrar cliente.");
+    }
+}
+
+
+// ======================================================
+// FUNCIÓN AUXILIAR DE REINICIO
+// ======================================================
+
+function resetClienteForm() {
+    clienteTipoDocInput.value = '0';
+    clienteNumDocInput.value = '';
+    idClienteVentaInput.value = '1'; 
+    nombreClienteResultado.textContent = 'Público General';
+    clienteInfoDiv.style.display = 'none';
+    registrarClienteBtn.style.display = 'none';
+    clienteTipoDocInput.disabled = false;
+    clienteNumDocInput.disabled = false;
+    buscarClienteBtn.disabled = false;
+}
+
+// 🛑 RECORDATORIO: En tu función `crearVenta()` (en ventas.js), 
+// asegúrate de enviar el campo: id_cliente: parseInt(idClienteVentaInput.value)
+
     // ❌ ELIMINAMOS LOS DATOS DE EJEMPLO E INICIALIZAMOS LA VARIABLE VACÍA
     let ventasData = []; 
 

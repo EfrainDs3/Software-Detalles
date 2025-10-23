@@ -8,6 +8,8 @@ import java.util.List;
 
 // Este DTO representa toda la solicitud de venta que viene del front-end.
 public class VentaRequestDTO {
+
+    private Integer idCliente;
     // ID de la venta (para edición)
     private Long id_comprobante;
 
@@ -121,4 +123,14 @@ public class VentaRequestDTO {
     public void setDetalles(List<DetalleVentaDTO> detalles) {
         this.detalles = detalles;
     }
+
+    public Integer getIdCliente() {
+        return idCliente;
+    }
+
+    public void setIdCliente(Integer idCliente) {
+        this.idCliente = idCliente;
+    }
+
+    
 }

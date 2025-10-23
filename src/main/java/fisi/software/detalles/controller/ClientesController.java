@@ -1,5 +1,6 @@
 package fisi.software.detalles.controller;
 
+import fisi.software.detalles.controller.dto.ClienteRegistroRapidoDTO;
 import fisi.software.detalles.entity.Cliente;
 import fisi.software.detalles.entity.TipoDocumento;
 import fisi.software.detalles.service.ClienteService;
@@ -51,7 +52,33 @@ public class ClientesController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    /**
+     * GET /clientes/api/buscar?dniRuc={dniRuc}
+     * Busca un cliente por su DNI o RUC
+     * * @param dniRuc DNI o RUC a buscar
+     * @return Cliente encontrado
+     */
+    @GetMapping("/api/buscar-documento")
+    @ResponseBody
+    public ResponseEntity<Cliente> buscarClientePorDocumento(@RequestParam Integer idTipoDoc, @RequestParam String numDoc) {
+        try {
+            // Se crea una entidad TipoDocumento de referencia solo con el ID
+            TipoDocumento tipoDocFiltro = new TipoDocumento();
+            tipoDocFiltro.setIdTipoDocumento(idTipoDoc);
+            
+            return clienteService.obtenerPorTipoDocYNumeroDoc(tipoDocFiltro, numDoc.trim())
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Error al buscar el cliente: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
     
+
+
     /**
      * Obtiene un cliente por su ID
      * 
@@ -80,8 +107,26 @@ public class ClientesController {
      */
     @PostMapping("/api")
     @ResponseBody
-    public ResponseEntity<?> crearCliente(@RequestBody Cliente cliente) {
+    public ResponseEntity<?> crearCliente(@RequestBody ClienteRegistroRapidoDTO dto) {
         try {
+            // Mapeo simple del DTO a la Entidad Cliente antes de llamar al servicio
+            Cliente cliente = new Cliente();
+            
+            // Requerimos que el servicio maneje la existencia del TipoDocumento por ID
+            TipoDocumento tipoDoc = new TipoDocumento();
+            tipoDoc.setIdTipoDocumento(dto.getIdTipoDocumento()); 
+            
+            cliente.setTipoDocumento(tipoDoc);
+            cliente.setNumeroDocumento(dto.getNumeroDocumento());
+            // Asumo que tu entidad Cliente tiene setNombre/setApellido o setNombres/setApellidos
+            cliente.setNombre(dto.getNombres()); 
+            cliente.setApellido(dto.getApellidos()); 
+            
+            // Otros campos por defecto (puedes ajustarlos si es necesario)
+            cliente.setDireccion("-"); 
+            cliente.setTelefono("-");
+            cliente.setEmail(null); 
+            
             Cliente nuevoCliente = clienteService.crear(cliente);
             return ResponseEntity.status(HttpStatus.CREATED).body(nuevoCliente);
         } catch (IllegalArgumentException e) {
