@@ -27,7 +27,14 @@
                     <span class="breadcrumb-separator">/</span>
                     <span class="breadcrumb-current">Caja</span>
                 </div>
-                <h2 class="main-title">Control de Caja</h2>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h2 class="main-title">Control de Caja</h2>
+                    <button id="btnAbrirModalCaja" class="btn btn-success">
+                        <i class="fas fa-plus"></i> Nueva Caja
+                    </button>
+                </div>
+                
                 <p class="page-subtitle">Administra la apertura y cierre de caja por turnos de trabajo</p>
             </div>
             <button class="logout-btn">
@@ -37,20 +44,20 @@
 
         <div class="action-bar">
             <div class="cashier-status">
-                <h3 id="cashierStatusTitle">Estado de la Caja: <span id="cashierStatusText" class="status-badge cerrada">Cerrada</span></h3>
+                <h3 id="cashierStatusTitle">Estado de la Caja: 
+                    <span id="cashierStatusText" class="status-badge cerrada">Cerrada</span>
+                </h3>
             </div>
             <div class="action-buttons">
                 <button class="btn btn-primary" id="checkInBtn">
-                    <i class="fas fa-sign-in-alt"></i>
-                    Apertura de Caja
+                    <i class="fas fa-sign-in-alt"></i> Apertura de Caja
                 </button>
                 <button class="btn btn-danger" id="checkOutBtn" style="display: none;">
-                    <i class="fas fa-sign-out-alt"></i>
-                    Cierre de Caja
+                    <i class="fas fa-sign-out-alt"></i> Cierre de Caja
                 </button>
             </div>
         </div>
-
+        
         <div class="table-container">
             <div class="table-header-info">
                 <h3>Historial de Movimientos de Caja</h3>
@@ -91,44 +98,46 @@
         </div>
     </main>
 
-    <div id="checkInModal" class="modal">
+    <div id="checkInModal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Apertura de Caja</h3>
-                <button class="modal-close" id="closeCheckInModal">
-                    <i class="fas fa-times"></i>
-                </button>
+                <span class="close-btn" id="closeCheckInModal">&times;</span>
             </div>
             <form id="checkInForm" class="modal-body">
                 <div class="form-group">
                     <label for="cashierName">Trabajador</label>
                     <input type="text" id="cashierName" name="cashierName" value="Usuario Actual" readonly>
                 </div>
+
+                <div class="form-group">
+                    <label for="cajaSelect">Seleccionar Caja:</label>
+                    <select id="cajaSelect" required>
+                        <option value="">Cargando cajas...</option>
+                    </select>
+                </div>
+    
                 <div class="form-group">
                     <label for="initialAmount">Monto Inicial (S/) *</label>
                     <input type="number" id="initialAmount" name="initialAmount" required placeholder="Ej: 150.00" step="0.01" min="0">
                 </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelCheckInBtn">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt"></i> Iniciar Turno
+                    </button>
+                </div>
             </form>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="cancelCheckInBtn">
-                    <i class="fas fa-times"></i>
-                    Cancelar
-                </button>
-                <button type="submit" form="checkInForm" class="btn btn-primary">
-                    <i class="fas fa-sign-in-alt"></i>
-                    Iniciar Turno
-                </button>
-            </div>
         </div>
     </div>
 
-    <div id="checkOutModal" class="modal">
+    <div id="checkOutModal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Cierre de Caja</h3>
-                <button class="modal-close" id="closeCheckOutModal">
-                    <i class="fas fa-times"></i>
-                </button>
+                <span class="close-btn" id="closeCheckOutModal">&times;</span>
             </div>
             <form id="checkOutForm" class="modal-body">
                 <div class="form-group">
@@ -143,20 +152,36 @@
                     <label for="finalAmount">Monto Final (S/) *</label>
                     <input type="number" id="finalAmount" name="finalAmount" required placeholder="Ej: 580.50" step="0.01" min="0">
                 </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelCheckOutBtn">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-sign-out-alt"></i> Cerrar Turno
+                    </button>
+                </div>
             </form>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="cancelCheckOutBtn">
-                    <i class="fas fa-times"></i>
-                    Cancelar
-                </button>
-                <button type="submit" form="checkOutForm" class="btn btn-danger">
-                    <i class="fas fa-sign-out-alt"></i>
-                    Cerrar Turno
-                </button>
-            </div>
         </div>
     </div>
-
+    
+    <div id="modalNuevaCaja" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <span class="close-btn" id="cerrarModalCaja">&times;</span>
+            <h3>Crear Nueva Caja</h3>
+            <form id="formNuevaCaja">
+                <div class="form-group">
+                    <label for="nombreCaja">Nombre / Identificador:</label>
+                    <input type="text" id="nombreCaja" name="nombre" required>
+                </div>
+                <div class="form-group">
+                    <label for="descripcionCaja">Ubicación / Descripción (Opcional):</label>
+                    <textarea id="descripcionCaja" name="descripcion" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn btn-success">Guardar Caja</button>
+            </form>
+            <p id="mensajeCaja" style="margin-top: 10px;"></p>
+        </div>
+    </div>
     <script src="/js/sidebar.js"></script>
     <script src="/js/logout.js"></script>
     <script src="/js/caja.js"></script>

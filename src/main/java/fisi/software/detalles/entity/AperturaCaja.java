@@ -29,7 +29,7 @@ public class AperturaCaja {
     private Caja caja;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_usuario", nullable = false)
+    @JoinColumn(name = "id_usuario", referencedColumnName = "id_usuario")
     private Usuario usuario; // Asumiendo entidad Usuario existente
 
     @Column(name = "fecha_apertura", nullable = false)
