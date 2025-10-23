@@ -35,15 +35,6 @@ public class AppUserDetails implements UserDetails {
                 }
             }
         }
-
-        // permisos extra asignados directamente al usuario
-        if (usuario.getPermisosExtra() != null) {
-            for (Permiso p : usuario.getPermisosExtra()) {
-                if (p != null && p.getCodigo() != null) {
-                    this.authorities.add(new SimpleGrantedAuthority(p.getCodigo().toUpperCase()));
-                }
-            }
-        }
     }
 
     public Usuario getUsuario() {

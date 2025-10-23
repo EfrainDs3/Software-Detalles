@@ -27,7 +27,6 @@ public class PermisoService {
     private static final String ACCION_ACTUALIZACION = "ACTUALIZACION";
     private static final String ACCION_ELIMINACION = "ELIMINACION";
     private static final String ACCION_ROL_ACTUALIZADO = "ROL_ACTUALIZADO";
-    private static final String ACCION_USUARIO_ACTUALIZADO = "USUARIO_ACTUALIZADO";
 
     private static final int LIMITE_AUDITORIA = 50;
 
@@ -72,7 +71,9 @@ public class PermisoService {
 
         return permisos.stream()
             .map(permiso -> {
-                long totalUsuarios = usuarioRepository.countByPermisosExtra_IdPermiso(permiso.getIdPermiso());
+                long totalUsuarios = permiso.getRoles().stream()
+                    .mapToLong(rol -> usuarioRepository.countByRoles_Id(rol.getId()))
+                    .sum();
                 String codigo = Optional.ofNullable(permiso.getCodigo()).orElse("").toUpperCase(Locale.ROOT);
                 if (MASKED_PERMISSION_CODES.contains(codigo)) {
                     return PermisoResponse.fromEntityMasked(permiso, totalUsuarios);
@@ -84,7 +85,9 @@ public class PermisoService {
 
     public PermisoResponse obtenerPermiso(Long id) {
         Permiso permiso = obtenerEntidad(id);
-        long totalUsuarios = usuarioRepository.countByPermisosExtra_IdPermiso(permiso.getIdPermiso());
+        long totalUsuarios = permiso.getRoles().stream()
+            .mapToLong(rol -> usuarioRepository.countByRoles_Id(rol.getId()))
+            .sum();
         return PermisoResponse.fromEntity(permiso, totalUsuarios);
     }
 
@@ -92,7 +95,9 @@ public class PermisoService {
     public PermisoResponse obtenerPermisoConInicializacion(Long id) {
         Permiso permiso = obtenerEntidad(id);
         Hibernate.initialize(permiso.getRoles());
-        long totalUsuarios = usuarioRepository.countByPermisosExtra_IdPermiso(permiso.getIdPermiso());
+        long totalUsuarios = permiso.getRoles().stream()
+            .mapToLong(rol -> usuarioRepository.countByRoles_Id(rol.getId()))
+            .sum();
         return PermisoResponse.fromEntity(permiso, totalUsuarios);
     }
 
@@ -113,14 +118,18 @@ public class PermisoService {
         aplicarDatos(permiso, request, false, actor);
         Permiso guardado = permisoRepository.save(permiso);
         registrarAuditoria(guardado, ACCION_ACTUALIZACION, "Se actualizó el permiso", actor);
-        long totalUsuarios = usuarioRepository.countByPermisosExtra_IdPermiso(guardado.getIdPermiso());
+        long totalUsuarios = guardado.getRoles().stream()
+            .mapToLong(rol -> usuarioRepository.countByRoles_Id(rol.getId()))
+            .sum();
         return PermisoResponse.fromEntity(guardado, totalUsuarios);
     }
 
+    @Transactional
     public void eliminarPermiso(Long id) {
         Permiso permiso = obtenerEntidad(id);
-        if (!permiso.getRoles().isEmpty() || usuarioRepository.existsByPermisosExtra_IdPermiso(id)) {
-            throw new ValidationException("No se puede eliminar el permiso porque se encuentra asignado");
+        Hibernate.initialize(permiso.getRoles());
+        if (!permiso.getRoles().isEmpty()) {
+            throw new ValidationException("No se puede eliminar el permiso porque se encuentra asignado a roles");
         }
         String actor = resolverActor();
         registrarAuditoria(permiso, ACCION_ELIMINACION, "Se eliminó el permiso", actor);
@@ -146,7 +155,8 @@ public class PermisoService {
             .sorted(Comparator.comparing(Permiso::getNombrePermiso, String.CASE_INSENSITIVE_ORDER))
             .map(PermisoResumenResponse::fromEntity)
             .toList();
-        return new PermisoRolDetalleResponse(rol.getId(), rol.getNombre(), permisos);
+        Map<String, List<PermisoResumenResponse>> permisosPorModulo = agruparPorModulo(permisos);
+        return new PermisoRolDetalleResponse(rol.getId(), rol.getNombre(), permisos, permisosPorModulo);
     }
 
     public PermisoRolDetalleResponse actualizarPermisosRol(Integer rolId, List<Long> permisoIds) {
@@ -196,7 +206,8 @@ public class PermisoService {
             .sorted(Comparator.comparing(Permiso::getNombrePermiso, String.CASE_INSENSITIVE_ORDER))
             .map(PermisoResumenResponse::fromEntity)
             .toList();
-        return new PermisoRolDetalleResponse(guardado.getId(), guardado.getNombre(), respuesta);
+        Map<String, List<PermisoResumenResponse>> permisosPorModulo = agruparPorModulo(respuesta);
+        return new PermisoRolDetalleResponse(guardado.getId(), guardado.getNombre(), respuesta, permisosPorModulo);
     }
 
     public List<PermisoUsuarioDetalleResponse> listarPermisosPorUsuario(Integer usuarioId) {
@@ -204,7 +215,6 @@ public class PermisoService {
             .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
 
         // asegurarnos de inicializar las colecciones lazy necesarias
-        Hibernate.initialize(usuario.getPermisosExtra());
         usuario.getRoles().forEach(rol -> Hibernate.initialize(rol.getPermisos()));
 
         Map<Long, PermisoUsuarioDetalleBuilder> acumulador = new HashMap<>();
@@ -213,11 +223,6 @@ public class PermisoService {
             acumulador.computeIfAbsent(permiso.getIdPermiso(), id -> new PermisoUsuarioDetalleBuilder(permiso))
                 .agregarRol(rol.getNombre())
         ));
-
-        usuario.getPermisosExtra().forEach(permiso ->
-            acumulador.computeIfAbsent(permiso.getIdPermiso(), id -> new PermisoUsuarioDetalleBuilder(permiso))
-                .marcarAsignadoDirecto()
-        );
 
         List<PermisoUsuarioDetalleResponse> resultado = acumulador.values().stream()
             .map(PermisoUsuarioDetalleBuilder::construir)
@@ -235,54 +240,6 @@ public class PermisoService {
         }
 
         return resultado;
-    }
-
-    public List<PermisoResumenResponse> actualizarPermisosUsuario(Integer usuarioId, List<Long> permisoIds) {
-        Usuario usuario = usuarioRepository.findWithRolesAndPermisosById(usuarioId)
-            .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
-        Set<Permiso> permisos = obtenerPermisosDesdeIds(permisoIds);
-
-        Set<Long> originales = usuario.getPermisosExtra().stream()
-            .map(Permiso::getIdPermiso)
-            .collect(Collectors.toSet());
-        Set<Long> nuevosIds = permisos.stream()
-            .map(Permiso::getIdPermiso)
-            .collect(Collectors.toSet());
-
-        usuario.getPermisosExtra().clear();
-        usuario.getPermisosExtra().addAll(permisos);
-        Usuario guardado = usuarioRepository.save(usuario);
-
-        String actor = resolverActor();
-
-        Set<Long> agregados = new HashSet<>(nuevosIds);
-        agregados.removeAll(originales);
-        if (!agregados.isEmpty()) {
-            permisoRepository.findAllById(agregados)
-                .forEach(permiso -> registrarAuditoria(
-                    permiso,
-                    ACCION_USUARIO_ACTUALIZADO,
-                    String.format("Asignado directamente al usuario %s", guardado.getUsername()),
-                    actor
-                ));
-        }
-
-        Set<Long> removidos = new HashSet<>(originales);
-        removidos.removeAll(nuevosIds);
-        if (!removidos.isEmpty()) {
-            permisoRepository.findAllById(removidos)
-                .forEach(permiso -> registrarAuditoria(
-                    permiso,
-                    ACCION_USUARIO_ACTUALIZADO,
-                    String.format("Removido del usuario %s", guardado.getUsername()),
-                    actor
-                ));
-        }
-
-        return guardado.getPermisosExtra().stream()
-            .sorted(Comparator.comparing(Permiso::getNombrePermiso, String.CASE_INSENSITIVE_ORDER))
-            .map(PermisoResumenResponse::fromEntity)
-            .toList();
     }
 
     public List<PermisoAuditoriaResponse> obtenerAuditoriaPermisos(Long permisoId, Integer limite) {
@@ -361,6 +318,21 @@ public class PermisoService {
         return valor.trim();
     }
 
+    private Map<String, List<PermisoResumenResponse>> agruparPorModulo(List<PermisoResumenResponse> permisos) {
+        if (permisos == null) return Collections.emptyMap();
+        return permisos.stream()
+            .collect(Collectors.groupingBy(p -> {
+                String codigo = Optional.ofNullable(p.codigo()).orElse("");
+                int idx = codigo.indexOf('_');
+                if (idx > 0) return codigo.substring(0, idx).toUpperCase(Locale.ROOT);
+                idx = codigo.indexOf('-');
+                if (idx > 0) return codigo.substring(0, idx).toUpperCase(Locale.ROOT);
+                return "GENERAL";
+            }, Collectors.collectingAndThen(Collectors.toList(), list ->
+                list.stream().sorted(Comparator.comparing(PermisoResumenResponse::nombre, String.CASE_INSENSITIVE_ORDER)).collect(Collectors.toList())
+            )));
+    }
+
     private void registrarAuditoria(Permiso permiso, String accion, String detalle, String actor) {
         permisoAuditoriaService.registrar(permiso, accion, detalle, actor);
     }
@@ -371,7 +343,6 @@ public class PermisoService {
 
     private static class PermisoUsuarioDetalleBuilder {
         private final Permiso permiso;
-        private boolean asignadoDirecto;
         private final Set<String> roles = new HashSet<>();
 
         private PermisoUsuarioDetalleBuilder(Permiso permiso) {
@@ -385,18 +356,13 @@ public class PermisoService {
             return this;
         }
 
-        private PermisoUsuarioDetalleBuilder marcarAsignadoDirecto() {
-            this.asignadoDirecto = true;
-            return this;
-        }
-
         private PermisoUsuarioDetalleResponse construir() {
             List<String> rolesOrdenados = roles.stream()
                 .sorted(String.CASE_INSENSITIVE_ORDER)
                 .collect(Collectors.toList());
             return new PermisoUsuarioDetalleResponse(
                 PermisoResumenResponse.fromEntity(permiso),
-                asignadoDirecto,
+                false,
                 rolesOrdenados
             );
         }

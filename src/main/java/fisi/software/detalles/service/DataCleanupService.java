@@ -133,17 +133,6 @@ public class DataCleanupService {
                 log.info("  ➖ Permiso removido del rol {}", rol.getNombre());
             });
 
-            // Remover permiso de usuarios (permisos extra)
-            List<fisi.software.detalles.entity.Usuario> usuariosConPermiso = usuarioRepository.findAll().stream()
-                .filter(u -> u.getPermisosExtra().stream().anyMatch(p -> Objects.equals(p.getIdPermiso(), permiso.getIdPermiso())))
-                .toList();
-
-            usuariosConPermiso.forEach(usuario -> {
-                usuario.getPermisosExtra().removeIf(p -> Objects.equals(p.getIdPermiso(), permiso.getIdPermiso()));
-                usuarioRepository.save(usuario);
-                log.info("  ➖ Permiso removido del usuario {}", usuario.getEmail());
-            });
-
             // Finalmente eliminar el permiso
             permisoRepository.delete(permiso);
             log.info("✅ Permiso '{}' eliminado de la base de datos.", codigoNorm);

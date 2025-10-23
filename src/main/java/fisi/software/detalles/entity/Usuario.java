@@ -17,7 +17,7 @@ import java.util.Set;
 @Getter
 @Setter
 @NoArgsConstructor
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "tipoDocumento", "roles", "permisosExtra"})
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "tipoDocumento", "roles"})
 public class Usuario {
 
     @Id
@@ -74,14 +74,6 @@ public class Usuario {
         inverseJoinColumns = @JoinColumn(name = "id_rol")
     )
     private Set<Rol> roles = new HashSet<>();
-
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-        name = "usuario_permisos",
-        joinColumns = @JoinColumn(name = "id_usuario"),
-        inverseJoinColumns = @JoinColumn(name = "id_permiso")
-    )
-    private Set<Permiso> permisosExtra = new HashSet<>();
 
     @PrePersist
     protected void onCreate() {
