@@ -197,7 +197,6 @@
       preview.dataset.source = modeloSeleccionado.imagen;
       preview.dataset.modelImage = 'true';
     } else {
-      preview.innerHTML = '<i class="fas fa-camera"></i><span>Click para subir imagen</span>';
       preview.style.backgroundImage = '';
       delete preview.dataset.source;
       delete preview.dataset.modelImage;
@@ -206,7 +205,7 @@
 
   async function cargarProductos(){
     const data = await apiGet(PRODUCT_API);
-    state.items = Array.isArray(data) ? data.map(mapearProducto) : [];
+    state.items = Array.isArray(data) ? data.map(mapearProducto).sort((a, b) => a.id - b.id) : [];
     renderTabla();
   }
 
@@ -380,7 +379,7 @@
     }
     const preview = document.getElementById('imagePreview');
     if (preview){
-      preview.innerHTML = '<i class="fas fa-camera"></i><span>Click para subir imagen</span>';
+    
       preview.style.backgroundImage = '';
       delete preview.dataset.source;
       delete preview.dataset.modelImage;
@@ -513,7 +512,7 @@
 
     const tallas = recolectarTallas();
     if (!tallas.length){
-      throw new Error('Registra al menos una talla con precio de venta');
+      throw new Error('Debe registrar al menos una talla con precio de venta');
     }
 
     return {

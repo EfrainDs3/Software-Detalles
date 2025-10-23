@@ -176,6 +176,11 @@ public class ProductoService {
         producto.setPrecioVenta(precioVenta);
         producto.setCostoCompra(costoCompra);
 
+        // Validar tallas según categoría
+        if (CollectionUtils.isEmpty(request.tallas())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debe registrar al menos una talla con precio de venta");
+        }
+
         actualizarTallas(producto, request.tallas());
     }
 
