@@ -17,7 +17,7 @@ public class SecurityConfig {
         http
             .authorizeHttpRequests(authorize -> authorize
                 // Permitir acceso a recursos estáticos
-                .requestMatchers("/css/**", "/js/**", "/img/**", "/images/**").permitAll()
+                .requestMatchers("/css/**", "/js/**", "/img/**", "/images/**", "/login", "/auth/login").permitAll()
                 // Permitir acceso a todas las vistas por ahora (temporal para desarrollo)
                 .requestMatchers("/**").permitAll()
                 .anyRequest().authenticated()
