@@ -163,8 +163,22 @@ async function registrarCliente() {
     const nombres = modalClienteNombres.value.trim();
     const apellidos = modalClienteApellidos.value.trim();
 
-    if (idTipoDoc === '0' || !numDoc || !nombres) {
-        alert("Seleccione Tipo de Documento y complete Número/Nombres.");
+    // ✅ VALIDACIÓN MANUAL
+    if (!idTipoDoc || idTipoDoc === '0') {
+        alert("❌ Debe seleccionar un Tipo de Documento.");
+        modalClienteTipoDoc.focus();
+        return;
+    }
+    
+    if (!numDoc) {
+        alert("❌ El Número de Documento es obligatorio.");
+        modalClienteNumDoc.focus();
+        return;
+    }
+    
+    if (!nombres) {
+        alert("❌ El campo Nombres/Razón Social es obligatorio.");
+        modalClienteNombres.focus();
         return;
     }
 
@@ -186,25 +200,30 @@ async function registrarCliente() {
             const nuevoCliente = await response.json();
             
             // 1. Cierra el modal
-            clienteModal.style.display = 'none'; 
+            clienteModal.style.display = 'none';
             
-            // 2. Asigna el nuevo cliente al formulario de venta (haciendo un "select")
+            // 2. Limpia los campos del modal
+            modalClienteNumDoc.value = '';
+            modalClienteNombres.value = '';
+            modalClienteApellidos.value = '';
+            
+            // 3. Asigna el nuevo cliente al formulario de venta
             clienteTipoDocInput.value = nuevoCliente.tipoDocumento.idTipoDocumento; 
             clienteNumDocInput.value = nuevoCliente.numeroDocumento;
             
-            buscarClientePorDocumento(); // Ejecuta la búsqueda para actualizar el estado
+            // 4. Ejecuta la búsqueda para actualizar el estado
+            await buscarClientePorDocumento();
             
-            alert("Cliente registrado y seleccionado correctamente.");
+            alert("✅ Cliente registrado y seleccionado correctamente.");
         } else {
             const error = await response.json();
-            alert(`Error al registrar el cliente: ${error.error || 'Datos inválidos o ya existe un cliente con ese documento.'}`);
+            alert(`❌ Error al registrar el cliente: ${error.error || 'Datos inválidos o ya existe un cliente con ese documento.'}`);
         }
     } catch (error) {
         console.error('Error de conexión en registro de cliente:', error);
-        alert("Error de conexión con el servidor al registrar cliente.");
+        alert("❌ Error de conexión con el servidor al registrar cliente.");
     }
 }
-
 
 // ======================================================
 // FUNCIÓN AUXILIAR DE REINICIO
