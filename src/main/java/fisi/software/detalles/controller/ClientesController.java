@@ -111,22 +111,36 @@ public class ClientesController {
         try {
             // Mapeo simple del DTO a la Entidad Cliente antes de llamar al servicio
             Cliente cliente = new Cliente();
-            
+
             // Requerimos que el servicio maneje la existencia del TipoDocumento por ID
             TipoDocumento tipoDoc = new TipoDocumento();
-            tipoDoc.setIdTipoDocumento(dto.getIdTipoDocumento()); 
-            
+            tipoDoc.setIdTipoDocumento(dto.getIdTipoDocumento());
+
             cliente.setTipoDocumento(tipoDoc);
             cliente.setNumeroDocumento(dto.getNumeroDocumento());
-            // Asumo que tu entidad Cliente tiene setNombre/setApellido o setNombres/setApellidos
-            cliente.setNombre(dto.getNombres()); 
-            cliente.setApellido(dto.getApellidos()); 
-            
-            // Otros campos por defecto (puedes ajustarlos si es necesario)
-            cliente.setDireccion("-"); 
-            cliente.setTelefono("-");
-            cliente.setEmail(null); 
-            
+            // Mapear nombres/apellidos
+            cliente.setNombre(dto.getNombres());
+            cliente.setApellido(dto.getApellidos());
+
+            // Usar los campos opcionales si vienen del frontend; si no, mantener valores por defecto
+            if (dto.getDireccion() != null && !dto.getDireccion().trim().isEmpty()) {
+                cliente.setDireccion(dto.getDireccion().trim());
+            } else {
+                cliente.setDireccion("-");
+            }
+
+            if (dto.getTelefono() != null && !dto.getTelefono().trim().isEmpty()) {
+                cliente.setTelefono(dto.getTelefono().trim());
+            } else {
+                cliente.setTelefono("-");
+            }
+
+            if (dto.getEmail() != null && !dto.getEmail().trim().isEmpty()) {
+                cliente.setEmail(dto.getEmail().trim());
+            } else {
+                cliente.setEmail(null);
+            }
+
             Cliente nuevoCliente = clienteService.crear(cliente);
             return ResponseEntity.status(HttpStatus.CREATED).body(nuevoCliente);
         } catch (IllegalArgumentException e) {

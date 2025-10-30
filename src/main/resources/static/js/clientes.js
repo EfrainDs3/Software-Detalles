@@ -105,6 +105,42 @@ function populateTipoDocumentoSelects() {
     });
 }
 
+// -------------------- RENIEC lookup support for clientes --------------------
+async function lookupReniecCliente(tipoText, numero) {
+    if (!tipoText || !numero) return null;
+    try {
+        const urlProxy = `/api/reniec?tipo=${encodeURIComponent(tipoText)}&numero=${encodeURIComponent(numero)}`;
+        const respProxy = await fetch(urlProxy, { credentials: 'same-origin' });
+        if (!respProxy.ok) {
+            console.warn('RENIEC proxy lookup failed', respProxy.status);
+            return null;
+        }
+        return await respProxy.json();
+    } catch (e) {
+        console.error('Error calling RENIEC service', e);
+        return null;
+    }
+}
+
+function extractNamePartsFromReniecCliente(data) {
+    if (!data) return { firstName: '', lastName: '' };
+    // Support multiple provider shapes (camelCase, snake_case, short keys like 'ape_paterno')
+    const nombres = data.nombres || data.nombre || data.nombre_completo || data.nombreCompleto || data.razon_social || '';
+    const apellidoP = data.apellidoPaterno || data.apellido_paterno || data.apellido || data.ape_paterno || '';
+    const apellidoM = data.apellidoMaterno || data.apellido_materno || data.ape_materno || '';
+    const lastName = [apellidoP, apellidoM].filter(Boolean).join(' ').trim();
+    if (!nombres && lastName) return { firstName: '', lastName };
+    if (nombres && !apellidoP && !apellidoM) {
+        const parts = String(nombres).trim().split(/\s+/);
+        if (parts.length === 1) return { firstName: parts[0], lastName: '' };
+        const firstName = parts.slice(0, -1).join(' ');
+        const last = parts.slice(-1).join(' ');
+        return { firstName, lastName: last };
+    }
+    return { firstName: nombres || '', lastName };
+}
+
+
 // ============================================================
 // LOAD CLIENTES FROM BACKEND
 // ============================================================
@@ -202,23 +238,23 @@ function renderClientesTable(clientesToRender) {
 // ============================================================
 async function crearCliente(clienteData) {
     try {
+        // Build payload matching ClienteRegistroRapidoDTO expected by the controller
+        const payload = {
+            idTipoDocumento: clienteData.tipoDocumentoId ? parseInt(clienteData.tipoDocumentoId) : null,
+            numeroDocumento: clienteData.numeroDocumento || null,
+            nombres: clienteData.nombre || null,
+            apellidos: clienteData.apellido || null,
+            email: clienteData.email || null,
+            telefono: clienteData.telefono || null,
+            direccion: clienteData.direccion || null
+        };
+
         const response = await fetch('/clientes/api', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                nombre: clienteData.nombre,
-                apellido: clienteData.apellido,
-                tipoDocumento: {
-                    idTipoDocumento: parseInt(clienteData.tipoDocumentoId)
-                },
-                numeroDocumento: clienteData.numeroDocumento,
-                email: clienteData.email,
-                direccion: clienteData.direccion,
-                telefono: clienteData.telefono,
-                estado: true
-            })
+            body: JSON.stringify(payload)
         });
         
         if (!response.ok) {
@@ -381,6 +417,55 @@ function setupAddModal() {
                 console.error('Error al guardar cliente:', error);
             }
         });
+    }
+
+    // Attach RENIEC lookup listeners: when user ingresa nro documento o cambia tipo
+    const clientDocNumber = document.getElementById('clientDocNumber');
+    const clientDocType = document.getElementById('clientDocType');
+    async function handleClientDocLookup() {
+        if (!clientDocType || !clientDocNumber) return;
+        const tipoId = clientDocType.value;
+        if (!tipoId) return;
+        const tipoObj = (tiposDocumento || []).find(t => String(t.idTipoDocumento) === String(tipoId));
+        const tipoText = tipoObj?.nombreTipoDocumento || clientDocType.options[clientDocType.selectedIndex]?.text || '';
+        const numero = clientDocNumber.value.trim();
+        if (!numero) return;
+
+        // Minimal length heuristic
+        if ((/dni/i.test(tipoText) && numero.length < 6) || (/ruc/i.test(tipoText) && numero.length < 9)) return;
+
+        const data = await lookupReniecCliente(tipoText.toUpperCase(), numero);
+        if (!data) {
+            // no encontrado — no sobreescribir
+            return;
+        }
+
+        // Some providers wrap the payload under `datos` and add a `success` flag
+        if (data.success === false) return;
+        const provider = data.datos || data;
+
+        const nameParts = extractNamePartsFromReniecCliente(provider);
+        const nameInput = document.getElementById('clientName');
+        const lastInput = document.getElementById('clientLastName');
+
+        if (nameInput && nameParts.firstName) nameInput.value = nameParts.firstName;
+        if (lastInput && nameParts.lastName) lastInput.value = nameParts.lastName;
+        // Populate address if available
+        try {
+            const addressInput = document.getElementById('clientAddress');
+            const direccion = (provider.domiciliado && provider.domiciliado.direccion) || provider.direccion || provider.address || '';
+            if (addressInput && direccion) addressInput.value = direccion;
+        } catch (e) {
+            // ignore any extraction errors
+            console.warn('Could not extract direccion from RENIEC response', e);
+        }
+    }
+
+    if (clientDocNumber) {
+        clientDocNumber.addEventListener('blur', handleClientDocLookup);
+    }
+    if (clientDocType) {
+        clientDocType.addEventListener('change', handleClientDocLookup);
     }
     
     // Botón cerrar (X)
