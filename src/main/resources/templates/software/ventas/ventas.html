@@ -123,29 +123,29 @@
                         <div class="form-group mb-3">
                             <label for="clienteTipoDoc">Tipo y Número de Documento</label>
                             <div class="input-group">
-                                <select id="clienteTipoDoc" class="form-control" style="max-width: 120px;">
+                                <select id="clienteTipoDoc" name="clienteTipoDoc" class="form-control" style="max-width: 120px;">
                                     <option value="1">DNI</option> 
-                                    <option value="6">RUC</option>
-                                    <option value="0" selected>OTRO</option>
+                                    <option value="2">RUC</option>
                                 </select>
-                                <input type="text" id="clienteNumDoc" class="form-control" placeholder="Ingrese DNI/RUC/Doc." maxlength="11">
-                                <button id="buscarClienteBtn" class="btn btn-primary" title="Buscar Cliente">
+                                <input type="text" id="clienteNumDoc" name="clienteNumDoc" class="form-control" placeholder="Ingrese DNI/RUC" maxlength="11">
+                                <button type="button" id="buscarClienteBtn" class="btn btn-primary" title="Buscar Cliente">
                                     <i class="fas fa-search"></i>
                                 </button>
                             </div>
                         </div>
 
-                        <div id="clienteInfo" class="alert mt-2 alert-info" style="display: none;">
+                        <div id="clienteInfo" class="alert mt-2" style="display: none;">
                             <p class="mb-0">
                                 <strong>Cliente:</strong> 
                                 <span id="nombreClienteResultado" class="font-weight-bold">Público General</span>
                             </p>
-                            <button id="registrarClienteBtn" class="btn btn-sm btn-success mt-2" style="display: none;">
+                            <button type="button" id="registrarClienteBtn" class="btn btn-sm btn-success mt-2" style="display: none;">
                                 <i class="fas fa-user-plus"></i> Registrar Nuevo Cliente
                             </button>
                         </div>
 
-                        <input type="hidden" id="idClienteVenta" value="1"> 
+                        <!-- Campo oculto para guardar el ID del cliente seleccionado -->
+                        <input type="hidden" id="idClienteVenta" name="idClienteVenta" value="1"> 
                     </div>
 
 
@@ -153,34 +153,35 @@
                         <div class="modal-content" style="width: 400px;">
                             <div class="modal-header">
                                 <h4><i class="fas fa-user-plus"></i> Registrar Cliente Rápido</h4>
-                                <span class="close-btn" id="cerrarModalClienteBtnTop" data-dismiss="modal">&times;</span>
+                                <span class="close-btn" id="cerrarModalClienteBtnTop">&times;</span>
                             </div>
-                            <div class="modal-body">
-                                <div class="form-group">
-                                    <label for="modalClienteTipoDoc">Tipo de Documento</label>
-                                    <select id="modalClienteTipoDoc" class="form-control" required>
-                                        <option value="1">DNI</option> 
-                                        <option value="6">RUC</option>
-                                        <option value="0" selected>OTRO</option>
-                                    </select>
+                            <form id="formRegistroCliente">
+                                <div class="modal-body">
+                                    <div class="form-group">
+                                        <label for="modalClienteTipoDoc">Tipo de Documento *</label>
+                                        <select id="modalClienteTipoDoc" class="form-control">
+                                            <option value="1">DNI</option> 
+                                            <option value="2">RUC</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="modalClienteNumDoc">Número de Documento *</label>
+                                        <input type="text" id="modalClienteNumDoc" class="form-control" maxlength="11">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="modalClienteNombres">Nombres/Razón Social *</label>
+                                        <input type="text" id="modalClienteNombres" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="modalClienteApellidos">Apellidos</label>
+                                        <input type="text" id="modalClienteApellidos" class="form-control">
+                                    </div>
                                 </div>
-                                <div class="form-group">
-                                    <label for="modalClienteNumDoc">Número de Documento</label>
-                                    <input type="text" id="modalClienteNumDoc" class="form-control" required maxlength="11">
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" id="cerrarModalClienteBtn">Cancelar</button>
+                                    <button type="button" class="btn btn-primary" id="guardarClienteBtn">Guardar y Seleccionar</button>
                                 </div>
-                                <div class="form-group">
-                                    <label for="modalClienteNombres">Nombres/Razón Social</label>
-                                    <input type="text" id="modalClienteNombres" class="form-control" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="modalClienteApellidos">Apellidos</label>
-                                    <input type="text" id="modalClienteApellidos" class="form-control">
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" id="cerrarModalClienteBtn">Cancelar</button>
-                                <button type="button" class="btn btn-primary" id="guardarClienteBtn">Guardar y Seleccionar</button>
-                            </div>
+                            </form>
                         </div>
                     </div>
 
