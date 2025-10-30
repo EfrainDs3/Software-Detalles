@@ -62,6 +62,16 @@ const modalClienteNumDoc = document.getElementById('modalClienteNumDoc');
 const modalClienteNombres = document.getElementById('modalClienteNombres');
 const modalClienteApellidos = document.getElementById('modalClienteApellidos');
 
+// ✅ FUNCIÓN PARA ESTABLECER LA FECHA ACTUAL
+function setFechaActual() {
+    const hoy = new Date();
+    const year = hoy.getFullYear();
+    const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+    const dia = String(hoy.getDate()).padStart(2, '0');
+    const fechaFormateada = `${year}-${mes}-${dia}`;
+    
+    ventaFechaInput.value = fechaFormateada;
+}
 
 // Escuchadores de Eventos
 buscarClienteBtn.addEventListener('click', buscarClientePorDocumento);
@@ -88,6 +98,7 @@ guardarClienteBtn.addEventListener('click', registrarCliente);
 async function buscarClientePorDocumento() {
     const idTipoDoc = clienteTipoDocInput.value;
     const numDoc = clienteNumDocInput.value.trim();
+    
     if (!numDoc || idTipoDoc === '0') {
         alert("Seleccione un tipo y número de documento válidos.");
         return;
@@ -101,18 +112,21 @@ async function buscarClientePorDocumento() {
     registrarClienteBtn.style.display = 'none';
 
     try {
-        // Usa el nuevo endpoint
         const response = await fetch(`/clientes/api/buscar-documento?idTipoDoc=${idTipoDoc}&numDoc=${numDoc}`);
 
         if (response.ok) {
             const cliente = await response.json();
             
-            // Cliente ENCONTRADO
-            idClienteVentaInput.value = cliente.idCliente; // Asumo que el ID es 'idCliente'
-            nombreClienteResultado.textContent = `${cliente.nombres || ''} ${cliente.apellidos || ''}`.trim();
-            if (nombreClienteResultado.textContent === '') nombreClienteResultado.textContent = `Cliente #ID ${cliente.idCliente}`;
+            // ✅ Cliente ENCONTRADO
+            idClienteVentaInput.value = cliente.idCliente;
+            
+            const nombreCompleto = `${cliente.nombres || ''} ${cliente.apellidos || ''}`.trim();
+            nombreClienteResultado.textContent = nombreCompleto || `Cliente #ID ${cliente.idCliente}`;
+            
+            // ✅ AUTO-RELLENAR EL CAMPO "CLIENTE" DEL FORMULARIO
+            ventaClienteInput.value = nombreCompleto || `Doc: ${cliente.numeroDocumento}`;
 
-            clienteInfoDiv.className = 'alert mt-2 alert-success'; // Fondo verde
+            clienteInfoDiv.className = 'alert mt-2 alert-success';
             registrarClienteBtn.style.display = 'none';
             clienteTipoDocInput.disabled = true;
             clienteNumDocInput.disabled = true;
@@ -121,11 +135,13 @@ async function buscarClientePorDocumento() {
         } else if (response.status === 404) {
             // Cliente NO ENCONTRADO
             nombreClienteResultado.textContent = `No existe cliente con ese documento.`;
-            clienteInfoDiv.className = 'alert mt-2 alert-danger'; // Fondo rojo
-            registrarClienteBtn.style.display = 'block'; 
+            clienteInfoDiv.className = 'alert mt-2 alert-danger';
+            registrarClienteBtn.style.display = 'block';
+            
+            // ✅ LIMPIAR EL CAMPO CLIENTE
+            ventaClienteInput.value = '';
 
         } else {
-            // Otros errores
             nombreClienteResultado.textContent = 'Error al buscar cliente. (Servidor)';
             clienteInfoDiv.className = 'alert mt-2 alert-warning';
         }
@@ -341,7 +357,8 @@ function resetClienteForm() {
     // Función para abrir el modal
     function openModal() {
         ventaModal.style.display = 'block';
-        toggleFacturaFields(); // Esto inicializa los campos
+        toggleFacturaFields();
+        setFechaActual(); // ✅ ESTABLECE LA FECHA ACTUAL
     }
 
     // Función para cerrar el modal
@@ -448,6 +465,7 @@ function resetClienteForm() {
     addVentaBtn.addEventListener('click', () => {
         openModal();
         modalTitle.textContent = 'Nueva Venta';
+        resetClienteForm(); // ✅ Resetea el formulario de cliente
         addProductInput();
     });
 
@@ -483,16 +501,14 @@ function resetClienteForm() {
 
         // 2. Construir el objeto de Venta (ComprobantePago)
         const ventaPayload = {
-            // Mantenemos el nombre 'id_comprobante' para POST/PUT
-            id_comprobante: ventaIdInput.value || null, 
-            
-            // CAMPOS DEL COMPROBANTE
+            id_comprobante: ventaIdInput.value || null,
             id_tipo_comprobante: parseInt(ventaTipoComprobanteSelect.value),
             ruc: ventaRUCInput.value || null,
             razon_social: ventaRazonSocialInput.value || null,
             
-            // OTROS CAMPOS
-            nombre_cliente_temp: ventaClienteInput.value, 
+            // ✅ ENVIAR EL ID DEL CLIENTE (NO EL NOMBRE)
+            id_cliente: parseInt(idClienteVentaInput.value), // ✅ CRÍTICO
+            
             fecha_emision: ventaFechaInput.value,
             id_tipopago: ventaMetodoPagoSelect.value,
             estado_comprobante: ventaEstadoSelect.value,
@@ -503,7 +519,6 @@ function resetClienteForm() {
         const success = await saveVenta(ventaPayload);
 
         if (success) {
-            // ⭐️ LLAMAMOS A LA FUNCIÓN QUE TRAE LOS DATOS REALES DE LA BASE DE DATOS
             await fetchAndRenderVentas(); 
             closeModal();
         }

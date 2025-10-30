@@ -1,6 +1,7 @@
 package fisi.software.detalles.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired; 
 
 // Importaciones del DTO
@@ -117,43 +118,30 @@ public class VentaService {
     // ======================================================================
     // MÉTODO 3: LISTAR TODAS LAS VENTAS
     // ======================================================================
+    @Transactional(readOnly = true)
     public List<VentaListDTO> listarTodasLasVentas() {
         System.out.println("LOG: Solicitud de listado de ventas (BD REAL).");
         List<ComprobantePago> ventas = ventaRepository.findAll();
         List<VentaListDTO> lista = new ArrayList<>();
+        
         for (ComprobantePago v : ventas) {
-            String cliente = "Público General"; 
-            if (v.getCliente() != null) {
-                 // Usamos getNombre() y getApellido()
-                 String nombres = v.getCliente().getNombre() != null ? v.getCliente().getNombre() : "";
-                 String apellidos = v.getCliente().getApellido() != null ? v.getCliente().getApellido() : "";
-                 
-                 if (!nombres.isEmpty() || !apellidos.isEmpty()) {
-                    cliente = (nombres + " " + apellidos).trim();
-                 } 
-                 // 🚨 CORRECCIÓN: Reemplazo de getDniRuc() por getNumeroDocumento()
-                 else if (v.getCliente().getNumeroDocumento() != null && !v.getCliente().getNumeroDocumento().isEmpty()) { 
-                    cliente = "Cliente Doc: " + v.getCliente().getNumeroDocumento();
-                 }
-            } else if (v.getUsuario() != null) {
-                // Si cliente es nulo, mantiene la lógica que usa el usuario como fallback
-                cliente = v.getUsuario().getNombres() + " " + v.getUsuario().getApellidos() + " (Usuario)";
-            }
+            String nombreCliente = obtenerNombreCliente(v); // ✅ MÉTODO AUXILIAR
             
-            String metodoPago = "";
-            // ejemplo: metodoPago = v.getMetodoPago() != null ? v.getMetodoPago().getNombre() : "";
+            String metodoPago = ""; // Ajusta si tienes relación con TipoPago
+            
             List<DetalleVentaListDTO> detalles = new ArrayList<>();
             for (DetalleComprobantePago d : v.getDetalles()) {
-                String nombreProd = d.getProducto() != null ? d.getProducto().getNombre() : "";
+                String nombreProd = d.getProducto() != null ? d.getProducto().getNombre() : "Producto sin nombre";
                 detalles.add(new DetalleVentaListDTO(
                     nombreProd,
                     d.getCantidad(),
                     d.getPrecioUnitario()
                 ));
             }
+            
             lista.add(new VentaListDTO(
                 v.getIdComprobante(),
-                cliente,
+                nombreCliente, // ✅ NOMBRE CORREGIDO
                 v.getFechaEmision(),
                 metodoPago,
                 v.getEstado(),
@@ -162,6 +150,25 @@ public class VentaService {
             ));
         }
         return lista;
+    }
+
+    // ✅ NUEVO MÉTODO AUXILIAR PARA OBTENER NOMBRE DE CLIENTE
+    private String obtenerNombreCliente(ComprobantePago venta) {
+        if (venta.getCliente() != null) {
+            Cliente cliente = venta.getCliente();
+            String nombres = cliente.getNombre() != null ? cliente.getNombre() : "";
+            String apellidos = cliente.getApellido() != null ? cliente.getApellido() : "";
+            
+            String nombreCompleto = (nombres + " " + apellidos).trim();
+            
+            if (!nombreCompleto.isEmpty()) {
+                return nombreCompleto;
+            } else if (cliente.getNumeroDocumento() != null && !cliente.getNumeroDocumento().isEmpty()) {
+                return "Doc: " + cliente.getNumeroDocumento();
+            }
+        }
+        
+        return "Público General";
     }
 
     // ======================================================================
@@ -297,19 +304,15 @@ public class VentaService {
         if (ventaOptional.isEmpty()) {
             throw new RuntimeException("Comprobante de venta no encontrado con ID: " + idComprobante);
         }
+        
         ComprobantePago venta = ventaOptional.get();
         Map<String, Object> ventaMap = new HashMap<>();
         
-        // 🚨 CORRECCIÓN: Componer el nombre del cliente manualmente (sustituye el potencial error getNombreCompleto())
-        String clienteNombre = "";
-        if (venta.getCliente() != null) {
-            String nombres = venta.getCliente().getNombre() != null ? venta.getCliente().getNombre() : "";
-            String apellidos = venta.getCliente().getApellido() != null ? venta.getCliente().getApellido() : "";
-            clienteNombre = (nombres + " " + apellidos).trim();
-        }
+        // ✅ USAR EL MÉTODO AUXILIAR
+        String clienteNombre = obtenerNombreCliente(venta);
         
         ventaMap.put("tipoComprobante", venta.getTipoComprobante() != null ? venta.getTipoComprobante().getNombreTipo() : "");
-        ventaMap.put("cliente", clienteNombre); // Uso del nombre corregido
+        ventaMap.put("cliente", clienteNombre); // ✅ NOMBRE CORREGIDO
         ventaMap.put("fechaEmision", venta.getFechaEmision() != null ? venta.getFechaEmision().toString() : "");
         ventaMap.put("subtotal", venta.getSubtotal());
         ventaMap.put("igv", venta.getIgv());
