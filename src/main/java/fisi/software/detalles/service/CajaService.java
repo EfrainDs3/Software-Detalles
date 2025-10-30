@@ -49,8 +49,9 @@ public class CajaService {
         Caja nuevaCaja = new Caja();
         
         nuevaCaja.setNombreCaja(nombre_caja); 
-
+        nuevaCaja.setUbicacion(ubicacion); // AHORA SÍ ESTABLECE LA UBICACIÓN
         nuevaCaja.setEstado("Cerrada"); 
+        
         return cajaRepository.save(nuevaCaja);
     }
 
@@ -180,8 +181,11 @@ public class CajaService {
             CierreCaja c = a.getCierre();
             String estado = (c == null) ? "Abierta" : "Cerrada";
             String trabajador = a.getUsuario() != null 
-                                 ? a.getUsuario().getNombres() + " " + a.getUsuario().getApellidos() 
-                                 : "N/A";
+                                ? a.getUsuario().getNombres() + " " + a.getUsuario().getApellidos() 
+                                : "N/A";
+            String observaciones = (c != null && c.getObservaciones() != null) 
+                                    ? c.getObservaciones() 
+                                    : null;
 
             return new MovimientoCajaDTO(
                 a.getIdApertura(),
@@ -191,7 +195,8 @@ public class CajaService {
                 a.getMontoInicial(),
                 c != null ? c.getHoraCierre() : null,
                 c != null ? c.getMontoFinal() : null,
-                estado
+                estado,
+                observaciones // ✅ NUEVO
             );
         }).collect(Collectors.toList());
     }

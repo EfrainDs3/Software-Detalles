@@ -246,23 +246,34 @@ document.addEventListener('DOMContentLoaded', () => {
                     credentials: 'include' 
                 });
 
-                if (response.status === 409) {
-                    alert('Error: La caja ya estaba abierta.');
-                } else if (!response.ok) {
-                    throw new Error(`Error en la Apertura: ${response.statusText}`);
+                // MEJORA: Capturar el error específico del backend
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Error del servidor:', errorText);
+                    
+                    if (response.status === 409) {
+                        alert('❌ Error: La caja ya estaba abierta.');
+                    } else if (response.status === 403) {
+                        alert('❌ Error: No tienes permisos o no estás autenticado.');
+                    } else if (response.status === 400) {
+                        alert('❌ Error: Datos inválidos. Verifica la caja seleccionada.');
+                    } else {
+                        alert(`❌ Error ${response.status}: ${errorText.substring(0, 200)}`);
+                    }
+                    return; // Detiene la ejecución
                 }
 
                 const estadoActualizado = await response.json();
                 updateCajaStatusUI(estadoActualizado);
                 await fetchCajaHistory();
-                alert(`Caja ${idCajaValue} abierta exitosamente.`);
+                alert(`✅ Caja ${idCajaValue} abierta exitosamente.`);
                 checkInModal.style.display = 'none';
                 initialAmountInput.value = ''; 
                 finalAmountInput.value = ''; 
-            
+
             } catch (error) {
-                console.error('Error al abrir caja:', error);
-                alert(`Hubo un error al intentar abrir la caja. Consulte la consola.`);
+                console.error('❌ Error de conexión:', error);
+                alert(`Hubo un error de red. No se pudo conectar con el servidor.`);
             }
         });
     }
@@ -397,6 +408,112 @@ document.addEventListener('DOMContentLoaded', () => {
         if (event.target === modalNuevaCaja) modalNuevaCaja.style.display = 'none';
     });
     
+
+    // ======================================================
+    // FUNCIONALIDAD DE VER DETALLES
+    // ======================================================
+
+    const modalDetalles = document.getElementById('modalDetalles');
+    const cerrarModalDetalles = document.getElementById('cerrarModalDetalles');
+    const cerrarModalDetallesBtn = document.getElementById('cerrarModalDetallesBtn');
+
+    // Función para abrir modal de detalles
+    function abrirModalDetalles(movimiento) {
+        // Datos básicos
+        document.getElementById('detalle-id').textContent = movimiento.id;
+        document.getElementById('detalle-trabajador').textContent = movimiento.trabajador;
+        document.getElementById('detalle-fecha').textContent = formatDate(movimiento.fecha);
+        
+        // Estado
+        const estadoSpan = document.getElementById('detalle-estado');
+        estadoSpan.textContent = movimiento.estado;
+        estadoSpan.className = 'status-badge ' + movimiento.estado.toLowerCase();
+        
+        // Horas y montos
+        document.getElementById('detalle-hora-apertura').textContent = movimiento.horaApertura || '-';
+        document.getElementById('detalle-monto-inicial').textContent = formatCurrency(movimiento.montoInicial);
+        document.getElementById('detalle-hora-cierre').textContent = movimiento.horaCierre || '-';
+        document.getElementById('detalle-monto-final').textContent = movimiento.montoFinal ? formatCurrency(movimiento.montoFinal) : '-';
+        
+        // Sección de diferencia (solo si está cerrada)
+        const seccionDiferencia = document.getElementById('seccion-diferencia');
+        if (movimiento.estado.toLowerCase() === 'cerrada' && movimiento.montoFinal) {
+            seccionDiferencia.style.display = 'block';
+            
+            // Calcular monto esperado y diferencia (puedes ajustar esta lógica)
+            const montoEsperado = movimiento.montoInicial + 500; // Ejemplo: ventas simuladas
+            const diferencia = movimiento.montoFinal - montoEsperado;
+            
+            document.getElementById('detalle-monto-esperado').textContent = formatCurrency(montoEsperado);
+            
+            const diferenciaSpan = document.getElementById('detalle-diferencia');
+            diferenciaSpan.textContent = formatCurrency(Math.abs(diferencia));
+            
+            // Colorear según positivo/negativo
+            if (diferencia > 0) {
+                diferenciaSpan.className = 'monto-positivo';
+                diferenciaSpan.textContent = '+ ' + formatCurrency(diferencia);
+            } else if (diferencia < 0) {
+                diferenciaSpan.className = 'monto-negativo';
+                diferenciaSpan.textContent = '- ' + formatCurrency(Math.abs(diferencia));
+            } else {
+                diferenciaSpan.className = 'monto-neutro';
+                diferenciaSpan.textContent = formatCurrency(0);
+            }
+        } else {
+            seccionDiferencia.style.display = 'none';
+        }
+        
+        // Observaciones (si las tienes en el backend)
+        document.getElementById('detalle-observaciones').textContent = 
+            movimiento.observaciones || 'Sin observaciones registradas';
+        
+        // Mostrar modal
+        modalDetalles.style.display = 'block';
+    }
+
+    // Event listeners para cerrar modal de detalles
+    if (cerrarModalDetalles) {
+        cerrarModalDetalles.onclick = () => modalDetalles.style.display = 'none';
+    }
+    if (cerrarModalDetallesBtn) {
+        cerrarModalDetallesBtn.onclick = () => modalDetalles.style.display = 'none';
+    }
+
+    // Cerrar modal al hacer clic fuera
+    window.addEventListener('click', (event) => {
+        if (event.target === modalDetalles) {
+            modalDetalles.style.display = 'none';
+        }
+    });
+
+    // Delegación de eventos para los botones de "Ver"
+    document.addEventListener('click', async (e) => {
+        const btnView = e.target.closest('.btn-view');
+        
+        if (btnView) {
+            const idMovimiento = btnView.getAttribute('data-id');
+            
+            // Buscar el movimiento en el historial cargado
+            try {
+                const response = await fetch(`${API_BASE_URL}/historial`, { credentials: 'include' });
+                if (!response.ok) throw new Error('Error al obtener historial');
+                
+                const history = await response.json();
+                const movimiento = history.find(m => m.id == idMovimiento);
+                
+                if (movimiento) {
+                    abrirModalDetalles(movimiento);
+                } else {
+                    alert('No se encontró el movimiento solicitado');
+                }
+            } catch (error) {
+                console.error('Error al cargar detalles:', error);
+                alert('Error al cargar los detalles del movimiento');
+            }
+        }
+    });
+
     // --- Inicializar la Aplicación ---
     fetchCajaStatus();
     fetchCajaHistory();

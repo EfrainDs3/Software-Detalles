@@ -13,9 +13,16 @@ public class MovimientoCajaDTO {
     private LocalTime horaCierre;
     private BigDecimal montoFinal;
     private String estado;
+    private String observaciones;
     
     public Long getId() {
         return id;
+    }
+    public String getObservaciones() {
+        return observaciones;
+    }
+    public void setObservaciones(String observaciones) {
+        this.observaciones = observaciones;
     }
     public void setId(Long id) {
         this.id = id;
@@ -62,8 +69,9 @@ public class MovimientoCajaDTO {
     public void setEstado(String estado) {
         this.estado = estado;
     }
+    
     public MovimientoCajaDTO(Long id, String trabajador, LocalDate fecha, LocalTime horaApertura,
-            BigDecimal montoInicial, LocalTime horaCierre, BigDecimal montoFinal, String estado) {
+            BigDecimal montoInicial, LocalTime horaCierre, BigDecimal montoFinal, String estado, String observaciones) {
         this.id = id;
         this.trabajador = trabajador;
         this.fecha = fecha;
@@ -72,6 +80,13 @@ public class MovimientoCajaDTO {
         this.horaCierre = horaCierre;
         this.montoFinal = montoFinal;
         this.estado = estado;
+        this.observaciones = observaciones;
+    }
+    @Override
+    public String toString() {
+        return "MovimientoCajaDTO [id=" + id + ", trabajador=" + trabajador + ", fecha=" + fecha + ", horaApertura="
+                + horaApertura + ", montoInicial=" + montoInicial + ", horaCierre=" + horaCierre + ", montoFinal="
+                + montoFinal + ", estado=" + estado + ", observaciones=" + observaciones + "]";
     }
 
     

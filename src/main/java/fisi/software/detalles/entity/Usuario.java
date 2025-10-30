@@ -20,6 +20,10 @@ import java.util.Set;
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "tipoDocumento", "roles"})
 public class Usuario {
 
+    public Integer getId() {
+        return this.id;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_usuario")

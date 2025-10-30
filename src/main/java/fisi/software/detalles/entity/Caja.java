@@ -9,7 +9,6 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "cajas")
-
 public class Caja {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,9 +18,13 @@ public class Caja {
     @Column(name = "nombre_caja", nullable = false)
     private String nombreCaja;
 
+    @Column(name = "ubicacion")
+    private String ubicacion;
+
     @Column(name = "estado", nullable = false)
     private String estado; // "Abierta" o "Cerrada"
 
+    // Getters y Setters
     public Integer getIdCaja() {
         return idCaja;
     }
@@ -38,6 +41,14 @@ public class Caja {
         this.nombreCaja = nombreCaja;
     }
 
+    public String getUbicacion() {
+        return ubicacion;
+    }
+
+    public void setUbicacion(String ubicacion) {
+        this.ubicacion = ubicacion;
+    }
+
     public String getEstado() {
         return estado;
     }
@@ -45,6 +56,4 @@ public class Caja {
     public void setEstado(String estado) {
         this.estado = estado;
     }
-
-    
 }
