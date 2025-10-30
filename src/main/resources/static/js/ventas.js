@@ -282,16 +282,21 @@ function resetClienteForm() {
 
     // Función para renderizar la tabla (Ahora usa 'ventasData' llenada por la API)
     function renderVentas() {
-        // Hacemos que la función sea compatible con el formato que devuelve el backend
         ventasTableBody.innerHTML = '';
+        
+        if (ventasData.length === 0) {
+            ventasTableBody.innerHTML = '<tr><td colspan="8" class="text-center">No hay ventas registradas</td></tr>';
+            return;
+        }
+        
         ventasData.forEach(venta => {
-            // **IMPORTANTE**: Ajustar los nombres de las propiedades al formato de tu DTO/Entity de Java
-            const id = venta.idVenta || venta.id; // Asumo idVenta si usaste ese DTO
-            const cliente = venta.cliente ? venta.cliente.nombreCompleto : venta.nombre_cliente_temp; // Ejemplo de cómo acceder
-            const fecha = venta.fecha_emision || venta.fecha; 
-            const metodoPago = venta.tipoPago ? venta.tipoPago.nombre : venta.metodoPago; // Asumiendo que el backend trae un objeto
-            const estado = venta.estado_comprobante || venta.estado;
-            const total = venta.monto_total || venta.total;
+            // ✅ ACCESO CORRECTO A LAS PROPIEDADES DEL DTO
+            const id = venta.id;
+            const cliente = venta.cliente || 'Público General'; // ✅ Ya viene como string del backend
+            const fecha = venta.fecha ? new Date(venta.fecha).toLocaleDateString('es-PE') : '';
+            const metodoPago = venta.metodoPago || 'N/A';
+            const estado = venta.estado || 'Emitido';
+            const total = venta.total || 0;
 
             const row = document.createElement('tr');
             row.innerHTML = `
@@ -301,7 +306,7 @@ function resetClienteForm() {
                 <td>${fecha}</td>
                 <td>${metodoPago}</td>
                 <td><span class="status-badge ${estado.toLowerCase()}">${estado}</span></td>
-                <td><span class="price">S/ ${total ? total.toFixed(2) : '0.00'}</span></td>
+                <td><span class="price">S/ ${total.toFixed(2)}</span></td>
                 <td>
                     <div class="action-buttons-cell">
                         <button class="btn-icon btn-edit" data-id="${id}" title="Editar">
@@ -321,6 +326,7 @@ function resetClienteForm() {
             `;
             ventasTableBody.appendChild(row);
         });
+        
         updateSelectAllCheckbox();
     }
     
@@ -391,21 +397,22 @@ function resetClienteForm() {
     }
 
     function showDetalleModal(venta) {
-        detalleVentaId.textContent = venta.idVenta || venta.id;
-        detalleVentaCliente.textContent = venta.cliente ? venta.cliente.nombreCompleto : venta.nombre_cliente_temp;
-        detalleVentaFecha.textContent = venta.fecha_emision || venta.fecha;
-        detalleVentaMetodoPago.textContent = venta.tipoPago ? venta.tipoPago.nombre : venta.metodoPago;
-        detalleVentaEstado.textContent = venta.estado_comprobante || venta.estado;
-        detalleVentaTotal.textContent = `S/ ${(venta.monto_total || venta.total).toFixed(2)}`;
+        // ✅ ACCESO CORRECTO A LAS PROPIEDADES
+        detalleVentaId.textContent = venta.id;
+        detalleVentaCliente.textContent = venta.cliente || 'Público General';
+        detalleVentaFecha.textContent = venta.fecha ? new Date(venta.fecha).toLocaleDateString('es-PE') : '';
+        detalleVentaMetodoPago.textContent = venta.metodoPago || 'N/A';
+        detalleVentaEstado.textContent = venta.estado || 'Emitido';
+        detalleVentaTotal.textContent = `S/ ${(venta.total || 0).toFixed(2)}`;
 
-        detalleProductosList.innerHTML = ''; // Limpiar la lista anterior
-        const productosDetalle = venta.detalles || venta.productos;
+        detalleProductosList.innerHTML = '';
+        const productosDetalle = venta.detalles || [];
+        
         productosDetalle.forEach(producto => {
             const li = document.createElement('li');
-            // Adaptar la visualización según el nombre de la propiedad
-            const nombreProd = producto.nombre_producto || producto.nombre; 
-            const cantidadProd = producto.cantidad || producto.cantidad;
-            const precioProd = producto.precio_unitario || producto.precio;
+            const nombreProd = producto.nombre_producto || 'Producto sin nombre';
+            const cantidadProd = producto.cantidad || 0;
+            const precioProd = producto.precio_unitario || 0;
             
             li.innerHTML = `
                 <span>${cantidadProd} x ${nombreProd}</span>
@@ -419,29 +426,41 @@ function resetClienteForm() {
 
     // Función para llenar el modal con datos de una venta
     function fillForm(venta) {
-        ventaIdInput.value = venta.idVenta || venta.id;
-        // Asumiendo que el backend envía el nombre_cliente_temp para el campo de texto
-        ventaClienteInput.value = venta.nombre_cliente_temp || venta.cliente; 
-        ventaFechaInput.value = venta.fecha_emision || venta.fecha;
-        // Asumiendo que el select usa el ID del tipo de pago
-        ventaMetodoPagoSelect.value = venta.id_tipopago || venta.metodoPago; 
-        ventaEstadoSelect.value = venta.estado_comprobante || venta.estado;
+        // ✅ ACCESO CORRECTO A LAS PROPIEDADES
+        ventaIdInput.value = venta.id || '';
+        ventaClienteInput.value = venta.cliente || '';
         
-        // Cargar campos de factura si existen
-        if(venta.id_tipo_comprobante) ventaTipoComprobanteSelect.value = venta.id_tipo_comprobante.toString();
+        // Convertir fecha ISO a formato yyyy-mm-dd
+        if (venta.fecha) {
+            const fecha = new Date(venta.fecha);
+            const year = fecha.getFullYear();
+            const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+            const dia = String(fecha.getDate()).padStart(2, '0');
+            ventaFechaInput.value = `${year}-${mes}-${dia}`;
+        }
+        
+        ventaMetodoPagoSelect.value = venta.metodoPago || '';
+        ventaEstadoSelect.value = venta.estado || 'Emitido';
+        
+        // Cargar tipo de comprobante si existe
+        if (venta.id_tipo_comprobante) {
+            ventaTipoComprobanteSelect.value = venta.id_tipo_comprobante.toString();
+        }
+        
         ventaRUCInput.value = venta.ruc || '';
         ventaRazonSocialInput.value = venta.razon_social || '';
-        toggleFacturaFields(); // Aplicar reglas de visibilidad
+        toggleFacturaFields();
 
+        // Cargar productos
         productosContainer.innerHTML = '';
-        const productosDetalle = venta.detalles || venta.productos;
+        const productosDetalle = venta.detalles || [];
+        
         productosDetalle.forEach(product => {
-             // Adaptar la carga al formato del DTO (detalles o productos)
-             addProductInput({ 
-                nombre: product.nombre_producto || product.nombre,
-                cantidad: product.cantidad || product.cantidad,
-                precio: product.precio_unitario || product.precio,
-             });
+            addProductInput({ 
+                nombre: product.nombre_producto || '',
+                cantidad: product.cantidad || 1,
+                precio: product.precio_unitario || 0
+            });
         });
         
         calculateTotal();
@@ -582,13 +601,13 @@ function resetClienteForm() {
     });
 
     // Delegación de eventos para los botones de la tabla
-    ventasTableBody.addEventListener('click', async (e) => { // Agregamos 'async' aquí
+    ventasTableBody.addEventListener('click', async (e) => {
         const btn = e.target.closest('.btn-icon');
         if (!btn) return;
 
         const ventaId = btn.dataset.id;
-        // Obtenemos la venta del arreglo cargado previamente
-        const venta = ventasData.find(v => (v.idVenta || v.id) == ventaId); 
+        // ✅ BUSCAR POR LA PROPIEDAD CORRECTA
+        const venta = ventasData.find(v => v.id == ventaId); 
         
         if (btn.classList.contains('btn-edit')) {
             if (venta) {
@@ -598,27 +617,24 @@ function resetClienteForm() {
             }
         } else if (btn.classList.contains('btn-delete')) {
             if (confirm('¿Estás seguro de que deseas eliminar esta venta? Esta acción no se puede deshacer.')) {
-                 // **[PENDIENTE]** Debes crear un endpoint DELETE en VentasController.java
-                 const deleteUrl = `/ventas/api/${ventaId}`;
-                 try {
+                const deleteUrl = `/ventas/api/${ventaId}`;
+                try {
                     const response = await fetch(deleteUrl, { method: 'DELETE' });
                     if (!response.ok) throw new Error('Error al eliminar en el servidor.');
                     
-                    alert('Venta eliminada exitosamente.');
-                    // Vuelve a cargar y renderizar los datos
+                    alert('✅ Venta eliminada exitosamente.');
                     await fetchAndRenderVentas(); 
                     
-                 } catch (error) {
+                } catch (error) {
                     console.error('Error al eliminar la venta:', error);
-                    alert('Fallo la eliminación de la venta: ' + error.message);
-                 }
+                    alert('❌ Falló la eliminación de la venta: ' + error.message);
+                }
             }
         } else if (btn.classList.contains('btn-view')) {
             if (venta) {
                 showDetalleModal(venta);
             }
         } else if (btn.classList.contains('btn-pdf')) {
-            // --- LÓGICA DE EXPORTACIÓN A PDF ---
             exportarVentaAPDF(ventaId);
         }
     });
