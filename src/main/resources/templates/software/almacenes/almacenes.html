@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Almacenes - Detalles</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <link rel="stylesheet" href="/css/almacenes.css">
+    <link rel="stylesheet" href="/css/inventario.css">
+</head>
+<body>
+
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+
+        <div class="top-bar">
+            <div class="page-header">
+                <div class="breadcrumb">
+                    <a href="/dashboard" class="breadcrumb-link">
+                        Dashboard
+                    </a>
+                    <span class="breadcrumb-separator">/</span>
+                    <a href="/inventario" class="breadcrumb-link">
+                        Inventario
+                    </a>
+                    <span class="breadcrumb-separator">/</span>
+                    <span class="breadcrumb-current">Almacenes</span>
+                </div>
+                <h2 class="main-title">Gestión de Almacenes</h2>
+                <p class="page-subtitle">Administra los almacenes donde se almacenan los productos</p>
+            </div>
+            <button class="logout-btn">
+                Cerrar Sesión
+            </button>
+        </div>
+
+        <div class="action-bar">
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Buscar almacenes...">
+            </div>
+            <div class="action-buttons">
+                <button class="btn btn-primary" id="addAlmacenBtn">
+                    <i class="fas fa-plus"></i>
+                    Nuevo Almacén
+                </button>
+            </div>
+        </div>
+
+        <!-- Resumen de Almacenes -->
+        <div class="almacenes-summary">
+            <div class="summary-card">
+                <div class="card-icon total-icon">
+                    <i class="fas fa-warehouse"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Total Almacenes</h3>
+                    <p id="totalAlmacenes">0</p>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="card-icon productos-icon">
+                    <i class="fas fa-box"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Productos en Almacenes</h3>
+                    <p id="productosEnAlmacenes">0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Almacenes -->
+        <div class="table-container">
+            <table class="almacenes-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Ubicación</th>
+                        <th>Productos</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="almacenesTableBody">
+                    <tr>
+                        <td colspan="6" class="loading-state">
+                            <i class="fas fa-spinner fa-spin"></i> Cargando almacenes...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        <div class="pagination-container">
+            <div class="pagination-info">
+                Mostrando <span id="showingStart">0</span>-<span id="showingEnd">0</span> de <span id="totalRegistros">0</span> almacenes
+            </div>
+            <div class="pagination">
+                <button class="btn-pagination" id="prevPage">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div id="paginationNumbers"></div>
+                <button class="btn-pagination" id="nextPage">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal para gestión de almacenes -->
+    <div id="almacenModal" class="modal" style="display: none;">
+        <div class="modal-content almacen-modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Nuevo Almacén</h3>
+                <button class="modal-close" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="almacenForm" class="modal-body">
+                <!-- Información del Almacén -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-warehouse"></i>
+                        Información del Almacén
+                    </h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="almacenNombre">Nombre del Almacén *</label>
+                            <input type="text" id="almacenNombre" name="nombre" required placeholder="Ej: Almacén Principal">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <label for="almacenUbicacion">Ubicación</label>
+                            <input type="text" id="almacenUbicacion" name="ubicacion" placeholder="Ej: Av. Principal 123, Lima">
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelBtn">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </button>
+                <button type="submit" form="almacenForm" class="btn btn-primary" id="saveBtn">
+                    <i class="fas fa-save"></i>
+                    Guardar Almacén
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación de Eliminación -->
+    <div id="deleteModal" class="modal" style="display: none;">
+        <div class="modal-content delete-modal-content">
+            <div class="modal-header">
+                <h3>Confirmar Eliminación</h3>
+                <button class="modal-close" id="deleteCloseBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="delete-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h4>¿Estás seguro de eliminar este almacén?</h4>
+                    <p>Esta acción no se puede deshacer. El almacén será eliminado permanentemente del sistema.</p>
+                    <div class="delete-details">
+                        <strong>Almacén:</strong> <span id="deleteAlmacenNombre"></span><br>
+                        <strong>Ubicación:</strong> <span id="deleteAlmacenUbicacion"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="deleteCancelBtn">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                    <i class="fas fa-trash"></i>
+                    Eliminar Almacén
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/sidebar.js"></script>
+    <script src="/js/logout.js"></script>
+    <script src="/js/almacenes.js"></script>
+</body>
+</html>

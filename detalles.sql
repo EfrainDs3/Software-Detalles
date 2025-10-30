@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 22-10-2025 a las 17:09:04
+-- Tiempo de generación: 29-10-2025 a las 18:27:42
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -75,6 +75,13 @@ CREATE TABLE `cajas` (
   `ubicacion` varchar(255) DEFAULT NULL,
   `estado` varchar(20) NOT NULL DEFAULT 'Cerrada'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `cajas`
+--
+
+INSERT INTO `cajas` (`id_caja`, `nombre_caja`, `ubicacion`, `estado`) VALUES
+(1, 'caja 1', NULL, 'Cerrada');
 
 -- --------------------------------------------------------
 
@@ -690,6 +697,14 @@ CREATE TABLE `tiposcomprobantepago` (
   `serie_documento` varchar(10) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `tiposcomprobantepago`
+--
+
+INSERT INTO `tiposcomprobantepago` (`id_tipo_comprobante`, `nombre_tipo`, `serie_documento`) VALUES
+(1, 'Boleta de Venta', NULL),
+(2, 'Factura', NULL);
+
 -- --------------------------------------------------------
 
 --
@@ -712,6 +727,14 @@ CREATE TABLE `tipospago` (
   `id_tipopago` int(11) NOT NULL,
   `tipo_pago` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `tipospago`
+--
+
+INSERT INTO `tipospago` (`id_tipopago`, `tipo_pago`) VALUES
+(1, 'Efectivo'),
+(2, 'Tarjeta');
 
 -- --------------------------------------------------------
 
@@ -780,7 +803,7 @@ CREATE TABLE `usuarios` (
 INSERT INTO `usuarios` (`id_usuario`, `nombres`, `apellidos`, `id_tipodocumento`, `numero_documento`, `celular`, `direccion`, `username`, `email`, `contraseña_hash`, `estado`, `fecha_creacion`, `fecha_ultima_sesion`) VALUES
 (4, 'Santiago Efrain', 'Torres Murrieta', 1, '75859114', '964983465', 'juan pablo de la cruz', 'EfrainDs3', 'santiagotorresmurrieta@gmail.com', '$2a$10$rYmgAt7/zBq5.9IEcNfwjew.bCsMzYfVlKtf/Kx4.357vLVFmyCWC', 1, '2025-10-08 15:17:29', '2025-10-22 12:33:55'),
 (5, 'Anggelo Lucciano', 'Urbina Espinoza', 1, '72863068', '903 171 836', 'juan pablo de la cruz', 'Ubuntu', 'anggelolucciano21@gmail.com', '$2a$10$VwIkH6380fJV0oPcQXNKiO1oU8zqQ1vKsc0uWSkm.vtCWoTPHzzMG', 1, '2025-10-08 15:46:19', '2025-10-08 15:54:27'),
-(6, 'Anlly Luz', 'Riva Yomona', 1, '72010812', '999888777', 'Calle Nueva 456', 'Anlly', 'al.rivayo@unsm.edu.pe', '$2a$10$E.7vIdGVqCYy5eoYIBjF/uYDym2.b6B6U6.TlT9uKd0tFUl4DMfJW', 1, '2025-10-08 15:57:57', '2025-10-22 12:34:18'),
+(6, 'Anlly Luz', 'Riva Yomona', 1, '72010812', '999888777', 'Calle Nueva 456', 'Anlly', 'al.rivayo@unsm.edu.pe', '$2a$10$E.7vIdGVqCYy5eoYIBjF/uYDym2.b6B6U6.TlT9uKd0tFUl4DMfJW', 1, '2025-10-08 15:57:57', '2025-10-23 14:16:42'),
 (12, 'Danny Alexander', 'Garcia Salas', 1, '98765432', '999888777', 'juan pablo de la cruz', 'Dingui', 'ia.jadrixgr26@gmail.com', '$2a$10$xKxtzv1ECV/74oi69b9hPubeUZgmSnrAUoxmjmSaz0NyeVOYE9BHW', 1, '2025-10-08 16:27:52', '2025-10-16 04:28:47');
 
 -- --------------------------------------------------------
@@ -1121,7 +1144,7 @@ ALTER TABLE `bitacora`
 -- AUTO_INCREMENT de la tabla `cajas`
 --
 ALTER TABLE `cajas`
-  MODIFY `id_caja` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_caja` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `categoriasproducto`
@@ -1259,7 +1282,7 @@ ALTER TABLE `tipodocumento`
 -- AUTO_INCREMENT de la tabla `tiposcomprobantepago`
 --
 ALTER TABLE `tiposcomprobantepago`
-  MODIFY `id_tipo_comprobante` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_tipo_comprobante` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `tiposmovimientoinventario`
@@ -1271,7 +1294,7 @@ ALTER TABLE `tiposmovimientoinventario`
 -- AUTO_INCREMENT de la tabla `tipospago`
 --
 ALTER TABLE `tipospago`
-  MODIFY `id_tipopago` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_tipopago` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `tiposproducto`
