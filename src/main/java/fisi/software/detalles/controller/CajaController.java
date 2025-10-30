@@ -102,22 +102,21 @@ public class CajaController {
     // MÉTODO AUXILIAR PARA OBTENER EL ID DEL USUARIO
     // ======================================================
     private Integer obtenerIdUsuario(Authentication authentication) {
-        if (authentication == null || authentication.getPrincipal() == null || 
-        authentication.getPrincipal().equals("anonymousUser")) {
-            throw new AccessDeniedException("Acceso denegado: Usuario no autenticado.");
+    // Si no hay autenticación, retornar ID por defecto
+        if (authentication == null || !authentication.isAuthenticated() || 
+            authentication.getPrincipal().equals("anonymousUser")) {
+            System.out.println("⚠️ MODO DESARROLLO: Usuario no autenticado, usando ID 4");
+            return 4; // ⚠️ CAMBIAR cuando implementes login real
         }
         
         try {
-            // HACEMOS CASTING A LA ENTIDAD USUARIO
             Usuario userDetails = (Usuario) authentication.getPrincipal();
-            
-            // USAMOS EL MÉTODO GETTER DE TU ENTIDAD
-            return userDetails.getId(); 
+            return userDetails.getId();
         } catch (ClassCastException e) {
-            throw new IllegalStateException("Error de autenticación: El objeto Principal no es la Entidad Usuario esperada. Revisa tu configuración de Spring Security.", e);
+            System.out.println("⚠️ Error de casting, usando ID por defecto: 4");
+            return 4; // ⚠️ Fallback
         }
     }
-    
     // ======================================================
     // DTOs (Data Transfer Objects) - Reemplazo de @Data
     // ======================================================
