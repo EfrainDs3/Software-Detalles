@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalles - Calzados y Accesorios</title>
+
+    <!-- ✅ CSS desde static/Detalles_web -->
+    <link rel="stylesheet" th:href="@{/Detalles_web/styles.css}" href="/Detalles_web/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-container">
+                    <!-- <div class="logo"> -->
+                    <a th:href="@{/index}" class="logo-link">
+                        <img th:src="@{/Detalles_web/img/logo-detalles.jpg}" src="/Detalles_web/img/logo-detalles.jpg" alt="Detalles - Calzados y Accesorios">
+                    </a>
+                </div>
+                <ul class="nav-menu">
+                    <li><a th:href="@{/}" href="#">Inicio</a></li>
+
+                    <!-- Submenú Mujeres -->
+                    <li class="menu-item-has-children">
+                        <a href="#mujeres">Mujeres <i class="fas fa-chevron-down"></i></a>
+                        <div class="submenu">
+                            <div class="submenu-content">
+                                <div class="submenu-column">
+                                    <h3>Calzado</h3>
+                                    <ul>
+                                        <li><a th:href="@{/Detalles_web/mujeres/zapatillas-deportivas.html}">Zapatillas Deportivas</a></li>
+                                        <li><a th:href="@{/Detalles_web/mujeres/zapatos-casuales.html}">Zapatos Casuales</a></li>
+                                        <li><a th:href="@{/Detalles_web/mujeres/tacones.html}">Tacones</a></li>
+                                        <li><a th:href="@{/Detalles_web/mujeres/sandalias.html}">Sandalias</a></li>
+                                        <li><a th:href="@{/Detalles_web/mujeres/botas.html}">Botas</a></li>
+                                    </ul>
+                                </div>
+                                <div class="submenu-column">
+                                    <h3>Accesorios</h3>
+                                    <ul>
+                                        <li><a th:href="@{/Detalles_web/mujeres-accesorios/bolsos.html}">Bolsos</a></li>
+                                        <li><a th:href="@{/Detalles_web/mujeres-accesorios/billeteras.html}">Billeteras</a></li>
+                                        <li><a th:href="@{/Detalles_web/mujeres-accesorios/gafas-de-sol.html}">Gafas de Sol</a></li>
+                                        <li><a th:href="@{/Detalles_web/mujeres-accesorios/cinturones.html}">Cinturones</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+
+                    <!-- Submenú Hombres -->
+                    <li class="menu-item-has-children">
+                        <a href="#hombres">Hombres <i class="fas fa-chevron-down"></i></a>
+                        <div class="submenu">
+                            <div class="submenu-content">
+                                <div class="submenu-column">
+                                    <h3>Calzado</h3>
+                                    <ul>
+                                        <li><a th:href="@{/Detalles_web/hombres/zapatillas-deportivas-h.html}">Zapatillas Deportivas</a></li>
+                                        <li><a th:href="@{/Detalles_web/hombres/zapatos-casuales-h.html}">Zapatos Casuales</a></li>
+                                        <li><a th:href="@{/Detalles_web/hombres/zapatos-formales-h.html}">Zapatos Formales</a></li>
+                                        <li><a th:href="@{/Detalles_web/hombres/botas-h.html}">Botas</a></li>
+                                        <li><a th:href="@{/Detalles_web/hombres/sandalias-h.html}">Sandalias</a></li>
+                                    </ul>
+                                </div>
+                                <div class="submenu-column">
+                                    <h3>Accesorios</h3>
+                                    <ul>
+                                        <li><a th:href="@{/Detalles_web/hombres-accesorios/cinturones-h.html}">Cinturones</a></li>
+                                        <li><a th:href="@{/Detalles_web/hombres-accesorios/relojes-h.html}">Relojes</a></li>
+                                        <li><a th:href="@{/Detalles_web/hombres-accesorios/gafas-de-sol-h.html}">Gafas de Sol</a></li>
+                                        <li><a th:href="@{/Detalles_web/hombres-accesorios/billeteras-h.html}">Billeteras</a></li>
+                                        <li><a th:href="@{/Detalles_web/hombres-accesorios/gorros-h.html}">Gorros</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+
+                    <!-- Submenú Niños -->
+                    <li class="menu-item-has-children">
+                        <a href="#ninos">Niños <i class="fas fa-chevron-down"></i></a>
+                        <div class="submenu">
+                            <div class="submenu-content">
+                                <div class="submenu-column">
+                                    <h3>Calzado</h3>
+                                    <ul>
+                                        <li><a th:href="@{/Detalles_web/niños/zapatillas-deportivas.html}">Zapatillas Deportivas</a></li>
+                                        <li><a th:href="@{/Detalles_web/niños/zapatos-casuales.html}">Zapatos Casuales</a></li>
+                                        <li><a th:href="@{/Detalles_web/niños/zapatos-escolares.html}">Zapatos Escolares</a></li>
+                                        <li><a th:href="@{/Detalles_web/niños/pantuflas.html}">Pantuflas</a></li>
+                                        <li><a th:href="@{/Detalles_web/niños/sandalias.html}">Sandalias</a></li>
+                                        <li><a th:href="@{/Detalles_web/niños/botas.html}">Botas</a></li>
+                                    </ul>
+                                </div>
+                                <div class="submenu-column">
+                                    <h3>Accesorios</h3>
+                                    <ul>
+                                        <li><a th:href="@{/Detalles_web/niños-accesorios/calcetines.html}">Calcetines</a></li>
+                                        <li><a th:href="@{/Detalles_web/niños-accesorios/cinturones.html}">Cinturones</a></li>
+                                        <li><a th:href="@{/Detalles_web/niños-accesorios/gorras.html}">Gorras</a></li>
+                                        <li><a th:href="@{/Detalles_web/niños-accesorios/lentes-sol.html}">Lentes</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+
+                <div class="nav-icons">
+                    <a href="#" class="nav-icon search-icon"><i class="fas fa-search"></i></a>
+                    <a th:href="@{/login}" class="nav-icon"><i class="fas fa-user"></i></a>
+                    <a th:href="@{/carrito}" class="nav-icon cart-icon">
+                        <i class="fas fa-shopping-bag"></i>
+                        <span class="cart-count">0</span>
+                    </a>
+                </div>
+
+                <div class="hamburger">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Carrusel -->
+    <section id="inicio" class="hero-slider">
+        <div class="slider-container">
+            <div class="slide active">
+                <div class="slide-image" th:style="'background-image:url(' + @{/Detalles_web/img/hero-banner.jpg} + ');'"></div>
+                <div class="slide-content">
+                    <h1>Nueva Colección Primavera 2025</h1>
+                    <p>Descubre las últimas tendencias en calzado y accesorios para toda la familia</p>
+                    <button class="cta-button">Comprar Ahora</button>
+                </div>
+            </div>
+            <div class="slide">
+                <div class="slide-image" th:style="'background-image:url(' + @{/Detalles_web/img/hero-banner-2.jpg} + ');'"></div>
+                <div class="slide-content">
+                    <h1>Elegancia en cada Paso</h1>
+                    <p>Calzado diseñado para tu confort y elegancia</p>
+                    <button class="cta-button">Comprar Ahora</button>
+                </div>
+            </div>
+            <div class="slide">
+                <div class="slide-image" th:style="'background-image:url(' + @{/Detalles_web/img/hero-banner-3.jpg} + ');'"></div>
+                <div class="slide-content">
+                    <h1>Complementa tu Estilo</h1>
+                    <p>Encuentra el accesorio perfecto para cada ocasión</p>
+                    <button class="cta-button">Comprar Ahora</button>
+                </div>
+            </div>
+        </div>
+        <button class="slider-btn prev-btn"><i class="fas fa-chevron-left"></i></button>
+        <button class="slider-btn next-btn"><i class="fas fa-chevron-right"></i></button>
+        <div class="slider-indicators">
+            <span class="indicator active"></span>
+            <span class="indicator"></span>
+            <span class="indicator"></span>
+        </div>
+    </section>
+
+    <!-- Productos Dinámicos -->
+    <section id="productos" class="featured-products">
+        <div class="container">
+            <h2 class="section-title">Productos Destacados</h2>
+            <div class="products-grid">
+                <div class="product-card" th:each="producto : ${productos}">
+                    <div class="product-image">
+                        <img th:src="@{/img/calzado-default.jpg}" alt="Producto" th:alt="${producto.nombre}">
+                        <div class="product-overlay"><button class="quick-view">Vista Rápida</button></div>
+                    </div>
+                    <div class="product-info">
+                        <h3 th:text="${producto.nombre}">Nombre del Producto</h3>
+                        <p th:text="${producto.descripcion}">Descripción breve</p>
+                        <p class="price" th:text="'S/ ' + ${producto.precioVenta}">S/ 0.00</p>
+                        <button class="add-to-cart"
+                            th:attr="data-id=${producto.id}"
+                            th:onclick="'window.location.href=\'/carrito/agregar/' + ${producto.id} + '\';'">
+                            Añadir al Carrito
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Detalles</h3>
+                    <p>Tu destino para calzados y accesorios de calidad.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h3>Servicios</h3>
+                    <ul>
+                        <li><a th:href="@{/Detalles_web/Servicios/guia_tallas.html}">Guía de Tallas</a></li>
+                        <li><a th:href="@{/Detalles_web/Servicios/preguntas.html}">Asistente</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Newsletter</h3>
+                    <p>Suscríbete para recibir ofertas exclusivas</p>
+                    <form class="newsletter-form">
+                        <input type="email" placeholder="Tu email" required>
+                        <button type="submit">Suscribirse</button>
+                    </form>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Detalles. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ✅ JS desde static/Detalles_web -->
+    <script th:src="@{/Detalles_web/js/script.js}" src="/Detalles_web/js/script.js"></script>
+    <script th:src="@{/Detalles_web/js/carrito.js}" src="/Detalles_web/js/carrito.js"></script>
+</body>
+</html>
