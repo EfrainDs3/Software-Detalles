@@ -112,6 +112,7 @@
                         <th>Producto</th>
                         <th>Categoría</th>
                         <th>Almacén</th>
+                        <th>Tallas</th>
                         <th>Stock Actual</th>
                         <th>Stock Mínimo</th>
                         <th>Estado</th>
@@ -411,6 +412,272 @@
                 <button type="button" class="btn btn-secondary" id="cerrarMovimientosBtn">
                     <i class="fas fa-check"></i>
                     Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Gestión de Tallas -->
+    <div id="gestionTallasModal" class="modal" style="display: none;">
+        <div class="modal-content gestion-tallas-modal-content">
+            <div class="modal-header">
+                <h3 id="gestionTallasModalTitle">Gestión de Tallas</h3>
+                <button class="modal-close" id="closeGestionTallasModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="gestionTallasInventarioId" name="inventarioId">
+
+                <!-- Información del Producto -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-box"></i>
+                        Información del Producto
+                    </h4>
+                    <div class="product-info-display">
+                        <div class="info-row">
+                            <span class="info-label">Producto:</span>
+                            <span id="gestionTallasProductoNombre" class="info-value"></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Almacén:</span>
+                            <span id="gestionTallasAlmacenNombre" class="info-value"></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Stock Total:</span>
+                            <span id="gestionTallasStockTotal" class="info-value stock-value"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista de Tallas -->
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-tags"></i>
+                        Tallas Disponibles
+                    </h4>
+                    <div class="tallas-container" id="tallasContainer">
+                        <!-- Las tallas se cargarán dinámicamente aquí -->
+                    </div>
+                    <button type="button" class="btn btn-secondary" id="agregarTallaBtn">
+                        <i class="fas fa-plus"></i>
+                        Agregar Talla
+                    </button>
+                </div>
+
+                <!-- Acciones de Talla -->
+                <div class="form-section" id="tallaActionsSection" style="display: none;">
+                    <h4 class="section-title">
+                        <i class="fas fa-edit"></i>
+                        Acciones de Talla
+                    </h4>
+                    <input type="hidden" id="selectedTalla" name="selectedTalla">
+                    <div class="talla-info-display">
+                        <div class="info-row">
+                            <span class="info-label">Talla Seleccionada:</span>
+                            <span id="selectedTallaDisplay" class="info-value"></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Stock Actual:</span>
+                            <span id="selectedTallaStock" class="info-value stock-value"></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Stock Mínimo:</span>
+                            <span id="selectedTallaMinimo" class="info-value"></span>
+                        </div>
+                    </div>
+
+                    <div class="talla-actions">
+                        <button type="button" class="btn btn-primary" id="ajustarTallaBtn">
+                            <i class="fas fa-edit"></i>
+                            Ajustar Stock
+                        </button>
+                        <button type="button" class="btn btn-info" id="transferirTallaBtn">
+                            <i class="fas fa-exchange-alt"></i>
+                            Transferir
+                        </button>
+                        <button type="button" class="btn btn-danger" id="eliminarTallaBtn">
+                            <i class="fas fa-trash"></i>
+                            Eliminar Talla
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cerrarGestionTallasBtn">
+                    <i class="fas fa-check"></i>
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Ajuste de Talla -->
+    <div id="ajusteTallaModal" class="modal" style="display: none;">
+        <div class="modal-content ajuste-talla-modal-content">
+            <div class="modal-header">
+                <h3>Ajuste de Stock por Talla</h3>
+                <button class="modal-close" id="closeAjusteTallaModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="ajusteTallaForm" class="modal-body">
+                <input type="hidden" id="ajusteTallaInventarioId" name="inventarioId">
+                <input type="hidden" id="ajusteTallaTalla" name="talla">
+
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-box"></i>
+                        Información
+                    </h4>
+                    <div class="product-info-display">
+                        <div class="info-row">
+                            <span class="info-label">Producto:</span>
+                            <span id="ajusteTallaProductoNombre" class="info-value"></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Talla:</span>
+                            <span id="ajusteTallaTallaDisplay" class="info-value"></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Stock Actual:</span>
+                            <span id="ajusteTallaStockActual" class="info-value stock-value"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-edit"></i>
+                        Detalles del Ajuste
+                    </h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="tipoMovimientoTalla">Tipo de Movimiento *</label>
+                            <select id="tipoMovimientoTalla" name="tipoMovimiento" required>
+                                <option value="">Seleccionar tipo</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="cantidadAjusteTalla">Cantidad *</label>
+                            <input type="number" id="cantidadAjusteTalla" name="cantidad" min="1" required placeholder="Ej: 5">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="referenciaTalla">Documento de Referencia</label>
+                            <input type="text" id="referenciaTalla" name="referencia" placeholder="Ej: AJ-001">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <label for="observacionesTalla">Observaciones</label>
+                            <textarea id="observacionesTalla" name="observaciones" rows="3" placeholder="Descripción del ajuste..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="stock-preview">
+                        <div class="preview-row">
+                            <span>Stock Actual:</span>
+                            <span id="previewTallaStockActual" class="stock-value">0</span>
+                        </div>
+                        <div class="preview-row">
+                            <span>Cantidad del Movimiento:</span>
+                            <span id="previewTallaCantidad" class="cantidad-value">0</span>
+                        </div>
+                        <div class="preview-row total-preview">
+                            <strong>Nuevo Stock:</strong>
+                            <strong id="previewTallaNuevoStock" class="nuevo-stock-value">0</strong>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelAjusteTallaBtn">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </button>
+                <button type="submit" form="ajusteTallaForm" class="btn btn-primary" id="saveAjusteTallaBtn">
+                    <i class="fas fa-save"></i>
+                    Aplicar Ajuste
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Agregar Tallas -->
+    <div id="agregarTallasModal" class="modal" style="display: none;">
+        <div class="modal-content agregar-tallas-modal-content">
+            <div class="modal-header">
+                <h3>Agregar Tallas al Inventario</h3>
+                <button class="modal-close" id="closeAgregarTallasModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="agregarTallasForm" class="modal-body">
+                <input type="hidden" id="agregarTallasInventarioId" name="inventarioId">
+
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-box"></i>
+                        Información del Producto
+                    </h4>
+                    <div class="product-info-display">
+                        <div class="info-row">
+                            <span class="info-label">Producto:</span>
+                            <span id="agregarTallasProductoNombre" class="info-value"></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Almacén:</span>
+                            <span id="agregarTallasAlmacenNombre" class="info-value"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-tags"></i>
+                        Tallas a Agregar
+                    </h4>
+                    <div id="tallasList" class="tallas-list">
+                        <!-- Las tallas se agregarán dinámicamente aquí -->
+                    </div>
+                    <button type="button" class="btn btn-outline-primary" id="addTallaBtn">
+                        <i class="fas fa-plus"></i>
+                        Agregar Talla
+                    </button>
+                </div>
+
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-file-alt"></i>
+                        Información Adicional
+                    </h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="referenciaAgregarTallas">Documento de Referencia</label>
+                            <input type="text" id="referenciaAgregarTallas" name="referencia" placeholder="Ej: REG-001">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <label for="observacionesAgregarTallas">Observaciones</label>
+                            <textarea id="observacionesAgregarTallas" name="observaciones" rows="3" placeholder="Notas sobre la adición de tallas..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelAgregarTallasBtn">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </button>
+                <button type="submit" form="agregarTallasForm" class="btn btn-success" id="saveAgregarTallasBtn">
+                    <i class="fas fa-save"></i>
+                    Agregar Tallas
                 </button>
             </div>
         </div>

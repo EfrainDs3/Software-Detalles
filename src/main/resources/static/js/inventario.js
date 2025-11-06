@@ -29,6 +29,49 @@ document.addEventListener('DOMContentLoaded', () => {
     const tipoMovimientoFilter = document.getElementById('tipoMovimientoFilter');
     const filtrarMovimientos = document.getElementById('filtrarMovimientos');
 
+    // Referencias del modal de gestión de tallas
+    const gestionTallasModal = document.getElementById('gestionTallasModal');
+    const closeGestionTallasModal = document.getElementById('closeGestionTallasModal');
+    const cerrarGestionTallasBtn = document.getElementById('cerrarGestionTallasBtn');
+    const tallasContainer = document.getElementById('tallasContainer');
+    const agregarTallaBtn = document.getElementById('agregarTallaBtn');
+    const tallaActionsSection = document.getElementById('tallaActionsSection');
+    const selectedTalla = document.getElementById('selectedTalla');
+    const ajustarTallaBtn = document.getElementById('ajustarTallaBtn');
+    const transferirTallaBtn = document.getElementById('transferirTallaBtn');
+    const eliminarTallaBtn = document.getElementById('eliminarTallaBtn');
+
+    if (agregarTallaBtn) {
+        agregarTallaBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const inventarioId = document.getElementById('gestionTallasInventarioId').value;
+            console.log('Agregar Talla clicked, inventarioId:', inventarioId);
+            if (inventarioId) {
+                openAgregarTallasModal(inventarioId);
+            } else {
+                console.error('No se encontró el ID de inventario');
+                showNotification('Error: No se pudo identificar el producto. Por favor, cierre y vuelva a abrir la gestión de tallas.', 'error');
+            }
+        });
+    }
+
+    // Referencias del modal de ajuste de talla
+    const ajusteTallaModal = document.getElementById('ajusteTallaModal');
+    const closeAjusteTallaModal = document.getElementById('closeAjusteTallaModal');
+    const cancelAjusteTallaBtn = document.getElementById('cancelAjusteTallaBtn');
+    const ajusteTallaForm = document.getElementById('ajusteTallaForm');
+    const tipoMovimientoTallaSelect = document.getElementById('tipoMovimientoTalla');
+    const cantidadAjusteTallaInput = document.getElementById('cantidadAjusteTalla');
+
+    // Referencias del modal de agregar tallas
+    const agregarTallasModal = document.getElementById('agregarTallasModal');
+    const closeAgregarTallasModal = document.getElementById('closeAgregarTallasModal');
+    const cancelAgregarTallasBtn = document.getElementById('cancelAgregarTallasBtn');
+    const agregarTallasForm = document.getElementById('agregarTallasForm');
+    const tallasList = document.getElementById('tallasList');
+    const addTallaBtn = document.getElementById('addTallaBtn');
+
     // Referencias del modal de registrar producto
     const registrarProductoModal = document.getElementById('registrarProductoModal');
     const closeRegistrarModal = document.getElementById('closeRegistrarModal');
@@ -75,6 +118,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentProductoAjuste = null;
     let isSubmittingRegistrar = false;
     let isSubmittingAjuste = false;
+    let tallasDisponiblesActuales = []; // Para almacenar las tallas del producto actual
+    let selectedTallaData = null; // Para almacenar los datos de la talla seleccionada
 
     // --- Funciones Utilitarias ---
 
@@ -453,11 +498,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>
                     <div class="product-info">
                         <strong>${item.nombre_producto}</strong>
-                        <small>Talla: ${item.talla} | Color: ${item.color}</small>
+                        <small>Color: ${item.color}</small>
                     </div>
                 </td>
                 <td>${item.categoria}</td>
                 <td>${item.nombre_almacen}</td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-outline-primary" onclick="gestionarTallas(${item.id_inventario})" title="Gestionar Tallas">
+                        <i class="fas fa-tags"></i>
+                        Ver Tallas
+                    </button>
+                </td>
                 <td class="text-center">
                     <span class="stock-quantity ${status}">${item.cantidad_stock}</span>
                 </td>
@@ -468,15 +519,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td class="text-center">${formatDateTime(item.fecha_ultima_actualizacion)}</td>
                 <td>
                     <div class="action-buttons-cell">
-                        <button class="btn-icon edit" onclick="openAjusteModal(${item.id_inventario})" 
-                                title="Ajustar Stock">
+                        <button class="btn-icon edit" onclick="openAjusteModal(${item.id_inventario})"
+                                title="Ajustar Stock Total">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn-icon history" onclick="viewProductHistory(${item.id_producto})" 
+                        <button class="btn-icon history" onclick="viewProductHistory(${item.id_producto})"
                                 title="Historial">
                             <i class="fas fa-history"></i>
                         </button>
-                        <button class="btn-icon info" onclick="viewProductDetails(${item.id_producto})" 
+                        <button class="btn-icon info" onclick="viewProductDetails(${item.id_producto})"
                                 title="Detalles">
                             <i class="fas fa-info"></i>
                         </button>
@@ -696,7 +747,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const cantidad = parseInt(cantidadAjusteInput.value) || 0;
         const tipoMovimiento = tipoMovimientoSelect.value;
         const stockActual = currentProductoAjuste.cantidad_stock;
-        
+
         document.getElementById('previewStockActual').textContent = stockActual;
         document.getElementById('previewCantidad').textContent = cantidad;
 
@@ -722,6 +773,116 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (nuevoStock <= currentProductoAjuste.stock_minimo) {
             nuevoStockElement.style.color = '#856404';
             nuevoStockElement.style.backgroundColor = '#fff3cd';
+        } else {
+            nuevoStockElement.style.color = '#155724';
+            nuevoStockElement.style.backgroundColor = '#d4edda';
+        }
+    }
+
+    function openAjusteTallaModal(inventarioId, talla, tallaData = null) {
+        console.log('openAjusteTallaModal called with:', { inventarioId, talla, tallaData });
+        
+        // Convertir a número para comparación
+        const idToFind = parseInt(inventarioId);
+        console.log('Buscando inventario con ID:', idToFind, 'en', inventarioData.length, 'items');
+        
+        // Buscar información del inventario
+        const item = inventarioData.find(inv => {
+            const invId = parseInt(inv.id_inventario);
+            console.log('Comparando:', invId, '===', idToFind, '?', invId === idToFind);
+            return invId === idToFind;
+        });
+        
+        if (!item) {
+            console.error('No se encontró el inventario con ID:', inventarioId);
+            console.error('IDs disponibles:', inventarioData.map(inv => inv.id_inventario));
+            showNotification('Error: No se encontró el producto en el inventario. Intente recargar la página.', 'error');
+            return;
+        }
+
+        console.log('Item de inventario encontrado:', item);
+
+        // Llenar información del producto
+        document.getElementById('ajusteTallaInventarioId').value = inventarioId;
+        document.getElementById('ajusteTallaTalla').value = talla;
+        document.getElementById('ajusteTallaProductoNombre').textContent = item.nombre_producto;
+        document.getElementById('ajusteTallaTallaDisplay').textContent = talla;
+
+        // Cargar stock actual de la talla
+        const stockActual = tallaData ? (tallaData.cantidadStock || 0) : 0;
+        console.log('Stock actual de la talla:', stockActual);
+        document.getElementById('ajusteTallaStockActual').textContent = stockActual;
+
+        // Reset form
+        ajusteTallaForm.reset();
+
+        // Cargar tipos de movimiento en el select de talla
+        rebuildTipoMovimientoOptionsTalla();
+
+        // Actualizar preview
+        updateTallaStockPreview();
+
+        ajusteTallaModal.style.display = 'block';
+        console.log('Modal de ajuste de talla abierto');
+    }
+
+    function rebuildTipoMovimientoOptionsTalla() {
+        const previousValue = tipoMovimientoTallaSelect.value;
+        tipoMovimientoTallaSelect.innerHTML = '<option value="">Seleccionar tipo</option>';
+
+        const tiposOrdenados = Object.entries(tiposMovimientoData)
+            .map(([id, data]) => ({
+                id,
+                nombre: data.nombre,
+                esEntrada: data.es_entrada === true || data.es_entrada === 'true' || data.es_entrada === 1 || data.es_entrada === '1'
+            }))
+            .sort((a, b) => Number(a.esEntrada) - Number(b.esEntrada));
+
+        tiposOrdenados.forEach(tipo => {
+            const option = document.createElement('option');
+            option.value = String(tipo.id);
+            option.textContent = tipo.esEntrada ? 'Entrada' : 'Salida';
+            option.dataset.nombre = tipo.nombre || (tipo.esEntrada ? 'Entrada' : 'Salida');
+            option.dataset.esEntrada = tipo.esEntrada ? '1' : '0';
+            tipoMovimientoTallaSelect.appendChild(option);
+        });
+
+        if (previousValue && tiposMovimientoData[previousValue]) {
+            tipoMovimientoTallaSelect.value = previousValue;
+        } else if (tiposOrdenados.length === 1) {
+            tipoMovimientoTallaSelect.value = tiposOrdenados[0].id;
+        }
+
+        updateTallaStockPreview();
+    }
+
+    function updateTallaStockPreview() {
+        const cantidad = parseInt(cantidadAjusteTallaInput.value) || 0;
+        const tipoMovimiento = tipoMovimientoTallaSelect.value;
+        const stockActual = parseInt(document.getElementById('ajusteTallaStockActual').textContent) || 0;
+
+        document.getElementById('previewTallaStockActual').textContent = stockActual;
+        document.getElementById('previewTallaCantidad').textContent = cantidad;
+
+        let nuevoStock = stockActual;
+        if (tipoMovimiento && cantidad > 0) {
+            const tipoData = tiposMovimientoData[tipoMovimiento];
+            if (tipoData) {
+                if (tipoData.es_entrada === true) {
+                    nuevoStock = stockActual + cantidad;
+                } else if (tipoData.es_entrada === false) {
+                    nuevoStock = Math.max(0, stockActual - cantidad);
+                }
+            }
+        }
+
+        document.getElementById('previewTallaNuevoStock').textContent = nuevoStock;
+
+        // Cambiar color según el resultado
+        const nuevoStockElement = document.getElementById('previewTallaNuevoStock');
+        if (nuevoStock <= 0) {
+            nuevoStockElement.style.color = '#dc3545';
+            nuevoStockElement.style.backgroundColor = '#f8d7da';
         } else {
             nuevoStockElement.style.color = '#155724';
             nuevoStockElement.style.backgroundColor = '#d4edda';
@@ -775,6 +936,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.openAjusteModal = openAjusteModal;
 
+    window.gestionarTallas = gestionarTallas;
+
     window.viewProductHistory = (productoId) => {
         // Filtrar movimientos por producto específico
         const productoMovimientos = movimientosData.filter(mov => mov.id_producto === productoId);
@@ -788,6 +951,296 @@ document.addEventListener('DOMContentLoaded', () => {
             alert(`Detalles del producto:\n\nNombre: ${producto.nombre_producto}\nCategoría: ${producto.categoria}\nMarca: ${producto.marca}\nTalla: ${producto.talla}\nColor: ${producto.color}\nStock actual: ${producto.cantidad_stock}\nStock mínimo: ${producto.stock_minimo}\nÚltima actualización: ${formatDateTime(producto.fecha_ultima_actualizacion)}`);
         }
     };
+
+    // --- Funciones de Gestión de Tallas ---
+
+    function gestionarTallas(inventarioId) {
+        const item = inventarioData.find(inv => inv.id_inventario === inventarioId);
+        if (!item) return;
+
+        // Cargar datos del inventario con tallas
+        cargarInventarioConTallas(inventarioId);
+    }
+
+    async function openAgregarTallasModal(inventarioId) {
+        console.log('openAgregarTallasModal called with inventarioId:', inventarioId);
+        console.log('inventarioData:', inventarioData);
+        console.log('Buscando en inventarioData, total items:', inventarioData.length);
+        
+        // Convertir a número para comparación
+        const idToFind = parseInt(inventarioId);
+        
+        const item = inventarioData.find(inv => {
+            const invId = parseInt(inv.id_inventario);
+            console.log('Comparando:', invId, '===', idToFind, '?', invId === idToFind);
+            return invId === idToFind;
+        });
+        
+        if (!item) {
+            console.error('No se encontró el item de inventario con ID:', inventarioId);
+            console.error('IDs disponibles en inventarioData:', inventarioData.map(inv => inv.id_inventario));
+            showNotification('Error: No se encontró el producto en el inventario. Intente recargar la página.', 'error');
+            return;
+        }
+
+        console.log('Item encontrado:', item);
+
+        // Cerrar el modal de gestión de tallas si está abierto
+        if (gestionTallasModal) {
+            gestionTallasModal.style.display = 'none';
+        }
+
+        // Llenar información del producto
+        document.getElementById('agregarTallasInventarioId').value = inventarioId;
+        document.getElementById('agregarTallasProductoNombre').textContent = item.nombre_producto;
+        document.getElementById('agregarTallasAlmacenNombre').textContent = item.nombre_almacen;
+
+        // Reset form
+        agregarTallasForm.reset();
+        tallasList.innerHTML = '';
+
+        // Cargar las tallas disponibles del producto
+        try {
+            const productoId = item.id_producto;
+            console.log('Cargando tallas del producto ID:', productoId);
+            
+            // Obtener las tallas del producto desde el backend
+            const tallasDisponibles = await obtenerTallasProducto(productoId);
+            console.log('Tallas disponibles del producto:', tallasDisponibles);
+            
+            // Guardar las tallas disponibles para uso posterior
+            tallasDisponiblesActuales = tallasDisponibles;
+            
+            if (!tallasDisponibles || tallasDisponibles.length === 0) {
+                showNotification('Este producto no tiene tallas registradas en la base de datos', 'warning');
+                tallasList.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No hay tallas disponibles para este producto. Por favor, registre las tallas del producto primero.</p>';
+            } else {
+                // Agregar primera fila con las tallas disponibles
+                agregarFilaTallaConSelect(tallasDisponibles[0], tallasDisponibles);
+            }
+
+            agregarTallasModal.style.display = 'block';
+            console.log('Modal de agregar tallas abierto correctamente');
+        } catch (error) {
+            console.error('Error cargando tallas del producto:', error);
+            showNotification('Error al cargar las tallas del producto', 'error');
+        }
+    }
+
+    // Nueva función para obtener las tallas de un producto
+    async function obtenerTallasProducto(productoId) {
+        try {
+            // Primero intentamos obtener el producto completo
+            const producto = productosDisponibles.find(p => p.id === productoId || p.id_producto === productoId);
+            
+            if (producto && producto.tallas && Array.isArray(producto.tallas)) {
+                return producto.tallas.map(t => ({
+                    talla: t.talla,
+                    precioVenta: t.precioVenta || t.precio_venta,
+                    costoCompra: t.costoCompra || t.costo_compra
+                }));
+            }
+            
+            // Si no está en la lista local, intentar obtenerlo del backend
+            // Aquí asumimos que las tallas vienen en la respuesta del producto
+            const response = await fetch(`/api/productos/calzados/${productoId}`);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.tallas && Array.isArray(data.tallas)) {
+                    return data.tallas;
+                }
+            }
+            
+            // Intentar con accesorios si no es calzado
+            const response2 = await fetch(`/api/productos/accesorios/${productoId}`);
+            if (response2.ok) {
+                const data = await response2.json();
+                if (data.tallas && Array.isArray(data.tallas)) {
+                    return data.tallas;
+                }
+            }
+            
+            return [];
+        } catch (error) {
+            console.error('Error obteniendo tallas del producto:', error);
+            return [];
+        }
+    }
+
+    // Nueva función para agregar fila con select de tallas disponibles
+    function agregarFilaTallaConSelect(tallaSeleccionada = null, tallasDisponibles = []) {
+        const tallaIndex = tallasList.children.length;
+        
+        // Generar opciones del select
+        let optionsHtml = '<option value="">Seleccione una talla</option>';
+        tallasDisponibles.forEach(t => {
+            const selected = tallaSeleccionada && t.talla === tallaSeleccionada.talla ? 'selected' : '';
+            optionsHtml += `<option value="${t.talla}" ${selected}>${t.talla}</option>`;
+        });
+        
+        const filaHtml = `
+            <div class="talla-row" data-index="${tallaIndex}">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Talla *</label>
+                        <select class="talla-input" required>
+                            ${optionsHtml}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Cantidad Inicial *</label>
+                        <input type="number" class="cantidad-inicial-input" value="0" min="0" placeholder="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Stock Mínimo *</label>
+                        <input type="number" class="stock-minimo-input" value="0" min="0" placeholder="0" required>
+                    </div>
+                    <div class="form-group action-group">
+                        <button type="button" class="btn btn-sm btn-danger remove-talla-btn" onclick="removerFilaTalla(${tallaIndex})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        tallasList.insertAdjacentHTML('beforeend', filaHtml);
+    }
+
+    function agregarFilaTalla(talla = '', cantidadInicial = 0, stockMinimo = 0) {
+        const tallaIndex = tallasList.children.length;
+        const filaHtml = `
+            <div class="talla-row" data-index="${tallaIndex}">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Talla *</label>
+                        <input type="text" class="talla-input" value="${talla}" placeholder="Ej: M, L, XL" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Cantidad Inicial *</label>
+                        <input type="number" class="cantidad-inicial-input" value="${cantidadInicial}" min="0" placeholder="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Stock Mínimo *</label>
+                        <input type="number" class="stock-minimo-input" value="${stockMinimo}" min="0" placeholder="0" required>
+                    </div>
+                    <div class="form-group action-group">
+                        <button type="button" class="btn btn-sm btn-danger remove-talla-btn" onclick="removerFilaTalla(${tallaIndex})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        tallasList.insertAdjacentHTML('beforeend', filaHtml);
+    }
+
+    function removerFilaTalla(index) {
+        const filas = tallasList.querySelectorAll('.talla-row');
+        if (filas.length > 1) {
+            filas[index].remove();
+            // Reindexar las filas restantes
+            tallasList.querySelectorAll('.talla-row').forEach((fila, idx) => {
+                fila.dataset.index = idx;
+                fila.querySelector('.remove-talla-btn').onclick = () => removerFilaTalla(idx);
+            });
+        } else {
+            showNotification('Debe mantener al menos una talla', 'warning');
+        }
+    }
+
+    window.removerFilaTalla = removerFilaTalla;
+
+    async function cargarInventarioConTallas(inventarioId) {
+        try {
+            const response = await fetch(`/inventario/api/${inventarioId}/tallas`);
+            if (!response.ok) {
+                throw new Error('No se pudieron cargar las tallas del inventario');
+            }
+
+            const data = await response.json();
+
+            // Llenar información del producto
+            document.getElementById('gestionTallasInventarioId').value = inventarioId;
+            document.getElementById('gestionTallasProductoNombre').textContent = data.nombreProducto;
+            document.getElementById('gestionTallasAlmacenNombre').textContent = data.nombreAlmacen;
+            document.getElementById('gestionTallasStockTotal').textContent = data.stockTotal;
+
+            // Renderizar tallas
+            renderizarTallas(data.tallas);
+
+            // Ocultar sección de acciones de talla
+            tallaActionsSection.style.display = 'none';
+
+            gestionTallasModal.style.display = 'block';
+        } catch (error) {
+            console.error('Error cargando inventario con tallas:', error);
+            showNotification('Error al cargar las tallas del inventario', 'error');
+        }
+    }
+
+    function renderizarTallas(tallas) {
+        tallasContainer.innerHTML = '';
+
+        if (!tallas || tallas.length === 0) {
+            tallasContainer.innerHTML = `
+                <div class="no-tallas-message">
+                    <i class="fas fa-tags" style="font-size: 24px; color: #ccc;"></i>
+                    <p style="color: #999; margin: 10px 0;">No hay tallas registradas para este producto</p>
+                    <p style="color: #666; font-size: 14px;">Haz clic en "Agregar Talla" para comenzar</p>
+                </div>
+            `;
+            return;
+        }
+
+        tallas.forEach(talla => {
+            const tallaElement = document.createElement('div');
+            tallaElement.className = `talla-item ${talla.agotado ? 'agotado' : ''} ${talla.stockBajo ? 'stock-bajo' : ''}`;
+            tallaElement.onclick = () => seleccionarTalla(talla.talla, talla);
+
+            tallaElement.innerHTML = `
+                <div class="talla-header">
+                    <span class="talla-nombre">${talla.talla}</span>
+                    <span class="talla-status ${talla.agotado ? 'agotado' : talla.stockBajo ? 'bajo' : 'disponible'}">
+                        ${talla.agotado ? 'Agotado' : talla.stockBajo ? 'Stock Bajo' : 'Disponible'}
+                    </span>
+                </div>
+                <div class="talla-stock">
+                    <div class="stock-info">
+                        <span class="stock-actual">${talla.cantidadStock}</span>
+                        <span class="stock-separator">/</span>
+                        <span class="stock-minimo">${talla.stockMinimo}</span>
+                    </div>
+                    <div class="stock-bar">
+                        <div class="stock-bar-fill" style="width: ${Math.min((talla.cantidadStock / Math.max(talla.stockMinimo * 2, 1)) * 100, 100)}%"></div>
+                    </div>
+                </div>
+            `;
+
+            tallasContainer.appendChild(tallaElement);
+        });
+    }
+
+    function seleccionarTalla(talla, tallaData) {
+        // Remover selección anterior
+        document.querySelectorAll('.talla-item').forEach(item => {
+            item.classList.remove('selected');
+        });
+
+        // Seleccionar nueva talla
+        event.currentTarget.classList.add('selected');
+
+        // Almacenar datos de la talla seleccionada
+        selectedTallaData = tallaData;
+
+        // Mostrar información de la talla seleccionada
+        selectedTalla.value = talla;
+        document.getElementById('selectedTallaDisplay').textContent = talla;
+        document.getElementById('selectedTallaStock').textContent = tallaData.cantidadStock;
+        document.getElementById('selectedTallaMinimo').textContent = tallaData.stockMinimo;
+
+        // Mostrar sección de acciones
+        tallaActionsSection.style.display = 'block';
+    }
 
     // --- Event Listeners ---
 
@@ -1067,6 +1520,256 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Modal de gestión de tallas
+    closeGestionTallasModal.addEventListener('click', () => {
+        gestionTallasModal.style.display = 'none';
+        tallaActionsSection.style.display = 'none';
+    });
+
+    cerrarGestionTallasBtn.addEventListener('click', () => {
+        gestionTallasModal.style.display = 'none';
+        tallaActionsSection.style.display = 'none';
+    });
+
+
+    ajustarTallaBtn.addEventListener('click', () => {
+        console.log('Botón ajustar talla clicked');
+        const talla = selectedTalla.value;
+        const inventarioId = document.getElementById('gestionTallasInventarioId').value;
+        console.log('Datos obtenidos:', { talla, inventarioId, selectedTallaData });
+        
+        if (talla && inventarioId && selectedTallaData) {
+            console.log('Abriendo modal de ajuste de talla...');
+            openAjusteTallaModal(inventarioId, talla, selectedTallaData);
+        } else {
+            console.error('Faltan datos para abrir el modal:', { 
+                talla, 
+                inventarioId, 
+                tieneSelectedTallaData: !!selectedTallaData 
+            });
+            showNotification('Por favor seleccione una talla primero', 'warning');
+        }
+    });
+
+    transferirTallaBtn.addEventListener('click', () => {
+        // Implementar transferencia de talla
+        showNotification('Funcionalidad de transferencia por talla próximamente', 'info');
+    });
+
+    eliminarTallaBtn.addEventListener('click', () => {
+        // Implementar eliminar talla
+        showNotification('Funcionalidad de eliminar talla próximamente', 'info');
+    });
+
+    // Modal de ajuste de talla
+    closeAjusteTallaModal.addEventListener('click', () => {
+        const inventarioId = document.getElementById('ajusteTallaInventarioId').value;
+        ajusteTallaModal.style.display = 'none';
+        // Reabrir el modal de gestión de tallas
+        if (inventarioId) {
+            cargarInventarioConTallas(inventarioId);
+        }
+    });
+
+    cancelAjusteTallaBtn.addEventListener('click', () => {
+        const inventarioId = document.getElementById('ajusteTallaInventarioId').value;
+        ajusteTallaModal.style.display = 'none';
+        // Reabrir el modal de gestión de tallas
+        if (inventarioId) {
+            cargarInventarioConTallas(inventarioId);
+        }
+    });
+
+    tipoMovimientoTallaSelect.addEventListener('change', updateTallaStockPreview);
+    cantidadAjusteTallaInput.addEventListener('input', updateTallaStockPreview);
+
+    // Envío del formulario de ajuste de talla
+    ajusteTallaForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const inventarioId = document.getElementById('ajusteTallaInventarioId').value;
+        const talla = document.getElementById('ajusteTallaTalla').value;
+        const tipoMovimientoId = tipoMovimientoTallaSelect.value;
+        const cantidad = parseInt(cantidadAjusteTallaInput.value);
+        const referencia = (document.getElementById('referenciaTalla').value || '').trim();
+        const observaciones = (document.getElementById('observacionesTalla').value || '').trim();
+
+        if (!inventarioId || !talla || !tipoMovimientoId || !cantidad || cantidad <= 0) {
+            showNotification('Por favor complete todos los campos requeridos', 'error');
+            return;
+        }
+
+        try {
+            const payload = new URLSearchParams();
+            payload.append('talla', talla);
+            payload.append('tipoMovimientoId', tipoMovimientoId);
+            payload.append('cantidad', cantidad);
+            if (referencia) payload.append('referencia', referencia);
+            if (observaciones) payload.append('observaciones', observaciones);
+
+            const response = await fetch(`/inventario/api/${inventarioId}/talla/ajuste`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: payload.toString()
+            });
+
+            if (!response.ok) {
+                let errorMessage = 'No se pudo aplicar el ajuste de stock por talla';
+                try {
+                    const errorData = await response.json();
+                    if (errorData && errorData.error) {
+                        errorMessage = errorData.error;
+                    }
+                } catch (parseError) {
+                    // Mantener mensaje por defecto
+                }
+                showNotification(errorMessage, 'error');
+                return;
+            }
+
+            showNotification('Ajuste de stock por talla aplicado correctamente');
+
+            ajusteTallaForm.reset();
+            ajusteTallaModal.style.display = 'none';
+
+            // Recargar datos
+            await Promise.all([
+                loadInventarioData(),
+                loadMovimientosData()
+            ]);
+            await updateSummaryCards();
+
+            // Reabrir el modal de gestión de tallas para ver el stock actualizado
+            if (inventarioId) {
+                await cargarInventarioConTallas(inventarioId);
+            }
+
+        } catch (error) {
+            console.error('Error aplicando ajuste de talla:', error);
+            showNotification('Error al aplicar el ajuste de stock por talla', 'error');
+        }
+    });
+
+    // Modal de agregar tallas
+    closeAgregarTallasModal.addEventListener('click', () => {
+        const inventarioId = document.getElementById('agregarTallasInventarioId').value;
+        agregarTallasModal.style.display = 'none';
+        // Reabrir el modal de gestión de tallas
+        if (inventarioId) {
+            cargarInventarioConTallas(inventarioId);
+        }
+    });
+
+    cancelAgregarTallasBtn.addEventListener('click', () => {
+        const inventarioId = document.getElementById('agregarTallasInventarioId').value;
+        agregarTallasModal.style.display = 'none';
+        // Reabrir el modal de gestión de tallas
+        if (inventarioId) {
+            cargarInventarioConTallas(inventarioId);
+        }
+    });
+
+    addTallaBtn.addEventListener('click', () => {
+        if (tallasDisponiblesActuales && tallasDisponiblesActuales.length > 0) {
+            agregarFilaTallaConSelect(null, tallasDisponiblesActuales);
+        } else {
+            showNotification('No hay tallas disponibles para agregar', 'warning');
+        }
+    });
+
+    // Envío del formulario de agregar tallas
+    agregarTallasForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const inventarioId = document.getElementById('agregarTallasInventarioId').value;
+        const referencia = (document.getElementById('referenciaAgregarTallas').value || '').trim();
+        const observaciones = (document.getElementById('observacionesAgregarTallas').value || '').trim();
+
+        // Recopilar datos de tallas
+        const tallasData = [];
+        const filasTalla = tallasList.querySelectorAll('.talla-row');
+
+        for (const fila of filasTalla) {
+            const talla = fila.querySelector('.talla-input').value.trim();
+            const cantidadInicial = parseInt(fila.querySelector('.cantidad-inicial-input').value) || 0;
+            const stockMinimo = parseInt(fila.querySelector('.stock-minimo-input').value) || 0;
+
+            if (!talla) {
+                showNotification('Todas las tallas deben tener un nombre', 'error');
+                return;
+            }
+
+            if (cantidadInicial < 0 || stockMinimo < 0) {
+                showNotification('Las cantidades deben ser valores positivos', 'error');
+                return;
+            }
+
+            tallasData.push({
+                talla: talla,
+                cantidadInicial: cantidadInicial,
+                stockMinimo: stockMinimo
+            });
+        }
+
+        if (tallasData.length === 0) {
+            showNotification('Debe agregar al menos una talla', 'error');
+            return;
+        }
+
+        try {
+            const payload = new URLSearchParams();
+            payload.append('tallasJson', JSON.stringify(tallasData));
+            if (referencia) payload.append('referencia', referencia);
+            if (observaciones) payload.append('observaciones', observaciones);
+
+            const response = await fetch(`/inventario/api/${inventarioId}/agregar-tallas`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: payload.toString()
+            });
+
+            if (!response.ok) {
+                let errorMessage = 'No se pudieron agregar las tallas';
+                try {
+                    const errorData = await response.json();
+                    if (errorData && errorData.error) {
+                        errorMessage = errorData.error;
+                    }
+                } catch (parseError) {
+                    // Mantener mensaje por defecto
+                }
+                showNotification(errorMessage, 'error');
+                return;
+            }
+
+            showNotification('Tallas agregadas correctamente');
+
+            agregarTallasForm.reset();
+            tallasList.innerHTML = '';
+            agregarTallasModal.style.display = 'none';
+
+            // Recargar datos
+            await Promise.all([
+                loadInventarioData(),
+                loadMovimientosData()
+            ]);
+            await updateSummaryCards();
+
+            // Reabrir el modal de gestión de tallas para ver las tallas agregadas
+            if (inventarioId) {
+                await cargarInventarioConTallas(inventarioId);
+            }
+
+        } catch (error) {
+            console.error('Error agregando tallas:', error);
+            showNotification('Error al agregar las tallas', 'error');
+        }
+    });
+
     // Cerrar modales al hacer clic fuera
     window.addEventListener('click', (e) => {
         if (e.target === ajusteStockModal) {
@@ -1078,6 +1781,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (e.target === registrarProductoModal) {
             registrarProductoModal.style.display = 'none';
+        }
+        if (e.target === gestionTallasModal) {
+            gestionTallasModal.style.display = 'none';
+            tallaActionsSection.style.display = 'none';
+        }
+        if (e.target === ajusteTallaModal) {
+            ajusteTallaModal.style.display = 'none';
+        }
+        if (e.target === agregarTallasModal) {
+            agregarTallasModal.style.display = 'none';
         }
     });
 
@@ -1118,9 +1831,18 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadInventarioData() {
         try {
             const inventarioRaw = await fetchJson('/inventario/api');
+            console.log('Datos crudos del inventario:', inventarioRaw);
+            
             inventarioData = (Array.isArray(inventarioRaw) ? inventarioRaw : [])
                 .map(normalizeInventarioItem)
                 .filter(Boolean);
+
+            console.log('Datos normalizados del inventario:', inventarioData);
+            console.log('IDs de inventario disponibles:', inventarioData.map(inv => ({
+                id: inv.id_inventario,
+                tipo: typeof inv.id_inventario,
+                nombre: inv.nombre_producto
+            })));
 
             updateCategoriaFilterOptions();
             applyFilters();
