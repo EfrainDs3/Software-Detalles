@@ -141,7 +141,7 @@
     </main>
 
     <!-- Modal de Registrar Producto en Almacén -->
-    <div id="registrarProductoModal" class="modal">
+    <div id="registrarProductoModal" class="modal" style="display: none;">
         <div class="modal-content registrar-modal-content">
             <div class="modal-header">
                 <h3 id="registrarModalTitle">Registrar Producto en Almacén</h3>
@@ -184,6 +184,14 @@
                             <div class="detail-item">
                                 <span class="detail-label">Color:</span>
                                 <span id="productColor">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Precio de Venta:</span>
+                                <span id="productPrecio">-</span>
+                            </div>
+                            <div class="detail-item full-width">
+                                <span class="detail-label">Descripción:</span>
+                                <span id="productDescripcion">-</span>
                             </div>
                         </div>
                     </div>
@@ -245,7 +253,7 @@
     </div>
 
     <!-- Modal de Ajuste de Stock -->
-    <div id="ajusteStockModal" class="modal">
+    <div id="ajusteStockModal" class="modal" style="display: none;">
         <div class="modal-content ajuste-modal-content">
             <div class="modal-header">
                 <h3 id="ajusteModalTitle">Ajuste de Stock</h3>
@@ -288,13 +296,6 @@
                             <label for="tipoMovimiento">Tipo de Movimiento *</label>
                             <select id="tipoMovimiento" name="tipoMovimiento" required>
                                 <option value="">Seleccionar tipo</option>
-                                <option value="1">Entrada - Compra</option>
-                                <option value="2">Entrada - Ajuste Positivo</option>
-                                <option value="3">Entrada - Devolución</option>
-                                <option value="4">Salida - Venta</option>
-                                <option value="5">Salida - Ajuste Negativo</option>
-                                <option value="6">Salida - Merma/Pérdida</option>
-                                <option value="7">Transferencia Entre Almacenes</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -353,7 +354,7 @@
     </div>
 
     <!-- Modal de Movimientos -->
-    <div id="movimientosModal" class="modal">
+    <div id="movimientosModal" class="modal" style="display: none;">
         <div class="modal-content movimientos-modal-content">
             <div class="modal-header">
                 <h3 id="movimientosModalTitle">Historial de Movimientos</h3>

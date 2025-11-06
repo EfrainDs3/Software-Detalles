@@ -34,6 +34,8 @@ public interface ClienteRepository extends JpaRepository<Cliente, Integer> {
      * @return Optional con el cliente encontrado
      */
     Optional<Cliente> findByTipoDocumentoAndNumeroDocumento(TipoDocumento tipoDocumento, String numeroDocumento);
+    // En ClienteRepository.java (solo para referencia, no es un archivo que me enviaste)
+       Optional<Cliente> findByTipoDocumentoAndNumeroDocumentoAndEstadoTrue(TipoDocumento tipoDocumento, String numeroDocumento);
     
     /**
      * Busca clientes por email

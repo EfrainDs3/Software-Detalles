@@ -14,7 +14,7 @@ public class Catalogo {
     }
 
     @Entity(name = "CatalogoMarca")
-    @Table(name = "MarcasProducto")
+    @Table(name = "marcasproducto")
     public static class Marca {
 
         @Id
@@ -50,7 +50,7 @@ public class Catalogo {
     }
 
     @Entity(name = "CatalogoModelo")
-    @Table(name = "Modelos")
+    @Table(name = "modelos")
     public static class Modelo {
 
         @Id
@@ -111,7 +111,7 @@ public class Catalogo {
     }
 
     @Entity(name = "CatalogoMaterial")
-    @Table(name = "MaterialesProducto")
+    @Table(name = "materialesproducto")
     public static class Material {
 
         @Id
@@ -147,7 +147,7 @@ public class Catalogo {
     }
 
     @Entity(name = "CatalogoUnidad")
-    @Table(name = "UnidadesMedida")
+    @Table(name = "unidadesmedida")
     public static class Unidad {
 
         @Id
@@ -195,7 +195,7 @@ public class Catalogo {
     }
 
     @Entity(name = "CatalogoTipo")
-    @Table(name = "TiposProducto")
+    @Table(name = "tiposproducto")
     public static class Tipo {
 
         @Id

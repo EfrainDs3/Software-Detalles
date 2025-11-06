@@ -14,7 +14,7 @@ import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @Entity
-@Table(name = "Productos")
+@Table(name = "productos")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "categoria", "proveedor", "modelo", "material", "unidad", "tiposProducto", "tallas"})
 public class Producto implements Serializable {
 

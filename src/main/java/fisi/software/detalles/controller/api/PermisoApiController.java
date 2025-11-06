@@ -69,9 +69,4 @@ public class PermisoApiController {
     public List<PermisoUsuarioDetalleResponse> listarPermisosPorUsuario(@PathVariable Integer usuarioId) {
         return permisoService.listarPermisosPorUsuario(usuarioId);
     }
-
-    @PutMapping("/usuarios/{usuarioId}")
-    public List<PermisoResumenResponse> actualizarPermisosUsuario(@PathVariable Integer usuarioId, @Valid @RequestBody PermisoAsignacionRequest request) {
-        return permisoService.actualizarPermisosUsuario(usuarioId, request.permisoIds());
-    }
 }

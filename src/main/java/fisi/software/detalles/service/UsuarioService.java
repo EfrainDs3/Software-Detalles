@@ -100,6 +100,51 @@ public class UsuarioService {
         return usuarioRepository.save(usuario);
     }
 
+    public Usuario validarUsuarioActivo(String username) {
+        if (!StringUtils.hasText(username)) {
+            throw new ValidationException("El usuario es obligatorio");
+        }
+
+        Usuario usuario = usuarioRepository.findByUsernameIgnoreCase(username.trim())
+            .orElseThrow(() -> new BadCredentialsException("El usuario no se encuentra registrado"));
+
+        if (!Boolean.TRUE.equals(usuario.getEstado())) {
+            throw new DisabledException("El usuario se encuentra inactivo");
+        }
+
+        return usuario;
+    }
+
+    public Usuario verificarDatosRecuperacion(String username, String nombres, String apellidos, String email, String numeroDocumento) {
+        Usuario usuario = validarUsuarioActivo(username);
+
+        if (!coincide(usuario.getNombres(), nombres) ||
+            !coincide(usuario.getApellidos(), apellidos) ||
+            !coincide(usuario.getEmail(), email) ||
+            !coincide(usuario.getNumeroDocumento(), numeroDocumento)) {
+            throw new BadCredentialsException("Los datos proporcionados no coinciden con el usuario");
+        }
+
+        return usuario;
+    }
+
+    public void restablecerPassword(String username, String nombres, String apellidos, String email, String numeroDocumento, String nuevaPassword) {
+        if (!StringUtils.hasText(nuevaPassword)) {
+            throw new ValidationException("Debes proporcionar una nueva contraseña válida");
+        }
+
+        Usuario usuario = verificarDatosRecuperacion(username, nombres, apellidos, email, numeroDocumento);
+        usuario.setPasswordHash(passwordEncoder.encode(nuevaPassword.trim()));
+        usuarioRepository.save(usuario);
+    }
+
+    private boolean coincide(String valorSistema, String valorIngresado) {
+        if (!StringUtils.hasText(valorSistema) || !StringUtils.hasText(valorIngresado)) {
+            return false;
+        }
+        return valorSistema.trim().equalsIgnoreCase(valorIngresado.trim());
+    }
+
     private void mapearDatosBasicos(Usuario usuario, String nombres, String apellidos, String username, String email,
                                     String celular, String direccion, String numeroDocumento, Integer tipoDocumentoId,
                                     Boolean estado) {

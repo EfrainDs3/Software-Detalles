@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "tipoDocumento"})
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Cliente {
     
     @Id

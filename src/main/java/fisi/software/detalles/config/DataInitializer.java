@@ -6,12 +6,15 @@ import fisi.software.detalles.entity.TipoDocumento;
 import fisi.software.detalles.repository.PermisoRepository;
 import fisi.software.detalles.repository.RolRepository;
 import fisi.software.detalles.repository.TipoDocumentoRepository;
+import fisi.software.detalles.service.DataCleanupService;
+import fisi.software.detalles.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -36,6 +39,8 @@ public class DataInitializer {
     private final TipoDocumentoRepository tipoDocumentoRepository;
     private final RolRepository rolRepository;
     private final PermisoRepository permisoRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final DataCleanupService dataCleanupService;
     
     /**
      * Inicializa los tipos de documento si no existen
@@ -43,6 +48,11 @@ public class DataInitializer {
     @Bean
     CommandLineRunner initDatabase() {
         return args -> {
+            // Run cleanup through a dedicated transactional service to avoid lazy-init outside session
+            dataCleanupService.performFullCleanup();
+            dataCleanupService.deletePermissionByCode("ROLES_VIEW");
+            log.info("📝 Roles actualmente en la base de datos:");
+            rolRepository.findAll().forEach(r -> log.info("  - id={} nombre='{}' estado={}", r.getId(), r.getNombre(), r.getEstado()));
             inicializarTiposDocumento();
             inicializarRoles();
             inicializarPermisos();
@@ -73,6 +83,35 @@ public class DataInitializer {
         }
     }
 
+    private void deleteTestUsers() {
+        log.error("🔍 Eliminando usuarios de prueba...");
+
+        List<String> testEmails = Arrays.asList(
+            "admin@test.com",
+            "gerente@test.com", 
+            "supervisor@test.com",
+            "analista@test.com",
+            "vendedor@test.com",
+            "cajero@test.com",
+            "almacenero@test.com",
+            "compras@test.com"
+        );
+
+        testEmails.forEach(email -> {
+            usuarioRepository.findByEmailIgnoreCase(email).ifPresent(user -> {
+                usuarioRepository.delete(user);
+                log.error("  🗑️ Usuario de prueba eliminado: {}", email);
+            });
+        });
+
+        log.error("✅ Eliminación de usuarios de prueba completada");
+    }
+
+    /**
+     * Elimina de raíz el rol llamado "Usuario" y todas sus asociaciones.
+     */
+    // Cleanup operations moved to DataCleanupService to ensure proper transactional boundaries
+
     private void inicializarRoles() {
         log.info("Verificando catálogo de roles por defecto...");
 
@@ -84,8 +123,7 @@ public class DataInitializer {
             new RolSeed("Vendedor", "Acceso a ventas y clientes"),
             new RolSeed("Cajero", "Gestión de caja y cobranzas"),
             new RolSeed("Almacenero", "Gestión de inventario y almacén"),
-            new RolSeed("Compras", "Gestión de proveedores y compras"),
-            new RolSeed("Usuario", "Acceso limitado a módulos asignados")
+            new RolSeed("Compras", "Gestión de proveedores y compras")
         );
 
         List<Rol> rolesNuevos = rolesPorDefecto.stream()
@@ -119,7 +157,7 @@ public class DataInitializer {
             new PermisoSeed("DASHBOARD_VIEW", "Acceder al dashboard", "Permite visualizar el panel principal", List.of("Administrador", "Gerente", "Analista")),
             new PermisoSeed("USERS_VIEW", "Ver usuarios", "Permite visualizar la lista de usuarios", List.of("Administrador", "Gerente", "Supervisor")),
             new PermisoSeed("USERS_MANAGE", "Gestionar usuarios", "Permite crear, editar y eliminar usuarios", List.of("Administrador", "Gerente")),
-            new PermisoSeed("ROLES_VIEW", "Ver roles", "Permite visualizar los roles registrados", List.of("Administrador", "Gerente", "Supervisor")),
+            // ROLES_VIEW removed by initializer for security - not seeded
             new PermisoSeed("ROLES_MANAGE", "Gestionar roles", "Permite crear, editar y eliminar roles", List.of("Administrador")),
             new PermisoSeed("PERMISSIONS_VIEW", "Ver permisos", "Permite visualizar permisos del sistema", List.of("Administrador", "Gerente")),
             new PermisoSeed("PERMISSIONS_MANAGE", "Gestionar permisos", "Permite asignar y revocar permisos", List.of("Administrador")),
@@ -192,4 +230,6 @@ public class DataInitializer {
     private record RolSeed(String nombre, String descripcion) { }
 
     private record PermisoSeed(String codigo, String nombre, String descripcion, List<String> rolesPorDefecto) { }
+
+    // deletePermissionByCode moved to DataCleanupService
 }

@@ -31,6 +31,16 @@ public class LoginController {
     public String showLoginPage() {
         return "software/login";
     }
+
+    /**
+     * Muestra la vista de recuperación de contraseña
+     *
+     * @return Vista para recuperar la contraseña
+     */
+    @GetMapping("/forgot-password")
+    public String showForgotPasswordPage() {
+        return "software/forgot-password";
+    }
     
     /**
      * Carga el componente sidebar (navegación lateral)

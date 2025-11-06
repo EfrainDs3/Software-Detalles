@@ -4,11 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acceso de Usuarios - Detalles</title>
-    <!-- Incluimos Font Awesome para los iconos de Google y Facebook -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
     <style>
         /* Estilos Generales */
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        * {
+            box-sizing: border-box;
+        }
 
         body {
             font-family: 'Poppins', sans-serif;
@@ -16,20 +19,19 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
             padding: 20px;
-            box-sizing: border-box;
         }
 
         /* Contenedor Principal del Formulario */
         .login-container {
             background-color: #fff;
-            padding: 60px; /* Aumentamos el padding para más espacio interior */
+            padding: 60px;
             border-radius: 12px;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 700px; /* Hacemos el contenedor más ancho */
+            max-width: 700px;
             text-align: center;
             transition: all 0.3s ease;
         }
@@ -61,17 +63,22 @@
         }
 
         .tab-link.active {
-            color: #e83e8c; /* Color principal de tu marca */
+            color: #e83e8c;
             border-bottom-color: #e83e8c;
+        }
+
+        .tab-link:focus {
+            outline: 2px solid #e83e8c;
+            outline-offset: 2px;
         }
 
         /* Formularios */
         .form-content {
-            display: none; /* Ocultos por defecto */
+            display: none;
         }
 
         .form-content.active {
-            display: block; /* Visible cuando está activo */
+            display: block;
         }
 
         .input-group {
@@ -92,13 +99,13 @@
             border-radius: 8px;
             border: 1px solid #ddd;
             font-size: 15px;
-            box-sizing: border-box; /* Asegura que el padding no afecte el ancho total */
             transition: border-color 0.3s ease;
         }
 
         .input-group input:focus {
             outline: none;
             border-color: #e83e8c;
+            box-shadow: 0 0 0 2px rgba(232, 62, 140, 0.2);
         }
 
         .forgot-password {
@@ -110,6 +117,7 @@
             color: #555;
             text-decoration: none;
         }
+
         .forgot-password:hover {
             text-decoration: underline;
         }
@@ -131,7 +139,8 @@
             color: white;
         }
 
-        .btn-primary:hover {
+        .btn-primary:hover,
+        .btn-primary:focus {
             background-color: #d1327c;
             transform: translateY(-2px);
         }
@@ -160,115 +169,111 @@
             margin-left: 1em;
         }
 
-        /* Botones de Social Media */
-        .social-login {
+        /* Botón para volver al index */
+        .back-to-home {
+            margin-top: 20px;
             display: flex;
-            gap: 15px;
             justify-content: center;
         }
 
-        .social-btn {
-            flex: 1;
-            display: flex;
+        .back-btn {
+            display: inline-flex;
             align-items: center;
-            justify-content: center;
-            padding: 12px;
+            gap: 8px;
+            padding: 12px 24px;
+            background-color: transparent;
+            color: #e83e8c;
+            border: 1px solid #e83e8c;
             border-radius: 8px;
             text-decoration: none;
-            font-size: 15px;
             font-weight: 500;
             transition: all 0.3s ease;
         }
 
-        .social-btn i {
-            margin-right: 10px;
-            font-size: 20px;
-        }
-
-        .social-btn.google {
-            background-color: #fff;
-            color: #555;
-            border: 1px solid #ddd;
-        }
-        .social-btn.google:hover {
-            background-color: #f9f9f9;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-
-        .social-btn.facebook {
-            background-color: #1877f2;
+        .back-btn:hover,
+        .back-btn:focus {
+            background-color: #e83e8c;
             color: white;
-            border: 1px solid #1877f2;
+            transform: translateY(-2px);
         }
-        .social-btn.facebook:hover {
-            background-color: #166fe5;
-        }
-        
+
         /* Responsive */
+        @media (max-width: 768px) {
+            .login-container {
+                padding: 40px 30px;
+            }
+        }
+
         @media (max-width: 480px) {
             .login-container {
-                padding: 25px;
+                padding: 25px 20px;
             }
-            .social-login {
+            
+            .tabs {
                 flex-direction: column;
             }
+            
+            .tab-link {
+                padding: 12px;
+            }
         }
-
     </style>
 </head>
 <body>
 
     <div class="login-container">
         <!-- Pestañas -->
-        <div class="tabs">
-            <button class="tab-link active" onclick="openTab(event, 'login')">Iniciar Sesión</button>
-            <button class="tab-link" onclick="openTab(event, 'register')">Registrarse</button>
+        <div class="tabs" role="tablist" aria-label="Formularios de acceso">
+            <button class="tab-link active" id="login-tab" role="tab" aria-selected="true" aria-controls="login" onclick="openTab(event, 'login')">Iniciar Sesión</button>
+            <button class="tab-link" id="register-tab" role="tab" aria-selected="false" aria-controls="register" onclick="openTab(event, 'register')">Registrarse</button>
         </div>
 
         <!-- Contenido del Formulario de Login -->
-        <div id="login" class="form-content active">
+        <div id="login" class="form-content active" role="tabpanel" aria-labelledby="login-tab">
             <h2>Bienvenido</h2>
-            <form>
+            <form id="login-form">
                 <div class="input-group">
                     <label for="login-email">Correo Electrónico</label>
-                    <input type="email" id="login-email" required>
+                    <input type="email" id="login-email" name="email" required aria-required="true">
                 </div>
                 <div class="input-group">
                     <label for="login-password">Contraseña</label>
-                    <input type="password" id="login-password" required>
+                    <input type="password" id="login-password" name="password" required aria-required="true">
                 </div>
                 <a href="recuperar_contraseña.html" class="forgot-password">¿Olvidaste tu contraseña?</a>
                 <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
             </form>
-            <div class="separator">o inicia sesión con</div>
-            <div class="social-login">
-                <a href="https://www.facebook.com/?locale=es_LA" class="social-btn google"><i class="fab fa-google"></i> Google</a>
-                <a href="#" class="social-btn facebook"><i class="fab fa-facebook-f"></i> Facebook</a>
+            
+            <div class="back-to-home">
+                <a href="../index.html" class="back-btn">
+                    <i class="fas fa-arrow-left"></i> Volver al Inicio
+                </a>
             </div>
         </div>
 
         <!-- Contenido del Formulario de Registro -->
-        <div id="register" class="form-content">
+        <div id="register" class="form-content" role="tabpanel" aria-labelledby="register-tab" hidden>
             <h2>Crea tu Cuenta</h2>
-            <form>
+            <form id="register-form">
                 <div class="input-group">
                     <label for="register-name">Nombre Completo</label>
-                    <input type="text" id="register-name" required>
+                    <input type="text" id="register-name" name="name" required aria-required="true">
                 </div>
                 <div class="input-group">
                     <label for="register-email">Correo Electrónico</label>
-                    <input type="email" id="register-email" required>
+                    <input type="email" id="register-email" name="email" required aria-required="true">
                 </div>
                 <div class="input-group">
                     <label for="register-password">Contraseña</label>
-                    <input type="password" id="register-password" required>
+                    <input type="password" id="register-password" name="password" required aria-required="true">
                 </div>
                 <button type="submit" class="btn btn-primary">Crear Cuenta</button>
             </form>
-            <div class="separator">o regístrate con</div>
-            <div class="social-login">
-                <a href="#" class="social-btn google"><i class="fab fa-google"></i> Google</a>
-                <a href="#" class="social-btn facebook"><i class="fab fa-facebook-f"></i> Facebook</a>
+            
+            <div class="back-to-home">
+                <a href="../index.html" class="back-btn">
+                    <i class="fas fa-arrow-left"></i> Volver al Inicio
+                </a>
             </div>
         </div>
     </div>
@@ -276,32 +281,49 @@
     <script>
         // Función para cambiar entre pestañas
         function openTab(evt, tabName) {
-            // Declaración de variables
-            var i, formContent, tabLinks;
-
             // Oculta todos los contenidos de formulario
-            formContent = document.getElementsByClassName("form-content");
-            for (i = 0; i < formContent.length; i++) {
-                formContent[i].style.display = "none";
+            const formContent = document.getElementsByClassName("form-content");
+            for (let i = 0; i < formContent.length; i++) {
+                formContent[i].classList.remove("active");
+                formContent[i].setAttribute("hidden", "");
             }
 
             // Remueve la clase "active" de todos los botones de pestaña
-            tabLinks = document.getElementsByClassName("tab-link");
-            for (i = 0; i < tabLinks.length; i++) {
-                tabLinks[i].className = tabLinks[i].className.replace(" active", "");
+            const tabLinks = document.getElementsByClassName("tab-link");
+            for (let i = 0; i < tabLinks.length; i++) {
+                tabLinks[i].classList.remove("active");
+                tabLinks[i].setAttribute("aria-selected", "false");
             }
 
             // Muestra el contenido de la pestaña actual y le añade la clase "active" al botón
-            document.getElementById(tabName).style.display = "block";
-            evt.currentTarget.className += " active";
+            document.getElementById(tabName).classList.add("active");
+            document.getElementById(tabName).removeAttribute("hidden");
+            evt.currentTarget.classList.add("active");
+            evt.currentTarget.setAttribute("aria-selected", "true");
         }
 
-        // Simulación para mostrar la primera pestaña por defecto
+        // Manejo de envío de formularios
         document.addEventListener("DOMContentLoaded", function() {
-            document.querySelector(".tab-link.active").click();
+            const loginForm = document.getElementById("login-form");
+            const registerForm = document.getElementById("register-form");
+            
+            if (loginForm) {
+                loginForm.addEventListener("submit", function(e) {
+                    e.preventDefault();
+                    // Aquí iría la lógica para enviar el formulario de login
+                    console.log("Enviando formulario de login");
+                });
+            }
+            
+            if (registerForm) {
+                registerForm.addEventListener("submit", function(e) {
+                    e.preventDefault();
+                    // Aquí iría la lógica para enviar el formulario de registro
+                    console.log("Enviando formulario de registro");
+                });
+            }
         });
     </script>
 
 </body>
 </html>
-

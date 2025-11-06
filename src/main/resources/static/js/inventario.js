@@ -40,6 +40,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const stockMinimoRegistro = document.getElementById('stockMinimoRegistro');
     const stockInicial = document.getElementById('stockInicial');
     const productDetailsDisplay = document.getElementById('productDetailsDisplay');
+    const productCategoriaDisplay = document.getElementById('productCategoria');
+    const productMarcaDisplay = document.getElementById('productMarca');
+    const productTallaDisplay = document.getElementById('productTalla');
+    const productColorDisplay = document.getElementById('productColor');
+    const productDescripcionDisplay = document.getElementById('productDescripcion');
+    const productPrecioDisplay = document.getElementById('productPrecio');
 
     // Referencias para summary cards
     const totalProductos = document.getElementById('totalProductos');
@@ -59,223 +65,44 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentPage = 1;
     let itemsPerPage = 10;
     let filteredData = [];
-    // Datos de productos disponibles (que aún no están en inventario)
-    const productosDisponibles = [
-        {
-            id_producto: 6,
-            nombre_producto: 'Botas de Montaña Outdoor',
-            codigo_barra: 'OUT001',
-            categoria: 'Calzado Deportivo',
-            marca: 'Mountain',
-            talla: '43',
-            color: 'Verde/Negro',
-            precio_venta: 319.90
-        },
-        {
-            id_producto: 7,
-            nombre_producto: 'Sandalias de Cuero',
-            codigo_barra: 'SAN001',
-            categoria: 'Calzado Casual',
-            marca: 'Comfort',
-            talla: '38',
-            color: 'Marrón',
-            precio_venta: 89.90
-        },
-        {
-            id_producto: 8,
-            nombre_producto: 'Gorra Deportiva',
-            codigo_barra: 'ACC002',
-            categoria: 'Accesorios',
-            marca: 'Sport',
-            talla: 'Única',
-            color: 'Azul',
-            precio_venta: 39.90
-        }
-    ];
+    let productosDisponibles = [];
+    let almacenesData = [];
+    let categoriasData = [];
+    let tiposMovimientoData = {};
+    let inventarioData = [];
+    let movimientosData = [];
 
     let currentProductoAjuste = null;
-
-    // --- Datos de Ejemplo (Simulación de una API) ---
-    
-    // Datos de almacenes
-    const almacenesData = [
-        { id: 1, nombre: 'Almacén Principal', ubicacion: 'Av. Principal 123' },
-        { id: 2, nombre: 'Almacén Sucursal Norte', ubicacion: 'Jr. Los Andes 456' },
-        { id: 3, nombre: 'Almacén Online', ubicacion: 'Centro de Distribución' }
-    ];
-
-    // Datos de categorías
-    const categoriasData = [
-        { id: 1, nombre: 'Calzado Deportivo' },
-        { id: 2, nombre: 'Calzado Formal' },
-        { id: 3, nombre: 'Accesorios' },
-        { id: 4, nombre: 'Calzado Casual' }
-    ];
-
-    // Datos de tipos de movimiento
-    const tiposMovimientoData = {
-        '1': { nombre: 'Entrada - Compra', es_entrada: true },
-        '2': { nombre: 'Entrada - Ajuste Positivo', es_entrada: true },
-        '3': { nombre: 'Entrada - Devolución', es_entrada: true },
-        '4': { nombre: 'Salida - Venta', es_entrada: false },
-        '5': { nombre: 'Salida - Ajuste Negativo', es_entrada: false },
-        '6': { nombre: 'Salida - Merma/Pérdida', es_entrada: false },
-        '7': { nombre: 'Transferencia Entre Almacenes', es_entrada: null }
-    };
-
-    // Datos de inventario (simulando la vista combinada de la BD)
-    let inventarioData = [
-        {
-            id_inventario: 1,
-            id_producto: 1,
-            codigo_barra: 'CAL001',
-            nombre_producto: 'Nike Air Max 270',
-            categoria: 'Calzado Deportivo',
-            id_almacen: 1,
-            nombre_almacen: 'Almacén Principal',
-            cantidad_stock: 25,
-            stock_minimo: 5,
-            costo_compra: 180.00,
-            talla: '42',
-            color: 'Negro/Blanco',
-            marca: 'Nike',
-            fecha_ultima_actualizacion: '2025-09-20T10:30:00'
-        },
-        {
-            id_inventario: 2,
-            id_producto: 1,
-            codigo_barra: 'CAL001',
-            nombre_producto: 'Nike Air Max 270',
-            categoria: 'Calzado Deportivo',
-            id_almacen: 2,
-            nombre_almacen: 'Almacén Sucursal Norte',
-            cantidad_stock: 12,
-            stock_minimo: 3,
-            talla: '42',
-            color: 'Negro/Blanco',
-            marca: 'Nike',
-            fecha_ultima_actualizacion: '2025-09-19T14:15:00'
-        },
-        {
-            id_inventario: 3,
-            id_producto: 2,
-            codigo_barra: 'CAL002',
-            nombre_producto: 'Adidas Ultraboost 22',
-            categoria: 'Calzado Deportivo',
-            id_almacen: 1,
-            nombre_almacen: 'Almacén Principal',
-            cantidad_stock: 3,
-            stock_minimo: 5,
-            talla: '41',
-            color: 'Blanco/Azul',
-            marca: 'Adidas',
-            fecha_ultima_actualizacion: '2025-09-18T09:45:00'
-        },
-        {
-            id_inventario: 4,
-            id_producto: 3,
-            codigo_barra: 'FOR001',
-            nombre_producto: 'Zapatos Oxford Cuero',
-            categoria: 'Calzado Formal',
-            id_almacen: 1,
-            nombre_almacen: 'Almacén Principal',
-            cantidad_stock: 0,
-            stock_minimo: 2,
-            talla: '40',
-            color: 'Negro',
-            marca: 'Clásico',
-            fecha_ultima_actualizacion: '2025-09-15T16:20:00'
-        },
-        {
-            id_inventario: 5,
-            id_producto: 4,
-            codigo_barra: 'ACC001',
-            nombre_producto: 'Cinturón de Cuero Premium',
-            categoria: 'Accesorios',
-            id_almacen: 1,
-            nombre_almacen: 'Almacén Principal',
-            cantidad_stock: 15,
-            stock_minimo: 5,
-            talla: 'L',
-            color: 'Marrón',
-            marca: 'Premium',
-            fecha_ultima_actualizacion: '2025-09-21T11:10:00'
-        },
-        {
-            id_inventario: 6,
-            id_producto: 5,
-            codigo_barra: 'CAS001',
-            nombre_producto: 'Zapatillas Casual Urbanas',
-            categoria: 'Calzado Casual',
-            id_almacen: 2,
-            nombre_almacen: 'Almacén Sucursal Norte',
-            cantidad_stock: 8,
-            stock_minimo: 4,
-            talla: '39',
-            color: 'Gris',
-            marca: 'Urban',
-            fecha_ultima_actualizacion: '2025-09-22T13:25:00'
-        }
-    ];
-
-    // Datos de movimientos de inventario
-    let movimientosData = [
-        {
-            id_movimiento: 1,
-            id_producto: 1,
-            nombre_producto: 'Nike Air Max 270',
-            id_almacen: 1,
-            nombre_almacen: 'Almacén Principal',
-            tipo_movimiento: 'Entrada - Compra',
-            cantidad: 20,
-            fecha_movimiento: '2025-09-20T10:30:00',
-            usuario: 'Juan Pérez',
-            referencia_doc: 'FAC-001',
-            observaciones: 'Compra a proveedor Nike'
-        },
-        {
-            id_movimiento: 2,
-            id_producto: 1,
-            nombre_producto: 'Nike Air Max 270',
-            id_almacen: 1,
-            nombre_almacen: 'Almacén Principal',
-            tipo_movimiento: 'Salida - Venta',
-            cantidad: 2,
-            fecha_movimiento: '2025-09-21T14:15:00',
-            usuario: 'María García',
-            referencia_doc: 'BOL-045',
-            observaciones: 'Venta al público'
-        },
-        {
-            id_movimiento: 3,
-            id_producto: 2,
-            nombre_producto: 'Adidas Ultraboost 22',
-            id_almacen: 1,
-            nombre_almacen: 'Almacén Principal',
-            tipo_movimiento: 'Entrada - Compra',
-            cantidad: 8,
-            fecha_movimiento: '2025-09-18T09:45:00',
-            usuario: 'Carlos López',
-            referencia_doc: 'FAC-002',
-            observaciones: 'Restock productos populares'
-        },
-        {
-            id_movimiento: 4,
-            id_producto: 3,
-            nombre_producto: 'Zapatos Oxford Cuero',
-            id_almacen: 1,
-            nombre_almacen: 'Almacén Principal',
-            tipo_movimiento: 'Salida - Venta',
-            cantidad: 1,
-            fecha_movimiento: '2025-09-22T11:30:00',
-            usuario: 'Ana Torres',
-            referencia_doc: 'BOL-046',
-            observaciones: 'Última unidad disponible'
-        }
-    ];
+    let isSubmittingRegistrar = false;
+    let isSubmittingAjuste = false;
 
     // --- Funciones Utilitarias ---
-    
+
+    async function fetchJson(url, options) {
+        const response = await fetch(url, options);
+        const rawBody = await response.text().catch(() => '');
+
+        if (!response.ok) {
+            const snippet = rawBody ? `: ${rawBody.slice(0, 200)}` : '';
+            throw new Error(`HTTP ${response.status} - ${url}${snippet}`);
+        }
+
+        if (!rawBody || !rawBody.trim()) {
+            return null;
+        }
+
+        const contentType = response.headers.get('content-type') || '';
+        if (!contentType.toLowerCase().includes('application/json')) {
+            throw new Error(`Respuesta no JSON recibida (${contentType || 'sin content-type'}) en ${url}`);
+        }
+
+        try {
+            return JSON.parse(rawBody);
+        } catch (parseError) {
+            throw new Error(`JSON inválido en ${url}: ${parseError.message}`);
+        }
+    }
+
     function formatDate(dateString) {
         const date = new Date(dateString);
         return date.toLocaleDateString('es-PE', {
@@ -315,73 +142,297 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Funciones de Inicialización ---
+    function normalizeProductoData(rawProducto) {
+        if (!rawProducto) {
+            return null;
+        }
 
-    function initializeFilters() {
-        // Cargar almacenes en el filtro
-        almacenesData.forEach(almacen => {
-            const option = document.createElement('option');
-            option.value = almacen.id;
-            option.textContent = almacen.nombre;
-            almacenFilter.appendChild(option);
+        const id = rawProducto.id_producto ?? rawProducto.id ?? rawProducto.productoId ?? null;
+        if (id === null) {
+            return null;
+        }
 
-            // También agregar al selector de destino
-            const optionDestino = document.createElement('option');
-            optionDestino.value = almacen.id;
-            optionDestino.textContent = almacen.nombre;
-            almacenDestinoSelect.appendChild(optionDestino);
+        const nombre = rawProducto.nombre_producto ?? rawProducto.nombre ?? rawProducto.nombreProducto ?? `Producto ${id}`;
+        const codigoBarra = rawProducto.codigo_barra ?? rawProducto.codigoBarra ?? '';
+        const categoria = rawProducto.categoria_nombre ?? rawProducto.categoria?.nombre ?? rawProducto.categoria ?? rawProducto.tipo ?? 'Sin categoría';
+        const marca = rawProducto.marca ?? rawProducto.proveedor?.nombre ?? '-';
+        const talla = rawProducto.talla ?? '-';
+        const color = rawProducto.color ?? '-';
+        const descripcion = rawProducto.descripcion ?? '-';
+        const precioVenta = rawProducto.precio_venta ?? rawProducto.precioVenta ?? null;
 
-            // Agregar al selector de almacén del modal de registro
-            const optionRegistro = document.createElement('option');
-            optionRegistro.value = almacen.id;
-            optionRegistro.textContent = almacen.nombre;
-            almacenSelect.appendChild(optionRegistro);
-        });
+        return {
+            id,
+            nombre_producto: nombre,
+            codigo_barra: codigoBarra,
+            categoria,
+            marca,
+            talla,
+            color,
+            descripcion,
+            precio_venta: precioVenta
+        };
+    }
 
-        // Cargar categorías en el filtro
-        categoriasData.forEach(categoria => {
-            const option = document.createElement('option');
-            option.value = categoria.nombre;
-            option.textContent = categoria.nombre;
-            categoriaFilter.appendChild(option);
-        });
+    function normalizeInventarioItem(rawInventario) {
+        if (!rawInventario) {
+            return null;
+        }
 
-        // Cargar productos disponibles en el modal de registro
+        const productoNormalizado = rawInventario.producto
+            ? normalizeProductoData(rawInventario.producto)
+            : normalizeProductoData({
+                id_producto: rawInventario.id_producto ?? rawInventario.productoId ?? null,
+                nombre_producto: rawInventario.nombre_producto,
+                nombre: rawInventario.nombre_producto,
+                codigo_barra: rawInventario.codigo_barra,
+                categoria: rawInventario.categoria,
+                categoria_nombre: rawInventario.categoria_nombre,
+                marca: rawInventario.marca,
+                color: rawInventario.color,
+                talla: rawInventario.talla
+            });
+        const almacen = rawInventario.almacen || {};
+
+        const idInventario = rawInventario.id_inventario ?? rawInventario.id ?? rawInventario.idInventario ?? null;
+        const idProducto = rawInventario.id_producto ?? productoNormalizado?.id ?? null;
+        const idAlmacen = rawInventario.id_almacen ?? almacen.id ?? null;
+
+        const cantidadStock = rawInventario.cantidad_stock ?? rawInventario.cantidadStock ?? 0;
+        const stockMinimo = rawInventario.stock_minimo ?? rawInventario.stockMinimo ?? 0;
+        const fechaActualizacion = rawInventario.fecha_ultima_actualizacion ?? rawInventario.fechaUltimaActualizacion ?? new Date().toISOString();
+
+        return {
+            id_inventario: idInventario,
+            id_producto: idProducto,
+            codigo_barra: productoNormalizado?.codigo_barra ?? rawInventario.codigo_barra ?? '',
+            nombre_producto: productoNormalizado?.nombre_producto ?? rawInventario.nombre_producto ?? 'Producto sin nombre',
+            categoria: productoNormalizado?.categoria ?? rawInventario.categoria ?? 'Sin categoría',
+            id_almacen: idAlmacen,
+            nombre_almacen: rawInventario.nombre_almacen ?? almacen.nombre ?? 'Sin almacén',
+            cantidad_stock: cantidadStock,
+            stock_minimo: stockMinimo,
+            talla: productoNormalizado?.talla ?? rawInventario.talla ?? '-',
+            color: productoNormalizado?.color ?? rawInventario.color ?? '-',
+            marca: productoNormalizado?.marca ?? rawInventario.marca ?? 'Sin marca',
+            fecha_ultima_actualizacion: fechaActualizacion
+        };
+    }
+
+    function normalizeMovimientoItem(rawMovimiento) {
+        if (!rawMovimiento) {
+            return null;
+        }
+
+        const productoNormalizado = rawMovimiento.producto
+            ? normalizeProductoData(rawMovimiento.producto)
+            : normalizeProductoData({
+                id_producto: rawMovimiento.id_producto ?? rawMovimiento.productoId ?? null,
+                nombre_producto: rawMovimiento.nombre_producto,
+                nombre: rawMovimiento.nombre_producto,
+                codigo_barra: rawMovimiento.codigo_barra,
+                categoria: rawMovimiento.categoria,
+                categoria_nombre: rawMovimiento.categoria_nombre,
+                marca: rawMovimiento.marca,
+                color: rawMovimiento.color,
+                talla: rawMovimiento.talla
+            });
+        const almacen = rawMovimiento.almacen || {};
+        const tipoMovimiento = rawMovimiento.tipo_movimiento ?? rawMovimiento.tipoMovimiento?.nombre ?? '';
+        const esEntrada = rawMovimiento.esEntrada ?? rawMovimiento.tipoMovimiento?.esEntrada ?? (tipoMovimiento ? tipoMovimiento.toLowerCase().includes('entrada') : true);
+
+        return {
+            id_movimiento: rawMovimiento.id_movimiento ?? rawMovimiento.id ?? rawMovimiento.idMovimiento ?? null,
+            id_producto: rawMovimiento.id_producto ?? productoNormalizado?.id ?? null,
+            nombre_producto: rawMovimiento.nombre_producto ?? productoNormalizado?.nombre_producto ?? 'Producto',
+            id_almacen: rawMovimiento.id_almacen ?? almacen.id ?? null,
+            nombre_almacen: rawMovimiento.nombre_almacen ?? almacen.nombre ?? 'Sin almacén',
+            tipo_movimiento: tipoMovimiento || (esEntrada ? 'Entrada' : 'Salida'),
+            cantidad: rawMovimiento.cantidad ?? 0,
+            fecha_movimiento: rawMovimiento.fecha_movimiento ?? rawMovimiento.fechaMovimiento ?? new Date().toISOString(),
+            usuario: rawMovimiento.usuario ?? rawMovimiento.usuario_nombre ?? rawMovimiento.usuarioNombre ?? rawMovimiento.usuario?.username ?? 'Usuario',
+            referencia_doc: rawMovimiento.referencia_doc ?? rawMovimiento.referenciaDoc ?? null,
+            observaciones: rawMovimiento.observaciones ?? null
+        };
+    }
+
+    function rebuildProductoSelectOptions(selectedId = '') {
+        productoSelect.innerHTML = '<option value="">Seleccionar producto</option>';
+
         productosDisponibles.forEach(producto => {
             const option = document.createElement('option');
-            option.value = producto.id_producto;
+            option.value = producto.id;
             option.textContent = `${producto.nombre_producto} (${producto.talla} - ${producto.color})`;
-            option.dataset.codigo = producto.codigo_barra;
-            option.dataset.categoria = producto.categoria;
-            option.dataset.marca = producto.marca;
-            option.dataset.talla = producto.talla;
-            option.dataset.color = producto.color;
+            option.dataset.codigo = producto.codigo_barra || '';
+            option.dataset.categoria = producto.categoria || 'Sin categoría';
+            option.dataset.marca = producto.marca || '-';
+            option.dataset.talla = producto.talla || '-';
+            option.dataset.color = producto.color || '-';
+            option.dataset.descripcion = producto.descripcion || '-';
+            option.dataset.precio = producto.precio_venta != null ? producto.precio_venta : '';
             productoSelect.appendChild(option);
         });
 
-        // Establecer fechas por defecto para movimientos
-        const today = new Date();
-        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-        fechaDesde.value = firstDay.toISOString().split('T')[0];
-        fechaHasta.value = today.toISOString().split('T')[0];
+        if (selectedId) {
+            productoSelect.value = selectedId;
+        }
     }
 
-    function updateSummaryCards() {
-        const uniqueProducts = new Set(inventarioData.map(item => item.id_producto));
-        const totalStockCount = inventarioData.reduce((sum, item) => sum + item.cantidad_stock, 0);
-        
-        // Contar productos únicos que están en stock mínimo o por debajo
-        const productosEnStockMinimo = new Set();
-        inventarioData.forEach(item => {
-            if (item.cantidad_stock <= item.stock_minimo) {
-                productosEnStockMinimo.add(item.id_producto);
+    function updateCategoriaFilterOptions() {
+        const previousValue = categoriaFilter.value;
+
+        const categoriasDesdeInventario = Array.from(new Set(
+            inventarioData
+                .map(item => item.categoria)
+                .filter(categoria => categoria && categoria !== 'Sin categoría')
+        ));
+
+        const categoriasDesdeApi = categoriasData.map(cat => {
+            if (typeof cat === 'string') {
+                return cat;
             }
+            return cat.nombre || cat.nombre_categoria || cat.nombreCategoria || null;
+        }).filter(Boolean);
+
+        const categoriasUnicas = Array.from(new Set([
+            ...categoriasDesdeApi,
+            ...categoriasDesdeInventario
+        ].map(nombre => nombre.trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b));
+
+        categoriaFilter.innerHTML = '<option value="">Todas las categorías</option>';
+
+        categoriasUnicas.forEach(categoria => {
+            const option = document.createElement('option');
+            option.value = categoria;
+            option.textContent = categoria;
+            categoriaFilter.appendChild(option);
         });
 
-        totalProductos.textContent = uniqueProducts.size;
-        stockTotal.textContent = totalStockCount.toLocaleString();
-        productosStockMinimo.textContent = productosEnStockMinimo.size;
-        totalAlmacenes.textContent = almacenesData.length;
+        if (previousValue && categoriasUnicas.includes(previousValue)) {
+            categoriaFilter.value = previousValue;
+        }
+    }
+
+    function rebuildTipoMovimientoOptions() {
+        const previousValue = tipoMovimientoSelect.value;
+        tipoMovimientoSelect.innerHTML = '<option value="">Seleccionar tipo</option>';
+
+        const tiposOrdenados = Object.entries(tiposMovimientoData)
+            .map(([id, data]) => ({
+                id,
+                nombre: data.nombre,
+                esEntrada: data.es_entrada === true || data.es_entrada === 'true' || data.es_entrada === 1 || data.es_entrada === '1'
+            }))
+            .sort((a, b) => Number(a.esEntrada) - Number(b.esEntrada));
+
+        tiposOrdenados.forEach(tipo => {
+            const option = document.createElement('option');
+            option.value = String(tipo.id);
+            option.textContent = tipo.esEntrada ? 'Entrada' : 'Salida';
+            option.dataset.nombre = tipo.nombre || (tipo.esEntrada ? 'Entrada' : 'Salida');
+            option.dataset.esEntrada = tipo.esEntrada ? '1' : '0';
+            tipoMovimientoSelect.appendChild(option);
+        });
+
+        if (previousValue && tiposMovimientoData[previousValue]) {
+            tipoMovimientoSelect.value = previousValue;
+        } else if (tiposOrdenados.length === 1) {
+            tipoMovimientoSelect.value = tiposOrdenados[0].id;
+        }
+
+        updateStockPreview();
+    }
+
+    // --- Funciones de Inicialización ---
+
+    async function initializeFilters() {
+        try {
+            // Cargar almacenes
+            const almacenesRaw = await fetchJson('/inventario/api/almacenes');
+            almacenesData = Array.isArray(almacenesRaw) ? almacenesRaw : [];
+
+            // Cargar almacenes en el filtro
+            almacenesData.forEach(almacen => {
+                const option = document.createElement('option');
+                option.value = almacen.id;
+                option.textContent = almacen.nombre;
+                almacenFilter.appendChild(option);
+
+                // También agregar al selector de destino
+                const optionDestino = document.createElement('option');
+                optionDestino.value = almacen.id;
+                optionDestino.textContent = almacen.nombre;
+                almacenDestinoSelect.appendChild(optionDestino);
+
+                // Agregar al selector de almacén del modal de registro
+                const optionRegistro = document.createElement('option');
+                optionRegistro.value = almacen.id;
+                optionRegistro.textContent = almacen.nombre;
+                almacenSelect.appendChild(optionRegistro);
+            });
+
+            // Cargar categorías
+            try {
+                const categoriasRaw = await fetchJson('/api/catalogos/categorias');
+                categoriasData = (Array.isArray(categoriasRaw) ? categoriasRaw : [])
+                    .map(cat => ({
+                        id: cat.id ?? cat.id_categoria ?? cat.idCategoria ?? null,
+                        nombre: cat.nombre ?? cat.nombre_categoria ?? cat.nombreCategoria ?? null
+                    }))
+                    .filter(cat => cat.nombre);
+            } catch (errorCategorias) {
+                console.warn('No se pudieron cargar las categorías del catálogo:', errorCategorias);
+                categoriasData = [];
+            }
+
+            updateCategoriaFilterOptions();
+
+            // Cargar tipos de movimiento
+            const tiposData = await fetchJson('/inventario/api/tipos-movimiento');
+            tiposMovimientoData = {};
+            (Array.isArray(tiposData) ? tiposData : []).forEach(tipo => {
+                const id = tipo.id ?? tipo.id_tipo ?? tipo.tipoMovimientoId;
+                if (id == null) {
+                    return;
+                }
+                const esEntrada = tipo.esEntrada === true || tipo.esEntrada === 'true' || tipo.esEntrada === 1 || tipo.esEntrada === '1';
+                const nombre = tipo.nombre || (esEntrada ? 'Entrada' : 'Salida');
+                tiposMovimientoData[String(id)] = {
+                    nombre,
+                    es_entrada: esEntrada
+                };
+            });
+            rebuildTipoMovimientoOptions();
+
+            await refreshProductosDisponibles();
+
+            // Establecer fechas por defecto para movimientos
+            const today = new Date();
+            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+            fechaDesde.value = firstDay.toISOString().split('T')[0];
+            fechaHasta.value = today.toISOString().split('T')[0];
+
+        } catch (error) {
+            console.error('Error cargando datos iniciales:', error);
+            showNotification('Error al cargar datos iniciales', 'error');
+        }
+    }
+
+    async function updateSummaryCards() {
+        try {
+            const stats = await fetchJson('/inventario/api/estadisticas') || {};
+
+            totalProductos.textContent = stats.totalProductos || 0;
+            stockTotal.textContent = (stats.totalStock || 0).toLocaleString();
+            productosStockMinimo.textContent = stats.productosStockBajo || 0;
+            totalAlmacenes.textContent = stats.totalAlmacenes || 0;
+        } catch (error) {
+            console.error('Error cargando estadísticas:', error);
+            totalProductos.textContent = '0';
+            stockTotal.textContent = '0';
+            productosStockMinimo.textContent = '0';
+            totalAlmacenes.textContent = '0';
+        }
     }
 
     // --- Funciones de Renderizado ---
@@ -563,6 +614,13 @@ document.addEventListener('DOMContentLoaded', () => {
         productDetailsDisplay.style.display = 'none';
         codigoBarraDisplay.value = '';
         
+        productCategoriaDisplay.textContent = '-';
+        productMarcaDisplay.textContent = '-';
+        productTallaDisplay.textContent = '-';
+        productColorDisplay.textContent = '-';
+        productDescripcionDisplay.textContent = '-';
+        productPrecioDisplay.textContent = '-';
+
         registrarProductoModal.style.display = 'block';
     }
 
@@ -571,16 +629,35 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (selectedOption.value) {
             codigoBarraDisplay.value = selectedOption.dataset.codigo || '';
-            
-            document.getElementById('productCategoria').textContent = selectedOption.dataset.categoria || '-';
-            document.getElementById('productMarca').textContent = selectedOption.dataset.marca || '-';
-            document.getElementById('productTalla').textContent = selectedOption.dataset.talla || '-';
-            document.getElementById('productColor').textContent = selectedOption.dataset.color || '-';
-            
+
+            productCategoriaDisplay.textContent = selectedOption.dataset.categoria || '-';
+            productMarcaDisplay.textContent = selectedOption.dataset.marca || '-';
+            productTallaDisplay.textContent = selectedOption.dataset.talla || '-';
+            productColorDisplay.textContent = selectedOption.dataset.color || '-';
+
+            const descripcion = selectedOption.dataset.descripcion?.trim();
+            productDescripcionDisplay.textContent = descripcion && descripcion.length > 0 ? descripcion : '-';
+
+            const rawPrice = selectedOption.dataset.precio;
+            if (rawPrice !== undefined && rawPrice !== null && rawPrice !== '') {
+                const parsedPrice = Number(rawPrice);
+                productPrecioDisplay.textContent = Number.isFinite(parsedPrice)
+                    ? formatCurrency(parsedPrice)
+                    : '-';
+            } else {
+                productPrecioDisplay.textContent = '-';
+            }
+
             productDetailsDisplay.style.display = 'block';
         } else {
             codigoBarraDisplay.value = '';
             productDetailsDisplay.style.display = 'none';
+            productCategoriaDisplay.textContent = '-';
+            productMarcaDisplay.textContent = '-';
+            productTallaDisplay.textContent = '-';
+            productColorDisplay.textContent = '-';
+            productDescripcionDisplay.textContent = '-';
+            productPrecioDisplay.textContent = '-';
         }
     }
 
@@ -603,6 +680,9 @@ document.addEventListener('DOMContentLoaded', () => {
         ajusteStockForm.reset();
         document.getElementById('ajusteProductoId').value = item.id_producto;
         document.getElementById('ajusteInventarioId').value = item.id_inventario;
+    almacenDestinoGroup.style.display = 'none';
+    almacenDestinoSelect.required = false;
+    almacenDestinoSelect.value = '';
 
         // Actualizar preview
         updateStockPreview();
@@ -735,187 +815,231 @@ document.addEventListener('DOMContentLoaded', () => {
     productoSelect.addEventListener('change', updateProductDetails);
 
     // Envío del formulario de registro
-    registrarProductoForm.addEventListener('submit', (e) => {
+    registrarProductoForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
-        const formData = new FormData(registrarProductoForm);
-        const productoId = parseInt(formData.get('producto'));
-        const almacenId = parseInt(formData.get('almacen'));
-        const stockMinimo = parseInt(formData.get('stockMinimo'));
-        const cantidadInicial = parseInt(formData.get('stockInicial'));
-        const referencia = formData.get('referencia');
-        const observaciones = formData.get('observaciones');
 
-        // Buscar datos del producto seleccionado
-        const productoData = productosDisponibles.find(p => p.id_producto === productoId);
-        const almacenData = almacenesData.find(a => a.id === almacenId);
-
-        if (!productoData || !almacenData) {
-            alert('Error: No se pudo encontrar el producto o almacén seleccionado');
+        if (isSubmittingRegistrar) {
             return;
         }
 
-        // Verificar si ya existe el producto en ese almacén
-        const existeEnInventario = inventarioData.find(item => 
+        const formData = new FormData(registrarProductoForm);
+        const productoId = Number(formData.get('producto'));
+        const almacenId = Number(formData.get('almacen'));
+        const stockMinimo = Number(formData.get('stockMinimo'));
+        const cantidadInicial = Number(formData.get('stockInicial'));
+        const referencia = (formData.get('referencia') || '').trim();
+        const observaciones = (formData.get('observaciones') || '').trim();
+
+        if (!Number.isFinite(productoId) || productoId <= 0) {
+            showNotification('Selecciona un producto válido', 'error');
+            return;
+        }
+
+        if (!Number.isFinite(almacenId) || almacenId <= 0) {
+            showNotification('Selecciona un almacén válido', 'error');
+            return;
+        }
+
+        if (!Number.isFinite(stockMinimo) || stockMinimo < 0) {
+            showNotification('Ingresa un stock mínimo válido', 'error');
+            return;
+        }
+
+        if (!Number.isFinite(cantidadInicial) || cantidadInicial < 0) {
+            showNotification('Ingresa una cantidad inicial válida', 'error');
+            return;
+        }
+
+        const productoData = productosDisponibles.find(p => p.id === productoId);
+        const almacenData = almacenesData.find(a => a.id === almacenId);
+
+        if (!productoData || !almacenData) {
+            showNotification('El producto o almacén seleccionado no es válido', 'error');
+            return;
+        }
+
+        const existeEnInventario = inventarioData.some(item =>
             item.id_producto === productoId && item.id_almacen === almacenId
         );
 
         if (existeEnInventario) {
-            alert('Este producto ya está registrado en el almacén seleccionado');
+            showNotification('Este producto ya está registrado en el almacén seleccionado', 'error');
             return;
         }
 
-        // Crear nuevo registro de inventario
-        const nuevoInventario = {
-            id_inventario: inventarioData.length + 1,
-            id_producto: productoId,
-            codigo_barra: productoData.codigo_barra,
-            nombre_producto: productoData.nombre_producto,
-            categoria: productoData.categoria,
-            id_almacen: almacenId,
-            nombre_almacen: almacenData.nombre,
-            cantidad_stock: cantidadInicial,
-            stock_minimo: stockMinimo,
-            talla: productoData.talla,
-            color: productoData.color,
-            marca: productoData.marca,
-            fecha_ultima_actualizacion: new Date().toISOString()
-        };
+        const payload = new URLSearchParams();
+        payload.append('productoId', productoId);
+        payload.append('almacenId', almacenId);
+        payload.append('stockMinimo', stockMinimo);
+        payload.append('cantidadInicial', cantidadInicial);
+        if (referencia) {
+            payload.append('referencia', referencia);
+        }
+        if (observaciones) {
+            payload.append('observaciones', observaciones);
+        }
 
-        // Agregar al inventario
-        inventarioData.push(nuevoInventario);
-
-        // Remover el producto de los disponibles
-        const index = productosDisponibles.findIndex(p => p.id_producto === productoId);
-        if (index > -1) {
-            productosDisponibles.splice(index, 1);
-            // Actualizar el select
-            productoSelect.innerHTML = '<option value="">Seleccionar producto</option>';
-            productosDisponibles.forEach(producto => {
-                const option = document.createElement('option');
-                option.value = producto.id_producto;
-                option.textContent = `${producto.nombre_producto} (${producto.talla} - ${producto.color})`;
-                option.dataset.codigo = producto.codigo_barra;
-                option.dataset.categoria = producto.categoria;
-                option.dataset.marca = producto.marca;
-                option.dataset.talla = producto.talla;
-                option.dataset.color = producto.color;
-                productoSelect.appendChild(option);
+        try {
+            isSubmittingRegistrar = true;
+            const response = await fetch('/inventario/api/registrar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: payload.toString()
             });
-        }
 
-        // Crear movimiento inicial si hay stock inicial
-        if (cantidadInicial > 0) {
-            const nuevoMovimiento = {
-                id_movimiento: movimientosData.length + 1,
-                id_producto: productoId,
-                nombre_producto: productoData.nombre_producto,
-                id_almacen: almacenId,
-                nombre_almacen: almacenData.nombre,
-                tipo_movimiento: 'Entrada - Registro Inicial',
-                cantidad: cantidadInicial,
-                fecha_movimiento: new Date().toISOString(),
-                usuario: 'Usuario Actual',
-                referencia_doc: referencia || 'REG-INICIAL',
-                observaciones: observaciones || 'Registro inicial de producto en inventario'
-            };
-            movimientosData.unshift(nuevoMovimiento);
-        }
+            if (!response.ok) {
+                let errorMessage = 'No se pudo registrar el producto en el inventario';
+                try {
+                    const errorData = await response.json();
+                    if (errorData && errorData.error) {
+                        errorMessage = errorData.error;
+                    }
+                } catch (parseError) {
+                    // Ignorar errores de parseo y mantener el mensaje por defecto
+                }
+                showNotification(errorMessage, 'error');
+                return;
+            }
 
-        alert('Producto registrado exitosamente en el inventario');
-        
-        // Actualizar vista
-        applyFilters();
-        updateSummaryCards();
-        
-        // Cerrar modal
-        registrarProductoModal.style.display = 'none';
+            showNotification('Producto registrado exitosamente en el inventario');
+
+            registrarProductoForm.reset();
+            productDetailsDisplay.style.display = 'none';
+            codigoBarraDisplay.value = '';
+            productCategoriaDisplay.textContent = '-';
+            productMarcaDisplay.textContent = '-';
+            productTallaDisplay.textContent = '-';
+            productColorDisplay.textContent = '-';
+            productDescripcionDisplay.textContent = '-';
+            productPrecioDisplay.textContent = '-';
+
+            registrarProductoModal.style.display = 'none';
+
+            await Promise.all([
+                loadInventarioData(),
+                loadMovimientosData(),
+                refreshProductosDisponibles()
+            ]);
+            await updateSummaryCards();
+        } catch (error) {
+            console.error('Error registrando producto en inventario:', error);
+            showNotification('Error al registrar el producto en el inventario', 'error');
+        } finally {
+            isSubmittingRegistrar = false;
+        }
     });
 
     // Modal de ajuste
     closeAjusteModal.addEventListener('click', () => {
         ajusteStockModal.style.display = 'none';
         currentProductoAjuste = null;
+        almacenDestinoGroup.style.display = 'none';
+        almacenDestinoSelect.required = false;
     });
 
     cancelAjusteBtn.addEventListener('click', () => {
         ajusteStockModal.style.display = 'none';
         currentProductoAjuste = null;
+        almacenDestinoGroup.style.display = 'none';
+        almacenDestinoSelect.required = false;
     });
 
     // Controles del formulario de ajuste
-    tipoMovimientoSelect.addEventListener('change', (e) => {
-        const selectedValue = e.target.value;
-        
-        // Mostrar/ocultar almacén destino para transferencias
-        if (selectedValue === '7') { // Transferencia
-            almacenDestinoGroup.style.display = 'block';
-            almacenDestinoSelect.required = true;
-        } else {
-            almacenDestinoGroup.style.display = 'none';
-            almacenDestinoSelect.required = false;
-        }
-
+    tipoMovimientoSelect.addEventListener('change', () => {
+        almacenDestinoGroup.style.display = 'none';
+        almacenDestinoSelect.required = false;
         updateStockPreview();
     });
 
     cantidadAjusteInput.addEventListener('input', updateStockPreview);
 
     // Envío del formulario de ajuste
-    ajusteStockForm.addEventListener('submit', (e) => {
+    ajusteStockForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
-        if (!currentProductoAjuste) return;
+
+        if (!currentProductoAjuste || isSubmittingAjuste) {
+            return;
+        }
 
         const formData = new FormData(ajusteStockForm);
-        const cantidad = parseInt(formData.get('cantidad'));
-        const tipoMovimiento = formData.get('tipoMovimiento');
-        const referencia = formData.get('referencia');
-        const observaciones = formData.get('observaciones');
+        const cantidad = Number(formData.get('cantidad'));
+        const tipoMovimientoId = formData.get('tipoMovimiento');
+        const referencia = (formData.get('referencia') || '').trim();
+        const observaciones = (formData.get('observaciones') || '').trim();
 
-        // Simular el procesamiento del ajuste
-        const tipoData = tiposMovimientoData[tipoMovimiento];
-        let nuevoStock = currentProductoAjuste.cantidad_stock;
-
-        if (tipoData.es_entrada === true) {
-            nuevoStock += cantidad;
-        } else if (tipoData.es_entrada === false) {
-            nuevoStock = Math.max(0, nuevoStock - cantidad);
+        if (!Number.isFinite(cantidad) || cantidad <= 0) {
+            showNotification('Ingresa una cantidad válida para el movimiento', 'error');
+            return;
         }
 
-        // Actualizar el inventario
-        const inventarioItem = inventarioData.find(item => item.id_inventario === currentProductoAjuste.id_inventario);
-        if (inventarioItem) {
-            inventarioItem.cantidad_stock = nuevoStock;
-            inventarioItem.fecha_ultima_actualizacion = new Date().toISOString();
+        if (!tipoMovimientoId) {
+            showNotification('Selecciona un tipo de movimiento válido', 'error');
+            return;
         }
 
-        // Agregar movimiento al historial
-        const nuevoMovimiento = {
-            id_movimiento: movimientosData.length + 1,
-            id_producto: currentProductoAjuste.id_producto,
-            nombre_producto: currentProductoAjuste.nombre_producto,
-            id_almacen: currentProductoAjuste.id_almacen,
-            nombre_almacen: currentProductoAjuste.nombre_almacen,
-            tipo_movimiento: tipoData.nombre,
-            cantidad: cantidad,
-            fecha_movimiento: new Date().toISOString(),
-            usuario: 'Usuario Actual', // En una aplicación real, esto vendría del login
-            referencia_doc: referencia || null,
-            observaciones: observaciones || null
-        };
+        const tipoData = tiposMovimientoData[tipoMovimientoId];
+        if (!tipoData) {
+            showNotification('El tipo de movimiento seleccionado no es válido', 'error');
+            return;
+        }
 
-        movimientosData.unshift(nuevoMovimiento);
+        try {
+            isSubmittingAjuste = true;
+            const payload = new URLSearchParams();
+            payload.append('tipoMovimientoId', tipoMovimientoId);
+            payload.append('cantidad', cantidad);
+            if (referencia) {
+                payload.append('referencia', referencia);
+            }
+            if (observaciones) {
+                payload.append('observaciones', observaciones);
+            }
 
-        alert('Ajuste de stock aplicado correctamente');
-        
-        // Actualizar vista
-        applyFilters();
-        updateSummaryCards();
-        
-        // Cerrar modal
-        ajusteStockModal.style.display = 'none';
-        currentProductoAjuste = null;
+            const response = await fetch(`/inventario/api/${currentProductoAjuste.id_inventario}/ajuste`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: payload.toString()
+            });
+
+            if (!response.ok) {
+                let errorMessage = 'No se pudo aplicar el ajuste de stock';
+                try {
+                    const errorData = await response.json();
+                    if (errorData && errorData.error) {
+                        errorMessage = errorData.error;
+                    }
+                } catch (parseError) {
+                    // Mantener mensaje por defecto si no hay cuerpo JSON
+                }
+                showNotification(errorMessage, 'error');
+                return;
+            }
+
+            showNotification('Ajuste de stock aplicado correctamente');
+
+            ajusteStockForm.reset();
+            almacenDestinoSelect.value = '';
+            almacenDestinoGroup.style.display = 'none';
+            almacenDestinoSelect.required = false;
+
+            ajusteStockModal.style.display = 'none';
+            currentProductoAjuste = null;
+
+            await Promise.all([
+                loadInventarioData(),
+                loadMovimientosData()
+            ]);
+            await updateSummaryCards();
+        } catch (error) {
+            console.error('Error aplicando ajuste de stock:', error);
+            showNotification('Error al aplicar el ajuste de stock', 'error');
+        } finally {
+            isSubmittingAjuste = false;
+        }
     });
 
     // Modal de movimientos
@@ -970,11 +1094,83 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    // --- Funciones de API ---
+
+    async function refreshProductosDisponibles(selectedId = '') {
+        try {
+            const productosRaw = await fetchJson('/inventario/api/productos');
+            productosDisponibles = (Array.isArray(productosRaw) ? productosRaw : [])
+                .map(normalizeProductoData)
+                .filter(Boolean);
+
+            rebuildProductoSelectOptions(selectedId);
+            if (selectedId) {
+                updateProductDetails();
+            }
+        } catch (error) {
+            console.error('Error cargando productos disponibles:', error);
+            productosDisponibles = [];
+            rebuildProductoSelectOptions();
+            showNotification('Error al cargar productos disponibles', 'error');
+        }
+    }
+
+    async function loadInventarioData() {
+        try {
+            const inventarioRaw = await fetchJson('/inventario/api');
+            inventarioData = (Array.isArray(inventarioRaw) ? inventarioRaw : [])
+                .map(normalizeInventarioItem)
+                .filter(Boolean);
+
+            updateCategoriaFilterOptions();
+            applyFilters();
+        } catch (error) {
+            console.error('Error cargando inventario:', error);
+            showNotification('Error al cargar datos del inventario', 'error');
+        }
+    }
+
+    async function loadMovimientosData() {
+        try {
+            const movimientosRaw = await fetchJson('/inventario/api/movimientos');
+            movimientosData = (Array.isArray(movimientosRaw) ? movimientosRaw : [])
+                .map(normalizeMovimientoItem)
+                .filter(Boolean);
+        } catch (error) {
+            console.error('Error cargando movimientos:', error);
+            movimientosData = [];
+        }
+    }
+
+    // --- Funciones Utilitarias ---
+
+    function showNotification(message, type = 'success') {
+        // Crear notificación temporal
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.innerHTML = `
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+            <span>${message}</span>
+        `;
+
+        document.body.appendChild(notification);
+
+        // Mostrar notificación
+        setTimeout(() => notification.classList.add('show'), 100);
+
+        // Ocultar y remover después de 3 segundos
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => document.body.removeChild(notification), 300);
+        }, 3000);
+    }
+
     // --- Inicialización ---
-    
-    function init() {
-        initializeFilters();
-        applyFilters(); // Esto también renderiza la tabla
+
+    async function init() {
+        await initializeFilters();
+        await loadInventarioData();
+        await loadMovimientosData();
         updateSummaryCards();
     }
 

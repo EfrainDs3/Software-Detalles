@@ -1,5 +1,6 @@
 package fisi.software.detalles.controller;
 
+import fisi.software.detalles.controller.dto.ClienteRegistroRapidoDTO;
 import fisi.software.detalles.entity.Cliente;
 import fisi.software.detalles.entity.TipoDocumento;
 import fisi.software.detalles.service.ClienteService;
@@ -51,7 +52,33 @@ public class ClientesController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    /**
+     * GET /clientes/api/buscar?dniRuc={dniRuc}
+     * Busca un cliente por su DNI o RUC
+     * * @param dniRuc DNI o RUC a buscar
+     * @return Cliente encontrado
+     */
+    @GetMapping("/api/buscar-documento")
+    @ResponseBody
+    public ResponseEntity<Cliente> buscarClientePorDocumento(@RequestParam Integer idTipoDoc, @RequestParam String numDoc) {
+        try {
+            // Se crea una entidad TipoDocumento de referencia solo con el ID
+            TipoDocumento tipoDocFiltro = new TipoDocumento();
+            tipoDocFiltro.setIdTipoDocumento(idTipoDoc);
+            
+            return clienteService.obtenerPorTipoDocYNumeroDoc(tipoDocFiltro, numDoc.trim())
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Error al buscar el cliente: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
     
+
+
     /**
      * Obtiene un cliente por su ID
      * 
@@ -80,8 +107,40 @@ public class ClientesController {
      */
     @PostMapping("/api")
     @ResponseBody
-    public ResponseEntity<?> crearCliente(@RequestBody Cliente cliente) {
+    public ResponseEntity<?> crearCliente(@RequestBody ClienteRegistroRapidoDTO dto) {
         try {
+            // Mapeo simple del DTO a la Entidad Cliente antes de llamar al servicio
+            Cliente cliente = new Cliente();
+
+            // Requerimos que el servicio maneje la existencia del TipoDocumento por ID
+            TipoDocumento tipoDoc = new TipoDocumento();
+            tipoDoc.setIdTipoDocumento(dto.getIdTipoDocumento());
+
+            cliente.setTipoDocumento(tipoDoc);
+            cliente.setNumeroDocumento(dto.getNumeroDocumento());
+            // Mapear nombres/apellidos
+            cliente.setNombre(dto.getNombres());
+            cliente.setApellido(dto.getApellidos());
+
+            // Usar los campos opcionales si vienen del frontend; si no, mantener valores por defecto
+            if (dto.getDireccion() != null && !dto.getDireccion().trim().isEmpty()) {
+                cliente.setDireccion(dto.getDireccion().trim());
+            } else {
+                cliente.setDireccion("-");
+            }
+
+            if (dto.getTelefono() != null && !dto.getTelefono().trim().isEmpty()) {
+                cliente.setTelefono(dto.getTelefono().trim());
+            } else {
+                cliente.setTelefono("-");
+            }
+
+            if (dto.getEmail() != null && !dto.getEmail().trim().isEmpty()) {
+                cliente.setEmail(dto.getEmail().trim());
+            } else {
+                cliente.setEmail(null);
+            }
+
             Cliente nuevoCliente = clienteService.crear(cliente);
             return ResponseEntity.status(HttpStatus.CREATED).body(nuevoCliente);
         } catch (IllegalArgumentException e) {

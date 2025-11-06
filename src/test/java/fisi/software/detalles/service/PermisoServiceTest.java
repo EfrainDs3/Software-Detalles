@@ -150,63 +150,16 @@ class PermisoServiceTest {
         usuario.setEmail("ana.perez@example.com");
         usuario.setPasswordHash("hash");
         usuario.setRoles(Set.of(rol));
-        usuario.getPermisosExtra().add(permisoDirecto);
         usuario = usuarioRepository.save(usuario);
 
         List<PermisoUsuarioDetalleResponse> permisos = permisoService.listarPermisosPorUsuario(usuario.getId());
 
-        assertThat(permisos).hasSize(2);
+        assertThat(permisos).hasSize(1);
         assertThat(permisos).filteredOn(p -> p.permiso().codigo().equals("R"))
             .singleElement()
             .satisfies(detalle -> {
                 assertThat(detalle.asignadoDirecto()).isFalse();
                 assertThat(detalle.rolesOrigen()).containsExactly("Gerente");
-            });
-        assertThat(permisos).filteredOn(p -> p.permiso().codigo().equals("D"))
-            .singleElement()
-            .satisfies(detalle -> {
-                assertThat(detalle.asignadoDirecto()).isTrue();
-                assertThat(detalle.rolesOrigen()).isEmpty();
-            });
-    }
-
-    @Test
-    void actualizarPermisosUsuarioReemplazaAsignaciones() {
-        Permiso permiso1 = permisoRepository.save(crearPermiso("P1", "Permiso 1"));
-        Permiso permiso2 = permisoRepository.save(crearPermiso("P2", "Permiso 2"));
-        Usuario usuario = new Usuario();
-        usuario.setNombres("Luis");
-        usuario.setApellidos("Lopez");
-        usuario.setUsername("luis.lopez");
-        usuario.setEmail("luis.lopez@example.com");
-        usuario.setPasswordHash("hash");
-        usuario = usuarioRepository.save(usuario);
-
-    List<PermisoResumenResponse> asignados = permisoService.actualizarPermisosUsuario(usuario.getId(), List.of(permiso1.getIdPermiso()));
-    assertThat(asignados).extracting(PermisoResumenResponse::id).containsExactly(permiso1.getIdPermiso());
-
-    List<PermisoResumenResponse> reemplazo = permisoService.actualizarPermisosUsuario(usuario.getId(), List.of(permiso2.getIdPermiso()));
-    assertThat(reemplazo).extracting(PermisoResumenResponse::id).containsExactly(permiso2.getIdPermiso());
-    }
-
-    @Test
-    void actualizarPermisosUsuarioRegistraAuditoria() {
-        Permiso permiso = permisoRepository.save(crearPermiso("REPORTES_VER", "Ver reportes"));
-        Usuario usuario = new Usuario();
-        usuario.setNombres("Sara");
-        usuario.setApellidos("Ramirez");
-        usuario.setUsername("sara.ramirez");
-        usuario.setEmail("sara.ramirez@example.com");
-        usuario.setPasswordHash("hash");
-        usuario = usuarioRepository.save(usuario);
-
-        permisoService.actualizarPermisosUsuario(usuario.getId(), List.of(permiso.getIdPermiso()));
-
-        assertThat(permisoAuditoriaRepository.findAll())
-            .singleElement()
-            .satisfies(auditoria -> {
-                assertThat(auditoria.getAccion()).isEqualTo("USUARIO_ACTUALIZADO");
-                assertThat(auditoria.getDetalle()).contains("sara.ramirez");
             });
     }
 

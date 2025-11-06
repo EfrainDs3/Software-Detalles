@@ -1,8 +1,3 @@
-    /**
-     * PUT /ventas/api
-     * Edita una venta existente
-     */
-    
 package fisi.software.detalles.controller;
 
 import org.springframework.web.bind.annotation.*;
