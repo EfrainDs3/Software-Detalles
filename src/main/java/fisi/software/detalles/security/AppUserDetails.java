@@ -28,10 +28,10 @@ public class AppUserDetails implements UserDetails {
             }
             // permisos del rol
             if (rol.getPermisos() != null) {
-                for (Permiso p : rol.getPermisos()) {
-                    if (p != null && p.getCodigo() != null) {
-                        this.authorities.add(new SimpleGrantedAuthority(p.getCodigo().toUpperCase()));
-                    }
+                    for (Permiso p : rol.getPermisos()) {
+                        if (p != null && p.getNombrePermiso() != null) {
+                            this.authorities.add(new SimpleGrantedAuthority(p.getNombrePermiso().toUpperCase()));
+                        }
                 }
             }
         }

@@ -50,7 +50,7 @@ public class DataInitializer {
         return args -> {
             // Run cleanup through a dedicated transactional service to avoid lazy-init outside session
             dataCleanupService.performFullCleanup();
-            dataCleanupService.deletePermissionByCode("ROLES_VIEW");
+            dataCleanupService.deletePermissionByName("Ver roles");
             log.info("📝 Roles actualmente en la base de datos:");
             rolRepository.findAll().forEach(r -> log.info("  - id={} nombre='{}' estado={}", r.getId(), r.getNombre(), r.getEstado()));
             inicializarTiposDocumento();
@@ -154,34 +154,33 @@ public class DataInitializer {
         log.info("Verificando permisos por defecto...");
 
         List<PermisoSeed> permisos = Arrays.asList(
-            new PermisoSeed("DASHBOARD_VIEW", "Acceder al dashboard", "Permite visualizar el panel principal", List.of("Administrador", "Gerente", "Analista")),
-            new PermisoSeed("USERS_VIEW", "Ver usuarios", "Permite visualizar la lista de usuarios", List.of("Administrador", "Gerente", "Supervisor")),
-            new PermisoSeed("USERS_MANAGE", "Gestionar usuarios", "Permite crear, editar y eliminar usuarios", List.of("Administrador", "Gerente")),
-            // ROLES_VIEW removed by initializer for security - not seeded
-            new PermisoSeed("ROLES_MANAGE", "Gestionar roles", "Permite crear, editar y eliminar roles", List.of("Administrador")),
-            new PermisoSeed("PERMISSIONS_VIEW", "Ver permisos", "Permite visualizar permisos del sistema", List.of("Administrador", "Gerente")),
-            new PermisoSeed("PERMISSIONS_MANAGE", "Gestionar permisos", "Permite asignar y revocar permisos", List.of("Administrador")),
-            new PermisoSeed("VENTAS_REGISTRAR", "Registrar ventas", "Permite registrar nuevas ventas", List.of("Administrador", "Vendedor", "Cajero")),
-            new PermisoSeed("INVENTARIO_GESTIONAR", "Gestionar inventario", "Permite gestionar stock y movimientos", List.of("Administrador", "Almacenero")),
-            new PermisoSeed("COMPRAS_GESTIONAR", "Gestionar compras", "Permite registrar órdenes de compra", List.of("Administrador", "Compras"))
+            new PermisoSeed("Acceder al dashboard", "Permite visualizar el panel principal", List.of("Administrador", "Gerente", "Analista")),
+            new PermisoSeed("Ver usuarios", "Permite visualizar la lista de usuarios", List.of("Administrador", "Gerente", "Supervisor")),
+            new PermisoSeed("Gestionar usuarios", "Permite crear, editar y eliminar usuarios", List.of("Administrador", "Gerente")),
+            // ROLES_VIEW removed by initializer for seguridad - not seeded
+            new PermisoSeed("Gestionar roles", "Permite crear, editar y eliminar roles", List.of("Administrador")),
+            new PermisoSeed("Ver permisos", "Permite visualizar permisos del sistema", List.of("Administrador", "Gerente")),
+            new PermisoSeed("Gestionar permisos", "Permite asignar y revocar permisos", List.of("Administrador")),
+            new PermisoSeed("Registrar ventas", "Permite registrar nuevas ventas", List.of("Administrador", "Vendedor", "Cajero")),
+            new PermisoSeed("Gestionar inventario", "Permite gestionar stock y movimientos", List.of("Administrador", "Almacenero")),
+            new PermisoSeed("Gestionar compras", "Permite registrar órdenes de compra", List.of("Administrador", "Compras"))
         );
 
         Map<String, Permiso> permisosMap = new HashMap<>();
 
         permisos.forEach(seed -> {
-            permisoRepository.findByCodigoIgnoreCase(seed.codigo())
+            permisoRepository.findByNombrePermisoIgnoreCase(seed.nombre())
                 .ifPresentOrElse(existing -> {
                     actualizarDatosPermiso(existing, seed);
-                    permisosMap.put(existing.getCodigo(), existing);
+                    permisosMap.put(clavePermiso(existing.getNombrePermiso()), existing);
                 }, () -> {
                     Permiso permiso = new Permiso();
-                    permiso.setCodigo(seed.codigo());
                     permiso.setNombrePermiso(seed.nombre());
                     permiso.setDescripcion(seed.descripcion());
                     permiso.setEstado(ESTADO_ACTIVO);
                     Permiso guardado = permisoRepository.save(permiso);
-                    permisosMap.put(guardado.getCodigo(), guardado);
-                    log.info("  ➕ Permiso creado: {}", guardado.getCodigo());
+                    permisosMap.put(clavePermiso(guardado.getNombrePermiso()), guardado);
+                    log.info("  ➕ Permiso creado: {}", guardado.getNombrePermiso());
                 });
         });
 
@@ -217,10 +216,10 @@ public class DataInitializer {
 
         seeds.forEach(seed -> seed.rolesPorDefecto().forEach(rolNombre -> {
             Rol rol = roles.get(rolNombre.toLowerCase());
-            Permiso permiso = permisosMap.get(seed.codigo());
+            Permiso permiso = permisosMap.get(clavePermiso(seed.nombre()));
             if (rol != null && permiso != null && rol.getPermisos().stream().noneMatch(p -> p.getIdPermiso().equals(permiso.getIdPermiso()))) {
                 rol.getPermisos().add(permiso);
-                log.info("  ✅ Permiso {} asignado al rol {}", permiso.getCodigo(), rol.getNombre());
+                log.info("  ✅ Permiso '{}' asignado al rol {}", permiso.getNombrePermiso(), rol.getNombre());
             }
         }));
 
@@ -229,7 +228,11 @@ public class DataInitializer {
 
     private record RolSeed(String nombre, String descripcion) { }
 
-    private record PermisoSeed(String codigo, String nombre, String descripcion, List<String> rolesPorDefecto) { }
+    private record PermisoSeed(String nombre, String descripcion, List<String> rolesPorDefecto) { }
 
-    // deletePermissionByCode moved to DataCleanupService
+    private String clavePermiso(String nombre) {
+        return nombre == null ? "" : nombre.trim().toLowerCase();
+    }
+
+    // deletePermissionByName moved to DataCleanupService
 }

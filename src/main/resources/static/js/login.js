@@ -1,12 +1,12 @@
 // Login JavaScript
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     const loginForm = document.getElementById('loginForm');
     const usuarioInput = document.getElementById('usuario');
     const passwordInput = document.getElementById('password');
     const loginBtn = document.querySelector('.login-btn');
 
     // Verificar si ya hay una sesión activa
-    function checkExistingSession() {
+    async function checkExistingSession() {
         const usuarioLogueado = localStorage.getItem('usuarioLogueado');
         const nombreMostrado = localStorage.getItem('usuarioNombre') || usuarioLogueado;
         const loginTime = localStorage.getItem('loginTime');
@@ -17,24 +17,53 @@ document.addEventListener('DOMContentLoaded', function() {
             const loginDate = new Date(loginTime);
             const hoursDiff = (now - loginDate) / (1000 * 60 * 60);
             
-            if (hoursDiff < 24) {
-                // Sesión válida, redirigir al dashboard
-                showMessage(`Bienvenido de nuevo, ${nombreMostrado || usuarioLogueado}!`, 'success');
+            if (hoursDiff >= 24) {
+                clearStoredSession();
+                return false;
+            }
+
+            try {
+                const response = await fetch('/api/auth/me', {
+                    credentials: 'include',
+                    headers: { 'Accept': 'application/json' }
+                });
+                const contentType = response.headers.get('content-type') || '';
+                const redirected = response.redirected && response.url.includes('/login');
+
+                if (!response.ok || redirected || !contentType.toLowerCase().includes('application/json')) {
+                    clearStoredSession();
+                    return false;
+                }
+
+                let payload = null;
+                try {
+                    payload = await response.json();
+                } catch (error) {
+                    // Si no hay JSON válido, considerar la sesión inválida
+                    clearStoredSession();
+                    return false;
+                }
+
+                if (!payload || (!payload.username && !payload.nombreCompleto)) {
+                    clearStoredSession();
+                    return false;
+                }
+
+                const nombre = payload?.nombreCompleto || nombreMostrado || usuarioLogueado;
+                showMessage(`Bienvenido de nuevo, ${nombre}!`, 'success');
                 window.location.href = '/dashboard';
                 return true;
-            } else {
-                // Sesión expirada, limpiar localStorage
-                localStorage.removeItem('usuarioLogueado');
-                localStorage.removeItem('usuarioNombre');
-                localStorage.removeItem('loginTime');
-                localStorage.removeItem('usuarioRoles');
+            } catch (error) {
+                // Ignorar errores de red, se limpiará la sesión local
             }
+
+            clearStoredSession();
         }
         return false;
     }
 
     // Verificar sesión al cargar la página
-    if (checkExistingSession()) {
+    if (await checkExistingSession()) {
         return; // Si hay sesión válida, no continuar
     }
 
@@ -50,6 +79,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Función de validación de campos
     function validateField(field) {
         const value = field.value.trim();
+
         const isValid = value.length > 0;
         
         if (isValid) {
@@ -67,8 +97,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const response = await fetch('/api/auth/login', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
             },
+            credentials: 'include',
             body: JSON.stringify({
                 usernameOrEmail: usuario,
                 password
@@ -82,7 +114,10 @@ document.addEventListener('DOMContentLoaded', function() {
             // Ignorar si no hay cuerpo JSON
         }
 
-        if (!response.ok) {
+        const redirected = response.redirected && response.url.includes('/login');
+        const contentType = response.headers.get('content-type') || '';
+
+        if (!response.ok || redirected || !contentType.toLowerCase().includes('application/json')) {
             const message = payload?.error || 'Usuario o contraseña incorrectos';
             throw new Error(message);
         }
@@ -124,11 +159,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const nombreCompleto = data?.nombreCompleto || usuario;
             const roles = data?.roles || [];
+            const permisos = data?.permisos || [];
 
             // Guardar sesión en localStorage
             localStorage.setItem('usuarioLogueado', data?.username || usuario);
             localStorage.setItem('usuarioNombre', nombreCompleto);
             localStorage.setItem('usuarioRoles', JSON.stringify(roles));
+            localStorage.setItem('usuarioPermisos', JSON.stringify(permisos));
             localStorage.setItem('loginTime', new Date().toISOString());
 
             // Redirigir al dashboard inmediatamente
@@ -265,12 +302,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // La navegación al flujo de recuperación se maneja mediante el enlace directo en la vista
 });
 
-// Función para limpiar la sesión (disponible globalmente)
-function limpiarSesion() {
+function clearStoredSession() {
     localStorage.removeItem('usuarioLogueado');
     localStorage.removeItem('usuarioNombre');
     localStorage.removeItem('loginTime');
     localStorage.removeItem('usuarioRoles');
+    localStorage.removeItem('usuarioPermisos');
+}
+
+// Función para limpiar la sesión (disponible globalmente)
+function limpiarSesion() {
+    clearStoredSession();
     alert('Sesión limpiada. Puedes iniciar sesión nuevamente.');
     location.reload(); // Recargar la página
 }

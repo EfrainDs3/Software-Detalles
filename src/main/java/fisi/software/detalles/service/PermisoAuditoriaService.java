@@ -32,7 +32,6 @@ public class PermisoAuditoriaService {
             .accion(accion)
             .detalle(detalle)
             .usuario(StringUtils.hasText(usuario) ? usuario : resolverUsuarioActual())
-            .permisoCodigo(permiso.getCodigo())
             .permisoNombre(permiso.getNombrePermiso())
             .fecha(LocalDateTime.now())
             .build();

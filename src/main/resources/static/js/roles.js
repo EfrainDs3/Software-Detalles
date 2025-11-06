@@ -186,7 +186,7 @@ function formatRoleId(id) {
         return String(id);
     }
 
-    return numericId.toString().padStart(3, '0');
+    return numericId.toString();
 }
 
 function renderRolesPlaceholder(message, iconClass = 'fa-circle-info') {
@@ -196,7 +196,7 @@ function renderRolesPlaceholder(message, iconClass = 'fa-circle-info') {
     tbody.innerHTML = '';
     const row = document.createElement('tr');
     const cell = document.createElement('td');
-    cell.colSpan = 8;
+    cell.colSpan = 7;
     cell.className = 'table-placeholder';
     cell.innerHTML = `<i class="fas ${iconClass}"></i> <span>${message}</span>`;
     row.appendChild(cell);
@@ -309,7 +309,7 @@ function loadRoles() {
 // Create role row
 function createRoleRow(role) {
     const row = document.createElement('tr');
-    
+
     const statusClass = {
         'active': 'badge-active',
         'inactive': 'badge-inactive'
@@ -320,21 +320,18 @@ function createRoleRow(role) {
         'inactive': 'Inactivo'
     };
 
-    // Get role icon based on name
+    // Choose icon based on role name for quick visual identification
     const getRoleIcon = (roleName) => {
-        if (roleName.toLowerCase().includes('admin')) return 'fas fa-user-shield';
-        if (roleName.toLowerCase().includes('gerente') || roleName.toLowerCase().includes('manager')) return 'fas fa-user-tie';
-        if (roleName.toLowerCase().includes('editor')) return 'fas fa-user-cog';
+        if (!roleName) {
+            return 'fas fa-user';
+        }
+
+        const normalized = roleName.toLowerCase();
+        if (normalized.includes('admin')) return 'fas fa-user-shield';
+        if (normalized.includes('gerente') || normalized.includes('manager')) return 'fas fa-user-tie';
+        if (normalized.includes('editor')) return 'fas fa-user-cog';
         return 'fas fa-user';
     };
-
-    const permissionDetails = Array.isArray(role.permissionDetails) ? role.permissionDetails : [];
-    const permissionsHtml = permissionDetails.slice(0, 2).map(permission => 
-        `<span class="badge badge-permission">${getPermissionDisplayName(permission)}</span>`
-    ).join('');
-
-    const morePermissions = permissionDetails.length > 2 ? 
-        `<span class="badge badge-permission">+${permissionDetails.length - 2} más</span>` : '';
 
     const assignedUsers = Array.isArray(role.assignedUsers) ? role.assignedUsers : [];
     const assignedUsersLabel = role.userCount === 1 ? 'usuario' : 'usuarios';
@@ -346,9 +343,13 @@ function createRoleRow(role) {
     const statusBadgeText = statusText[role.status] || 'Inactivo';
 
     row.innerHTML = `
-        <td><input type="checkbox" class="role-checkbox" data-role-id="${role.id}"></td>
-        <td>${role.code}</td>
-        <td>
+        <td class="cell-select">
+            <input type="checkbox" class="role-checkbox" data-role-id="${role.id}">
+        </td>
+        <td class="cell-id">
+            <span class="cell-value">${role.code}</span>
+        </td>
+        <td class="cell-role">
             <div class="user-info">
                 <div class="user-avatar">
                     <i class="${getRoleIcon(role.name)}"></i>
@@ -358,16 +359,16 @@ function createRoleRow(role) {
                 </div>
             </div>
         </td>
-        <td>${role.description}</td>
-        <td>
-            <div class="permissions-list">
-            ${permissionsHtml}
-            ${permissionDetails.length === 0 ? '<span class="badge badge-permission badge-empty">Sin permisos</span>' : morePermissions}
-            </div>
+        <td class="cell-description">
+            <span class="description-text">${role.description}</span>
         </td>
-        <td><span class="badge badge-count" title="${assignedUsersTooltip}">${role.userCount} ${assignedUsersLabel}</span></td>
-        <td><span class="badge ${statusBadgeClass}">${statusBadgeText}</span></td>
-        <td>
+        <td class="cell-users">
+            <span class="badge badge-count" title="${assignedUsersTooltip}">${role.userCount} ${assignedUsersLabel}</span>
+        </td>
+        <td class="cell-status">
+            <span class="badge ${statusBadgeClass}">${statusBadgeText}</span>
+        </td>
+        <td class="cell-actions">
             <div class="action-buttons-cell">
                 <button class="btn-icon btn-edit" title="Editar" data-role-id="${role.id}">
                     <i class="fas fa-edit"></i>
@@ -381,7 +382,7 @@ function createRoleRow(role) {
             </div>
         </td>
     `;
-    
+
     return row;
 }
 
@@ -423,7 +424,7 @@ function handleSearch(e) {
 
     tableRows.forEach(row => {
         const roleName = row.querySelector('.user-name')?.textContent.toLowerCase() || '';
-        const roleDescription = row.cells[3]?.textContent.toLowerCase() || '';
+        const roleDescription = row.querySelector('.cell-description')?.textContent.toLowerCase() || '';
 
         if (roleName.includes(searchTerm) || roleDescription.includes(searchTerm)) {
             row.style.display = '';

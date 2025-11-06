@@ -15,8 +15,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.text.Normalizer;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -29,32 +31,23 @@ public class PermisoService {
     private static final String ACCION_ROL_ACTUALIZADO = "ROL_ACTUALIZADO";
 
     private static final int LIMITE_AUDITORIA = 50;
+    private static final Set<String> VERBOS_INICIALES = Set.of(
+        "ver",
+        "gestionar",
+        "crear",
+        "editar",
+        "registrar",
+        "acceder",
+        "administrar",
+        "eliminar",
+        "listar",
+        "consultar"
+    );
 
     private final PermisoRepository permisoRepository;
     private final RolRepository rolRepository;
     private final UsuarioRepository usuarioRepository;
     private final PermisoAuditoriaService permisoAuditoriaService;
-
-    // Permission codes that should be hidden for standard 'usuario' roles
-    private static final Set<String> RESTRICTED_PERMISSION_CODES_FOR_STANDARD_USER = Set.of(
-        "DASHBOARD_VIEW",
-        "COMPRAS_GESTIONAR",
-        "INVENTARIO_GESTIONAR",
-        "PERMISSIONS_MANAGE",
-        "ROLES_MANAGE",
-        "USERS_MANAGE",
-        "TEST_PERMISSION",
-        "VENTAS_REGISTRAR",
-        "PERMISSIONS_VIEW",
-        "ROLES_VIEW",
-        "USERS_VIEW"
-    );
-
-    // Permission codes that should be masked in the management listing (show only code)
-    private static final Set<String> MASKED_PERMISSION_CODES = Set.of(
-        "ROLES_VIEW",
-        "DASHBOARD_VIEW"
-    );
 
     @Transactional(readOnly = true)
     public List<PermisoResponse> listarPermisos(Boolean soloActivos, String estado, String termino) {
@@ -66,6 +59,17 @@ public class PermisoService {
             terminoNormalizado
         );
 
+        if (StringUtils.hasText(terminoNormalizado)) {
+            String terminoFiltrado = removerAcentos(terminoNormalizado).toLowerCase(Locale.ROOT);
+            if (permisos.isEmpty()) {
+                permisos = permisoRepository.buscarPorFiltros(estadoNormalizado, null);
+            }
+            String terminoFinal = terminoFiltrado;
+            permisos = permisos.stream()
+                .filter(permiso -> coincideBusqueda(permiso, terminoFinal))
+                .toList();
+        }
+
         // initialize roles collection for each permiso to avoid lazy init in DTO mapping
         permisos.forEach(p -> Hibernate.initialize(p.getRoles()));
 
@@ -74,10 +78,6 @@ public class PermisoService {
                 long totalUsuarios = permiso.getRoles().stream()
                     .mapToLong(rol -> usuarioRepository.countByRoles_Id(rol.getId()))
                     .sum();
-                String codigo = Optional.ofNullable(permiso.getCodigo()).orElse("").toUpperCase(Locale.ROOT);
-                if (MASKED_PERMISSION_CODES.contains(codigo)) {
-                    return PermisoResponse.fromEntityMasked(permiso, totalUsuarios);
-                }
                 return PermisoResponse.fromEntity(permiso, totalUsuarios);
             })
             .toList();
@@ -103,9 +103,8 @@ public class PermisoService {
 
     public PermisoResponse crearPermiso(PermisoRequest request) {
         String actor = resolverActor();
-        validarCodigoUnico(null, request.codigo());
         Permiso permiso = new Permiso();
-        aplicarDatos(permiso, request, true, actor);
+    aplicarDatos(permiso, request, true);
         Permiso guardado = permisoRepository.save(permiso);
         registrarAuditoria(guardado, ACCION_CREACION, "Se creó el permiso", actor);
         return PermisoResponse.fromEntity(guardado, 0L);
@@ -114,8 +113,7 @@ public class PermisoService {
     public PermisoResponse actualizarPermiso(Long id, PermisoRequest request) {
         String actor = resolverActor();
         Permiso permiso = obtenerEntidad(id);
-        validarCodigoUnico(id, request.codigo());
-        aplicarDatos(permiso, request, false, actor);
+    aplicarDatos(permiso, request, false);
         Permiso guardado = permisoRepository.save(permiso);
         registrarAuditoria(guardado, ACCION_ACTUALIZACION, "Se actualizó el permiso", actor);
         long totalUsuarios = guardado.getRoles().stream()
@@ -142,15 +140,6 @@ public class PermisoService {
         // initialize permisos collection to avoid lazy loading in view
         Hibernate.initialize(rol.getPermisos());
         List<Permiso> permisosEnt = new ArrayList<>(rol.getPermisos());
-        // apply filtering for 'usuario' like roles
-        if (isStandardUserRole(rol)) {
-            permisosEnt = permisosEnt.stream()
-                .filter(p -> !RESTRICTED_PERMISSION_CODES_FOR_STANDARD_USER.contains(
-                    Optional.ofNullable(p.getCodigo()).orElse("").toUpperCase(Locale.ROOT)
-                ))
-                .toList();
-        }
-
         List<PermisoResumenResponse> permisos = permisosEnt.stream()
             .sorted(Comparator.comparing(Permiso::getNombrePermiso, String.CASE_INSENSITIVE_ORDER))
             .map(PermisoResumenResponse::fromEntity)
@@ -229,16 +218,6 @@ public class PermisoService {
             .sorted(Comparator.comparing(o -> o.permiso().nombre(), String.CASE_INSENSITIVE_ORDER))
             .toList();
 
-        // If the user is effectively a standard 'usuario' (has a usuario-like role and no admin role),
-        // filter out restricted permission codes from the result
-        if (shouldFilterForStandardUsuario(usuario)) {
-            return resultado.stream()
-                .filter(r -> !RESTRICTED_PERMISSION_CODES_FOR_STANDARD_USER.contains(
-                    Optional.ofNullable(r.permiso().codigo()).orElse("").toUpperCase(Locale.ROOT)
-                ))
-                .toList();
-        }
-
         return resultado;
     }
 
@@ -265,8 +244,8 @@ public class PermisoService {
             .orElseThrow(() -> new EntityNotFoundException("Permiso no encontrado"));
     }
 
-    private void aplicarDatos(Permiso permiso, PermisoRequest request, boolean esNuevo, String actor) {
-        permiso.setCodigo(normalizarTexto(request.codigo(), "El código es obligatorio"));
+    private void aplicarDatos(Permiso permiso, PermisoRequest request, boolean esNuevo) {
+        permiso.setModulo(normalizarModulo(request.modulo()));
         permiso.setNombrePermiso(normalizarTexto(request.nombre(), "El nombre es obligatorio"));
         permiso.setDescripcion(StringUtils.hasText(request.descripcion()) ? request.descripcion().trim() : null);
         if (StringUtils.hasText(request.estado())) {
@@ -277,21 +256,6 @@ public class PermisoService {
         if (!StringUtils.hasText(permiso.getEstado())) {
             permiso.setEstado(ESTADO_ACTIVO);
         }
-        String actorNormalizado = StringUtils.hasText(actor) ? actor : resolverActor();
-        if (esNuevo && !StringUtils.hasText(permiso.getCreadoPor())) {
-            permiso.setCreadoPor(actorNormalizado);
-        }
-        permiso.setActualizadoPor(actorNormalizado);
-    }
-
-    private void validarCodigoUnico(Long permisoId, String codigo) {
-        String codigoNormalizado = normalizarTexto(codigo, "El código es obligatorio");
-        permisoRepository.findByCodigoIgnoreCase(codigoNormalizado)
-            .ifPresent(existing -> {
-                if (permisoId == null || !existing.getIdPermiso().equals(permisoId)) {
-                    throw new ValidationException("El código del permiso ya está registrado");
-                }
-            });
     }
 
     private String normalizarTexto(String valor, String mensajeError) {
@@ -319,18 +283,90 @@ public class PermisoService {
     }
 
     private Map<String, List<PermisoResumenResponse>> agruparPorModulo(List<PermisoResumenResponse> permisos) {
-        if (permisos == null) return Collections.emptyMap();
+        if (permisos == null) {
+            return Collections.emptyMap();
+        }
+
         return permisos.stream()
-            .collect(Collectors.groupingBy(p -> {
-                String codigo = Optional.ofNullable(p.codigo()).orElse("");
-                int idx = codigo.indexOf('_');
-                if (idx > 0) return codigo.substring(0, idx).toUpperCase(Locale.ROOT);
-                idx = codigo.indexOf('-');
-                if (idx > 0) return codigo.substring(0, idx).toUpperCase(Locale.ROOT);
-                return "GENERAL";
-            }, Collectors.collectingAndThen(Collectors.toList(), list ->
-                list.stream().sorted(Comparator.comparing(PermisoResumenResponse::nombre, String.CASE_INSENSITIVE_ORDER)).collect(Collectors.toList())
-            )));
+            .collect(Collectors.groupingBy(
+                this::resolverModuloAgrupacion,
+                Collectors.collectingAndThen(Collectors.toList(), list ->
+                    list.stream()
+                        .sorted(Comparator.comparing(PermisoResumenResponse::nombre, String.CASE_INSENSITIVE_ORDER))
+                        .toList()
+                )
+            ));
+    }
+
+    private String resolverModuloAgrupacion(PermisoResumenResponse permiso) {
+        if (permiso == null) {
+            return "General";
+        }
+        if (StringUtils.hasText(permiso.modulo())) {
+            return formatearTitulo(permiso.modulo());
+        }
+        String nombre = Optional.ofNullable(permiso.nombre()).orElse("General").trim();
+        if (nombre.isEmpty()) {
+            return "General";
+        }
+        String[] tokens = nombre.split("\\s+");
+        if (tokens.length == 0) {
+            return "General";
+        }
+        String candidato;
+        if (tokens.length > 1 && esVerboInicial(tokens[0])) {
+            candidato = tokens[tokens.length - 1];
+        } else {
+            candidato = tokens[0];
+        }
+        return formatearTitulo(candidato);
+    }
+
+    private boolean esVerboInicial(String token) {
+        if (!StringUtils.hasText(token)) {
+            return false;
+        }
+        String lower = token.trim().toLowerCase(Locale.ROOT);
+        return VERBOS_INICIALES.contains(lower);
+    }
+
+    private String normalizarModulo(String modulo) {
+        String valor = normalizarTexto(modulo, "El módulo es obligatorio");
+        return formatearTitulo(valor);
+    }
+
+    private String formatearTitulo(String texto) {
+        if (!StringUtils.hasText(texto)) {
+            return "General";
+        }
+        String lower = texto.trim().toLowerCase(Locale.ROOT);
+        String[] tokens = lower.split("\\s+");
+        return Arrays.stream(tokens)
+            .filter(token -> !token.isBlank())
+            .map(token -> Character.toUpperCase(token.charAt(0)) + token.substring(1))
+            .collect(Collectors.joining(" "));
+    }
+
+    private boolean coincideBusqueda(Permiso permiso, String terminoNormalizado) {
+        if (permiso == null || !StringUtils.hasText(terminoNormalizado)) {
+            return true;
+        }
+        return Stream.of(
+                permiso.getNombrePermiso(),
+                permiso.getDescripcion(),
+                permiso.getModulo()
+            )
+            .filter(StringUtils::hasText)
+            .map(valor -> removerAcentos(valor).toLowerCase(Locale.ROOT))
+            .anyMatch(valor -> valor.contains(terminoNormalizado));
+    }
+
+    private String removerAcentos(String valor) {
+        if (!StringUtils.hasText(valor)) {
+            return "";
+        }
+        String normalizado = Normalizer.normalize(valor, Normalizer.Form.NFD);
+        return normalizado.replaceAll("\\p{M}+", "");
     }
 
     private void registrarAuditoria(Permiso permiso, String accion, String detalle, String actor) {
@@ -372,21 +408,4 @@ public class PermisoService {
      * Detects roles that should be considered 'standard usuario' roles.
      * Current heuristic: role name contains the token "usuario" (case-insensitive).
      */
-    private boolean isStandardUserRole(Rol rol) {
-        if (rol == null || rol.getNombre() == null) return false;
-        return rol.getNombre().toLowerCase(Locale.ROOT).contains("usuario");
-    }
-
-    /**
-     * Decide whether to apply filtering for a user: user has at least one usuario-like role
-     * and does not have any role with 'admin' in its name (case-insensitive).
-     */
-    private boolean shouldFilterForStandardUsuario(Usuario usuario) {
-        if (usuario == null || usuario.getRoles() == null) return false;
-        boolean hasUsuarioRole = usuario.getRoles().stream()
-            .anyMatch(r -> r.getNombre() != null && r.getNombre().toLowerCase(Locale.ROOT).contains("usuario"));
-        boolean hasAdminRole = usuario.getRoles().stream()
-            .anyMatch(r -> r.getNombre() != null && r.getNombre().toLowerCase(Locale.ROOT).contains("admin"));
-        return hasUsuarioRole && !hasAdminRole;
-    }
 }

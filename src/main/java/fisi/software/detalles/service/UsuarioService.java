@@ -97,7 +97,10 @@ public class UsuarioService {
         }
 
         usuario.setFechaUltimaSesion(LocalDateTime.now());
-        return usuarioRepository.save(usuario);
+        Usuario actualizado = usuarioRepository.save(usuario);
+
+        return usuarioRepository.findWithRolesAndPermisosById(actualizado.getId())
+            .orElse(actualizado);
     }
 
     public Usuario validarUsuarioActivo(String username) {
@@ -136,6 +139,11 @@ public class UsuarioService {
         Usuario usuario = verificarDatosRecuperacion(username, nombres, apellidos, email, numeroDocumento);
         usuario.setPasswordHash(passwordEncoder.encode(nuevaPassword.trim()));
         usuarioRepository.save(usuario);
+    }
+
+    public Usuario obtenerUsuarioConRoles(Integer id) {
+        return usuarioRepository.findWithRolesAndPermisosById(id)
+            .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
     }
 
     private boolean coincide(String valorSistema, String valorIngresado) {

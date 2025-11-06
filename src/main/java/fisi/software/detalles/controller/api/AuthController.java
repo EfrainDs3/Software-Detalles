@@ -7,14 +7,24 @@ import fisi.software.detalles.controller.dto.auth.LoginRequest;
 import fisi.software.detalles.controller.dto.auth.LoginResponse;
 import fisi.software.detalles.controller.dto.auth.SimpleMessageResponse;
 import fisi.software.detalles.entity.Usuario;
+import fisi.software.detalles.security.UsuarioPrincipal;
 import fisi.software.detalles.service.UsuarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.bind.annotation.GetMapping;
+
+import java.security.Principal;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -24,9 +34,32 @@ public class AuthController {
     private final UsuarioService usuarioService;
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
         Usuario usuarioAutenticado = usuarioService.autenticar(request.usernameOrEmail(), request.password());
+
+        UsuarioPrincipal principal = UsuarioPrincipal.fromUsuario(usuarioAutenticado);
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+            principal,
+            null,
+            principal.getAuthorities()
+        );
+
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(authentication);
+        SecurityContextHolder.setContext(context);
+        httpRequest.getSession(true).setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
+
         return ResponseEntity.ok(LoginResponse.fromEntity(usuarioAutenticado));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<LoginResponse> obtenerSesionActual(Principal principal) {
+        if (!(principal instanceof UsuarioPrincipal usuarioPrincipal)) {
+            return ResponseEntity.status(401).build();
+        }
+
+        var usuario = usuarioService.obtenerUsuarioConRoles(usuarioPrincipal.getId());
+        return ResponseEntity.ok(LoginResponse.fromEntity(usuario));
     }
 
     @PostMapping("/forgot-password/check-user")

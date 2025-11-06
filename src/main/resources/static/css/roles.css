@@ -297,11 +297,33 @@ input[type="checkbox"]:indeterminate {
     letter-spacing: 0.5px;
 }
 
+.check-column {
+    width: 40px;
+    text-align: center;
+}
+
+.check-column input[type="checkbox"] {
+    margin: 0;
+}
+
+.cell-select {
+    width: 40px;
+    text-align: center;
+}
+
+.cell-select input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
 .badge-permission {
     background-color: #17a2b8;
     color: white;
     margin: 2px;
     display: inline-block;
+    text-transform: none;
+    letter-spacing: 0;
 }
 
 .badge-count {
@@ -317,6 +339,13 @@ input[type="checkbox"]:indeterminate {
 .badge-inactive {
     background-color: #6c757d;
     color: white;
+}
+
+.badge-active,
+.badge-inactive {
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 600;
 }
 
 /* Permissions List */

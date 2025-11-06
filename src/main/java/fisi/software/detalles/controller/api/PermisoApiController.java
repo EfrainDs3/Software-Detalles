@@ -5,6 +5,7 @@ import fisi.software.detalles.service.PermisoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,6 +18,7 @@ public class PermisoApiController {
     private final PermisoService permisoService;
 
     @GetMapping
+    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).VER_PERMISOS, T(fisi.software.detalles.security.Permisos).GESTIONAR_PERMISOS)")
     public List<PermisoResponse> listarPermisos(
         @RequestParam(name = "soloActivos", required = false) Boolean soloActivos,
         @RequestParam(name = "estado", required = false) String estado,
@@ -26,28 +28,33 @@ public class PermisoApiController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).VER_PERMISOS, T(fisi.software.detalles.security.Permisos).GESTIONAR_PERMISOS)")
     public PermisoResponse obtenerPermiso(@PathVariable Long id) {
         return permisoService.obtenerPermiso(id);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_PERMISOS)")
     public PermisoResponse crearPermiso(@Valid @RequestBody PermisoRequest request) {
         return permisoService.crearPermiso(request);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_PERMISOS)")
     public PermisoResponse actualizarPermiso(@PathVariable Long id, @Valid @RequestBody PermisoRequest request) {
         return permisoService.actualizarPermiso(id, request);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_PERMISOS)")
     public void eliminarPermiso(@PathVariable Long id) {
         permisoService.eliminarPermiso(id);
     }
 
     @GetMapping("/auditoria")
+    @PreAuthorize("hasAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_PERMISOS)")
     public List<PermisoAuditoriaResponse> listarAuditoria(
         @RequestParam(name = "permisoId", required = false) Long permisoId,
         @RequestParam(name = "limite", required = false) Integer limite
@@ -56,16 +63,19 @@ public class PermisoApiController {
     }
 
     @GetMapping("/roles/{rolId}")
+    @PreAuthorize("hasAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_PERMISOS)")
     public PermisoRolDetalleResponse listarPermisosPorRol(@PathVariable Integer rolId) {
         return permisoService.listarPermisosPorRol(rolId);
     }
 
     @PutMapping("/roles/{rolId}")
+    @PreAuthorize("hasAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_PERMISOS)")
     public PermisoRolDetalleResponse actualizarPermisosRol(@PathVariable Integer rolId, @Valid @RequestBody PermisoAsignacionRequest request) {
         return permisoService.actualizarPermisosRol(rolId, request.permisoIds());
     }
 
     @GetMapping("/usuarios/{usuarioId}")
+    @PreAuthorize("hasAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_PERMISOS)")
     public List<PermisoUsuarioDetalleResponse> listarPermisosPorUsuario(@PathVariable Integer usuarioId) {
         return permisoService.listarPermisosPorUsuario(usuarioId);
     }

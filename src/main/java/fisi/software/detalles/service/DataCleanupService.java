@@ -115,11 +115,11 @@ public class DataCleanupService {
     }
 
     @Transactional
-    public void deletePermissionByCode(String codigo) {
-        if (codigo == null || codigo.trim().isEmpty()) return;
-        String codigoNorm = codigo.trim();
-        log.info("🔍 Buscando permiso con código '{}' para eliminación...", codigoNorm);
-        permisoRepository.findByCodigoIgnoreCase(codigoNorm).ifPresentOrElse(permiso -> {
+    public void deletePermissionByName(String nombre) {
+        if (nombre == null || nombre.trim().isEmpty()) return;
+        String nombreNormalizado = nombre.trim();
+        log.info("🔍 Buscando permiso '{}' para eliminación...", nombreNormalizado);
+        permisoRepository.findByNombrePermisoIgnoreCase(nombreNormalizado).ifPresentOrElse(permiso -> {
             log.info("🔍 Permiso encontrado (id={}), removiendo asociaciones...", permiso.getIdPermiso());
 
             // Remover permiso de roles
@@ -135,7 +135,7 @@ public class DataCleanupService {
 
             // Finalmente eliminar el permiso
             permisoRepository.delete(permiso);
-            log.info("✅ Permiso '{}' eliminado de la base de datos.", codigoNorm);
-        }, () -> log.info("ℹ️ Permiso '{}' no existe en la base de datos, nada que eliminar.", codigoNorm));
+            log.info("✅ Permiso '{}' eliminado de la base de datos.", nombreNormalizado);
+        }, () -> log.info("ℹ️ Permiso '{}' no existe en la base de datos, nada que eliminar.", nombreNormalizado));
     }
 }

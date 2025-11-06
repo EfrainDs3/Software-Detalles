@@ -40,9 +40,6 @@ public class PermisoAuditoria {
     @Column(name = "detalle", length = 500)
     private String detalle;
 
-    @Column(name = "permiso_codigo", length = 100)
-    private String permisoCodigo;
-
     @Column(name = "permiso_nombre", length = 150)
     private String permisoNombre;
 

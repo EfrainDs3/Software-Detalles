@@ -11,7 +11,7 @@ import java.util.Optional;
 
 public interface PermisoRepository extends JpaRepository<Permiso, Long> {
 
-    Optional<Permiso> findByCodigoIgnoreCase(String codigo);
+    Optional<Permiso> findByNombrePermisoIgnoreCase(String nombre);
 
     @EntityGraph(attributePaths = {"roles"})
     List<Permiso> findAllByOrderByNombrePermisoAsc();
@@ -28,7 +28,7 @@ public interface PermisoRepository extends JpaRepository<Permiso, Long> {
               :termino is null
               or lower(p.nombrePermiso) like lower(concat('%', :termino, '%'))
               or lower(p.descripcion) like lower(concat('%', :termino, '%'))
-              or lower(p.codigo) like lower(concat('%', :termino, '%'))
+                            or lower(p.modulo) like lower(concat('%', :termino, '%'))
           )
         order by p.nombrePermiso asc
         """)

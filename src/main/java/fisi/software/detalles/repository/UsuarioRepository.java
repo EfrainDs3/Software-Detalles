@@ -19,6 +19,12 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
 
     Optional<Usuario> findByEmailIgnoreCase(String email);
 
+    @EntityGraph(attributePaths = {"roles", "roles.permisos", "tipoDocumento"})
+    Optional<Usuario> findWithRolesAndPermisosByUsernameIgnoreCase(String username);
+
+    @EntityGraph(attributePaths = {"roles", "roles.permisos", "tipoDocumento"})
+    Optional<Usuario> findWithRolesAndPermisosByEmailIgnoreCase(String email);
+
     Optional<Usuario> findByTipoDocumento_IdTipoDocumentoAndNumeroDocumento(Integer tipoDocumentoId, String numeroDocumento);
 
     boolean existsByRoles_Id(Integer rolId);

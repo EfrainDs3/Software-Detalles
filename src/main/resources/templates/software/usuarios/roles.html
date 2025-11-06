@@ -71,13 +71,12 @@
             <table class="users-table">
                 <thead>
                     <tr>
-                        <th>
+                        <th class="check-column">
                             <input type="checkbox" id="selectAll">
                         </th>
                         <th>ID</th>
                         <th>Nombre del Rol</th>
                         <th>Descripción</th>
-                        <th>Permisos</th>
                         <th>Usuarios Asignados</th>
                         <th>Estado</th>
                         <th>Acciones</th>
@@ -85,7 +84,7 @@
                 </thead>
                 <tbody id="rolesTableBody">
                     <tr>
-                        <td colspan="8" class="placeholder-row">
+                        <td colspan="7" class="placeholder-row">
                             <div class="placeholder-content">
                                 <i class="fas fa-spinner fa-spin"></i>
                                 <span>Cargando roles...</span>
@@ -145,114 +144,6 @@
                     <div class="form-group">
                         <label for="roleDescription">Descripción *</label>
                         <textarea id="roleDescription" name="description" rows="3" required placeholder="Describe las responsabilidades y alcance de este rol..."></textarea>
-                    </div>
-                </div>
-
-                <!-- Permisos -->
-                <div class="form-section">
-                    <h4 class="section-title">
-                        <i class="fas fa-shield-alt"></i>
-                        Permisos del Rol
-                    </h4>
-                    <div class="permissions-container">
-                        <div class="permissions-header">
-                            <div class="permission-select-all">
-                                <label class="permission-item select-all-item">
-                                    <input type="checkbox" id="selectAllPermissions">
-                                    <span><strong>Seleccionar todos los permisos</strong></span>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="permissions-grid">
-                            <div class="permission-category">
-                                <h5 class="category-title">
-                                    <i class="fas fa-users"></i>
-                                    Gestión de Usuarios
-                                </h5>
-                                <div class="permission-list">
-                                    <label class="permission-item">
-                                        <input type="checkbox" name="permissions" value="users.view">
-                                        <span>Ver usuarios</span>
-                                    </label>
-                                    <label class="permission-item">
-                                        <input type="checkbox" name="permissions" value="users.create">
-                                        <span>Crear usuarios</span>
-                                    </label>
-                                    <label class="permission-item">
-                                        <input type="checkbox" name="permissions" value="users.edit">
-                                        <span>Editar usuarios</span>
-                                    </label>
-                                    <label class="permission-item">
-                                        <input type="checkbox" name="permissions" value="users.delete">
-                                        <span>Eliminar usuarios</span>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="permission-category">
-                                <h5 class="category-title">
-                                    <i class="fas fa-box"></i>
-                                    Gestión de Productos
-                                </h5>
-                                <div class="permission-list">
-                                    <label class="permission-item">
-                                        <input type="checkbox" name="permissions" value="products.view">
-                                        <span>Ver productos</span>
-                                    </label>
-                                    <label class="permission-item">
-                                        <input type="checkbox" name="permissions" value="products.create">
-                                        <span>Crear productos</span>
-                                    </label>
-                                    <label class="permission-item">
-                                        <input type="checkbox" name="permissions" value="products.edit">
-                                        <span>Editar productos</span>
-                                    </label>
-                                    <label class="permission-item">
-                                        <input type="checkbox" name="permissions" value="products.delete">
-                                        <span>Eliminar productos</span>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="permission-category">
-                                <h5 class="category-title">
-                                    <i class="fas fa-chart-bar"></i>
-                                    Reportes y Análisis
-                                </h5>
-                                <div class="permission-list">
-                                    <label class="permission-item">
-                                        <input type="checkbox" name="permissions" value="reports.view">
-                                        <span>Ver reportes</span>
-                                    </label>
-                                    <label class="permission-item">
-                                        <input type="checkbox" name="permissions" value="reports.export">
-                                        <span>Exportar reportes</span>
-                                    </label>
-                                    <label class="permission-item">
-                                        <input type="checkbox" name="permissions" value="reports.create">
-                                        <span>Crear reportes personalizados</span>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="permission-category">
-                                <h5 class="category-title">
-                                    <i class="fas fa-cog"></i>
-                                    Sistema y Configuración
-                                </h5>
-                                <div class="permission-list">
-                                    <label class="permission-item">
-                                        <input type="checkbox" name="permissions" value="system.settings">
-                                        <span>Configuración del sistema</span>
-                                    </label>
-                                    <label class="permission-item">
-                                        <input type="checkbox" name="permissions" value="system.audit">
-                                        <span>Ver auditoría</span>
-                                    </label>
-                                    <label class="permission-item">
-                                        <input type="checkbox" name="permissions" value="roles.manage">
-                                        <span>Gestionar roles y permisos</span>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
 

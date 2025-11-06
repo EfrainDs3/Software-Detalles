@@ -1,9 +1,14 @@
 package fisi.software.detalles.config;
 
+import fisi.software.detalles.security.CustomUserDetailsService;
+import fisi.software.detalles.security.Permisos;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -18,7 +23,11 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final CustomUserDetailsService userDetailsService;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -32,9 +41,26 @@ public class SecurityConfig {
             // Configurar autorización
             .authorizeHttpRequests(authorize -> authorize
                 // Recursos públicos
-                .requestMatchers("/css/**", "/js/**", "/img/**", "/images/**", "/login", "/auth/login").permitAll()
-                // Permitir acceso a todas las vistas (temporal para desarrollo)
-                .requestMatchers("/**").permitAll()
+                .requestMatchers("/css/**", "/js/**", "/img/**", "/images/**", "/login", "/forgot-password", "/forgot-password/**").permitAll()
+                .requestMatchers("/api/auth/login", "/api/auth/forgot-password/**").permitAll()
+                .requestMatchers("/api/productos/**").permitAll()
+                // Rutas protegidas
+                .requestMatchers("/dashboard", "/dashboard/**").hasAuthority(Permisos.ACCEDER_AL_DASHBOARD)
+                .requestMatchers("/software/**").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/usuarios/**").hasAnyAuthority(Permisos.GESTIONAR_USUARIOS, Permisos.VER_USUARIOS)
+                .requestMatchers(HttpMethod.POST, "/api/usuarios/**").hasAuthority(Permisos.GESTIONAR_USUARIOS)
+                .requestMatchers(HttpMethod.PUT, "/api/usuarios/**").hasAuthority(Permisos.GESTIONAR_USUARIOS)
+                .requestMatchers(HttpMethod.DELETE, "/api/usuarios/**").hasAuthority(Permisos.GESTIONAR_USUARIOS)
+                .requestMatchers(HttpMethod.GET, "/api/roles/**").hasAnyAuthority(Permisos.GESTIONAR_ROLES, Permisos.VER_ROLES)
+                .requestMatchers(HttpMethod.POST, "/api/roles/**").hasAuthority(Permisos.GESTIONAR_ROLES)
+                .requestMatchers(HttpMethod.PUT, "/api/roles/**").hasAuthority(Permisos.GESTIONAR_ROLES)
+                .requestMatchers(HttpMethod.PATCH, "/api/roles/**").hasAuthority(Permisos.GESTIONAR_ROLES)
+                .requestMatchers(HttpMethod.DELETE, "/api/roles/**").hasAuthority(Permisos.GESTIONAR_ROLES)
+                .requestMatchers(HttpMethod.GET, "/api/permisos/**").hasAnyAuthority(Permisos.GESTIONAR_PERMISOS, Permisos.VER_PERMISOS)
+                .requestMatchers(HttpMethod.POST, "/api/permisos/**").hasAuthority(Permisos.GESTIONAR_PERMISOS)
+                .requestMatchers(HttpMethod.PUT, "/api/permisos/**").hasAuthority(Permisos.GESTIONAR_PERMISOS)
+                .requestMatchers(HttpMethod.DELETE, "/api/permisos/**").hasAuthority(Permisos.GESTIONAR_PERMISOS)
+                .requestMatchers("/api/**").authenticated()
                 .anyRequest().authenticated()
             )
             
@@ -60,6 +86,8 @@ public class SecurityConfig {
                 .deleteCookies("JSESSIONID")
                 .permitAll()
             );
+
+        http.userDetailsService(userDetailsService);
             
         return http.build();
     }
