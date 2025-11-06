@@ -5,7 +5,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * Entidad que representa un almacén xd
+ * Entidad que representa un almacén xd xd
  */
 @Entity
 @Table(name = "almacenes")
