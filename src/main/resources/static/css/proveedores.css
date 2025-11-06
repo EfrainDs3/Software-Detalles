@@ -124,6 +124,13 @@
     background-color: #e0e0e0;
 }
 
+button:disabled,
+.btn-disabled {
+    cursor: not-allowed !important;
+    opacity: 0.6;
+    pointer-events: none;
+}
+
 /* Table Container */
 .table-container {
     background-color: white;

@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="/css/dashboard.css">
     <link rel="stylesheet" href="/css/clientes.css">
 </head>
-<body>
+<body data-can-manage-clientes="false" th:data-can-manage-clientes="${puedeGestionarClientes}">
     <div id="sidebar-container"></div>
 
     <main class="main-content">

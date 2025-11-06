@@ -151,17 +151,61 @@ function renderAssignGrid(permisosPorModulo, selectedIds) {
     grid.className = 'assign-grid';
 
     modules.forEach(mod => {
+        const permisos = permisosPorModulo[mod] || [];
+        const total = permisos.length;
+        const selectedCount = permisos.reduce((acc, permiso) => {
+            const pid = permiso.id ?? permiso.idPermiso ?? permiso.id_permiso;
+            if (pid === null || pid === undefined) {
+                return acc;
+            }
+            return selectedIds.has(String(pid)) ? acc + 1 : acc;
+        }, 0);
+
         const col = document.createElement('div');
         col.className = 'assign-column';
-        const header = document.createElement('h4');
-        header.className = 'assign-module-title';
-        header.textContent = mod;
+        col.dataset.module = mod;
+
+        const header = document.createElement('div');
+        header.className = 'assign-module-header';
+
+        const heading = document.createElement('div');
+        heading.className = 'assign-module-heading';
+
+        const title = document.createElement('h4');
+        title.className = 'assign-module-title';
+        title.textContent = mod;
+
+        const toggleLabel = document.createElement('label');
+        toggleLabel.className = 'assign-module-toggle';
+
+        const toggle = document.createElement('input');
+        toggle.type = 'checkbox';
+        toggle.className = 'assign-module-toggle-input';
+        toggle.dataset.module = mod;
+        toggle.disabled = total === 0;
+        if (total > 0) {
+            toggle.checked = selectedCount === total;
+            toggle.indeterminate = selectedCount > 0 && selectedCount < total;
+        }
+        toggle.addEventListener('change', handleAssignModuleToggle);
+
+        toggleLabel.appendChild(toggle);
+
+        heading.appendChild(title);
+        heading.appendChild(toggleLabel);
+
+        const counter = document.createElement('span');
+        counter.className = 'assign-module-counter';
+        counter.textContent = `${selectedCount}/${total}`;
+
+        header.appendChild(heading);
+        header.appendChild(counter);
         col.appendChild(header);
 
         const list = document.createElement('div');
         list.className = 'assign-perm-list';
 
-        (permisosPorModulo[mod] || []).forEach(p => {
+        permisos.forEach(p => {
             const rawId = p.id ?? p.idPermiso ?? p.id_permiso;
             if (rawId === null || rawId === undefined) {
                 return;
@@ -175,16 +219,10 @@ function renderAssignGrid(permisosPorModulo, selectedIds) {
             checkbox.type = 'checkbox';
             checkbox.id = `assign_perm_${id}`;
             checkbox.dataset.permissionId = id;
+            checkbox.dataset.module = mod;
+            checkbox.className = 'assign-perm-checkbox';
             checkbox.checked = selectedIds.has(id);
-            checkbox.addEventListener('change', (e) => {
-                const pid = e.target.dataset.permissionId;
-                if (!pid) {
-                    e.target.checked = false;
-                    return;
-                }
-                if (e.target.checked) assignState.selectedIds.add(pid);
-                else assignState.selectedIds.delete(pid);
-            });
+            checkbox.addEventListener('change', handleAssignPermissionToggle);
 
             const span = document.createElement('span');
             span.className = 'assign-perm-label';
@@ -239,6 +277,79 @@ async function saveAssignments() {
     } finally {
         assignState.isSaving = false;
         toggleButtonLoading(saveBtn, false);
+    }
+}
+
+function handleAssignModuleToggle(event) {
+    const checkbox = event.target;
+    const moduleName = checkbox.dataset.module;
+    if (!moduleName) return;
+
+    const column = checkbox.closest('.assign-column');
+    const shouldSelect = checkbox.checked;
+
+    if (column) {
+        const checkboxes = column.querySelectorAll('input.assign-perm-checkbox');
+        checkboxes.forEach(cb => {
+            const permissionId = cb.dataset.permissionId;
+            if (!permissionId) return;
+
+            cb.checked = shouldSelect;
+            if (shouldSelect) {
+                assignState.selectedIds.add(permissionId);
+            } else {
+                assignState.selectedIds.delete(permissionId);
+            }
+        });
+
+        updateAssignModuleHeaderState(column);
+    }
+}
+
+function handleAssignPermissionToggle(event) {
+    const checkbox = event.target;
+    const permissionId = checkbox.dataset.permissionId;
+    if (!permissionId) return;
+
+    if (checkbox.checked) {
+        assignState.selectedIds.add(permissionId);
+    } else {
+        assignState.selectedIds.delete(permissionId);
+    }
+
+    const column = checkbox.closest('.assign-column');
+    if (column) {
+        updateAssignModuleHeaderState(column);
+    }
+}
+
+function updateAssignModuleHeaderState(column) {
+    const moduleName = column?.dataset?.module;
+    if (!moduleName) return;
+
+    const permissions = assignState.permisosPorModulo?.[moduleName] || [];
+    const total = permissions.length;
+    let selectedCount = 0;
+
+    permissions.forEach(permiso => {
+        const rawId = permiso.id ?? permiso.idPermiso ?? permiso.id_permiso;
+        if (rawId === null || rawId === undefined) {
+            return;
+        }
+        if (assignState.selectedIds.has(String(rawId))) {
+            selectedCount += 1;
+        }
+    });
+
+    const counter = column.querySelector('.assign-module-counter');
+    if (counter) {
+        counter.textContent = `${selectedCount}/${total}`;
+    }
+
+    const toggle = column.querySelector('.assign-module-toggle-input');
+    if (toggle) {
+        toggle.checked = total > 0 && selectedCount === total;
+        toggle.indeterminate = selectedCount > 0 && selectedCount < total;
     }
 }
 

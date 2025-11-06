@@ -10,7 +10,10 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Instant;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
@@ -24,6 +27,7 @@ public class ReniecService {
     private final String baseUrl;
     private final String token;
     private final String pathTemplate;
+    private static final Pattern DIGITS = Pattern.compile("\\d+");
     private final Logger log = LoggerFactory.getLogger(ReniecService.class);
 
     // Simple in-memory cache to avoid repeating lookups in a short period
@@ -46,7 +50,9 @@ public class ReniecService {
             throw new IllegalStateException("reniec.api.base-url no está configurada. Agrega reniec.api.base-url en application.properties");
         }
 
-        final String key = (tipo + ":" + numero).toLowerCase();
+        String normalizedTipo = normalizarTipo(tipo);
+        String normalizedNumero = normalizarNumero(normalizedTipo, numero);
+        final String key = (normalizedTipo + ':' + normalizedNumero).toLowerCase(Locale.ROOT);
 
         // Check cache
         CacheEntry cached = cache.get(key);
@@ -59,13 +65,19 @@ public class ReniecService {
         if (pathTemplate != null && !pathTemplate.isEmpty()) {
             try {
                 String pt = pathTemplate.startsWith("/") ? pathTemplate : "/" + pathTemplate;
-                UriComponentsBuilder b = UriComponentsBuilder.fromHttpUrl(baseUrl).path(pt);
+                UriComponentsBuilder b = UriComponentsBuilder.fromUriString(baseUrl).path(pt);
                 if (pt.contains("{")) {
                     // replace named placeholders like {numero} and {tipo}
-                    url = b.buildAndExpand(Map.of("numero", numero, "tipo", tipo)).toUriString();
+                    url = b.buildAndExpand(Map.of(
+                        "numero", normalizedNumero,
+                        "tipo", resolveTipoPathToken(normalizedTipo)
+                    )).toUriString();
                 } else {
                     // no placeholders: append as query params
-                    url = b.queryParam("tipo", tipo).queryParam("numero", numero).toUriString();
+                    url = b
+                        .queryParam("tipo", normalizedTipo)
+                        .queryParam("numero", normalizedNumero)
+                        .toUriString();
                 }
             } catch (Exception ex) {
                 log.warn("Fallo al construir la URL con pathTemplate={}, fallback a heurística. Error={}", pathTemplate, ex.toString());
@@ -79,29 +91,30 @@ public class ReniecService {
 
             // If baseUrl contains a placeholder for the number (e.g. https://api/consulta/{numero}) replace it
             if (url.contains("{numero}")) {
-                url = url.replace("{numero}", numero).replace("{tipo}", tipo);
+                url = url
+                    .replace("{numero}", normalizedNumero)
+                    .replace("{tipo}", resolveTipoPathToken(normalizedTipo));
 
             // If provider expects a path like /dni/{numero} and baseUrl looks like a v1 root
             } else if (url.endsWith("/v1") || url.endsWith("/v1/") || url.contains("/dni") || url.contains("/ruc")) {
-                // prefer explicit path for DNI
-                if ("DNI".equalsIgnoreCase(tipo)) {
-                    if (!url.endsWith("/")) url = url + "/";
-                    url = url + "dni/" + numero;
-                } else if ("RUC".equalsIgnoreCase(tipo)) {
-                    if (!url.endsWith("/")) url = url + "/";
-                    url = url + "ruc/" + numero;
+                String sanitized = removeTrailingSlash(url);
+                String lastSegment = extraerUltimoSegmento(sanitized);
+
+                if ("dni".equals(lastSegment) || "ruc".equals(lastSegment)) {
+                    url = ensureEndsWithSlash(sanitized) + normalizedNumero;
                 } else {
-                    // fallback to query params
-                    if (!url.contains("?")) url = url + "?tipo=" + tipo + "&numero=" + numero;
-                    else url = url + "&tipo=" + tipo + "&numero=" + numero;
+                    url = ensureEndsWithSlash(sanitized)
+                        + resolveTipoPathToken(normalizedTipo)
+                        + "/"
+                        + normalizedNumero;
                 }
 
             } else {
                 // Default: append as query parameters tipo & numero
                 if (!url.contains("?")) {
-                    url = url + "?tipo=" + tipo + "&numero=" + numero;
+                    url = url + "?tipo=" + normalizedTipo + "&numero=" + normalizedNumero;
                 } else {
-                    url = url + "&tipo=" + tipo + "&numero=" + numero;
+                    url = url + "&tipo=" + normalizedTipo + "&numero=" + normalizedNumero;
                 }
             }
         }
@@ -116,7 +129,7 @@ public class ReniecService {
         HttpEntity<Void> request = new HttpEntity<>(headers);
 
         try {
-            log.debug("Calling RENIEC provider url={}", url);
+            log.debug("Calling RENIEC provider url={} tipo={} numero={}", url, normalizedTipo, normalizedNumero);
             ResponseEntity<Map<String, Object>> resp = restTemplate.exchange(
                     url,
                     HttpMethod.GET,
@@ -129,11 +142,66 @@ public class ReniecService {
             }
             return body;
         } catch (RestClientException ex) {
-            log.error("Error calling RENIEC provider url={}: {}", url, ex.toString());
-            // Do not throw raw RuntimeException with stacktrace to avoid bubbling unexpected 500s to UI
-            // Return null so controller can respond with an empty object or controlled error
+            log.error("Error calling RENIEC provider url={} tipo={} numero={}: {}", url, normalizedTipo, normalizedNumero, ex.toString());
             return null;
         }
+    }
+
+    private String normalizarTipo(String tipo) {
+        if (tipo == null || tipo.trim().isEmpty()) {
+            throw new IllegalArgumentException("El parámetro 'tipo' es obligatorio (DNI o RUC)");
+        }
+        String normalized = tipo.trim().toUpperCase(Locale.ROOT);
+        if (!Objects.equals(normalized, "DNI") && !Objects.equals(normalized, "RUC")) {
+            throw new IllegalArgumentException("Tipo de documento no soportado: " + normalized + ". Usa DNI o RUC.");
+        }
+        return normalized;
+    }
+
+    private String normalizarNumero(String tipo, String numero) {
+        if (numero == null || numero.trim().isEmpty()) {
+            throw new IllegalArgumentException("El número de documento es obligatorio");
+        }
+        String trimmed = numero.trim();
+        if (!DIGITS.matcher(trimmed).matches()) {
+            throw new IllegalArgumentException("El número de documento solo debe contener dígitos");
+        }
+        if ("DNI".equals(tipo) && trimmed.length() != 8) {
+            throw new IllegalArgumentException("El DNI debe tener 8 dígitos");
+        }
+        if ("RUC".equals(tipo) && trimmed.length() != 11) {
+            throw new IllegalArgumentException("El RUC debe tener 11 dígitos");
+        }
+        return trimmed;
+    }
+
+    private String resolveTipoPathToken(String normalizedTipo) {
+        return normalizedTipo.toLowerCase(Locale.ROOT);
+    }
+
+    private String removeTrailingSlash(String value) {
+        if (value == null || value.length() < 2) {
+            return value;
+        }
+        return value.endsWith("/") ? value.substring(0, value.length() - 1) : value;
+    }
+
+    private String ensureEndsWithSlash(String value) {
+        if (value == null || value.isEmpty()) {
+            return "/";
+        }
+        return value.endsWith("/") ? value : value + "/";
+    }
+
+    private String extraerUltimoSegmento(String url) {
+        if (url == null || url.isEmpty()) {
+            return "";
+        }
+        int lastSlash = url.lastIndexOf('/');
+        if (lastSlash == -1 || lastSlash == url.length() - 1) {
+            return url.toLowerCase(Locale.ROOT);
+        }
+        return url.substring(lastSlash + 1).toLowerCase(Locale.ROOT);
     }
 
     private static class CacheEntry {

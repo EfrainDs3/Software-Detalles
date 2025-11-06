@@ -1,11 +1,14 @@
 package fisi.software.detalles.controller;
 
 import fisi.software.detalles.entity.Proveedor;
+import fisi.software.detalles.security.Permisos;
 import fisi.software.detalles.service.ProveedorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -21,7 +24,10 @@ public class ProveedorController {
 
     // GET: Cargar vista de proveedores
     @GetMapping("/compras/proveedores")
-    public String showProveedoresView() {
+    public String showProveedoresView(Model model, Authentication authentication) {
+        boolean puedeGestionarCompras = authentication != null && authentication.getAuthorities().stream()
+            .anyMatch(authority -> Permisos.GESTIONAR_COMPRAS.equals(authority.getAuthority()));
+        model.addAttribute("puedeGestionarCompras", puedeGestionarCompras);
         return "software/compras/proveedores";
     }
 

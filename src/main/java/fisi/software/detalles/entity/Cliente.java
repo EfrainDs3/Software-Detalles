@@ -29,7 +29,7 @@ public class Cliente {
     @Column(name = "nombre", nullable = false, length = 100)
     private String nombre;
     
-    @Column(name = "apellido", nullable = false, length = 100)
+    @Column(name = "apellido", nullable = true, length = 100)
     private String apellido;
     
     @ManyToOne
@@ -73,6 +73,8 @@ public class Cliente {
      * @return Nombre completo
      */
     public String getNombreCompleto() {
-        return nombre + " " + apellido;
+        String safeNombre = nombre != null ? nombre.trim() : "";
+        String safeApellido = apellido != null ? apellido.trim() : "";
+        return (safeNombre + " " + safeApellido).trim();
     }
 }
