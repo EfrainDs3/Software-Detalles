@@ -37,6 +37,213 @@ document.addEventListener('DOMContentLoaded', () => {
     const detalleVentaTotal = document.getElementById('detalleVentaTotal');
     const detalleProductosList = document.getElementById('detalleProductosList');
 
+
+    // CÓDIGO PARA COPIAR Y PEGAR EN /js/ventas.js (Reemplaza la sección de Cliente anterior)
+
+// ======================================================
+// CONSTANTES DE CLIENTE
+// ======================================================
+
+const clienteTipoDocInput = document.getElementById('clienteTipoDoc');
+const clienteNumDocInput = document.getElementById('clienteNumDoc');
+const buscarClienteBtn = document.getElementById('buscarClienteBtn');
+const clienteInfoDiv = document.getElementById('clienteInfo');
+const nombreClienteResultado = document.getElementById('nombreClienteResultado');
+const registrarClienteBtn = document.getElementById('registrarClienteBtn');
+const idClienteVentaInput = document.getElementById('idClienteVenta'); 
+
+// Constantes del Modal
+const clienteModal = document.getElementById('clienteModal');
+const cerrarModalClienteBtn = document.getElementById('cerrarModalClienteBtn');
+const cerrarModalClienteBtnTop = document.getElementById('cerrarModalClienteBtnTop');
+const guardarClienteBtn = document.getElementById('guardarClienteBtn');
+const modalClienteTipoDoc = document.getElementById('modalClienteTipoDoc');
+const modalClienteNumDoc = document.getElementById('modalClienteNumDoc');
+const modalClienteNombres = document.getElementById('modalClienteNombres');
+const modalClienteApellidos = document.getElementById('modalClienteApellidos');
+
+// ✅ FUNCIÓN PARA ESTABLECER LA FECHA ACTUAL
+function setFechaActual() {
+    const hoy = new Date();
+    const year = hoy.getFullYear();
+    const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+    const dia = String(hoy.getDate()).padStart(2, '0');
+    const fechaFormateada = `${year}-${mes}-${dia}`;
+    
+    ventaFechaInput.value = fechaFormateada;
+}
+
+// Escuchadores de Eventos
+buscarClienteBtn.addEventListener('click', buscarClientePorDocumento);
+registrarClienteBtn.addEventListener('click', () => {
+    // 1. Prepara el modal con los datos de búsqueda
+    modalClienteTipoDoc.value = clienteTipoDocInput.value;
+    modalClienteNumDoc.value = clienteNumDocInput.value.trim();
+    modalClienteNombres.value = '';
+    modalClienteApellidos.value = '';
+    
+    // 2. Abre el modal
+    clienteModal.style.display = 'block';
+});
+
+cerrarModalClienteBtn.addEventListener('click', () => { clienteModal.style.display = 'none'; });
+cerrarModalClienteBtnTop.addEventListener('click', () => { clienteModal.style.display = 'none'; });
+guardarClienteBtn.addEventListener('click', registrarCliente);
+
+
+// ======================================================
+// LÓGICA DE BÚSQUEDA
+// ======================================================
+
+async function buscarClientePorDocumento() {
+    const idTipoDoc = clienteTipoDocInput.value;
+    const numDoc = clienteNumDocInput.value.trim();
+    
+    if (!numDoc || idTipoDoc === '0') {
+        alert("Seleccione un tipo y número de documento válidos.");
+        return;
+    }
+
+    // Reset de estado visual
+    idClienteVentaInput.value = '1';
+    nombreClienteResultado.textContent = 'Buscando...';
+    clienteInfoDiv.style.display = 'block';
+    clienteInfoDiv.className = 'alert mt-2 alert-warning'; 
+    registrarClienteBtn.style.display = 'none';
+
+    try {
+        const response = await fetch(`/clientes/api/buscar-documento?idTipoDoc=${idTipoDoc}&numDoc=${numDoc}`);
+
+        if (response.ok) {
+            const cliente = await response.json();
+            
+            // ✅ Cliente ENCONTRADO
+            idClienteVentaInput.value = cliente.idCliente;
+            
+            const nombreCompleto = `${cliente.nombres || ''} ${cliente.apellidos || ''}`.trim();
+            nombreClienteResultado.textContent = nombreCompleto || `Cliente #ID ${cliente.idCliente}`;
+            
+            // ✅ AUTO-RELLENAR EL CAMPO "CLIENTE" DEL FORMULARIO
+            ventaClienteInput.value = nombreCompleto || `Doc: ${cliente.numeroDocumento}`;
+
+            clienteInfoDiv.className = 'alert mt-2 alert-success';
+            registrarClienteBtn.style.display = 'none';
+            clienteTipoDocInput.disabled = true;
+            clienteNumDocInput.disabled = true;
+            buscarClienteBtn.disabled = true;
+
+        } else if (response.status === 404) {
+            // Cliente NO ENCONTRADO
+            nombreClienteResultado.textContent = `No existe cliente con ese documento.`;
+            clienteInfoDiv.className = 'alert mt-2 alert-danger';
+            registrarClienteBtn.style.display = 'block';
+            
+            // ✅ LIMPIAR EL CAMPO CLIENTE
+            ventaClienteInput.value = '';
+
+        } else {
+            nombreClienteResultado.textContent = 'Error al buscar cliente. (Servidor)';
+            clienteInfoDiv.className = 'alert mt-2 alert-warning';
+        }
+    } catch (error) {
+        console.error('Error de conexión en búsqueda de cliente:', error);
+        nombreClienteResultado.textContent = 'Error de conexión con el servidor.';
+        clienteInfoDiv.className = 'alert mt-2 alert-warning';
+    }
+}
+
+
+// ======================================================
+// LÓGICA DE REGISTRO RÁPIDO
+// ======================================================
+
+async function registrarCliente() {
+    const idTipoDoc = modalClienteTipoDoc.value;
+    const numDoc = modalClienteNumDoc.value.trim();
+    const nombres = modalClienteNombres.value.trim();
+    const apellidos = modalClienteApellidos.value.trim();
+
+    // ✅ VALIDACIÓN MANUAL
+    if (!idTipoDoc || idTipoDoc === '0') {
+        alert("❌ Debe seleccionar un Tipo de Documento.");
+        modalClienteTipoDoc.focus();
+        return;
+    }
+    
+    if (!numDoc) {
+        alert("❌ El Número de Documento es obligatorio.");
+        modalClienteNumDoc.focus();
+        return;
+    }
+    
+    if (!nombres) {
+        alert("❌ El campo Nombres/Razón Social es obligatorio.");
+        modalClienteNombres.focus();
+        return;
+    }
+
+    const clienteData = {
+        idTipoDocumento: parseInt(idTipoDoc),
+        numeroDocumento: numDoc,
+        nombres: nombres,
+        apellidos: apellidos
+    };
+
+    try {
+        const response = await fetch('/clientes/api', { 
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(clienteData)
+        });
+
+        if (response.status === 201) {
+            const nuevoCliente = await response.json();
+            
+            // 1. Cierra el modal
+            clienteModal.style.display = 'none';
+            
+            // 2. Limpia los campos del modal
+            modalClienteNumDoc.value = '';
+            modalClienteNombres.value = '';
+            modalClienteApellidos.value = '';
+            
+            // 3. Asigna el nuevo cliente al formulario de venta
+            clienteTipoDocInput.value = nuevoCliente.tipoDocumento.idTipoDocumento; 
+            clienteNumDocInput.value = nuevoCliente.numeroDocumento;
+            
+            // 4. Ejecuta la búsqueda para actualizar el estado
+            await buscarClientePorDocumento();
+            
+            alert("✅ Cliente registrado y seleccionado correctamente.");
+        } else {
+            const error = await response.json();
+            alert(`❌ Error al registrar el cliente: ${error.error || 'Datos inválidos o ya existe un cliente con ese documento.'}`);
+        }
+    } catch (error) {
+        console.error('Error de conexión en registro de cliente:', error);
+        alert("❌ Error de conexión con el servidor al registrar cliente.");
+    }
+}
+
+// ======================================================
+// FUNCIÓN AUXILIAR DE REINICIO
+// ======================================================
+
+function resetClienteForm() {
+    clienteTipoDocInput.value = '0';
+    clienteNumDocInput.value = '';
+    idClienteVentaInput.value = '1'; 
+    nombreClienteResultado.textContent = 'Público General';
+    clienteInfoDiv.style.display = 'none';
+    registrarClienteBtn.style.display = 'none';
+    clienteTipoDocInput.disabled = false;
+    clienteNumDocInput.disabled = false;
+    buscarClienteBtn.disabled = false;
+}
+
+// 🛑 RECORDATORIO: En tu función `crearVenta()` (en ventas.js), 
+// asegúrate de enviar el campo: id_cliente: parseInt(idClienteVentaInput.value)
+
     // ❌ ELIMINAMOS LOS DATOS DE EJEMPLO E INICIALIZAMOS LA VARIABLE VACÍA
     let ventasData = []; 
 
@@ -75,16 +282,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Función para renderizar la tabla (Ahora usa 'ventasData' llenada por la API)
     function renderVentas() {
-        // Hacemos que la función sea compatible con el formato que devuelve el backend
         ventasTableBody.innerHTML = '';
+        
+        if (ventasData.length === 0) {
+            ventasTableBody.innerHTML = '<tr><td colspan="8" class="text-center">No hay ventas registradas</td></tr>';
+            return;
+        }
+        
         ventasData.forEach(venta => {
-            // **IMPORTANTE**: Ajustar los nombres de las propiedades al formato de tu DTO/Entity de Java
-            const id = venta.idVenta || venta.id; // Asumo idVenta si usaste ese DTO
-            const cliente = venta.cliente ? venta.cliente.nombreCompleto : venta.nombre_cliente_temp; // Ejemplo de cómo acceder
-            const fecha = venta.fecha_emision || venta.fecha; 
-            const metodoPago = venta.tipoPago ? venta.tipoPago.nombre : venta.metodoPago; // Asumiendo que el backend trae un objeto
-            const estado = venta.estado_comprobante || venta.estado;
-            const total = venta.monto_total || venta.total;
+            // ✅ ACCESO CORRECTO A LAS PROPIEDADES DEL DTO
+            const id = venta.id;
+            const cliente = venta.cliente || 'Público General'; // ✅ Ya viene como string del backend
+            const fecha = venta.fecha ? new Date(venta.fecha).toLocaleDateString('es-PE') : '';
+            const metodoPago = venta.metodoPago || 'N/A';
+            const estado = venta.estado || 'Emitido';
+            const total = venta.total || 0;
 
             const row = document.createElement('tr');
             row.innerHTML = `
@@ -94,7 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${fecha}</td>
                 <td>${metodoPago}</td>
                 <td><span class="status-badge ${estado.toLowerCase()}">${estado}</span></td>
-                <td><span class="price">S/ ${total ? total.toFixed(2) : '0.00'}</span></td>
+                <td><span class="price">S/ ${total.toFixed(2)}</span></td>
                 <td>
                     <div class="action-buttons-cell">
                         <button class="btn-icon btn-edit" data-id="${id}" title="Editar">
@@ -114,6 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             ventasTableBody.appendChild(row);
         });
+        
         updateSelectAllCheckbox();
     }
     
@@ -169,7 +382,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Función para abrir el modal
     function openModal() {
         ventaModal.style.display = 'block';
-        toggleFacturaFields(); // Esto inicializa los campos
+        toggleFacturaFields();
+        setFechaActual(); // ✅ ESTABLECE LA FECHA ACTUAL
     }
 
     // Función para cerrar el modal
@@ -183,21 +397,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showDetalleModal(venta) {
-        detalleVentaId.textContent = venta.idVenta || venta.id;
-        detalleVentaCliente.textContent = venta.cliente ? venta.cliente.nombreCompleto : venta.nombre_cliente_temp;
-        detalleVentaFecha.textContent = venta.fecha_emision || venta.fecha;
-        detalleVentaMetodoPago.textContent = venta.tipoPago ? venta.tipoPago.nombre : venta.metodoPago;
-        detalleVentaEstado.textContent = venta.estado_comprobante || venta.estado;
-        detalleVentaTotal.textContent = `S/ ${(venta.monto_total || venta.total).toFixed(2)}`;
+        // ✅ ACCESO CORRECTO A LAS PROPIEDADES
+        detalleVentaId.textContent = venta.id;
+        detalleVentaCliente.textContent = venta.cliente || 'Público General';
+        detalleVentaFecha.textContent = venta.fecha ? new Date(venta.fecha).toLocaleDateString('es-PE') : '';
+        detalleVentaMetodoPago.textContent = venta.metodoPago || 'N/A';
+        detalleVentaEstado.textContent = venta.estado || 'Emitido';
+        detalleVentaTotal.textContent = `S/ ${(venta.total || 0).toFixed(2)}`;
 
-        detalleProductosList.innerHTML = ''; // Limpiar la lista anterior
-        const productosDetalle = venta.detalles || venta.productos;
+        detalleProductosList.innerHTML = '';
+        const productosDetalle = venta.detalles || [];
+        
         productosDetalle.forEach(producto => {
             const li = document.createElement('li');
-            // Adaptar la visualización según el nombre de la propiedad
-            const nombreProd = producto.nombre_producto || producto.nombre; 
-            const cantidadProd = producto.cantidad || producto.cantidad;
-            const precioProd = producto.precio_unitario || producto.precio;
+            const nombreProd = producto.nombre_producto || 'Producto sin nombre';
+            const cantidadProd = producto.cantidad || 0;
+            const precioProd = producto.precio_unitario || 0;
             
             li.innerHTML = `
                 <span>${cantidadProd} x ${nombreProd}</span>
@@ -211,29 +426,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Función para llenar el modal con datos de una venta
     function fillForm(venta) {
-        ventaIdInput.value = venta.idVenta || venta.id;
-        // Asumiendo que el backend envía el nombre_cliente_temp para el campo de texto
-        ventaClienteInput.value = venta.nombre_cliente_temp || venta.cliente; 
-        ventaFechaInput.value = venta.fecha_emision || venta.fecha;
-        // Asumiendo que el select usa el ID del tipo de pago
-        ventaMetodoPagoSelect.value = venta.id_tipopago || venta.metodoPago; 
-        ventaEstadoSelect.value = venta.estado_comprobante || venta.estado;
+        // ✅ ACCESO CORRECTO A LAS PROPIEDADES
+        ventaIdInput.value = venta.id || '';
+        ventaClienteInput.value = venta.cliente || '';
         
-        // Cargar campos de factura si existen
-        if(venta.id_tipo_comprobante) ventaTipoComprobanteSelect.value = venta.id_tipo_comprobante.toString();
+        // Convertir fecha ISO a formato yyyy-mm-dd
+        if (venta.fecha) {
+            const fecha = new Date(venta.fecha);
+            const year = fecha.getFullYear();
+            const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+            const dia = String(fecha.getDate()).padStart(2, '0');
+            ventaFechaInput.value = `${year}-${mes}-${dia}`;
+        }
+        
+        ventaMetodoPagoSelect.value = venta.metodoPago || '';
+        ventaEstadoSelect.value = venta.estado || 'Emitido';
+        
+        // Cargar tipo de comprobante si existe
+        if (venta.id_tipo_comprobante) {
+            ventaTipoComprobanteSelect.value = venta.id_tipo_comprobante.toString();
+        }
+        
         ventaRUCInput.value = venta.ruc || '';
         ventaRazonSocialInput.value = venta.razon_social || '';
-        toggleFacturaFields(); // Aplicar reglas de visibilidad
+        toggleFacturaFields();
 
+        // Cargar productos
         productosContainer.innerHTML = '';
-        const productosDetalle = venta.detalles || venta.productos;
+        const productosDetalle = venta.detalles || [];
+        
         productosDetalle.forEach(product => {
-             // Adaptar la carga al formato del DTO (detalles o productos)
-             addProductInput({ 
-                nombre: product.nombre_producto || product.nombre,
-                cantidad: product.cantidad || product.cantidad,
-                precio: product.precio_unitario || product.precio,
-             });
+            addProductInput({ 
+                nombre: product.nombre_producto || '',
+                cantidad: product.cantidad || 1,
+                precio: product.precio_unitario || 0
+            });
         });
         
         calculateTotal();
@@ -276,6 +503,7 @@ document.addEventListener('DOMContentLoaded', () => {
     addVentaBtn.addEventListener('click', () => {
         openModal();
         modalTitle.textContent = 'Nueva Venta';
+        resetClienteForm(); // ✅ Resetea el formulario de cliente
         addProductInput();
     });
 
@@ -311,16 +539,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 2. Construir el objeto de Venta (ComprobantePago)
         const ventaPayload = {
-            // Mantenemos el nombre 'id_comprobante' para POST/PUT
-            id_comprobante: ventaIdInput.value || null, 
-            
-            // CAMPOS DEL COMPROBANTE
+            id_comprobante: ventaIdInput.value || null,
             id_tipo_comprobante: parseInt(ventaTipoComprobanteSelect.value),
             ruc: ventaRUCInput.value || null,
             razon_social: ventaRazonSocialInput.value || null,
             
-            // OTROS CAMPOS
-            nombre_cliente_temp: ventaClienteInput.value, 
+            // ✅ ENVIAR EL ID DEL CLIENTE (NO EL NOMBRE)
+            id_cliente: parseInt(idClienteVentaInput.value), // ✅ CRÍTICO
+            
             fecha_emision: ventaFechaInput.value,
             id_tipopago: ventaMetodoPagoSelect.value,
             estado_comprobante: ventaEstadoSelect.value,
@@ -331,7 +557,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const success = await saveVenta(ventaPayload);
 
         if (success) {
-            // ⭐️ LLAMAMOS A LA FUNCIÓN QUE TRAE LOS DATOS REALES DE LA BASE DE DATOS
             await fetchAndRenderVentas(); 
             closeModal();
         }
@@ -376,13 +601,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Delegación de eventos para los botones de la tabla
-    ventasTableBody.addEventListener('click', async (e) => { // Agregamos 'async' aquí
+    ventasTableBody.addEventListener('click', async (e) => {
         const btn = e.target.closest('.btn-icon');
         if (!btn) return;
 
         const ventaId = btn.dataset.id;
-        // Obtenemos la venta del arreglo cargado previamente
-        const venta = ventasData.find(v => (v.idVenta || v.id) == ventaId); 
+        // ✅ BUSCAR POR LA PROPIEDAD CORRECTA
+        const venta = ventasData.find(v => v.id == ventaId); 
         
         if (btn.classList.contains('btn-edit')) {
             if (venta) {
@@ -392,27 +617,24 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } else if (btn.classList.contains('btn-delete')) {
             if (confirm('¿Estás seguro de que deseas eliminar esta venta? Esta acción no se puede deshacer.')) {
-                 // **[PENDIENTE]** Debes crear un endpoint DELETE en VentasController.java
-                 const deleteUrl = `/ventas/api/${ventaId}`;
-                 try {
+                const deleteUrl = `/ventas/api/${ventaId}`;
+                try {
                     const response = await fetch(deleteUrl, { method: 'DELETE' });
                     if (!response.ok) throw new Error('Error al eliminar en el servidor.');
                     
-                    alert('Venta eliminada exitosamente.');
-                    // Vuelve a cargar y renderizar los datos
+                    alert('✅ Venta eliminada exitosamente.');
                     await fetchAndRenderVentas(); 
                     
-                 } catch (error) {
+                } catch (error) {
                     console.error('Error al eliminar la venta:', error);
-                    alert('Fallo la eliminación de la venta: ' + error.message);
-                 }
+                    alert('❌ Falló la eliminación de la venta: ' + error.message);
+                }
             }
         } else if (btn.classList.contains('btn-view')) {
             if (venta) {
                 showDetalleModal(venta);
             }
         } else if (btn.classList.contains('btn-pdf')) {
-            // --- LÓGICA DE EXPORTACIÓN A PDF ---
             exportarVentaAPDF(ventaId);
         }
     });

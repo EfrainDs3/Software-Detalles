@@ -16,7 +16,12 @@
       proveedores: []
     },
     filtros: {
-      busqueda: ''
+      busqueda: '',
+      marca: '',
+      modelo: '',
+      color: '',
+      tipo: '',
+      material: ''
     },
     editandoId: null
   };
@@ -57,7 +62,7 @@
 
     addBtn?.addEventListener('click', ()=> abrirModal());
 
-    filterBtn?.addEventListener('click', ()=> showNotification('Los filtros avanzados estarán disponibles próximamente', 'info'));
+    filterBtn?.addEventListener('click', openFilterModal);
 
     selectAll?.addEventListener('change', (event)=>{
       document.querySelectorAll('.accesorio-checkbox').forEach(cb => {
@@ -192,7 +197,6 @@
       preview.dataset.source = modeloSeleccionado.imagen;
       preview.dataset.modelImage = 'true';
     } else {
-      preview.innerHTML = '<i class="fas fa-camera"></i><span>Click para subir imagen</span>';
       preview.style.backgroundImage = '';
       delete preview.dataset.source;
       delete preview.dataset.modelImage;
@@ -201,7 +205,7 @@
 
   async function cargarProductos(){
     const data = await apiGet(PRODUCT_API);
-    state.items = Array.isArray(data) ? data.map(mapearProducto) : [];
+    state.items = Array.isArray(data) ? data.map(mapearProducto).sort((a, b) => a.id - b.id) : [];
     renderTabla();
   }
 
@@ -234,13 +238,35 @@
     const tbody = document.getElementById('accesoriosTableBody');
     if (!tbody) return;
     const filtro = state.filtros.busqueda;
-    const registros = !filtro ? state.items : state.items.filter(item => {
-      const texto = [item.nombre, item.marca?.nombre, item.modelo?.nombre, item.material?.nombre, item.color]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
-      return texto.includes(filtro);
-    });
+    let registros = state.items;
+
+    // Aplicar filtros avanzados
+    if (state.filtros.marca) {
+      registros = registros.filter(item => item.marca?.nombre === state.filtros.marca);
+    }
+    if (state.filtros.modelo) {
+      registros = registros.filter(item => item.modelo?.nombre === state.filtros.modelo);
+    }
+    if (state.filtros.color) {
+      registros = registros.filter(item => item.color === state.filtros.color);
+    }
+    if (state.filtros.tipo) {
+      registros = registros.filter(item => item.tipo === state.filtros.tipo);
+    }
+    if (state.filtros.material) {
+      registros = registros.filter(item => item.material?.nombre === state.filtros.material);
+    }
+
+    // Aplicar búsqueda
+    if (filtro) {
+      registros = registros.filter(item => {
+        const texto = [item.nombre, item.marca?.nombre, item.modelo?.nombre, item.material?.nombre, item.color]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
+        return texto.includes(filtro);
+      });
+    }
 
     if (!registros.length){
       tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state">No hay accesorios registrados todavía.</div></td></tr>`;
@@ -353,7 +379,7 @@
     }
     const preview = document.getElementById('imagePreview');
     if (preview){
-      preview.innerHTML = '<i class="fas fa-camera"></i><span>Click para subir imagen</span>';
+    
       preview.style.backgroundImage = '';
       delete preview.dataset.source;
       delete preview.dataset.modelImage;
@@ -486,7 +512,7 @@
 
     const tallas = recolectarTallas();
     if (!tallas.length){
-      throw new Error('Registra al menos una talla con precio de venta');
+      throw new Error('Debe registrar al menos una talla con precio de venta');
     }
 
     return {
@@ -773,6 +799,131 @@
     } catch (_){
       return response.statusText || 'Error desconocido';
     }
+  }
+
+  function openFilterModal(){
+    const modalId = 'filterModal';
+    let modal = document.getElementById(modalId);
+    if (!modal){
+      modal = document.createElement('div');
+      modal.className = 'modal';
+      modal.id = modalId;
+      modal.innerHTML = `
+        <div class="modal-content" style="max-width: 500px;">
+          <div class="modal-header">
+            <h3>Filtros Avanzados</h3>
+            <button class="modal-close" data-close="${modalId}"><i class="fas fa-times"></i></button>
+          </div>
+          <div class="modal-body">
+            <form id="filterForm">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="filterMarca">Marca</label>
+                  <select id="filterMarca">
+                    <option value="">Todas las marcas</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="filterModelo">Modelo</label>
+                  <select id="filterModelo">
+                    <option value="">Todos los modelos</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="filterColor">Color</label>
+                  <select id="filterColor">
+                    <option value="">Todos los colores</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="filterTipo">Tipo</label>
+                  <select id="filterTipo">
+                    <option value="">Todos los tipos</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="filterMaterial">Material</label>
+                  <select id="filterMaterial">
+                    <option value="">Todos los materiales</option>
+                  </select>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="clearFiltersBtn">Limpiar Filtros</button>
+            <button type="button" class="btn btn-primary" id="applyFiltersBtn">Aplicar Filtros</button>
+          </div>
+        </div>`;
+      document.body.appendChild(modal);
+      modal.addEventListener('click', (e)=>{
+        if (e.target === modal || e.target.closest('[data-close]')){
+          modal.style.display = 'none';
+        }
+      });
+
+      // Event listeners
+      document.getElementById('clearFiltersBtn').addEventListener('click', ()=>{
+        state.filtros.marca = '';
+        state.filtros.modelo = '';
+        state.filtros.color = '';
+        state.filtros.tipo = '';
+        state.filtros.material = '';
+        populateFilterSelects();
+        renderTabla();
+        modal.style.display = 'none';
+        showNotification('Filtros limpiados');
+      });
+
+      document.getElementById('applyFiltersBtn').addEventListener('click', ()=>{
+        state.filtros.marca = document.getElementById('filterMarca').value;
+        state.filtros.modelo = document.getElementById('filterModelo').value;
+        state.filtros.color = document.getElementById('filterColor').value;
+        state.filtros.tipo = document.getElementById('filterTipo').value;
+        state.filtros.material = document.getElementById('filterMaterial').value;
+        renderTabla();
+        modal.style.display = 'none';
+        showNotification('Filtros aplicados');
+      });
+    }
+
+    populateFilterSelects();
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function populateFilterSelects(){
+    const marcas = getUniqueValues(state.items, 'marca.nombre');
+    const modelos = getUniqueValues(state.items, 'modelo.nombre');
+    const colores = getUniqueValues(state.items, 'color');
+    const tipos = getUniqueValues(state.items, 'tipo');
+    const materiales = getUniqueValues(state.items, 'material.nombre');
+
+    poblarSelect('filterMarca', marcas.map(m => ({ id: m, nombre: m })), { value: 'id', label: 'nombre' });
+    poblarSelect('filterModelo', modelos.map(m => ({ id: m, nombre: m })), { value: 'id', label: 'nombre' });
+    poblarSelect('filterColor', colores.map(c => ({ id: c, nombre: c })), { value: 'id', label: 'nombre' });
+    poblarSelect('filterTipo', tipos.map(t => ({ id: t, nombre: t })), { value: 'id', label: 'nombre' });
+    poblarSelect('filterMaterial', materiales.map(m => ({ id: m, nombre: m })), { value: 'id', label: 'nombre' });
+
+    // Set current values
+    document.getElementById('filterMarca').value = state.filtros.marca;
+    document.getElementById('filterModelo').value = state.filtros.modelo;
+    document.getElementById('filterColor').value = state.filtros.color;
+    document.getElementById('filterTipo').value = state.filtros.tipo;
+    document.getElementById('filterMaterial').value = state.filtros.material;
+  }
+
+  function getUniqueValues(items, path){
+    const values = new Set();
+    items.forEach(item => {
+      const value = path.split('.').reduce((obj, key) => obj?.[key], item);
+      if (value) values.add(value);
+    });
+    return Array.from(values).sort();
   }
 
   function showNotification(message, type = 'success'){

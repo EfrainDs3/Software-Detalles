@@ -4,20 +4,52 @@ document.addEventListener('DOMContentLoaded', () => {
     const cartTotalElement = document.getElementById('cart-total');
     const cartContent = document.querySelector('.cart-content');
     const emptyCartMessage = document.querySelector('.empty-cart-message');
+    const vaciarCarritoBtn = document.getElementById('vaciar-carrito'); // Mover aquí para acceso global
 
     let cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+    // Función para vaciar el carrito
+    function vaciarCarrito() {
+        if (confirm('¿Estás seguro de que quieres vaciar todo el carrito?')) {
+            // Limpiar el localStorage
+            localStorage.removeItem('cart');
+            
+            // Limpiar el array del carrito
+            cart = [];
+            
+            // Actualizar la interfaz
+            renderCart();
+            
+            // Actualizar el contador del header
+            if (typeof updateCartCounter === 'function') {
+                updateCartCounter();
+            }
+            
+            alert('Carrito vaciado correctamente');
+        }
+    }
 
     const renderCart = () => {
         if (cart.length === 0) {
             // Si el carrito está vacío, muestra el mensaje y oculta el resto
             cartContent.style.display = 'none';
             emptyCartMessage.style.display = 'block';
+            
+            // Ocultar el botón Vaciar Carrito
+            if (vaciarCarritoBtn) {
+                vaciarCarritoBtn.style.display = 'none';
+            }
             return;
         }
         
         // Si hay productos, asegúrate de que se muestre el contenido principal
         cartContent.style.display = 'grid';
         emptyCartMessage.style.display = 'none';
+        
+        // Mostrar el botón Vaciar Carrito
+        if (vaciarCarritoBtn) {
+            vaciarCarritoBtn.style.display = 'block';
+        }
 
         cartItemsList.innerHTML = ''; // Limpiar la lista antes de volver a renderizar
         let subtotal = 0;
@@ -33,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <div class="cart-item-info">
                         <h3>${item.name}</h3>
-                        <p class="item-price">$${item.price.toFixed(2)}</p>
+                        <p class="item-price">S/${item.price.toFixed(2)}</p>
                         <div class="quantity-controls">
                             <button class="quantity-decrease">-</button>
                             <input type="number" class="item-quantity" value="${item.quantity}" min="1" readonly>
@@ -47,8 +79,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         // Actualizar totales
-        cartSubtotalElement.textContent = `$${subtotal.toFixed(2)}`;
-        cartTotalElement.textContent = `$${subtotal.toFixed(2)}`; // Asumiendo envío gratis
+        cartSubtotalElement.textContent = `S/${subtotal.toFixed(2)}`;
+        cartTotalElement.textContent = `S/${subtotal.toFixed(2)}`;
     };
 
     // Event listener para los controles de cantidad y eliminación
@@ -73,11 +105,16 @@ document.addEventListener('DOMContentLoaded', () => {
         // Guardar cambios en localStorage y volver a renderizar
         localStorage.setItem('cart', JSON.stringify(cart));
         renderCart();
-        // Actualizar el contador del header (si la función está disponible globalmente o importada)
+        // Actualizar el contador del header
         if(typeof updateCartCounter === 'function') {
             updateCartCounter();
         }
     });
+
+    // Event listener para el botón Vaciar Carrito
+    if (vaciarCarritoBtn) {
+        vaciarCarritoBtn.addEventListener('click', vaciarCarrito);
+    }
 
     renderCart();
 });

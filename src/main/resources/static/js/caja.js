@@ -1,75 +1,73 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- Variables y Referencias del DOM ---
+    // --- Referencias del DOM y Estado Global ---
+    const API_BASE_URL = '/api/caja'; 
+    
+    // Referencias para Historial y Estado
     const cajaTableBody = document.getElementById('cajaTableBody');
     const cashierStatusText = document.getElementById('cashierStatusText');
+
+    // Referencias para Abrir/Cerrar Caja
     const checkInBtn = document.getElementById('checkInBtn');
     const checkOutBtn = document.getElementById('checkOutBtn');
     const checkInModal = document.getElementById('checkInModal');
     const checkOutModal = document.getElementById('checkOutModal');
-    const closeCheckInModalBtn = document.getElementById('closeCheckInModal');
-    const closeCheckOutModalBtn = document.getElementById('closeCheckOutModal');
-    const cancelCheckInBtn = document.getElementById('cancelCheckInBtn');
-    const cancelCheckOutBtn = document.getElementById('cancelCheckOutBtn');
     const checkInForm = document.getElementById('checkInForm');
     const checkOutForm = document.getElementById('checkOutForm');
     const initialAmountInput = document.getElementById('initialAmount');
     const checkoutInitialAmountInput = document.getElementById('checkoutInitialAmount');
     const finalAmountInput = document.getElementById('finalAmount');
+    const cashierNameInput = document.getElementById('cashierName');
+    const cashierNameCheckoutInput = document.getElementById('cashierNameCheckout');
+    const cajaSelect = document.getElementById('cajaSelect');
 
-    // --- Datos de Ejemplo (Simulación) ---
-    let cajaHistory = [
-        {
-            id: '001',
-            trabajador: 'Ana López',
-            fecha: '2025-09-12',
-            horaApertura: '09:00 AM',
-            montoInicial: 200.00,
-            horaCierre: '05:30 PM',
-            montoFinal: 850.50,
-            estado: 'Cerrada'
-        },
-        {
-            id: '002',
-            trabajador: 'Pedro Gómez',
-            fecha: '2025-09-13',
-            horaApertura: '09:00 AM',
-            montoInicial: 150.00,
-            horaCierre: '06:00 PM',
-            montoFinal: 780.25,
-            estado: 'Cerrada'
-        },
-        {
-            id: '003',
-            trabajador: 'Juan Pérez',
-            fecha: '2025-09-14',
-            horaApertura: '09:00 AM',
-            montoInicial: 180.00,
-            horaCierre: '05:00 PM',
-            montoFinal: 920.75,
-            estado: 'Cerrada'
-        }
-    ];
+    // Referencias para NUEVA CAJA MODAL
+    const modalNuevaCaja = document.getElementById('modalNuevaCaja');
+    const btnAbrirModalCaja = document.getElementById('btnAbrirModalCaja');
+    const cerrarModalCaja = document.getElementById('cerrarModalCaja');
+    const formNuevaCaja = document.getElementById('formNuevaCaja');
+    const mensajeCaja = document.getElementById('mensajeCaja');
 
-    let currentCashier = null;
-    let isCajaAbierta = false;
+    let currentAperturaId = null; // ID de la apertura activa para el cierre
+    let currentMontoInicial = null; // Monto inicial de la caja activa
 
-    // --- Funciones de Lógica ---
+    // --- Funciones de Utilidad ---
+
+    function formatCurrency(amount) {
+        // Asegura que el monto sea un número antes de formatear
+        const number = parseFloat(amount);
+        return `S/ ${isNaN(number) ? '0.00' : number.toFixed(2)}`;
+    }
+
+    function formatDate(dateString) {
+        if (!dateString) return '-';
+        return new Date(dateString).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    }
+
+    // --- Funciones de Renderizado ---
 
     // Función para renderizar la tabla del historial de caja
-    function renderCajaHistory() {
+    function renderCajaHistory(history) {
         cajaTableBody.innerHTML = '';
-        cajaHistory.forEach(movimiento => {
+        if (history.length === 0) {
+            cajaTableBody.innerHTML = '<tr><td colspan="9" style="text-align: center;">No hay movimientos de caja registrados.</td></tr>';
+            return;
+        }
+
+        history.forEach(movimiento => {
+            const estadoTexto = movimiento.estado;
+            const estadoClase = estadoTexto.toLowerCase();
+
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${movimiento.id}</td>
                 <td>${movimiento.trabajador}</td>
-                <td>${movimiento.fecha}</td>
-                <td>${movimiento.horaApertura}</td>
-                <td>S/ ${movimiento.montoInicial.toFixed(2)}</td>
+                <td>${formatDate(movimiento.fecha)}</td>
+                <td>${movimiento.horaApertura || '-'}</td>
+                <td>${formatCurrency(movimiento.montoInicial)}</td>
                 <td>${movimiento.horaCierre || '-'}</td>
-                <td>S/ ${movimiento.montoFinal ? movimiento.montoFinal.toFixed(2) : '-'}</td>
-                <td><span class="status-badge ${movimiento.estado.toLowerCase()}">${movimiento.estado}</span></td>
+                <td>${movimiento.montoFinal ? formatCurrency(movimiento.montoFinal) : '-'}</td>
+                <td><span class="status-badge ${estadoClase}">${estadoTexto}</span></td>
                 <td>
                     <div class="action-buttons-cell">
                         <button class="btn-icon btn-view" data-id="${movimiento.id}" title="Ver detalles">
@@ -83,118 +81,441 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Función para actualizar el estado de la caja en la interfaz
-    function updateCajaStatus() {
-        if (isCajaAbierta) {
-            cashierStatusText.textContent = 'Abierta';
-            cashierStatusText.classList.remove('cerrada');
-            cashierStatusText.classList.add('abierta');
-            checkInBtn.style.display = 'none';
-            checkOutBtn.style.display = 'block';
-        } else {
-            cashierStatusText.textContent = 'Cerrada';
-            cashierStatusText.classList.remove('abierta');
-            cashierStatusText.classList.add('cerrada');
-            checkInBtn.style.display = 'block';
-            checkOutBtn.style.display = 'none';
+    function updateCajaStatusUI(estado) {
+        const isAbierta = estado.abierta;
+        cashierStatusText.textContent = isAbierta ? 'Abierta' : 'Cerrada';
+        
+        cashierStatusText.classList.remove('cerrada', 'abierta');
+        cashierStatusText.classList.add(isAbierta ? 'abierta' : 'cerrada');
+        
+        // Controlar visibilidad de botones (Abrir vs Cerrar)
+        if(checkInBtn) checkInBtn.style.display = isAbierta ? 'none' : 'block';
+        if(checkOutBtn) checkOutBtn.style.display = isAbierta ? 'block' : 'none';
+
+        // Llenar el nombre del trabajador en los inputs de los modales
+        const trabajadorNombre = estado.trabajador || 'Usuario Actual';
+        if(cashierNameInput) cashierNameInput.value = trabajadorNombre;
+        if(cashierNameCheckoutInput) cashierNameCheckoutInput.value = trabajadorNombre;
+
+        // Guardar el estado activo
+        currentAperturaId = estado.idAperturaActiva;
+        currentMontoInicial = estado.montoInicial;
+    }
+
+    // --- Lógica de Comunicación con el Backend ---
+
+    // 1. Obtener el estado actual de la caja
+    async function fetchCajaStatus() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/estado`, { credentials: 'include' });
+            if (!response.ok) throw new Error('Error al obtener estado de caja');
+            const estado = await response.json();
+            updateCajaStatusUI(estado);
+        } catch (error) {
+            console.error('Error al cargar estado de caja:', error);
+            updateCajaStatusUI({ abierta: false, trabajador: 'Error de Conexión', montoInicial: 0 });
         }
     }
 
-    // --- Event Listeners ---
-
-    // Botón de Apertura de Caja (Check-in)
-    checkInBtn.addEventListener('click', () => {
-        if (!isCajaAbierta) {
-            checkInModal.style.display = 'block';
-        } else {
-            alert('La caja ya está abierta.');
+    // 2. Obtener el historial de movimientos
+    async function fetchCajaHistory() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/historial`, { credentials: 'include' });
+            if (!response.ok) throw new Error('Error al obtener historial de caja');
+            const history = await response.json();
+            renderCajaHistory(history);
+        } catch (error) {
+            console.error('Error al cargar historial:', error);
         }
-    });
+    }
 
-    // Envío del formulario de Check-in
-    checkInForm.addEventListener('submit', (e) => {
-        e.preventDefault();
+    
+    // ------------------------------------------
+    // Lógica para Abrir/Cerrar la Modal de NUEVA CAJA
+    // ------------------------------------------
+    if (btnAbrirModalCaja && modalNuevaCaja) {
+        // Al hacer clic en el botón "Nueva Caja"
+        btnAbrirModalCaja.onclick = () => {
+            mensajeCaja.textContent = ''; // Limpia mensajes anteriores
+            formNuevaCaja.reset();
+            modalNuevaCaja.style.display = 'block';
+        }
         
-        const initialAmount = parseFloat(initialAmountInput.value);
-        if (isNaN(initialAmount) || initialAmount <= 0) {
-            alert('Por favor, ingrese un monto inicial válido.');
-            return;
+        // Al hacer clic en la 'x'
+        cerrarModalCaja.onclick = () => {
+            modalNuevaCaja.style.display = 'none';
         }
+    }
 
-        const newId = (cajaHistory.length + 1).toString().padStart(3, '0');
-        const currentTime = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-        const currentDate = new Date().toISOString().split('T')[0];
+    // LÓGICA DE ENVÍO DEL FORMULARIO DE NUEVA CAJA
+    if (formNuevaCaja) {
+        formNuevaCaja.addEventListener('submit', async (e) => {
+            e.preventDefault(); 
 
-        currentCashier = {
-            id: newId,
-            trabajador: 'Usuario Actual', // Simulación del nombre del usuario logueado
-            fecha: currentDate,
-            horaApertura: currentTime,
-            montoInicial: initialAmount,
-            horaCierre: null,
-            montoFinal: null,
-            estado: 'Abierta'
-        };
+            // 1. Obtener y limpiar los valores
+            const nombre = document.getElementById('nombreCaja').value.trim();
+            const descripcion = document.getElementById('descripcionCaja').value.trim(); 
 
-        cajaHistory.push(currentCashier);
-        isCajaAbierta = true;
-        updateCajaStatus();
-        renderCajaHistory();
-        alert('Caja abierta exitosamente.');
-        checkInModal.style.display = 'none';
-    });
+            // 2. VALIDACIÓN CRÍTICA: Aseguramos que el nombre no esté vacío.
+            if (!nombre) {
+                mensajeCaja.textContent = '❌ El Nombre/Identificador de Caja no puede estar vacío.';
+                mensajeCaja.style.color = 'red';
+                return; // Detiene el envío si está vacío
+            }
 
-    // Botón de Cierre de Caja (Check-out)
-    checkOutBtn.addEventListener('click', () => {
-        if (isCajaAbierta) {
-            checkoutInitialAmountInput.value = `S/ ${currentCashier.montoInicial.toFixed(2)}`;
-            checkOutModal.style.display = 'block';
-        } else {
-            alert('La caja ya está cerrada. No se puede realizar un cierre.');
-        }
-    });
+            // 3. Crear el payload con los nombres de propiedad de su Entidad Java (camelCase)
+            const data = {
+                nombreCaja: nombre, 
+                ubicacionCaja: descripcion || null, 
+                estado: 'ACTIVO' 
+            };
 
-    // Envío del formulario de Check-out
-    checkOutForm.addEventListener('submit', (e) => {
-        e.preventDefault();
+            mensajeCaja.textContent = 'Guardando caja...';
+            mensajeCaja.style.color = 'orange';
 
-        const finalAmount = parseFloat(finalAmountInput.value);
-        if (isNaN(finalAmount) || finalAmount < 0) {
-            alert('Por favor, ingrese un monto final válido.');
-            return;
-        }
+            try {
+                const response = await fetch(`${API_BASE_URL}/cajas`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                    credentials: 'include' 
+                });
 
-        if (currentCashier) {
-            currentCashier.horaCierre = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-            currentCashier.montoFinal = finalAmount;
-            currentCashier.estado = 'Cerrada';
+                if (response.ok) {
+                    const cajaCreada = await response.json();
+                    mensajeCaja.textContent = `✅ Caja '${nombre}' creada con éxito.`;
+                    mensajeCaja.style.color = 'green';
+                    formNuevaCaja.reset();
+                    
+                    // Actualizar lista y cerrar modal tras éxito
+                    await fetchAndPopulateCajas(); // Actualizar el selector
+                    setTimeout(() => {
+                        modalNuevaCaja.style.display = 'none';
+                    }, 1500); 
+
+                } else {
+                    // Manejo de errores
+                    const errorMsg = await response.text();
+                    mensajeCaja.textContent = `❌ Error ${response.status}: El backend falló. ${errorMsg.substring(0, 100)}...`;
+                    mensajeCaja.style.color = 'red';
+                    console.error('Error al crear caja:', errorMsg);
+                }
+            } catch (error) {
+                console.error('Error de conexión:', error);
+                mensajeCaja.textContent = '❌ Error de conexión o servidor no disponible.';
+                mensajeCaja.style.color = 'red';
+            }
+        });
+    }
+
+    // ------------------------------------------
+    // Lógica para Abrir y Cerrar Caja
+    // ------------------------------------------
+
+    // 3. Apertura de caja (Check-in)
+    if (checkInForm) {
+        checkInForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
             
-            isCajaAbierta = false;
-            currentCashier = null;
+            // Usamos la referencia limpia
+            const idCajaValue = cajaSelect.value; 
+            const montoInicial = parseFloat(initialAmountInput.value);
+            
+            if (!idCajaValue) {
+                alert('❌ Por favor, seleccione una caja.');
+                return;
+            }
 
-            updateCajaStatus();
-            renderCajaHistory();
-            alert('Caja cerrada exitosamente.');
-            checkOutModal.style.display = 'none';
+            if (isNaN(montoInicial) || montoInicial < 0) {
+                alert('Por favor, ingrese un monto inicial válido.');
+                return;
+            }
+
+            try {
+                const requestBody = {
+                    idCaja: parseInt(idCajaValue, 10), 
+                    montoInicial: montoInicial
+                };
+
+                const response = await fetch(`${API_BASE_URL}/abrir`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody), 
+                    credentials: 'include' 
+                });
+
+                // MEJORA: Capturar el error específico del backend
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Error del servidor:', errorText);
+                    
+                    if (response.status === 409) {
+                        alert('❌ Error: La caja ya estaba abierta.');
+                    } else if (response.status === 403) {
+                        alert('❌ Error: No tienes permisos o no estás autenticado.');
+                    } else if (response.status === 400) {
+                        alert('❌ Error: Datos inválidos. Verifica la caja seleccionada.');
+                    } else {
+                        alert(`❌ Error ${response.status}: ${errorText.substring(0, 200)}`);
+                    }
+                    return; // Detiene la ejecución
+                }
+
+                const estadoActualizado = await response.json();
+                updateCajaStatusUI(estadoActualizado);
+                await fetchCajaHistory();
+                alert(`✅ Caja ${idCajaValue} abierta exitosamente.`);
+                checkInModal.style.display = 'none';
+                initialAmountInput.value = ''; 
+                finalAmountInput.value = ''; 
+
+            } catch (error) {
+                console.error('❌ Error de conexión:', error);
+                alert(`Hubo un error de red. No se pudo conectar con el servidor.`);
+            }
+        });
+    }
+
+
+    // 5. Obtener la lista de cajas activas y llenar el selector
+    async function fetchAndPopulateCajas() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/cajas/activas`, { credentials: 'include' });
+            if (!response.ok) throw new Error(`Error ${response.status} al obtener lista de cajas`);
+            
+            const cajas = await response.json();
+            cajaSelect.innerHTML = ''; // Limpiar opciones
+
+            if (cajas.length === 0) {
+                cajaSelect.innerHTML = '<option value="">No hay cajas activas disponibles</option>';
+                cajaSelect.disabled = true;
+                return;
+            }
+
+            // Opción por defecto
+            const defaultOption = document.createElement('option');
+            defaultOption.value = "";
+            defaultOption.textContent = "Seleccione una caja";
+            cajaSelect.appendChild(defaultOption);
+
+            cajas.forEach(caja => {
+                const option = document.createElement('option');
+                option.value = caja.idCaja;
+                option.textContent = `${caja.nombreCaja}`; // Mostramos el ID para debug
+                cajaSelect.appendChild(option);
+            });
+            cajaSelect.disabled = false;
+
+        } catch (error) {
+            console.error('Error al cargar la lista de cajas:', error);
+            cajaSelect.innerHTML = '<option value="">Error al cargar (Consola)</option>';
+            cajaSelect.disabled = true;
         }
-    });
+    }
 
-    // Cerrar modales
-    closeCheckInModalBtn.addEventListener('click', () => checkInModal.style.display = 'none');
-    cancelCheckInBtn.addEventListener('click', () => checkInModal.style.display = 'none');
-    closeCheckOutModalBtn.addEventListener('click', () => checkOutModal.style.display = 'none');
-    cancelCheckOutBtn.addEventListener('click', () => checkOutModal.style.display = 'none');
+    // 4. Cierre de caja (Check-out)
+    if (checkOutForm) {
+        checkOutForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
 
-    // Cerrar modal al hacer clic fuera de él
+            const finalAmount = parseFloat(finalAmountInput.value);
+            if (isNaN(finalAmount) || finalAmount < 0) {
+                alert('Por favor, ingrese un monto final válido.');
+                return;
+            }
+            
+            if (!currentAperturaId) {
+                alert('No hay una caja activa para cerrar.');
+                return;
+            }
+
+            try {
+                const requestBody = {
+                    idApertura: currentAperturaId,
+                    montoFinal: finalAmount
+                };
+
+                const response = await fetch(`${API_BASE_URL}/cerrar`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody),
+                    credentials: 'include' 
+                });
+
+                if (response.status === 409) {
+                    alert('Error: Esta sesión de caja ya estaba cerrada.');
+                } else if (!response.ok) {
+                    throw new Error(`Error en el Cierre: ${response.statusText}`);
+                }
+
+                await fetchCajaStatus();
+                await fetchCajaHistory();
+                alert('Caja cerrada exitosamente.');
+                checkOutModal.style.display = 'none';
+                finalAmountInput.value = '';
+
+            } catch (error) {
+                console.error('Error al cerrar caja:', error);
+                alert(`Hubo un error al intentar cerrar la caja. Consulte la consola.`);
+            }
+        });
+    }
+
+
+    // --- Event Listeners para Modales (Abrir/Cerrar Caja) ---
+    
+    // Mostrar Modal Apertura
+    if (checkInBtn) {
+        checkInBtn.addEventListener('click', () => {
+            if (checkInModal) checkInModal.style.display = 'block';
+            initialAmountInput.focus();
+        });
+    }
+
+    // Mostrar Modal Cierre
+    if (checkOutBtn) {
+        checkOutBtn.addEventListener('click', () => {
+            if (currentAperturaId) {
+                // Cargar el monto inicial en el modal de cierre
+                if(checkoutInitialAmountInput) checkoutInitialAmountInput.value = formatCurrency(currentMontoInicial);
+                if (checkOutModal) checkOutModal.style.display = 'block';
+                finalAmountInput.focus();
+            } else {
+                alert('La caja está cerrada. Debe abrirla primero.');
+            }
+        });
+    }
+
+    // Funciones genéricas para cerrar modales
+    function setupModalClose(closeBtnId, cancelBtnId, modalId) {
+        const closeBtn = document.getElementById(closeBtnId);
+        const cancelBtn = document.getElementById(cancelBtnId);
+        const modal = document.getElementById(modalId);
+        
+        if (closeBtn) closeBtn.addEventListener('click', () => modal.style.display = 'none');
+        if (cancelBtn) cancelBtn.addEventListener('click', () => modal.style.display = 'none');
+    }
+
+    setupModalClose('closeCheckInModal', 'cancelCheckInBtn', 'checkInModal');
+    setupModalClose('closeCheckOutModal', 'cancelCheckOutBtn', 'checkOutModal');
+
+    // Cerrar modales al hacer clic fuera (incluye la modal de Nueva Caja)
     window.addEventListener('click', (event) => {
-        if (event.target === checkInModal) {
-            checkInModal.style.display = 'none';
+        if (event.target === checkInModal) checkInModal.style.display = 'none';
+        if (event.target === checkOutModal) checkOutModal.style.display = 'none';
+        if (event.target === modalNuevaCaja) modalNuevaCaja.style.display = 'none';
+    });
+    
+
+    // ======================================================
+    // FUNCIONALIDAD DE VER DETALLES
+    // ======================================================
+
+    const modalDetalles = document.getElementById('modalDetalles');
+    const cerrarModalDetalles = document.getElementById('cerrarModalDetalles');
+    const cerrarModalDetallesBtn = document.getElementById('cerrarModalDetallesBtn');
+
+    // Función para abrir modal de detalles
+    function abrirModalDetalles(movimiento) {
+        // Datos básicos
+        document.getElementById('detalle-id').textContent = movimiento.id;
+        document.getElementById('detalle-trabajador').textContent = movimiento.trabajador;
+        document.getElementById('detalle-fecha').textContent = formatDate(movimiento.fecha);
+        
+        // Estado
+        const estadoSpan = document.getElementById('detalle-estado');
+        estadoSpan.textContent = movimiento.estado;
+        estadoSpan.className = 'status-badge ' + movimiento.estado.toLowerCase();
+        
+        // Horas y montos
+        document.getElementById('detalle-hora-apertura').textContent = movimiento.horaApertura || '-';
+        document.getElementById('detalle-monto-inicial').textContent = formatCurrency(movimiento.montoInicial);
+        document.getElementById('detalle-hora-cierre').textContent = movimiento.horaCierre || '-';
+        document.getElementById('detalle-monto-final').textContent = movimiento.montoFinal ? formatCurrency(movimiento.montoFinal) : '-';
+        
+        // Sección de diferencia (solo si está cerrada)
+        const seccionDiferencia = document.getElementById('seccion-diferencia');
+        if (movimiento.estado.toLowerCase() === 'cerrada' && movimiento.montoFinal) {
+            seccionDiferencia.style.display = 'block';
+            
+            // Calcular monto esperado y diferencia (puedes ajustar esta lógica)
+            const montoEsperado = movimiento.montoInicial + 500; // Ejemplo: ventas simuladas
+            const diferencia = movimiento.montoFinal - montoEsperado;
+            
+            document.getElementById('detalle-monto-esperado').textContent = formatCurrency(montoEsperado);
+            
+            const diferenciaSpan = document.getElementById('detalle-diferencia');
+            diferenciaSpan.textContent = formatCurrency(Math.abs(diferencia));
+            
+            // Colorear según positivo/negativo
+            if (diferencia > 0) {
+                diferenciaSpan.className = 'monto-positivo';
+                diferenciaSpan.textContent = '+ ' + formatCurrency(diferencia);
+            } else if (diferencia < 0) {
+                diferenciaSpan.className = 'monto-negativo';
+                diferenciaSpan.textContent = '- ' + formatCurrency(Math.abs(diferencia));
+            } else {
+                diferenciaSpan.className = 'monto-neutro';
+                diferenciaSpan.textContent = formatCurrency(0);
+            }
+        } else {
+            seccionDiferencia.style.display = 'none';
         }
-        if (event.target === checkOutModal) {
-            checkOutModal.style.display = 'none';
+        
+        // Observaciones (si las tienes en el backend)
+        document.getElementById('detalle-observaciones').textContent = 
+            movimiento.observaciones || 'Sin observaciones registradas';
+        
+        // Mostrar modal
+        modalDetalles.style.display = 'block';
+    }
+
+    // Event listeners para cerrar modal de detalles
+    if (cerrarModalDetalles) {
+        cerrarModalDetalles.onclick = () => modalDetalles.style.display = 'none';
+    }
+    if (cerrarModalDetallesBtn) {
+        cerrarModalDetallesBtn.onclick = () => modalDetalles.style.display = 'none';
+    }
+
+    // Cerrar modal al hacer clic fuera
+    window.addEventListener('click', (event) => {
+        if (event.target === modalDetalles) {
+            modalDetalles.style.display = 'none';
         }
     });
 
-    // Iniciar la aplicación
-    updateCajaStatus();
-    renderCajaHistory();
+    // Delegación de eventos para los botones de "Ver"
+    document.addEventListener('click', async (e) => {
+        const btnView = e.target.closest('.btn-view');
+        
+        if (btnView) {
+            const idMovimiento = btnView.getAttribute('data-id');
+            
+            // Buscar el movimiento en el historial cargado
+            try {
+                const response = await fetch(`${API_BASE_URL}/historial`, { credentials: 'include' });
+                if (!response.ok) throw new Error('Error al obtener historial');
+                
+                const history = await response.json();
+                const movimiento = history.find(m => m.id == idMovimiento);
+                
+                if (movimiento) {
+                    abrirModalDetalles(movimiento);
+                } else {
+                    alert('No se encontró el movimiento solicitado');
+                }
+            } catch (error) {
+                console.error('Error al cargar detalles:', error);
+                alert('Error al cargar los detalles del movimiento');
+            }
+        }
+    });
+
+    // --- Inicializar la Aplicación ---
+    fetchCajaStatus();
+    fetchCajaHistory();
+    fetchAndPopulateCajas();
 });

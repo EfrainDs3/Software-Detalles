@@ -121,6 +121,22 @@
                         <i class="fas fa-user"></i>
                         Información Básica
                     </h4>
+
+                    <!-- Primero: Tipo y Número de Documento -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="userDocumentType">Tipo de documento</label>
+                            <select id="userDocumentType" name="tipoDocumentoId">
+                                <option value="">Seleccionar</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="userDocumentNumber">Número de documento</label>
+                            <input type="text" id="userDocumentNumber" name="numeroDocumento" placeholder="Ingrese número de documento">
+                        </div>
+                    </div>
+
+                    <!-- Luego: Nombres y Apellidos -->
                     <div class="form-row">
                         <div class="form-group">
                             <label for="userFirstName">Nombres *</label>
@@ -131,6 +147,8 @@
                             <input type="text" id="userLastName" name="apellidos" required placeholder="Ej: Pérez Díaz">
                         </div>
                     </div>
+
+                    <!-- Correo y Celular -->
                     <div class="form-row">
                         <div class="form-group">
                             <label for="userEmail">Correo Electrónico *</label>
@@ -140,6 +158,12 @@
                             <label for="userPhone">Celular</label>
                             <input type="tel" id="userPhone" name="celular" placeholder="+51 999 999 999">
                         </div>
+                    </div>
+
+                    <!-- Dirección (se mantiene después de contacto) -->
+                    <div class="form-group">
+                        <label for="userAddress">Dirección</label>
+                        <input type="text" id="userAddress" name="direccion" placeholder="Ingrese dirección del usuario">
                     </div>
                 </div>
 
@@ -174,29 +198,7 @@
                     </div>
                 </div>
 
-                <!-- Documento y Dirección -->
-                <div class="form-section">
-                    <h4 class="section-title">
-                        <i class="fas fa-id-card"></i>
-                        Documento y Dirección
-                    </h4>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="userDocumentType">Tipo de documento</label>
-                            <select id="userDocumentType" name="tipoDocumentoId">
-                                <option value="">Seleccionar</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="userDocumentNumber">Número de documento</label>
-                            <input type="text" id="userDocumentNumber" name="numeroDocumento" placeholder="Ingrese número de documento">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="userAddress">Dirección</label>
-                        <input type="text" id="userAddress" name="direccion" placeholder="Ingrese dirección del usuario">
-                    </div>
-                </div>
+                <!-- Documento y Dirección movido arriba dentro de Información Básica -->
 
                 <!-- Rol y Permisos -->
                 <div class="form-section">

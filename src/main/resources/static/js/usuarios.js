@@ -9,6 +9,8 @@ let currentEditId = null;
 let searchTerm = '';
 let filters = { roleId: '', estado: '' };
 
+// NOTE: Use backend proxy `/api/reniec` for RENIEC/DNI lookups. Token and provider configured server-side.
+
 const elements = {};
 
 async function fetchJson(url, options = {}) {
@@ -105,6 +107,16 @@ function bindCoreListeners() {
         elements.userForm.addEventListener('submit', handleFormSubmit);
     }
 
+    // Attach RENIEC lookup listeners to document number/type inputs (if present)
+    const userDocInput = document.getElementById('userDocumentNumber');
+    const userDocType = document.getElementById('userDocumentType');
+    if (userDocInput) {
+        userDocInput.addEventListener('blur', handleUserDocLookupEvent);
+    }
+    if (userDocType) {
+        userDocType.addEventListener('change', handleUserDocLookupEvent);
+    }
+
     const closeModalBtn = document.getElementById('closeModal');
     const cancelBtn = document.getElementById('cancelBtn');
 
@@ -195,6 +207,102 @@ function populateDocumentTypes() {
         documentSelect.value = previousValue;
     }
 }
+
+// -------------------- RENIEC lookup support --------------------
+// Hace una llamada al endpoint backend /api/reniec que actúa como proxy
+async function lookupReniec(tipoText, numero) {
+    if (!tipoText || !numero) return null;
+    try {
+        const urlProxy = `/api/reniec?tipo=${encodeURIComponent(tipoText)}&numero=${encodeURIComponent(numero)}`;
+        const respProxy = await fetch(urlProxy, { credentials: 'same-origin' });
+        if (!respProxy.ok) {
+            console.warn('RENIEC proxy lookup failed', respProxy.status);
+            return null;
+        }
+        return await respProxy.json();
+    } catch (e) {
+        console.error('Error calling RENIEC service', e);
+        return null;
+    }
+}
+
+function extractNamePartsFromReniec(data) {
+    if (!data) return { firstName: '', lastName: '' };
+    // Try common properties that providers use
+    const nombres = data.nombres || data.nombre || data.nombre_completo || data.nombreCompleto || data.razon_social || '';
+    const apellidoP = data.apellidoPaterno || data.apellido_paterno || data.apellido || data.ape_paterno || '';
+    const apellidoM = data.apellidoMaterno || data.apellido_materno || data.ape_materno || '';
+    const lastName = [apellidoP, apellidoM].filter(Boolean).join(' ').trim();
+    // If provider returns full name in a single field, try to split
+    if (!nombres && lastName) {
+        return { firstName: '', lastName };
+    }
+    if (nombres && !apellidoP && !apellidoM) {
+        // heuristic: split last word(s) as last name for Spanish names
+        const parts = String(nombres).trim().split(/\s+/);
+        if (parts.length === 1) return { firstName: parts[0], lastName: '' };
+        const firstName = parts.slice(0, -1).join(' ');
+        const last = parts.slice(-1).join(' ');
+        return { firstName, lastName: last };
+    }
+    return { firstName: nombres || '', lastName };
+}
+
+function extractAddressFromReniec(data) {
+    if (!data) return '';
+    // support provider shapes: domiciliado.direccion, domicilio, direccion, address, etc.
+    if (data.domiciliado && typeof data.domiciliado === 'object') {
+        if (data.domiciliado.direccion) return data.domiciliado.direccion;
+        if (data.domiciliado.direccion_completa) return data.domiciliado.direccion_completa;
+    }
+    return data.direccion || data.domicilio || data.direccion_completa || data.direccionCompleta || data.address || '';
+}
+
+async function handleUserDocLookupEvent() {
+    const docTypeSelect = document.getElementById('userDocumentType');
+    const docNumberInput = document.getElementById('userDocumentNumber');
+    if (!docTypeSelect || !docNumberInput) return;
+
+    const selectedVal = docTypeSelect.value;
+    if (!selectedVal) return;
+
+    // documentTypes is populated earlier by loadInitialData()
+    const tipoObj = (documentTypes || []).find(t => String(t.idTipoDocumento) === String(selectedVal));
+    const tipoText = tipoObj?.nombreTipoDocumento || docTypeSelect.options[docTypeSelect.selectedIndex]?.text || '';
+    const numero = docNumberInput.value.trim();
+    if (!numero) return;
+
+    // Basic length checks (DNI 8, RUC 11) — optional
+    if ((/dni/i.test(tipoText) && numero.length < 6) || (/ruc/i.test(tipoText) && numero.length < 9)) {
+        // todavía no es suficientemente largo -> no buscar
+        return;
+    }
+
+    const data = await lookupReniec(tipoText.toUpperCase(), numero);
+    if (!data) {
+        showNotification('No se encontró información para el documento proporcionado', 'warning');
+        return;
+    }
+
+    if (data.success === false) {
+        showNotification('Proveedor no devolvió datos para el documento', 'warning');
+        return;
+    }
+
+    const provider = data.datos || data;
+
+    const nameParts = extractNamePartsFromReniec(provider);
+    const address = extractAddressFromReniec(provider);
+
+    const firstNameInput = document.getElementById('userFirstName');
+    const lastNameInput = document.getElementById('userLastName');
+    const addressInput = document.getElementById('userAddress');
+
+    if (firstNameInput && nameParts.firstName) firstNameInput.value = nameParts.firstName;
+    if (lastNameInput && nameParts.lastName) lastNameInput.value = nameParts.lastName;
+    if (addressInput && address) addressInput.value = address;
+}
+
 
 function setTableLoading(isLoading) {
     if (!elements.usersTableBody) {

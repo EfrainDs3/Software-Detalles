@@ -12,7 +12,9 @@
 <nav class="navbar">
             <div class="nav-container">
                 <div class="logo">
-                    <h1>Detalles</h1>
+                    <a href="../index.html" class="logo-link">
+                        <img src="../img/logo-detalles.jpg" alt="Detalles - Calzados y Accesorios">
+                    </a>
                 </div>
                 <ul class="nav-menu">
                     <li><a href="../index.html">Inicio</a></li>
@@ -134,7 +136,7 @@
                     <h2>Resumen del Pedido</h2>
                     <div class="summary-row">
                         <span>Subtotal</span>
-                        <span id="cart-subtotal">$0.00</span>
+                        <span id="cart-subtotal">S/0.00</span>
                     </div>
                     <div class="summary-row">
                         <span>Envío</span>
@@ -142,11 +144,15 @@
                     </div>
                     <div class="summary-row total-row">
                         <span>Total</span>
-                        <span id="cart-total">$0.00</span>
+                        <span id="cart-total">S/0.00</span>
                     </div>
                     <button class="btn-checkout">Finalizar Compra</button>
                 </div>
             </div>
+
+            <button id="vaciar-carrito" class="btn-vaciar">
+                🗑️ Vaciar Carrito
+            </button>
 
             <div class="empty-cart-message" style="display: none;">
                 <p>Tu carrito de compras está vacío.</p>
