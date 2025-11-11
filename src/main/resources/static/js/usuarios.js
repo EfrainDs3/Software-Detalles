@@ -13,6 +13,90 @@ let filters = { roleId: '', estado: '' };
 
 const elements = {};
 
+const USER_DOCUMENT_RULES = {
+    DNI: { label: 'DNI', maxLength: 8, regex: /^\d{8}$/ },
+    RUC: { label: 'RUC', maxLength: 11, regex: /^\d{11}$/ }
+};
+
+function resolveUserDocumentRule(tipoTexto) {
+    if (!tipoTexto) return null;
+    const upper = String(tipoTexto).toUpperCase();
+    if (upper.includes('DNI')) return USER_DOCUMENT_RULES.DNI;
+    if (upper.includes('RUC')) return USER_DOCUMENT_RULES.RUC;
+    return null;
+}
+
+function sanitizeUserDocumentoInput(input, rule) {
+    if (!input) return '';
+    let value = input.value || '';
+    if (rule) {
+        value = value.replace(/\D/g, '');
+        if (typeof rule.maxLength === 'number') {
+            value = value.slice(0, rule.maxLength);
+        }
+    } else {
+        value = value.trim();
+    }
+    input.value = value;
+    return value;
+}
+
+function applyUserDocumentConstraints(input, tipoTexto) {
+    if (!input) return;
+    const rule = resolveUserDocumentRule(tipoTexto);
+    if (rule) {
+        input.setAttribute('inputmode', 'numeric');
+        input.setAttribute('pattern', `\\d{${rule.maxLength}}`);
+        input.setAttribute('maxlength', String(rule.maxLength));
+    } else {
+        input.removeAttribute('inputmode');
+        input.removeAttribute('pattern');
+        input.removeAttribute('maxlength');
+    }
+}
+
+function validateUserDocumentoNumero(tipoTexto, numero) {
+    if (!numero) return null;
+    const rule = resolveUserDocumentRule(tipoTexto);
+    if (!rule) return null;
+    if (!rule.regex.test(numero)) {
+        return `${rule.label} debe tener exactamente ${rule.maxLength} dígitos`;
+    }
+    return null;
+}
+
+function getUserTipoDocumentoNombreById(id, selectEl) {
+    const value = id ?? selectEl?.value;
+    if (!value && selectEl) {
+        return selectEl.options[selectEl.selectedIndex]?.text || '';
+    }
+    const tipo = (documentTypes || []).find(t => String(t.idTipoDocumento) === String(value));
+    if (tipo) return tipo.nombreTipoDocumento;
+    if (selectEl) {
+        return selectEl.options[selectEl.selectedIndex]?.text || '';
+    }
+    return '';
+}
+
+function normalizeUserDocumentoValue(numero, tipoTexto) {
+    if (!numero) return '';
+    const rule = resolveUserDocumentRule(tipoTexto);
+    let value = String(numero).trim();
+    if (rule) {
+        value = value.replace(/\D/g, '').slice(0, rule.maxLength);
+    }
+    return value;
+}
+
+function updateUserDocConstraints() {
+    const docTypeSelect = document.getElementById('userDocumentType');
+    const docNumberInput = document.getElementById('userDocumentNumber');
+    if (!docNumberInput) return;
+    const tipoTexto = getUserTipoDocumentoNombreById(docTypeSelect?.value, docTypeSelect);
+    applyUserDocumentConstraints(docNumberInput, tipoTexto);
+    sanitizeUserDocumentoInput(docNumberInput, resolveUserDocumentRule(tipoTexto));
+}
+
 async function fetchJson(url, options = {}) {
     const headers = options.headers ? new Headers(options.headers) : new Headers();
     if (!(options.body instanceof FormData)) {
@@ -111,11 +195,21 @@ function bindCoreListeners() {
     const userDocInput = document.getElementById('userDocumentNumber');
     const userDocType = document.getElementById('userDocumentType');
     if (userDocInput) {
+        userDocInput.addEventListener('input', () => {
+            const tipoTexto = getUserTipoDocumentoNombreById(userDocType?.value, userDocType);
+            const rule = resolveUserDocumentRule(tipoTexto);
+            sanitizeUserDocumentoInput(userDocInput, rule);
+        });
         userDocInput.addEventListener('blur', handleUserDocLookupEvent);
     }
     if (userDocType) {
-        userDocType.addEventListener('change', handleUserDocLookupEvent);
+        userDocType.addEventListener('change', () => {
+            updateUserDocConstraints();
+            handleUserDocLookupEvent();
+        });
     }
+
+    updateUserDocConstraints();
 
     const closeModalBtn = document.getElementById('closeModal');
     const cancelBtn = document.getElementById('cancelBtn');
@@ -206,6 +300,8 @@ function populateDocumentTypes() {
     if (previousValue) {
         documentSelect.value = previousValue;
     }
+
+    updateUserDocConstraints();
 }
 
 // -------------------- RENIEC lookup support --------------------
@@ -264,21 +360,21 @@ async function handleUserDocLookupEvent() {
     if (!docTypeSelect || !docNumberInput) return;
 
     const selectedVal = docTypeSelect.value;
-    if (!selectedVal) return;
-
-    // documentTypes is populated earlier by loadInitialData()
-    const tipoObj = (documentTypes || []).find(t => String(t.idTipoDocumento) === String(selectedVal));
-    const tipoText = tipoObj?.nombreTipoDocumento || docTypeSelect.options[docTypeSelect.selectedIndex]?.text || '';
-    const numero = docNumberInput.value.trim();
-    if (!numero) return;
-
-    // Basic length checks (DNI 8, RUC 11) — optional
-    if ((/dni/i.test(tipoText) && numero.length < 6) || (/ruc/i.test(tipoText) && numero.length < 9)) {
-        // todavía no es suficientemente largo -> no buscar
+    if (!selectedVal) {
+        sanitizeUserDocumentoInput(docNumberInput, null);
         return;
     }
 
-    const data = await lookupReniec(tipoText.toUpperCase(), numero);
+    const tipoTexto = getUserTipoDocumentoNombreById(selectedVal, docTypeSelect);
+    const rule = resolveUserDocumentRule(tipoTexto);
+    const numero = sanitizeUserDocumentoInput(docNumberInput, rule).trim();
+    if (!numero) return;
+
+    if (rule && numero.length !== rule.maxLength) {
+        return;
+    }
+
+    const data = await lookupReniec(tipoTexto.toUpperCase(), numero);
     if (!data) {
         showNotification('No se encontró información para el documento proporcionado', 'warning');
         return;
@@ -717,6 +813,7 @@ function openAddUserModal() {
 
         updateRoleDescription();
         updatePreview();
+        updateUserDocConstraints();
     }
 
     if (modal) {
@@ -788,6 +885,7 @@ function openEditUserModal(userId) {
 
             updateRoleDescription();
             updatePreview();
+            updateUserDocConstraints();
         }
     }
 
@@ -992,6 +1090,14 @@ function buildUserPayload(formData) {
     };
 
     const roleValues = formData.getAll('rolIds').filter(Boolean);
+    const rawTipoDocumentoId = toTrimmedValue('tipoDocumentoId');
+    const docTypeSelect = document.getElementById('userDocumentType');
+    const tipoTexto = getUserTipoDocumentoNombreById(rawTipoDocumentoId, docTypeSelect);
+    const normalizedNumero = normalizeUserDocumentoValue(toTrimmedValue('numeroDocumento'), tipoTexto);
+    const docInput = document.getElementById('userDocumentNumber');
+    if (docInput) {
+        docInput.value = normalizedNumero || '';
+    }
 
     return {
         nombres: toTrimmedValue('nombres'),
@@ -1002,9 +1108,9 @@ function buildUserPayload(formData) {
         estado: formData.get('estado') === 'false' ? false : true,
         password: formData.get('password') || '',
         confirmPassword: formData.get('confirmPassword') || '',
-        numeroDocumento: toTrimmedValue('numeroDocumento') || null,
+        numeroDocumento: normalizedNumero || null,
         direccion: toTrimmedValue('direccion') || null,
-        tipoDocumentoId: toTrimmedValue('tipoDocumentoId') ? Number(toTrimmedValue('tipoDocumentoId')) : null,
+        tipoDocumentoId: rawTipoDocumentoId ? Number(rawTipoDocumentoId) : null,
         rolIds: roleValues.length ? roleValues.map(value => Number(value)) : []
     };
 }
@@ -1018,6 +1124,19 @@ function validateForm(payload, isEditMode) {
 
     if (!payload.apellidos || payload.apellidos.length < 2) {
         errors.push('Ingresa los apellidos del usuario');
+    }
+
+    if (payload.numeroDocumento && !payload.tipoDocumentoId) {
+        errors.push('Selecciona un tipo de documento');
+    }
+
+    const docTypeSelect = document.getElementById('userDocumentType');
+    const tipoTexto = getUserTipoDocumentoNombreById(payload.tipoDocumentoId, docTypeSelect);
+    if (payload.numeroDocumento) {
+        const docError = validateUserDocumentoNumero(tipoTexto, payload.numeroDocumento);
+        if (docError) {
+            errors.push(docError);
+        }
     }
 
     if (!payload.email || !isValidEmail(payload.email)) {

@@ -31,6 +31,7 @@ public class InventarioService {
     private static final String TIPO_ENTRADA_TRANSFERENCIA = "Entrada - Transferencia";
 
     private final InventarioRepository inventarioRepository;
+    private final InventarioTallaRepository inventarioTallaRepository;
     private final MovimientoInventarioRepository movimientoRepository;
     private final AlmacenRepository almacenRepository;
     private final TipoMovimientoInventarioRepository tipoMovimientoRepository;
@@ -347,6 +348,21 @@ public class InventarioService {
     }
 
     /**
+     * Sobrecarga del método aplicarAjusteStock que acepta un usuarioId específico
+     */
+    public MovimientoInventario aplicarAjusteStock(Long idInventario, Long idTipoMovimiento, Integer cantidad,
+                                                  String referencia, String observaciones, Integer usuarioId) {
+        ajustarStock(idInventario, idTipoMovimiento, cantidad, referencia, observaciones, usuarioId);
+
+        // Retornar el último movimiento registrado
+        return movimientoRepository.findAll().stream()
+            .filter(m -> m.getProducto().getId().equals(
+                inventarioRepository.findById(idInventario).get().getProducto().getId()))
+            .reduce((first, second) -> second)
+            .orElseThrow(() -> new RuntimeException("No se pudo obtener el movimiento registrado"));
+    }
+
+    /**
      * Obtiene productos con stock bajo
      */
     public List<Inventario> obtenerProductosBajoStock() {
@@ -392,6 +408,17 @@ public class InventarioService {
                                                                String observaciones) {
         MovimientoInventario movimiento = aplicarAjusteStock(idInventario, idTipoMovimiento, cantidad,
             referencia, observaciones);
+        return mapearMovimientoDetallado(movimiento);
+    }
+
+    /**
+     * Sobrecarga del método aplicarAjusteStockDetallado que acepta un usuarioId específico
+     */
+    public MovimientoInventarioDto aplicarAjusteStockDetallado(Long idInventario, Long idTipoMovimiento,
+                                                               Integer cantidad, String referencia,
+                                                               String observaciones, Integer usuarioId) {
+        MovimientoInventario movimiento = aplicarAjusteStock(idInventario, idTipoMovimiento, cantidad,
+            referencia, observaciones, usuarioId);
         return mapearMovimientoDetallado(movimiento);
     }
 
@@ -607,4 +634,313 @@ public class InventarioService {
     public record AlmacenDto(Long id, String nombre, String ubicacion) {}
 
     public record TipoMovimientoDto(Long id, String nombre, @JsonProperty("esEntrada") boolean esEntrada) {}
+
+    // === MÉTODOS PARA GESTIÓN DE INVENTARIO POR TALLAS ===
+
+    /**
+     * Registra un producto en el inventario con tallas específicas
+     */
+    public Inventario registrarProductoConTallas(Long productoId, Long almacenId, Integer stockMinimo,
+                                                List<TallaStockDto> tallasStock, String referencia, String observaciones, Integer usuarioId) {
+        Producto producto = productoRepository.findById(productoId)
+            .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+
+        Almacen almacen = almacenRepository.findById(almacenId)
+            .orElseThrow(() -> new RuntimeException("Almacén no encontrado"));
+
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        // Verificar que no exista ya en este almacén
+        Optional<Inventario> existente = inventarioRepository.findByProductoAndAlmacen(producto, almacen);
+        if (existente.isPresent()) {
+            throw new RuntimeException("El producto ya está registrado en este almacén");
+        }
+
+        // Calcular stock total inicial
+        int stockTotalInicial = tallasStock.stream()
+            .mapToInt(TallaStockDto::cantidadInicial)
+            .sum();
+
+        // Crear registro de inventario principal
+        Inventario inventario = new Inventario(producto, almacen, stockTotalInicial, stockMinimo);
+        inventario = inventarioRepository.save(inventario);
+
+        // Registrar tallas
+        for (TallaStockDto tallaStock : tallasStock) {
+            InventarioTalla inventarioTalla = new InventarioTalla(
+                inventario,
+                tallaStock.talla(),
+                tallaStock.cantidadInicial(),
+                tallaStock.stockMinimo()
+            );
+            inventarioTallaRepository.save(inventarioTalla);
+
+            // Registrar movimiento inicial si hay stock
+            if (tallaStock.cantidadInicial() > 0) {
+                TipoMovimientoInventario tipoMovimiento = ensureTipoMovimiento(TIPO_REGISTRO_INICIAL, true);
+
+                MovimientoInventario movimiento = new MovimientoInventario(
+                    producto, almacen, tipoMovimiento, tallaStock.cantidadInicial(),
+                    usuario, observaciones, referencia, tallaStock.talla()
+                );
+                movimientoRepository.save(movimiento);
+            }
+        }
+
+        return inventario;
+    }
+
+    /**
+     * Ajusta el stock de una talla específica
+     */
+    public void ajustarStockTalla(Long inventarioId, String talla, Long tipoMovimientoId, Integer cantidad,
+                                 String referencia, String observaciones, Integer usuarioId) {
+        Inventario inventario = inventarioRepository.findById(inventarioId)
+            .orElseThrow(() -> new RuntimeException("Inventario no encontrado"));
+
+        TipoMovimientoInventario tipoMovimiento = tipoMovimientoRepository.findById(tipoMovimientoId)
+            .orElseThrow(() -> new RuntimeException("Tipo de movimiento no encontrado"));
+
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        // Buscar o crear registro de talla
+        Optional<InventarioTalla> inventarioTallaOpt = inventarioTallaRepository
+            .findByInventarioAndTalla(inventario, talla);
+
+        InventarioTalla inventarioTalla;
+        if (inventarioTallaOpt.isPresent()) {
+            inventarioTalla = inventarioTallaOpt.get();
+        } else {
+            // Crear registro de talla si no existe
+            inventarioTalla = new InventarioTalla(inventario, talla, 0, 0);
+            inventarioTalla = inventarioTallaRepository.save(inventarioTalla);
+        }
+
+        // Calcular nueva cantidad para la talla
+        int cantidadAjuste = tipoMovimiento.isEsEntrada() ? cantidad : -cantidad;
+        int nuevaCantidadTalla = Math.max(0, inventarioTalla.getCantidadStock() + cantidadAjuste);
+
+        // Actualizar stock de la talla
+        inventarioTalla.setCantidadStock(nuevaCantidadTalla);
+        inventarioTallaRepository.save(inventarioTalla);
+
+        // Actualizar stock total del inventario
+        actualizarStockTotalInventario(inventario);
+
+        // Registrar movimiento
+        MovimientoInventario movimiento = new MovimientoInventario(
+            inventario.getProducto(), inventario.getAlmacen(), tipoMovimiento, cantidad,
+            usuario, observaciones, referencia, talla
+        );
+        movimientoRepository.save(movimiento);
+    }
+
+    /**
+     * Obtiene las tallas disponibles para un inventario
+     */
+    public List<InventarioTalla> obtenerTallasPorInventario(Long inventarioId) {
+        Inventario inventario = inventarioRepository.findById(inventarioId)
+            .orElseThrow(() -> new RuntimeException("Inventario no encontrado"));
+
+        return inventarioTallaRepository.findByInventario(inventario);
+    }
+
+    /**
+     * Obtiene detalles completos del inventario incluyendo tallas
+     */
+    public InventarioConTallasDto obtenerInventarioConTallas(Long inventarioId) {
+        Inventario inventario = inventarioRepository.findById(inventarioId)
+            .orElseThrow(() -> new RuntimeException("Inventario no encontrado"));
+
+        List<InventarioTalla> tallas = inventarioTallaRepository.findByInventario(inventario);
+
+        List<TallaStockDetalleDto> tallasDetalle = tallas.stream()
+            .map(t -> new TallaStockDetalleDto(
+                t.getTalla(),
+                t.getCantidadStock(),
+                t.getStockMinimo(),
+                t.getFechaUltimaActualizacion(),
+                t.isStockBajo(),
+                t.isAgotado()
+            ))
+            .collect(Collectors.toList());
+
+        return new InventarioConTallasDto(
+            inventario.getId(),
+            inventario.getProducto().getId(),
+            inventario.getProducto().getNombre(),
+            inventario.getAlmacen().getId(),
+            inventario.getAlmacen().getNombre(),
+            inventario.getCantidadStock(),
+            inventario.getStockMinimo(),
+            tallasDetalle
+        );
+    }
+
+    /**
+     * Transfiere stock entre almacenes para una talla específica
+     */
+    public void transferirStockTalla(Long inventarioOrigenId, String talla, Long almacenDestinoId,
+                                    Integer cantidad, String referencia, String observaciones, Integer usuarioId) {
+        Inventario inventarioOrigen = inventarioRepository.findById(inventarioOrigenId)
+            .orElseThrow(() -> new RuntimeException("Inventario origen no encontrado"));
+
+        Almacen almacenDestino = almacenRepository.findById(almacenDestinoId)
+            .orElseThrow(() -> new RuntimeException("Almacén destino no encontrado"));
+
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        // Buscar talla en origen
+        InventarioTalla tallaOrigen = inventarioTallaRepository
+            .findByInventarioAndTalla(inventarioOrigen, talla)
+            .orElseThrow(() -> new RuntimeException("Talla no encontrada en inventario origen"));
+
+        // Verificar stock suficiente
+        if (tallaOrigen.getCantidadStock() < cantidad) {
+            throw new RuntimeException("Stock insuficiente para la talla " + talla + " en el almacén origen");
+        }
+
+        // Buscar o crear inventario en destino
+        Optional<Inventario> inventarioDestinoOpt = inventarioRepository
+            .findByProductoAndAlmacen(inventarioOrigen.getProducto(), almacenDestino);
+
+        Inventario inventarioDestino;
+        if (inventarioDestinoOpt.isPresent()) {
+            inventarioDestino = inventarioDestinoOpt.get();
+        } else {
+            // Crear registro en destino
+            inventarioDestino = new Inventario(
+                inventarioOrigen.getProducto(),
+                almacenDestino,
+                0,
+                inventarioOrigen.getStockMinimo()
+            );
+            inventarioDestino = inventarioRepository.save(inventarioDestino);
+        }
+
+        // Buscar o crear talla en destino
+        Optional<InventarioTalla> tallaDestinoOpt = inventarioTallaRepository
+            .findByInventarioAndTalla(inventarioDestino, talla);
+
+        InventarioTalla tallaDestino;
+        if (tallaDestinoOpt.isPresent()) {
+            tallaDestino = tallaDestinoOpt.get();
+        } else {
+            tallaDestino = new InventarioTalla(inventarioDestino, talla, 0, tallaOrigen.getStockMinimo());
+            tallaDestino = inventarioTallaRepository.save(tallaDestino);
+        }
+
+        // Obtener tipos de movimiento
+        TipoMovimientoInventario tipoSalida = ensureTipoMovimiento(TIPO_SALIDA_TRANSFERENCIA, false);
+        TipoMovimientoInventario tipoEntrada = ensureTipoMovimiento(TIPO_ENTRADA_TRANSFERENCIA, true);
+
+        // Actualizar stocks
+        tallaOrigen.setCantidadStock(tallaOrigen.getCantidadStock() - cantidad);
+        tallaDestino.setCantidadStock(tallaDestino.getCantidadStock() + cantidad);
+
+        inventarioTallaRepository.save(tallaOrigen);
+        inventarioTallaRepository.save(tallaDestino);
+
+        // Actualizar stocks totales
+        actualizarStockTotalInventario(inventarioOrigen);
+        actualizarStockTotalInventario(inventarioDestino);
+
+        // Registrar movimientos
+        MovimientoInventario movimientoSalida = new MovimientoInventario(
+            inventarioOrigen.getProducto(), inventarioOrigen.getAlmacen(), tipoSalida,
+            cantidad, usuario, observaciones, referencia, talla
+        );
+        movimientoRepository.save(movimientoSalida);
+
+        MovimientoInventario movimientoEntrada = new MovimientoInventario(
+            inventarioDestino.getProducto(), inventarioDestino.getAlmacen(), tipoEntrada,
+            cantidad, usuario, observaciones, referencia, talla
+        );
+        movimientoRepository.save(movimientoEntrada);
+    }
+
+    /**
+     * Agrega tallas a un inventario existente
+     */
+    public void agregarTallasAInventario(Long inventarioId, List<TallaStockDto> tallasStock,
+                                       String referencia, String observaciones, Integer usuarioId) {
+        Inventario inventario = inventarioRepository.findById(inventarioId)
+            .orElseThrow(() -> new RuntimeException("Inventario no encontrado"));
+
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        for (TallaStockDto tallaStock : tallasStock) {
+            // Verificar que la talla no exista ya en este inventario
+            Optional<InventarioTalla> existente = inventarioTallaRepository
+                .findByInventarioAndTalla(inventario, tallaStock.talla());
+
+            if (existente.isPresent()) {
+                throw new RuntimeException("La talla " + tallaStock.talla() + " ya existe en este inventario");
+            }
+
+            // Crear registro de talla
+            InventarioTalla inventarioTalla = new InventarioTalla(
+                inventario,
+                tallaStock.talla(),
+                tallaStock.cantidadInicial(),
+                tallaStock.stockMinimo()
+            );
+            inventarioTallaRepository.save(inventarioTalla);
+
+            // Registrar movimiento inicial si hay stock
+            if (tallaStock.cantidadInicial() > 0) {
+                TipoMovimientoInventario tipoMovimiento = ensureTipoMovimiento(TIPO_REGISTRO_INICIAL, true);
+
+                MovimientoInventario movimiento = new MovimientoInventario(
+                    inventario.getProducto(), inventario.getAlmacen(), tipoMovimiento,
+                    tallaStock.cantidadInicial(), usuario, observaciones, referencia, tallaStock.talla()
+                );
+                movimientoRepository.save(movimiento);
+            }
+        }
+
+        // Actualizar stock total del inventario
+        actualizarStockTotalInventario(inventario);
+    }
+
+    /**
+     * Actualiza el stock total de un inventario basado en las tallas
+     */
+    private void actualizarStockTotalInventario(Inventario inventario) {
+        List<InventarioTalla> tallas = inventarioTallaRepository.findByInventario(inventario);
+        int stockTotal = tallas.stream()
+            .mapToInt(InventarioTalla::getCantidadStock)
+            .sum();
+
+        inventario.setCantidadStock(stockTotal);
+        inventarioRepository.save(inventario);
+    }
+
+    // === RECORDS PARA DTOs DE TALLAS ===
+
+    public record TallaStockDto(String talla, Integer cantidadInicial, Integer stockMinimo) {}
+
+    public record TallaStockDetalleDto(
+        String talla,
+        Integer cantidadStock,
+        Integer stockMinimo,
+        LocalDateTime fechaUltimaActualizacion,
+        boolean stockBajo,
+        boolean agotado
+    ) {}
+
+    public record InventarioConTallasDto(
+        Long idInventario,
+        Long idProducto,
+        String nombreProducto,
+        Long idAlmacen,
+        String nombreAlmacen,
+        Integer stockTotal,
+        Integer stockMinimoTotal,
+        List<TallaStockDetalleDto> tallas
+    ) {}
 }

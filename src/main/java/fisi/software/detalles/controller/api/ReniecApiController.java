@@ -30,6 +30,12 @@ public class ReniecApiController {
                 return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(Map.of("message", "Error consultando proveedor externo", "provider", "reniec"));
             }
             return ResponseEntity.ok(data);
+        } catch (IllegalArgumentException iae) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "message", iae.getMessage(),
+                "tipo", tipo,
+                "numero", numero
+            ));
         } catch (IllegalStateException ise) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of("message", ise.getMessage()));
         } catch (Exception ex) {
@@ -50,6 +56,12 @@ public class ReniecApiController {
                 return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(Map.of("message", "Error consultando proveedor externo (test)", "provider", "reniec"));
             }
             return ResponseEntity.ok(data);
+        } catch (IllegalArgumentException iae) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "message", iae.getMessage(),
+                "tipo", tipo,
+                "numero", numero
+            ));
         } catch (IllegalStateException ise) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of("message", ise.getMessage()));
         } catch (Exception ex) {

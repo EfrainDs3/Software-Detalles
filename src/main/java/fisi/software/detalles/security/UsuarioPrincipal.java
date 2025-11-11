@@ -30,6 +30,7 @@ public class UsuarioPrincipal implements UserDetails {
     private final LocalDateTime fechaUltimaSesion;
     private final Set<String> roles;
     private final Set<String> permisos;
+    private final Set<String> modulos;
     private final Set<GrantedAuthority> authorities;
 
     private UsuarioPrincipal(
@@ -43,6 +44,7 @@ public class UsuarioPrincipal implements UserDetails {
         LocalDateTime fechaUltimaSesion,
         Set<String> roles,
         Set<String> permisos,
+        Set<String> modulos,
         Set<GrantedAuthority> authorities
     ) {
         this.id = id;
@@ -55,6 +57,7 @@ public class UsuarioPrincipal implements UserDetails {
         this.fechaUltimaSesion = fechaUltimaSesion;
         this.roles = roles;
         this.permisos = permisos;
+        this.modulos = modulos;
         this.authorities = authorities;
     }
 
@@ -79,9 +82,21 @@ public class UsuarioPrincipal implements UserDetails {
                 .map(Permisos::normalizar)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
 
+        Set<String> modulosNormalizados = usuario.getRoles() == null
+            ? Set.of()
+            : usuario.getRoles().stream()
+                .filter(Objects::nonNull)
+                .flatMap(rol -> rol.getPermisos().stream())
+                .filter(Objects::nonNull)
+                .filter(permiso -> "ACTIVO".equalsIgnoreCase(permiso.getEstado()))
+                .map(permiso -> Permisos.autoridadModulo(permiso.getModulo(), permiso.getNombrePermiso()))
+                .filter(StringUtils::hasText)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
         Set<GrantedAuthority> grantedAuthorities = new LinkedHashSet<>();
         permisosNormalizados.forEach(permiso -> grantedAuthorities.add(new SimpleGrantedAuthority(permiso)));
         rolesNormalizados.forEach(rol -> grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_" + rol)));
+        modulosNormalizados.forEach(modulo -> grantedAuthorities.add(new SimpleGrantedAuthority(modulo)));
 
         return new UsuarioPrincipal(
             usuario.getId(),
@@ -94,6 +109,7 @@ public class UsuarioPrincipal implements UserDetails {
             usuario.getFechaUltimaSesion(),
             rolesNormalizados,
             permisosNormalizados,
+            modulosNormalizados,
             grantedAuthorities
         );
     }
@@ -124,6 +140,10 @@ public class UsuarioPrincipal implements UserDetails {
 
     public Set<String> getPermisosSistema() {
         return permisos;
+    }
+
+    public Set<String> getModulosSistema() {
+        return modulos;
     }
 
     @Override

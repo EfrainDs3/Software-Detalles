@@ -3,11 +3,15 @@ package fisi.software.detalles.controller;
 import fisi.software.detalles.controller.dto.ClienteRegistroRapidoDTO;
 import fisi.software.detalles.entity.Cliente;
 import fisi.software.detalles.entity.TipoDocumento;
+import fisi.software.detalles.security.Permisos;
 import fisi.software.detalles.service.ClienteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -33,7 +37,10 @@ public class ClientesController {
      * @return Vista de clientes
      */
     @GetMapping
-    public String showClientes() {
+    public String showClientes(Model model, Authentication authentication) {
+        boolean puedeGestionarClientes = authentication != null && authentication.getAuthorities().stream()
+            .anyMatch(authority -> Permisos.GESTIONAR_CLIENTES.equals(authority.getAuthority()));
+        model.addAttribute("puedeGestionarClientes", puedeGestionarClientes);
         return "software/clientes/clientes";
     }
     
@@ -107,6 +114,7 @@ public class ClientesController {
      */
     @PostMapping("/api")
     @ResponseBody
+    @PreAuthorize("hasAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_CLIENTES)")
     public ResponseEntity<?> crearCliente(@RequestBody ClienteRegistroRapidoDTO dto) {
         try {
             // Mapeo simple del DTO a la Entidad Cliente antes de llamar al servicio
@@ -163,6 +171,7 @@ public class ClientesController {
      */
     @PutMapping("/api/{id}")
     @ResponseBody
+    @PreAuthorize("hasAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_CLIENTES)")
     public ResponseEntity<?> actualizarCliente(@PathVariable Integer id, @RequestBody Cliente cliente) {
         try {
             Cliente clienteActualizado = clienteService.actualizar(id, cliente);
@@ -186,6 +195,7 @@ public class ClientesController {
      */
     @DeleteMapping("/api/{id}")
     @ResponseBody
+    @PreAuthorize("hasAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_CLIENTES)")
     public ResponseEntity<?> eliminarCliente(@PathVariable Integer id) {
         try {
             clienteService.eliminar(id);
@@ -244,6 +254,7 @@ public class ClientesController {
      */
     @PutMapping("/api/{id}/reactivar")
     @ResponseBody
+    @PreAuthorize("hasAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_CLIENTES)")
     public ResponseEntity<?> reactivarCliente(@PathVariable Integer id) {
         try {
             Cliente cliente = clienteService.reactivar(id);

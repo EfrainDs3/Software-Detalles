@@ -1,6 +1,13 @@
 ﻿// proveedores.js - Gestión de Proveedores con integración REST
 
 const API_URL = '/api/proveedores';
+const PERMISSION_WARNING = 'No tienes permisos para gestionar proveedores. Puedes visualizar el módulo pero no realizar cambios.';
+
+const bodyElement = document.body;
+const canManageComprasFlag = bodyElement && bodyElement.dataset && typeof bodyElement.dataset.canManageCompras === 'string'
+    ? bodyElement.dataset.canManageCompras
+    : 'true';
+const canManageCompras = canManageComprasFlag === 'true';
 
 let proveedores = [];
 let currentPage = 1;
@@ -45,8 +52,34 @@ async function askConfirmation(options){
 
 document.addEventListener('DOMContentLoaded', () => {
     initializeEventListeners();
+    applyReadOnlyState();
     loadProveedores();
 });
+
+function applyReadOnlyState() {
+    if (canManageCompras) {
+        return;
+    }
+
+    const addButton = document.getElementById('btn-agregar-proveedor');
+    if (addButton) {
+        addButton.disabled = true;
+        addButton.classList.add('btn-disabled');
+        addButton.title = PERMISSION_WARNING;
+    }
+
+    const selectAll = document.getElementById('selectAll');
+    if (selectAll) {
+        selectAll.disabled = true;
+        selectAll.checked = false;
+    }
+
+    document.body.classList.add('proveedores-readonly');
+}
+
+function notifyReadOnlyAction() {
+    showNotification(PERMISSION_WARNING, 'warning');
+}
 
 function initializeEventListeners() {
     if (searchInput) {
@@ -55,7 +88,13 @@ function initializeEventListeners() {
 
     const addButton = document.getElementById('btn-agregar-proveedor');
     if (addButton) {
-        addButton.addEventListener('click', openAddProveedorModal);
+        addButton.addEventListener('click', () => {
+            if (!canManageCompras) {
+                notifyReadOnlyAction();
+                return;
+            }
+            openAddProveedorModal();
+        });
     }
 
     document.querySelectorAll('.modal-close, .btn-cancel').forEach(button => {
@@ -84,7 +123,7 @@ function initializeEventListeners() {
     }
 
     const selectAll = document.getElementById('selectAll');
-    if (selectAll) {
+    if (selectAll && canManageCompras) {
         selectAll.addEventListener('change', function () {
             const rowCheckboxes = document.querySelectorAll('.row-checkbox');
             rowCheckboxes.forEach(checkbox => {
@@ -93,7 +132,7 @@ function initializeEventListeners() {
         });
     }
 
-    if (proveedoresTableBody) {
+    if (proveedoresTableBody && canManageCompras) {
         proveedoresTableBody.addEventListener('change', event => {
             if (event.target.classList.contains('row-checkbox')) {
                 updateSelectAllCheckbox();
@@ -106,6 +145,12 @@ async function loadProveedores() {
     try {
         const response = await fetch(API_URL);
         if (!response.ok) {
+            if (response.status === 403) {
+                proveedores = [];
+                renderProveedoresTable();
+                notifyReadOnlyAction();
+                return;
+            }
             throw new Error('No se pudo cargar la lista de proveedores');
         }
         proveedores = await response.json();
@@ -146,7 +191,7 @@ function renderProveedoresTable(data = proveedores) {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>
-                <input type="checkbox" class="row-checkbox" value="${proveedor.idProveedor}">
+                <input type="checkbox" class="row-checkbox" value="${proveedor.idProveedor}" ${canManageCompras ? '' : 'disabled'}>
             </td>
             <td>
                 <div style="font-weight: 500; color: #b30000; font-size: 16px;">${String(proveedor.idProveedor).padStart(3, '0')}</div>
@@ -174,12 +219,14 @@ function renderProveedoresTable(data = proveedores) {
             </td>
             <td>
                 <div class="action-buttons-cell">
-                    <button class="btn-icon btn-edit" data-action="edit" data-id="${proveedor.idProveedor}" title="Editar">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn-icon btn-delete" data-action="delete" data-id="${proveedor.idProveedor}" title="Eliminar">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                    ${canManageCompras ? `
+                        <button class="btn-icon btn-edit" data-action="edit" data-id="${proveedor.idProveedor}" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-icon btn-delete" data-action="delete" data-id="${proveedor.idProveedor}" title="Eliminar">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    ` : ''}
                     <button class="btn-icon btn-view" data-action="view" data-id="${proveedor.idProveedor}" title="Ver detalles">
                         <i class="fas fa-eye"></i>
                     </button>
@@ -189,28 +236,34 @@ function renderProveedoresTable(data = proveedores) {
         proveedoresTableBody.appendChild(row);
     });
 
-    proveedoresTableBody.querySelectorAll('.btn-edit').forEach(button => {
-        button.addEventListener('click', async () => {
-            const id = Number(button.dataset.id);
-            const proveedor = proveedores.find(p => p.idProveedor === id);
-            const nombre = proveedor?.razonSocial || `Proveedor #${id}`;
-            const confirmed = await askConfirmation({
-                title: 'Editar proveedor',
-                message: `¿Deseas editar al proveedor "${nombre}"?`,
-                confirmText: 'Sí, editar',
-                cancelText: 'Cancelar'
+    if (canManageCompras) {
+        proveedoresTableBody.querySelectorAll('.btn-edit').forEach(button => {
+            button.addEventListener('click', async () => {
+                const id = Number(button.dataset.id);
+                const proveedor = proveedores.find(p => p.idProveedor === id);
+                const nombre = proveedor?.razonSocial || `Proveedor #${id}`;
+                const confirmed = await askConfirmation({
+                    title: 'Editar proveedor',
+                    message: `¿Deseas editar al proveedor "${nombre}"?`,
+                    confirmText: 'Sí, editar',
+                    cancelText: 'Cancelar'
+                });
+                if (!confirmed) return;
+                editProveedor(id);
             });
-            if (!confirmed) return;
-            editProveedor(id);
         });
-    });
 
-    proveedoresTableBody.querySelectorAll('.btn-delete').forEach(button => {
-        button.addEventListener('click', async () => {
-            const id = Number(button.dataset.id);
-            await deleteProveedor(id);
+        proveedoresTableBody.querySelectorAll('.btn-delete').forEach(button => {
+            button.addEventListener('click', async () => {
+                const id = Number(button.dataset.id);
+                await deleteProveedor(id);
+            });
         });
-    });
+    } else {
+        proveedoresTableBody.querySelectorAll('.btn-edit, .btn-delete').forEach(button => {
+            button.addEventListener('click', notifyReadOnlyAction);
+        });
+    }
 
     proveedoresTableBody.querySelectorAll('.btn-view').forEach(button => {
         button.addEventListener('click', () => viewProveedorDetails(Number(button.dataset.id)));
@@ -242,6 +295,10 @@ function handleSearch() {
 }
 
 function openAddProveedorModal() {
+    if (!canManageCompras) {
+        notifyReadOnlyAction();
+        return;
+    }
     modalTitle.textContent = 'Nuevo Proveedor';
     proveedorForm.reset();
     isEditing = false;
@@ -251,6 +308,10 @@ function openAddProveedorModal() {
 }
 
 async function editProveedor(id) {
+    if (!canManageCompras) {
+        notifyReadOnlyAction();
+        return;
+    }
     try {
         const response = await fetch(`${API_URL}/${id}`);
         if (!response.ok) {
@@ -300,6 +361,10 @@ function viewProveedorDetails(id) {
 }
 
 async function deleteProveedor(id) {
+    if (!canManageCompras) {
+        notifyReadOnlyAction();
+        return;
+    }
     const proveedor = proveedores.find(p => p.idProveedor === id);
     if (!proveedor) {
         showNotification('Proveedor no encontrado en la lista.', 'error');
@@ -335,6 +400,11 @@ async function deleteProveedor(id) {
 
 async function handleProveedorSubmit(event) {
     event.preventDefault();
+
+    if (!canManageCompras) {
+        notifyReadOnlyAction();
+        return;
+    }
 
     const proveedorData = {
         razonSocial: getInputValue('razon-social'),
@@ -492,6 +562,12 @@ function changePage(page) {
 function updateSelectAllCheckbox() {
     const selectAll = document.getElementById('selectAll');
     if (!selectAll) {
+        return;
+    }
+
+    if (!canManageCompras) {
+        selectAll.indeterminate = false;
+        selectAll.checked = false;
         return;
     }
 

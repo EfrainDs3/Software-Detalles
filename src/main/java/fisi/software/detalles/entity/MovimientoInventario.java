@@ -43,6 +43,9 @@ public class MovimientoInventario {
     @Column(name = "referencia_doc", length = 50)
     private String referenciaDoc;
 
+    @Column(name = "talla", length = 64)
+    private String talla;
+
     public MovimientoInventario() {
     }
 
@@ -56,6 +59,19 @@ public class MovimientoInventario {
         this.usuario = usuario;
         this.observaciones = observaciones;
         this.referenciaDoc = referenciaDoc;
+    }
+
+    public MovimientoInventario(Producto producto, Almacen almacen, TipoMovimientoInventario tipoMovimiento,
+                               Integer cantidad, Usuario usuario, String observaciones, String referenciaDoc, String talla) {
+        this.producto = producto;
+        this.almacen = almacen;
+        this.tipoMovimiento = tipoMovimiento;
+        this.cantidad = cantidad;
+        this.fechaMovimiento = LocalDateTime.now();
+        this.usuario = usuario;
+        this.observaciones = observaciones;
+        this.referenciaDoc = referenciaDoc;
+        this.talla = talla;
     }
 
     public Long getId() {
@@ -128,6 +144,14 @@ public class MovimientoInventario {
 
     public void setReferenciaDoc(String referenciaDoc) {
         this.referenciaDoc = referenciaDoc;
+    }
+
+    public String getTalla() {
+        return talla;
+    }
+
+    public void setTalla(String talla) {
+        this.talla = talla;
     }
 
     /**

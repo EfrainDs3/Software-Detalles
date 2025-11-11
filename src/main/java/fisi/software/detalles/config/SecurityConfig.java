@@ -40,30 +40,59 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             
             // Configurar autorización
-            .authorizeHttpRequests(authorize -> authorize
+            .authorizeHttpRequests(authorize -> {
                 // Recursos públicos
-                .requestMatchers("/css/**", "/js/**", "/img/**", "/images/**", "/Detalles_web/**", "/login", "/index", "/forgot-password", "/forgot-password/**").permitAll()
-                .requestMatchers("/api/auth/login", "/api/auth/forgot-password/**").permitAll()
-                .requestMatchers("/api/productos/**").permitAll()
-                // Rutas protegidas
-                .requestMatchers("/dashboard", "/dashboard/**").hasAuthority(Permisos.ACCEDER_AL_DASHBOARD)
-                .requestMatchers("/software/**").authenticated()
-                .requestMatchers(HttpMethod.GET, "/api/usuarios/**").hasAnyAuthority(Permisos.GESTIONAR_USUARIOS, Permisos.VER_USUARIOS)
-                .requestMatchers(HttpMethod.POST, "/api/usuarios/**").hasAuthority(Permisos.GESTIONAR_USUARIOS)
-                .requestMatchers(HttpMethod.PUT, "/api/usuarios/**").hasAuthority(Permisos.GESTIONAR_USUARIOS)
-                .requestMatchers(HttpMethod.DELETE, "/api/usuarios/**").hasAuthority(Permisos.GESTIONAR_USUARIOS)
-                .requestMatchers(HttpMethod.GET, "/api/roles/**").hasAnyAuthority(Permisos.GESTIONAR_ROLES, Permisos.VER_ROLES)
-                .requestMatchers(HttpMethod.POST, "/api/roles/**").hasAuthority(Permisos.GESTIONAR_ROLES)
-                .requestMatchers(HttpMethod.PUT, "/api/roles/**").hasAuthority(Permisos.GESTIONAR_ROLES)
-                .requestMatchers(HttpMethod.PATCH, "/api/roles/**").hasAuthority(Permisos.GESTIONAR_ROLES)
-                .requestMatchers(HttpMethod.DELETE, "/api/roles/**").hasAuthority(Permisos.GESTIONAR_ROLES)
-                .requestMatchers(HttpMethod.GET, "/api/permisos/**").hasAnyAuthority(Permisos.GESTIONAR_PERMISOS, Permisos.VER_PERMISOS)
-                .requestMatchers(HttpMethod.POST, "/api/permisos/**").hasAuthority(Permisos.GESTIONAR_PERMISOS)
-                .requestMatchers(HttpMethod.PUT, "/api/permisos/**").hasAuthority(Permisos.GESTIONAR_PERMISOS)
-                .requestMatchers(HttpMethod.DELETE, "/api/permisos/**").hasAuthority(Permisos.GESTIONAR_PERMISOS)
-                .requestMatchers("/api/**").authenticated()
-                .anyRequest().authenticated()
-            )
+                authorize.requestMatchers("/css/**", "/js/**", "/img/**", "/images/**", "/login", "/forgot-password", "/forgot-password/**").permitAll();
+                authorize.requestMatchers("/api/auth/login", "/api/auth/forgot-password/**").permitAll();
+                authorize.requestMatchers("/api/productos/**").permitAll();
+
+                // Rutas protegidas por permisos específicos
+                authorize.requestMatchers("/dashboard", "/dashboard/**").hasAuthority(Permisos.ACCEDER_AL_DASHBOARD);
+                authorize.requestMatchers(HttpMethod.POST, "/ventas/api/**").hasAuthority(Permisos.REGISTRAR_VENTAS);
+                authorize.requestMatchers(HttpMethod.PUT, "/ventas/api/**").hasAuthority(Permisos.REGISTRAR_VENTAS);
+                authorize.requestMatchers(HttpMethod.POST, "/inventario/api/**").hasAuthority(Permisos.GESTIONAR_INVENTARIO);
+                authorize.requestMatchers(HttpMethod.PUT, "/inventario/api/**").hasAuthority(Permisos.GESTIONAR_INVENTARIO);
+                authorize.requestMatchers(HttpMethod.POST, "/api/almacenes/**").hasAuthority(Permisos.GESTIONAR_INVENTARIO);
+                authorize.requestMatchers(HttpMethod.PUT, "/api/almacenes/**").hasAuthority(Permisos.GESTIONAR_INVENTARIO);
+                authorize.requestMatchers(HttpMethod.DELETE, "/api/almacenes/**").hasAuthority(Permisos.GESTIONAR_INVENTARIO);
+                authorize.requestMatchers(HttpMethod.POST, "/api/proveedores/**").hasAuthority(Permisos.GESTIONAR_COMPRAS);
+                authorize.requestMatchers(HttpMethod.PUT, "/api/proveedores/**").hasAuthority(Permisos.GESTIONAR_COMPRAS);
+                authorize.requestMatchers(HttpMethod.DELETE, "/api/proveedores/**").hasAuthority(Permisos.GESTIONAR_COMPRAS);
+                authorize.requestMatchers(HttpMethod.POST, "/clientes/api/**").hasAuthority(Permisos.GESTIONAR_CLIENTES);
+                authorize.requestMatchers(HttpMethod.PUT, "/clientes/api/**").hasAuthority(Permisos.GESTIONAR_CLIENTES);
+                authorize.requestMatchers(HttpMethod.DELETE, "/clientes/api/**").hasAuthority(Permisos.GESTIONAR_CLIENTES);
+
+                authorize.requestMatchers("/api/reniec/**").hasAnyAuthority(
+                    Permisos.GESTIONAR_CLIENTES,
+                    Permisos.autoridadModulo("Clientes"),
+                    Permisos.GESTIONAR_USUARIOS,
+                    Permisos.autoridadModulo("Usuarios"),
+                    Permisos.REGISTRAR_VENTAS,
+                    Permisos.autoridadModulo("Ventas")
+                );
+
+                authorize.requestMatchers("/software/**").authenticated();
+
+                // API de gestión de usuarios, roles y permisos con privilegios finos
+                authorize.requestMatchers(HttpMethod.GET, "/api/usuarios/**").hasAnyAuthority(Permisos.GESTIONAR_USUARIOS, Permisos.VER_USUARIOS);
+                authorize.requestMatchers(HttpMethod.POST, "/api/usuarios/**").hasAuthority(Permisos.GESTIONAR_USUARIOS);
+                authorize.requestMatchers(HttpMethod.PUT, "/api/usuarios/**").hasAuthority(Permisos.GESTIONAR_USUARIOS);
+                authorize.requestMatchers(HttpMethod.DELETE, "/api/usuarios/**").hasAuthority(Permisos.GESTIONAR_USUARIOS);
+
+                authorize.requestMatchers(HttpMethod.GET, "/api/roles/**").hasAnyAuthority(Permisos.GESTIONAR_ROLES, Permisos.VER_ROLES);
+                authorize.requestMatchers(HttpMethod.POST, "/api/roles/**").hasAuthority(Permisos.GESTIONAR_ROLES);
+                authorize.requestMatchers(HttpMethod.PUT, "/api/roles/**").hasAuthority(Permisos.GESTIONAR_ROLES);
+                authorize.requestMatchers(HttpMethod.PATCH, "/api/roles/**").hasAuthority(Permisos.GESTIONAR_ROLES);
+                authorize.requestMatchers(HttpMethod.DELETE, "/api/roles/**").hasAuthority(Permisos.GESTIONAR_ROLES);
+
+                authorize.requestMatchers(HttpMethod.GET, "/api/permisos/**").hasAnyAuthority(Permisos.GESTIONAR_PERMISOS, Permisos.VER_PERMISOS);
+                authorize.requestMatchers(HttpMethod.POST, "/api/permisos/**").hasAuthority(Permisos.GESTIONAR_PERMISOS);
+                authorize.requestMatchers(HttpMethod.PUT, "/api/permisos/**").hasAuthority(Permisos.GESTIONAR_PERMISOS);
+                authorize.requestMatchers(HttpMethod.DELETE, "/api/permisos/**").hasAuthority(Permisos.GESTIONAR_PERMISOS);
+
+                authorize.requestMatchers("/api/**").authenticated();
+                authorize.anyRequest().authenticated();
+            })
             
             // Configurar sesiones para mantener la autenticación
             .sessionManagement(session -> session

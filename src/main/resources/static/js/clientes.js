@@ -5,10 +5,149 @@
 let clientes = [];
 let tiposDocumento = [];
 let currentClientId = null;
+let canManageClientes = false;
+const CLIENTES_PERMISSION_ERROR = 'PERMISO_CLIENTES_DENEGADO';
+
+const DOCUMENT_RULES = {
+    DNI: { label: 'DNI', maxLength: 8, regex: /^\d{8}$/ },
+    RUC: { label: 'RUC', maxLength: 11, regex: /^\d{11}$/ }
+};
+
+function resolveDocumentRule(tipoTexto) {
+    if (!tipoTexto) return null;
+    const upper = String(tipoTexto).toUpperCase();
+    if (upper.includes('DNI')) return DOCUMENT_RULES.DNI;
+    if (upper.includes('RUC')) return DOCUMENT_RULES.RUC;
+    return null;
+}
+
+function sanitizeDocumentoInput(input, rule) {
+    if (!input) return '';
+    let value = input.value || '';
+    if (rule) {
+        value = value.replace(/\D/g, '');
+        if (typeof rule.maxLength === 'number') {
+            value = value.slice(0, rule.maxLength);
+        }
+    } else {
+        value = value.trim();
+    }
+    input.value = value;
+    return value;
+}
+
+function applyDocumentConstraints(input, tipoTexto) {
+    if (!input) return;
+    const rule = resolveDocumentRule(tipoTexto);
+    if (rule) {
+        input.setAttribute('inputmode', 'numeric');
+        input.setAttribute('pattern', `\\d{${rule.maxLength}}`);
+        input.setAttribute('maxlength', String(rule.maxLength));
+    } else {
+        input.removeAttribute('inputmode');
+        input.removeAttribute('pattern');
+        input.removeAttribute('maxlength');
+    }
+}
+
+function validateDocumentoNumero(tipoTexto, numero) {
+    if (!numero) return null;
+    const rule = resolveDocumentRule(tipoTexto);
+    if (!rule) return null;
+    if (!rule.regex.test(numero)) {
+        return `${rule.label} debe tener exactamente ${rule.maxLength} dígitos`;
+    }
+    return null;
+}
+
+function getTipoDocumentoNombreById(id, selectEl) {
+    if (!id && selectEl) {
+        return selectEl.options[selectEl.selectedIndex]?.text || '';
+    }
+    const tipo = (tiposDocumento || []).find(t => String(t.idTipoDocumento) === String(id));
+    if (tipo) return tipo.nombreTipoDocumento;
+    return selectEl?.options[selectEl.selectedIndex]?.text || '';
+}
+
+function normalizeDocumentoValue(numero, tipoTexto) {
+    if (!numero) return '';
+    const rule = resolveDocumentRule(tipoTexto);
+    let value = String(numero).trim();
+    if (rule) {
+        value = value.replace(/\D/g, '').slice(0, rule.maxLength);
+    }
+    return value;
+}
+
+function notifyClientesPermissionDenied(actionDescription) {
+    const suffix = actionDescription ? ` para ${actionDescription}` : '';
+    const message = `No tienes permiso${suffix} en el módulo de clientes.`;
+    if (typeof showNotification === 'function') {
+        showNotification(message, 'warning');
+    } else {
+        console.warn(message);
+    }
+}
+
+function assertCanManageClientes(actionDescription) {
+    if (canManageClientes) {
+        return true;
+    }
+    notifyClientesPermissionDenied(actionDescription);
+    return false;
+}
+
+function applyClientesAccessMode() {
+    if (canManageClientes) {
+        return;
+    }
+
+    const bodyEl = document.body;
+    if (bodyEl) {
+        bodyEl.classList.add('clientes-read-only');
+        if (!bodyEl.dataset.readOnlyNoticeShown && typeof showNotification === 'function') {
+            showNotification('Visualización de clientes en modo lectura.', 'info');
+            bodyEl.dataset.readOnlyNoticeShown = 'true';
+        }
+    }
+
+    const addClientBtn = document.getElementById('addClientBtn');
+    if (addClientBtn) {
+        addClientBtn.setAttribute('disabled', 'true');
+        addClientBtn.classList.add('btn-disabled');
+        addClientBtn.title = 'No tienes permiso para registrar clientes.';
+    }
+
+    const selectAllCheckbox = document.getElementById('selectAll');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.disabled = true;
+    }
+
+    const bulkActions = document.getElementById('bulkActions');
+    if (bulkActions) {
+        bulkActions.style.display = 'none';
+    }
+
+    const saveBtn = document.getElementById('saveBtn');
+    if (saveBtn) {
+        saveBtn.setAttribute('disabled', 'true');
+        saveBtn.classList.add('btn-disabled');
+    }
+
+    const subtitle = document.querySelector('.page-subtitle');
+    if (subtitle) {
+        subtitle.textContent = 'Visualización de clientes (solo lectura)';
+    }
+}
 
 // Initialize module when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
+    const bodyDataset = document.body ? document.body.dataset || {} : {};
+    canManageClientes = String(bodyDataset.canManageClientes).toLowerCase() === 'true';
+
     initClientesModule();
+    applyClientesAccessMode();
     loadTiposDocumento();
     loadClientes();
 });
@@ -122,22 +261,113 @@ async function lookupReniecCliente(tipoText, numero) {
     }
 }
 
-function extractNamePartsFromReniecCliente(data) {
+function splitNombreCompuesto(fullName) {
+    if (!fullName) return { first: '', last: '' };
+    const tokens = String(fullName).trim().split(/\s+/).filter(Boolean);
+    if (tokens.length === 0) return { first: '', last: '' };
+    if (tokens.length === 1) return { first: tokens[0], last: '' };
+    const lastTokens = tokens.length >= 4 ? 2 : Math.min(2, Math.max(1, tokens.length - 1));
+    const last = tokens.slice(0, lastTokens).join(' ');
+    const first = tokens.slice(lastTokens).join(' ');
+    return { first: first || tokens[tokens.length - 1], last: last || '' };
+}
+
+function extractNamePartsFromReniecCliente(data, context = {}) {
     if (!data) return { firstName: '', lastName: '' };
-    // Support multiple provider shapes (camelCase, snake_case, short keys like 'ape_paterno')
-    const nombres = data.nombres || data.nombre || data.nombre_completo || data.nombreCompleto || data.razon_social || '';
-    const apellidoP = data.apellidoPaterno || data.apellido_paterno || data.apellido || data.ape_paterno || '';
-    const apellidoM = data.apellidoMaterno || data.apellido_materno || data.ape_materno || '';
-    const lastName = [apellidoP, apellidoM].filter(Boolean).join(' ').trim();
-    if (!nombres && lastName) return { firstName: '', lastName };
-    if (nombres && !apellidoP && !apellidoM) {
-        const parts = String(nombres).trim().split(/\s+/);
-        if (parts.length === 1) return { firstName: parts[0], lastName: '' };
-        const firstName = parts.slice(0, -1).join(' ');
-        const last = parts.slice(-1).join(' ');
-        return { firstName, lastName: last };
+
+    const docType = String(context.tipo || '').toUpperCase();
+    const docNumber = String(context.numero || '').trim();
+    const razon = data.razon_social || data.nombre_razon_social || data.nombre_o_razon_social || '';
+    let first = data.nombres || data.nombre || data.nombre_completo || data.nombreCompleto || '';
+    let last = [
+        data.apellidoPaterno || data.apellido_paterno || data.apellido || data.ape_paterno || '',
+        data.apellidoMaterno || data.apellido_materno || data.ape_materno || ''
+    ].filter(Boolean).join(' ').trim();
+
+    const esRuc = docType === 'RUC';
+    const personaNaturalPrefixes = ['10', '15', '16', '17'];
+    const esPersonaNaturalRuc = esRuc && personaNaturalPrefixes.some(prefix => docNumber.startsWith(prefix));
+    const esPersonaJuridicaRuc = esRuc && docNumber.startsWith('20');
+
+    if (esRuc && esPersonaJuridicaRuc) {
+        const companyName = razon || first || last;
+        return { firstName: companyName || '', lastName: '' };
     }
-    return { firstName: nombres || '', lastName };
+
+    if (esRuc && razon) {
+        const descompuesto = splitNombreCompuesto(razon);
+
+        if (esPersonaNaturalRuc) {
+            const razonUpper = razon.trim().toUpperCase();
+            if (!first || (razonUpper && first.trim().toUpperCase() === razonUpper)) {
+                first = descompuesto.first;
+            }
+            if (!last || (razonUpper && last.trim().toUpperCase() === razonUpper)) {
+                last = descompuesto.last;
+            }
+
+            if (descompuesto.first && descompuesto.last) {
+                const normalizedFirst = (first || '').trim().toUpperCase();
+                const normalizedLast = (last || '').trim().toUpperCase();
+                if (normalizedFirst === descompuesto.last.toUpperCase() && normalizedLast !== descompuesto.first.toUpperCase()) {
+                    first = descompuesto.first;
+                    last = descompuesto.last;
+                } else if (normalizedLast === descompuesto.first.toUpperCase() && normalizedFirst !== descompuesto.last.toUpperCase()) {
+                    last = descompuesto.last;
+                    first = descompuesto.first;
+                }
+            }
+        } else if (!first && !last) {
+            first = descompuesto.first;
+            last = descompuesto.last;
+        }
+    }
+
+    if (!first && last) return { firstName: '', lastName: last };
+
+    if (!first && !last && razon) {
+        const fallback = splitNombreCompuesto(razon);
+        first = fallback.first;
+        last = fallback.last;
+    }
+
+    if (first && !last) {
+        const fallback = splitNombreCompuesto(first);
+        if (fallback.last) {
+            first = fallback.first;
+            last = fallback.last;
+        }
+    }
+
+    return { firstName: first || '', lastName: last || '' };
+}
+
+function shouldOmitApellido(tipoTexto, numeroDocumento) {
+    if (!tipoTexto) return false;
+    const upperTipo = String(tipoTexto).toUpperCase();
+    if (!upperTipo.includes('RUC')) return false;
+    const numero = (numeroDocumento || '').trim();
+    if (numero.length !== 11) return false;
+    return numero.startsWith('20');
+}
+
+function syncApellidoRequirement(apellidoInput, tipoTexto, numeroDocumento) {
+    if (!apellidoInput) return;
+    const omit = shouldOmitApellido(tipoTexto, numeroDocumento);
+    const originalPlaceholder = apellidoInput.dataset.originalPlaceholder || apellidoInput.placeholder || '';
+    if (!apellidoInput.dataset.originalPlaceholder) {
+        apellidoInput.dataset.originalPlaceholder = originalPlaceholder;
+    }
+
+    if (omit) {
+        apellidoInput.required = false;
+        apellidoInput.placeholder = 'No aplica (RUC empresa)';
+        apellidoInput.classList.add('optional-field');
+    } else {
+        apellidoInput.required = true;
+        apellidoInput.placeholder = apellidoInput.dataset.originalPlaceholder;
+        apellidoInput.classList.remove('optional-field');
+    }
 }
 
 
@@ -198,13 +428,30 @@ function renderClientesTable(clientesToRender) {
         return;
     }
     
-    clientesToRender.forEach((cliente, index) => {
+    clientesToRender.forEach((cliente) => {
         const tr = document.createElement('tr');
         tr.setAttribute('data-client-id', cliente.idCliente);
+        const checkboxDisabledAttr = canManageClientes ? '' : ' disabled';
+        const editButtonHtml = canManageClientes
+            ? `<button class="btn-icon edit" onclick="editCliente(${cliente.idCliente})" title="Editar" style="background-color: #ffc107; color: white;">
+                    <i class="fas fa-edit"></i>
+                </button>`
+            : '';
+        const deleteButtonHtml = canManageClientes
+            ? `<button class="btn-icon delete" onclick="confirmDelete(${cliente.idCliente})" title="Eliminar" style="background-color: #dc3545; color: white;">
+                    <i class="fas fa-trash"></i>
+                </button>`
+            : '';
+        const actionButtonsHtml = `
+                ${editButtonHtml}
+                ${deleteButtonHtml}
+                <button class="btn-icon view" onclick="viewCliente(${cliente.idCliente})" title="Ver detalles" style="background-color: #007bff; color: white;">
+                    <i class="fas fa-eye"></i>
+                </button>`;
         
         tr.innerHTML = `
             <td>
-                <input type="checkbox" class="client-checkbox" data-client-id="${cliente.idCliente}">
+                <input type="checkbox" class="client-checkbox" data-client-id="${cliente.idCliente}"${checkboxDisabledAttr}>
             </td>
             <td>${cliente.idCliente}</td>
             <td>${escapeHtml(cliente.nombre)}</td>
@@ -215,15 +462,7 @@ function renderClientesTable(clientesToRender) {
             <td>${escapeHtml(cliente.telefono || 'N/A')}</td>
             <td>${escapeHtml(cliente.direccion || 'N/A')}</td>
             <td class="action-buttons">
-                <button class="btn-icon edit" onclick="editCliente(${cliente.idCliente})" title="Editar" style="background-color: #ffc107; color: white;">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn-icon delete" onclick="confirmDelete(${cliente.idCliente})" title="Eliminar" style="background-color: #dc3545; color: white;">
-                    <i class="fas fa-trash"></i>
-                </button>
-                <button class="btn-icon view" onclick="viewCliente(${cliente.idCliente})" title="Ver detalles" style="background-color: #007bff; color: white;">
-                    <i class="fas fa-eye"></i>
-                </button>
+                ${actionButtonsHtml}
             </td>
         `;
         
@@ -237,6 +476,9 @@ function renderClientesTable(clientesToRender) {
 // CREATE CLIENT
 // ============================================================
 async function crearCliente(clienteData) {
+    if (!assertCanManageClientes('registrar clientes')) {
+        return Promise.reject(new Error(CLIENTES_PERMISSION_ERROR));
+    }
     try {
         // Build payload matching ClienteRegistroRapidoDTO expected by the controller
         const payload = {
@@ -273,6 +515,9 @@ async function crearCliente(clienteData) {
         return nuevoCliente;
         
     } catch (error) {
+        if (error && error.message === CLIENTES_PERMISSION_ERROR) {
+            throw error;
+        }
         console.error('Error creating cliente:', error);
         showNotification(error.message, 'error');
         throw error;
@@ -283,6 +528,9 @@ async function crearCliente(clienteData) {
 // UPDATE CLIENT
 // ============================================================
 async function actualizarCliente(id, clienteData) {
+    if (!assertCanManageClientes('actualizar clientes')) {
+        return Promise.reject(new Error(CLIENTES_PERMISSION_ERROR));
+    }
     try {
         const response = await fetch(`/clientes/api/${id}`, {
             method: 'PUT',
@@ -318,6 +566,9 @@ async function actualizarCliente(id, clienteData) {
         return clienteActualizado;
         
     } catch (error) {
+        if (error && error.message === CLIENTES_PERMISSION_ERROR) {
+            throw error;
+        }
         console.error('Error updating cliente:', error);
         showNotification(error.message, 'error');
         throw error;
@@ -328,6 +579,9 @@ async function actualizarCliente(id, clienteData) {
 // DELETE CLIENT
 // ============================================================
 async function eliminarCliente(id) {
+    if (!assertCanManageClientes('eliminar clientes')) {
+        return Promise.reject(new Error(CLIENTES_PERMISSION_ERROR));
+    }
     try {
         const response = await fetch(`/clientes/api/${id}`, {
             method: 'DELETE'
@@ -344,6 +598,9 @@ async function eliminarCliente(id) {
         await loadClientes();
         
     } catch (error) {
+        if (error && error.message === CLIENTES_PERMISSION_ERROR) {
+            throw error;
+        }
         console.error('Error deleting cliente:', error);
         showNotification(error.message, 'error');
         throw error;
@@ -392,6 +649,9 @@ function setupAddModal() {
     if (form) {
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
+            if (!assertCanManageClientes('registrar clientes')) {
+                return;
+            }
             
             const formData = {
                 nombre: document.getElementById('clientName').value,
@@ -408,6 +668,18 @@ function setupAddModal() {
                 showNotification('Debe especificar el tipo de documento', 'error');
                 return;
             }
+
+            const tipoTexto = getTipoDocumentoNombreById(formData.tipoDocumentoId, document.getElementById('clientDocType'));
+            formData.numeroDocumento = normalizeDocumentoValue(formData.numeroDocumento, tipoTexto);
+            if (formData.numeroDocumento) {
+                const docError = validateDocumentoNumero(tipoTexto, formData.numeroDocumento);
+                if (docError) {
+                    showNotification(docError, 'error');
+                    return;
+                }
+            } else {
+                formData.numeroDocumento = null;
+            }
             
             try {
                 await crearCliente(formData);
@@ -422,50 +694,58 @@ function setupAddModal() {
     // Attach RENIEC lookup listeners: when user ingresa nro documento o cambia tipo
     const clientDocNumber = document.getElementById('clientDocNumber');
     const clientDocType = document.getElementById('clientDocType');
+    const clientLastName = document.getElementById('clientLastName');
+
+    const updateClienteDocConstraints = () => {
+        if (!clientDocNumber) return { tipoText: '', numero: '', rule: null };
+        const tipoText = getTipoDocumentoNombreById(clientDocType?.value, clientDocType);
+        applyDocumentConstraints(clientDocNumber, tipoText);
+        const rule = resolveDocumentRule(tipoText);
+        const numero = sanitizeDocumentoInput(clientDocNumber, rule);
+        syncApellidoRequirement(clientLastName, tipoText, numero);
+        return { tipoText, numero, rule };
+    };
+
     async function handleClientDocLookup() {
-        if (!clientDocType || !clientDocNumber) return;
-        const tipoId = clientDocType.value;
-        if (!tipoId) return;
-        const tipoObj = (tiposDocumento || []).find(t => String(t.idTipoDocumento) === String(tipoId));
-        const tipoText = tipoObj?.nombreTipoDocumento || clientDocType.options[clientDocType.selectedIndex]?.text || '';
-        const numero = clientDocNumber.value.trim();
-        if (!numero) return;
-
-        // Minimal length heuristic
-        if ((/dni/i.test(tipoText) && numero.length < 6) || (/ruc/i.test(tipoText) && numero.length < 9)) return;
-
-        const data = await lookupReniecCliente(tipoText.toUpperCase(), numero);
-        if (!data) {
-            // no encontrado — no sobreescribir
+        const { tipoText, numero, rule } = updateClienteDocConstraints();
+        if (!tipoText || !numero || !rule) return;
+        if (numero.length !== rule.maxLength) {
+            showNotification(`${rule.label} debe tener exactamente ${rule.maxLength} dígitos`, 'error');
             return;
         }
 
-        // Some providers wrap the payload under `datos` and add a `success` flag
-        if (data.success === false) return;
-        const provider = data.datos || data;
+        const data = await lookupReniecCliente(tipoText.toUpperCase(), numero);
+        if (!data || data.success === false) {
+            return;
+        }
 
-        const nameParts = extractNamePartsFromReniecCliente(provider);
+        const provider = data.datos || data;
+        const nameParts = extractNamePartsFromReniecCliente(provider, { tipo: tipoText, numero });
         const nameInput = document.getElementById('clientName');
-        const lastInput = document.getElementById('clientLastName');
 
         if (nameInput && nameParts.firstName) nameInput.value = nameParts.firstName;
-        if (lastInput && nameParts.lastName) lastInput.value = nameParts.lastName;
-        // Populate address if available
+        if (clientLastName && nameParts.lastName) clientLastName.value = nameParts.lastName;
+
         try {
             const addressInput = document.getElementById('clientAddress');
             const direccion = (provider.domiciliado && provider.domiciliado.direccion) || provider.direccion || provider.address || '';
             if (addressInput && direccion) addressInput.value = direccion;
         } catch (e) {
-            // ignore any extraction errors
             console.warn('Could not extract direccion from RENIEC response', e);
         }
     }
 
     if (clientDocNumber) {
+        clientDocNumber.addEventListener('input', updateClienteDocConstraints);
         clientDocNumber.addEventListener('blur', handleClientDocLookup);
     }
     if (clientDocType) {
-        clientDocType.addEventListener('change', handleClientDocLookup);
+        clientDocType.addEventListener('change', () => {
+            const context = updateClienteDocConstraints();
+            if (context.rule && context.numero && context.numero.length === context.rule.maxLength) {
+                handleClientDocLookup();
+            }
+        });
     }
     
     // Botón cerrar (X)
@@ -491,6 +771,10 @@ function setupAddModal() {
 
 function openAddClientModal() {
     console.log('Opening add modal...');
+
+    if (!assertCanManageClientes('registrar clientes')) {
+        return;
+    }
     
     const modal = document.getElementById('clientModal');
     const modalTitle = document.getElementById('modalTitle');
@@ -498,6 +782,7 @@ function openAddClientModal() {
     
     if (form) {
         form.reset();
+        syncApellidoRequirement(document.getElementById('clientLastName'), '', '');
     }
     
     if (modalTitle) {
@@ -523,6 +808,9 @@ function setupEditModal() {
     if (form) {
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
+            if (!assertCanManageClientes('actualizar clientes')) {
+                return;
+            }
             
             const formData = {
                 nombre: document.getElementById('editClientName').value,
@@ -539,6 +827,18 @@ function setupEditModal() {
                 showNotification('Debe especificar el tipo de documento', 'error');
                 return;
             }
+
+            const tipoTexto = getTipoDocumentoNombreById(formData.tipoDocumentoId, document.getElementById('editClientDocType'));
+            formData.numeroDocumento = normalizeDocumentoValue(formData.numeroDocumento, tipoTexto);
+            if (formData.numeroDocumento) {
+                const docError = validateDocumentoNumero(tipoTexto, formData.numeroDocumento);
+                if (docError) {
+                    showNotification(docError, 'error');
+                    return;
+                }
+            } else {
+                formData.numeroDocumento = null;
+            }
             
             try {
                 await actualizarCliente(currentClientId, formData);
@@ -548,6 +848,27 @@ function setupEditModal() {
                 console.error('Error al actualizar cliente:', error);
             }
         });
+    }
+
+    const editDocNumber = document.getElementById('editClientDocNumber');
+    const editDocType = document.getElementById('editClientDocType');
+    const editLastName = document.getElementById('editClientLastName');
+
+    const syncEditApellido = () => {
+        if (!editDocType) return;
+        const tipoId = editDocType.value;
+        const tipoObj = (tiposDocumento || []).find(t => String(t.idTipoDocumento) === String(tipoId));
+        const tipoText = tipoObj?.nombreTipoDocumento || editDocType.options[editDocType.selectedIndex]?.text || '';
+        const numero = editDocNumber ? editDocNumber.value.trim() : '';
+        syncApellidoRequirement(editLastName, tipoText, numero);
+    };
+
+    if (editDocNumber) {
+        editDocNumber.addEventListener('input', syncEditApellido);
+        editDocNumber.addEventListener('blur', syncEditApellido);
+    }
+    if (editDocType) {
+        editDocType.addEventListener('change', syncEditApellido);
     }
     
     // Botón cerrar (X)
@@ -568,6 +889,9 @@ function setupEditModal() {
 }
 
 async function editCliente(id) {
+    if (!assertCanManageClientes('editar clientes')) {
+        return;
+    }
     currentClientId = id;
     
     try {
@@ -588,6 +912,11 @@ async function editCliente(id) {
         document.getElementById('editClientEmail').value = cliente.email;
         document.getElementById('editClientPhone').value = cliente.telefono || '';
         document.getElementById('editClientAddress').value = cliente.direccion || '';
+        syncApellidoRequirement(
+            document.getElementById('editClientLastName'),
+            cliente.tipoDocumento?.nombreTipoDocumento,
+            cliente.numeroDocumento
+        );
         
         // Open modal
         const modal = document.getElementById('editClientModal');
@@ -613,6 +942,9 @@ function setupDeleteModal() {
     if (confirmBtn) {
         confirmBtn.addEventListener('click', async function() {
             if (currentClientId) {
+                if (!assertCanManageClientes('eliminar clientes')) {
+                    return;
+                }
                 try {
                     await eliminarCliente(currentClientId);
                     closeModal(modal);
@@ -640,6 +972,9 @@ function setupDeleteModal() {
 }
 
 function confirmDelete(id) {
+    if (!assertCanManageClientes('eliminar clientes')) {
+        return;
+    }
     currentClientId = id;
     
     // Find cliente name

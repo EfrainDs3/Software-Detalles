@@ -10,7 +10,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 /**
  * Servicio para la gestión de clientes
@@ -24,6 +26,7 @@ public class ClienteService {
     
     private final ClienteRepository clienteRepository;
     private final TipoDocumentoRepository tipoDocumentoRepository;
+    private static final Pattern SOLO_DIGITOS = Pattern.compile("\\d+");
     
     /**
      * Obtiene todos los clientes
@@ -91,15 +94,15 @@ public class ClienteService {
      */
     @Transactional
     public Cliente crear(Cliente cliente) {
-        // Validaciones
-        validarCliente(cliente);
-        
-        // Verificar si el tipo de documento existe
+        // Verificar si el tipo de documento existe y adjuntar entidad completa antes de validar
         if (cliente.getTipoDocumento() != null && cliente.getTipoDocumento().getIdTipoDocumento() != null) {
             TipoDocumento tipoDoc = tipoDocumentoRepository.findById(cliente.getTipoDocumento().getIdTipoDocumento())
                 .orElseThrow(() -> new IllegalArgumentException("Tipo de documento no válido"));
             cliente.setTipoDocumento(tipoDoc);
         }
+
+        // Validaciones
+        validarCliente(cliente);
         
         // Verificar duplicados
         if (cliente.getTipoDocumento() != null && cliente.getNumeroDocumento() != null) {
@@ -142,10 +145,7 @@ public class ClienteService {
         Cliente cliente = clienteRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Cliente no encontrado"));
         
-        // Validaciones
-        validarCliente(clienteActualizado);
-        
-        // Verificar si el tipo de documento existe
+        // Verificar si el tipo de documento existe y adjuntar entidad completa antes de validar
         if (clienteActualizado.getTipoDocumento() != null && 
             clienteActualizado.getTipoDocumento().getIdTipoDocumento() != null) {
             TipoDocumento tipoDoc = tipoDocumentoRepository.findById(
@@ -153,6 +153,9 @@ public class ClienteService {
                 .orElseThrow(() -> new IllegalArgumentException("Tipo de documento no válido"));
             clienteActualizado.setTipoDocumento(tipoDoc);
         }
+        
+        // Validaciones
+        validarCliente(clienteActualizado);
         
         // Verificar duplicados (excluyendo el cliente actual)
         if (clienteActualizado.getTipoDocumento() != null && 
@@ -248,8 +251,16 @@ public class ClienteService {
             throw new IllegalArgumentException("El nombre es obligatorio");
         }
         
-        if (cliente.getApellido() == null || cliente.getApellido().trim().isEmpty()) {
+        boolean requiereApellido = requiereApellido(cliente);
+        if (requiereApellido && (cliente.getApellido() == null || cliente.getApellido().trim().isEmpty())) {
             throw new IllegalArgumentException("El apellido es obligatorio");
+        }
+        if (!requiereApellido) {
+            if (cliente.getApellido() == null || cliente.getApellido().trim().isEmpty()) {
+                cliente.setApellido("");
+            } else {
+                cliente.setApellido(cliente.getApellido().trim());
+            }
         }
         
         if (cliente.getDireccion() == null || cliente.getDireccion().trim().isEmpty()) {
@@ -268,6 +279,62 @@ public class ClienteService {
             if (cliente.getTipoDocumento() == null) {
                 throw new IllegalArgumentException("Debe especificar el tipo de documento");
             }
+            String numeroNormalizado = cliente.getNumeroDocumento().trim();
+            if (!SOLO_DIGITOS.matcher(numeroNormalizado).matches()) {
+                throw new IllegalArgumentException("El número de documento solo debe contener dígitos");
+            }
+
+            validarFormatoNumeroDocumento(cliente.getTipoDocumento(), numeroNormalizado);
+            cliente.setNumeroDocumento(numeroNormalizado);
+        } else {
+            cliente.setNumeroDocumento(null);
+        }
+    }
+
+    private boolean requiereApellido(Cliente cliente) {
+        if (cliente == null) {
+            return true;
+        }
+
+        TipoDocumento tipo = cliente.getTipoDocumento();
+        if (tipo == null || tipo.getNombreTipoDocumento() == null) {
+            return true;
+        }
+
+        String nombreTipo = tipo.getNombreTipoDocumento().trim().toUpperCase();
+        if (!nombreTipo.contains("RUC")) {
+            return true;
+        }
+
+        String numeroDoc = cliente.getNumeroDocumento();
+        if (numeroDoc == null) {
+            return true;
+        }
+
+        String normalizedDoc = numeroDoc.trim();
+        if (normalizedDoc.length() != 11) {
+            return true;
+        }
+
+        // Prefijos RUC de personas naturales: 10, 15, 16, 17. Empresas suelen iniciar con 20
+        if (normalizedDoc.startsWith("20")) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private void validarFormatoNumeroDocumento(TipoDocumento tipoDocumento, String numeroDocumento) {
+        if (tipoDocumento == null || tipoDocumento.getNombreTipoDocumento() == null) {
+            return;
+        }
+
+        String nombreTipo = tipoDocumento.getNombreTipoDocumento().trim().toUpperCase(Locale.ROOT);
+        if (nombreTipo.contains("DNI") && numeroDocumento.length() != 8) {
+            throw new IllegalArgumentException("El DNI debe tener exactamente 8 dígitos");
+        }
+        if (nombreTipo.contains("RUC") && numeroDocumento.length() != 11) {
+            throw new IllegalArgumentException("El RUC debe tener exactamente 11 dígitos");
         }
     }
 }

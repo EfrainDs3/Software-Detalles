@@ -5,6 +5,7 @@ import fisi.software.detalles.controller.dto.usuario.UsuarioCreateRequest;
 import fisi.software.detalles.controller.dto.usuario.UsuarioResponse;
 import fisi.software.detalles.controller.dto.usuario.UsuarioUpdateRequest;
 import fisi.software.detalles.entity.Rol;
+import fisi.software.detalles.entity.TipoDocumento;
 import fisi.software.detalles.entity.Usuario;
 import fisi.software.detalles.repository.RolRepository;
 import fisi.software.detalles.repository.TipoDocumentoRepository;
@@ -22,7 +23,9 @@ import org.springframework.util.StringUtils;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,6 +38,7 @@ public class UsuarioService {
     private final RolService rolService;
     private final TipoDocumentoRepository tipoDocumentoRepository;
     private final PasswordEncoder passwordEncoder;
+    private static final Pattern SOLO_DIGITOS = Pattern.compile("\\d+");
 
     public List<UsuarioResponse> listarUsuarios() {
         return usuarioRepository.findAllByOrderByNombresAscApellidosAsc().stream()
@@ -162,14 +166,23 @@ public class UsuarioService {
         usuario.setEmail(email);
         usuario.setCelular(celular);
         usuario.setDireccion(direccion);
-        usuario.setNumeroDocumento(numeroDocumento);
-        if (tipoDocumentoId != null) {
-            var tipoDocumento = tipoDocumentoRepository.findById(tipoDocumentoId)
-                .orElseThrow(() -> new EntityNotFoundException("Tipo de documento no encontrado"));
-            usuario.setTipoDocumento(tipoDocumento);
+        String numeroNormalizado = StringUtils.hasText(numeroDocumento) ? numeroDocumento.trim() : null;
+        var tipoDocumentoSeleccionado = tipoDocumentoId != null
+            ? tipoDocumentoRepository.findById(tipoDocumentoId)
+                .orElseThrow(() -> new EntityNotFoundException("Tipo de documento no encontrado"))
+            : null;
+
+        if (numeroNormalizado != null && !numeroNormalizado.isEmpty()) {
+            if (!SOLO_DIGITOS.matcher(numeroNormalizado).matches()) {
+                throw new ValidationException("El número de documento solo debe contener dígitos");
+            }
+            validarFormatoDocumento(tipoDocumentoSeleccionado, numeroNormalizado);
+            usuario.setNumeroDocumento(numeroNormalizado);
         } else {
-            usuario.setTipoDocumento(null);
+            usuario.setNumeroDocumento(null);
         }
+
+        usuario.setTipoDocumento(tipoDocumentoSeleccionado);
         usuario.setEstado(estado != null ? estado : Boolean.TRUE);
     }
 
@@ -204,6 +217,20 @@ public class UsuarioService {
                         throw new ValidationException("El número de documento ya está registrado para el tipo seleccionado");
                     }
                 });
+        }
+    }
+
+    private void validarFormatoDocumento(TipoDocumento tipoDocumento, String numeroDocumento) {
+        if (tipoDocumento == null || tipoDocumento.getNombreTipoDocumento() == null) {
+            return;
+        }
+
+        String nombreTipo = tipoDocumento.getNombreTipoDocumento().trim().toUpperCase(Locale.ROOT);
+        if (nombreTipo.contains("DNI") && numeroDocumento.length() != 8) {
+            throw new ValidationException("El DNI debe tener exactamente 8 dígitos");
+        }
+        if (nombreTipo.contains("RUC") && numeroDocumento.length() != 11) {
+            throw new ValidationException("El RUC debe tener exactamente 11 dígitos");
         }
     }
 
