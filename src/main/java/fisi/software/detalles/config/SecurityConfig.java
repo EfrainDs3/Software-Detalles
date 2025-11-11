@@ -46,6 +46,11 @@ public class SecurityConfig {
                 authorize.requestMatchers("/api/auth/login", "/api/auth/forgot-password/**").permitAll();
                 authorize.requestMatchers("/api/productos/**").permitAll();
 
+                // INICIOVC: rutas públicas para la vista cliente
+                authorize.requestMatchers("/", "/index", "/cliente/**","/Detalles_web/**" // acceso a recursos estáticos de la vista cliente
+                ).permitAll();
+                // FIN INICIOVC
+
                 // Rutas protegidas por permisos específicos
                 authorize.requestMatchers("/dashboard", "/dashboard/**").hasAuthority(Permisos.ACCEDER_AL_DASHBOARD);
                 authorize.requestMatchers(HttpMethod.POST, "/ventas/api/**").hasAuthority(Permisos.REGISTRAR_VENTAS);
@@ -94,7 +99,7 @@ public class SecurityConfig {
                 authorize.anyRequest().authenticated();
             })
             
-            // Configurar sesiones para mantener la autenticación
+            // Configurar sesiones
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
             )
@@ -122,7 +127,7 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // Configuración de CORS para permitir credenciales
+    // Configuración de CORS
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -136,7 +141,7 @@ public class SecurityConfig {
         return source;
     }
 
-    // AuthenticationManager para login programático
+    // AuthenticationManager
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
