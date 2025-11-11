@@ -55,7 +55,7 @@ body {
     opacity: 0.8;
 }
 
-.logo img {
+.logo-link img {
     height: 40px; /* Ajusta según el tamaño de tu logo */
     width: auto;
     display: block;
@@ -72,11 +72,9 @@ body {
 .nav-menu {
     display: flex;
     list-style: none;
-    align-items: center;
-    margin: 0;
-    padding: 0;
-    flex: 1;
+    gap: 2rem;
     justify-content: center;
+    flex-grow: 1; /* ocupa espacio entre logo e iconos */
 }
 
 .nav-menu li {
