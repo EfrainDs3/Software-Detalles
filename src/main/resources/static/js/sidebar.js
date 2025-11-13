@@ -151,9 +151,15 @@ function addSidebarClickHandlers() {
                 const submenu = this.parentElement.querySelector('.submenu');
                 if (!submenu) return;
 
-                closeAllSubmenus(submenu);
-                submenu.classList.add('open');
-                this.classList.add('open', 'active-parent');
+                const isOpen = submenu.classList.contains('open');
+                closeAllSubmenus();
+
+                if (!isOpen) {
+                    submenu.classList.add('open');
+                    this.classList.add('open', 'active-parent');
+                } else {
+                    this.classList.remove('open', 'active-parent');
+                }
                 return;
             }
 
@@ -164,14 +170,12 @@ function addSidebarClickHandlers() {
 
             if (parentSubmenu) {
                 const parentMenuItem = parentSubmenu.previousElementSibling;
-                closeAllSubmenus(parentSubmenu);
-                parentSubmenu.classList.add('open');
                 if (parentMenuItem && parentMenuItem.classList.contains('has-submenu')) {
-                    parentMenuItem.classList.add('open', 'active-parent');
+                    parentMenuItem.classList.remove('open', 'active-parent');
                 }
-            } else {
-                closeAllSubmenus();
             }
+
+            closeAllSubmenus();
         });
     });
 }
