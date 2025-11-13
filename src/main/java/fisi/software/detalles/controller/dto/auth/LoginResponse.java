@@ -22,6 +22,7 @@ public record LoginResponse(
     LocalDateTime fechaUltimaSesion,
     List<RolResponse> roles,
     List<String> permisos,
+    List<String> modulos,
     String message
 ) {
 
@@ -34,6 +35,17 @@ public record LoginResponse(
             .map(Permiso::getNombrePermiso)
             .filter(Objects::nonNull)
             .map(Permisos::normalizar)
+            .distinct()
+            .collect(Collectors.toList());
+        List<String> modulos = usuario.getRoles().stream()
+            .filter(Objects::nonNull)
+            .flatMap(rol -> rol.getPermisos().stream())
+            .filter(Objects::nonNull)
+            .map(permiso -> Permisos.autoridadModulo(permiso.getModulo(), permiso.getNombrePermiso()))
+            .filter(Objects::nonNull)
+            .map(String::trim)
+            .filter(codigo -> !codigo.isEmpty())
+            .map(String::toUpperCase)
             .distinct()
             .collect(Collectors.toList());
         return new LoginResponse(
@@ -49,6 +61,7 @@ public record LoginResponse(
                 .map(rol -> RolResponse.fromEntity(rolConPermisos(rol), 0L, List.of()))
                 .toList(),
             permisosNormalizados,
+            modulos,
             "Autenticación exitosa"
         );
     }

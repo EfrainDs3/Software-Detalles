@@ -30,7 +30,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.security.Principal;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
@@ -109,36 +108,39 @@ public class AuthController {
 
     // Método simple para login desde frontend web (sin Spring Security)
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> body, HttpSession session) {
-        String identifier = body.getOrDefault("identifier", "").trim().toLowerCase(Locale.ROOT);
+    public ResponseEntity<?> login(@RequestBody Map<String, String> body, HttpServletRequest request) {
+        String identifier = body.getOrDefault("usernameOrEmail", "").trim();
+        if (identifier.isEmpty()) {
+            identifier = body.getOrDefault("identifier", "").trim();
+        }
         String password = body.getOrDefault("password", "");
+
         if (identifier.isEmpty() || password.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Faltan credenciales"));
         }
 
         try {
-            Map<String, Object> user = jdbcTemplate.queryForMap(
-                "SELECT id_usuario, nombres, apellidos, username, email, `contraseña_hash` FROM usuarios WHERE LOWER(email)=? OR LOWER(username)=? LIMIT 1",
-                identifier, identifier
+            LoginRequest loginRequest = new LoginRequest(identifier, password);
+            Usuario usuarioAutenticado = usuarioService.autenticar(
+                loginRequest.usernameOrEmail(),
+                loginRequest.password()
             );
-            String hash = (String) user.get("contraseña_hash");
-            if (hash != null && encoder.matches(password, hash)) {
-                // Login OK: guardar id en sesión
-                Integer id = ((Number) user.get("id_usuario")).intValue();
-                session.setAttribute("USER_ID", id);
-                // Preparar respuesta sin el hash
-                Map<String, Object> resp = new HashMap<>();
-                resp.put("id_usuario", id);
-                resp.put("nombres", user.get("nombres"));
-                resp.put("apellidos", user.get("apellidos"));
-                resp.put("username", user.get("username"));
-                resp.put("email", user.get("email"));
-                return ResponseEntity.ok(resp);
-            } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Credenciales inválidas"));
-            }
-        } catch (org.springframework.dao.EmptyResultDataAccessException ex) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Usuario no encontrado"));
+
+            UsuarioPrincipal principal = UsuarioPrincipal.fromUsuario(usuarioAutenticado);
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                principal,
+                null,
+                principal.getAuthorities()
+            );
+
+            SecurityContext context = SecurityContextHolder.createEmptyContext();
+            context.setAuthentication(authentication);
+            SecurityContextHolder.setContext(context);
+            request.getSession(true).setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
+
+            return ResponseEntity.ok(LoginResponse.fromEntity(usuarioAutenticado));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", ex.getMessage()));
         } catch (Exception ex) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Error interno"));
         }

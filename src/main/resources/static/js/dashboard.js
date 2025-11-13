@@ -8,6 +8,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (!usuarioLogueado || !loginTime) {
             // No hay sesión, redirigir al login
+            localStorage.removeItem('usuarioNombre');
+            localStorage.removeItem('usuarioRoles');
+            localStorage.removeItem('usuarioPermisos');
+            localStorage.removeItem('usuarioModulos');
             window.location.href = '/login';
             return false;
         }
@@ -21,6 +25,10 @@ document.addEventListener('DOMContentLoaded', function() {
             // Sesión expirada
             localStorage.removeItem('usuarioLogueado');
             localStorage.removeItem('loginTime');
+            localStorage.removeItem('usuarioNombre');
+            localStorage.removeItem('usuarioRoles');
+            localStorage.removeItem('usuarioPermisos');
+            localStorage.removeItem('usuarioModulos');
             alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
             window.location.href = '/login';
             return false;
@@ -35,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Mostrar información del usuario logueado
-    const usuarioLogueado = localStorage.getItem('usuarioLogueado');
+    const usuarioLogueado = localStorage.getItem('usuarioNombre') || localStorage.getItem('usuarioLogueado');
     const topBar = document.querySelector('.top-bar h2');
     if (topBar && usuarioLogueado) {
         topBar.textContent = `Bienvenido, ${usuarioLogueado}`;
@@ -49,6 +57,10 @@ document.addEventListener('DOMContentLoaded', function() {
             // Limpiar sesión
             localStorage.removeItem('usuarioLogueado');
             localStorage.removeItem('loginTime');
+            localStorage.removeItem('usuarioNombre');
+            localStorage.removeItem('usuarioRoles');
+            localStorage.removeItem('usuarioPermisos');
+            localStorage.removeItem('usuarioModulos');
             
             // Mostrar mensaje y redirigir
             alert('Sesión cerrada correctamente');
