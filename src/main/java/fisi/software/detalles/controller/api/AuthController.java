@@ -24,6 +24,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -44,6 +46,8 @@ public class AuthController {
     private JdbcTemplate jdbcTemplate;
 
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
     // Método existente para login autenticado (con Spring Security)
     @PostMapping("/login-spring")
@@ -126,6 +130,14 @@ public class AuthController {
                 loginRequest.password()
             );
 
+            // Build response object and log modules for debugging
+            var loginResp = LoginResponse.fromEntity(usuarioAutenticado);
+            try {
+                log.info("User '{}' logged in. modulos={}", usuarioAutenticado.getUsername(), loginResp.modulos());
+            } catch (Exception e) {
+                log.info("User '{}' logged in. (could not log modulos)", usuarioAutenticado.getUsername());
+            }
+
             UsuarioPrincipal principal = UsuarioPrincipal.fromUsuario(usuarioAutenticado);
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                 principal,
@@ -138,7 +150,7 @@ public class AuthController {
             SecurityContextHolder.setContext(context);
             request.getSession(true).setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
 
-            return ResponseEntity.ok(LoginResponse.fromEntity(usuarioAutenticado));
+            return ResponseEntity.ok(loginResp);
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", ex.getMessage()));
         } catch (Exception ex) {

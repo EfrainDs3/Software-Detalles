@@ -378,10 +378,7 @@ function getFallbackSidebar() {
                     <i class="fas fa-chart-bar"></i>
                     Reportes
                 </a></li>
-                <li><a href="#" data-page="auditoria" data-authorities="VER_AUDITORIA,CONSULTAR_REGISTROS_AUDITORIA,MODULO_AUDITORIA">
-                    <i class="fas fa-clipboard-list"></i>
-                    Auditoría
-                </a></li>
+                // Auditoría entry removed
             </ul>
         </nav>
     `;

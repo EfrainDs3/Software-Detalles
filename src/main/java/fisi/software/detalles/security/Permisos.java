@@ -55,8 +55,7 @@ public final class Permisos {
     // Reportes y auditoría
     public static final String VER_REPORTES = normalizar("Ver reportes");
     public static final String GENERAR_REPORTES = normalizar("Generar reportes");
-    public static final String VER_AUDITORIA = normalizar("Ver auditoría");
-    public static final String CONSULTAR_REGISTROS_AUDITORIA = normalizar("Consultar registros auditoría");
+    // auditoría removed
 
     // Autoridades por módulo (MODULO_*)
     public static final String MODULO_DASHBOARD = autoridadModulo("Dashboard");
@@ -73,7 +72,6 @@ public final class Permisos {
     public static final String MODULO_COMPRAS = autoridadModulo("Compras");
     public static final String MODULO_PROVEEDORES = autoridadModulo("Proveedores");
     public static final String MODULO_REPORTES = autoridadModulo("Reportes");
-    public static final String MODULO_AUDITORIA = autoridadModulo("Auditoria");
 
     private Permisos() {
         // Utility class
