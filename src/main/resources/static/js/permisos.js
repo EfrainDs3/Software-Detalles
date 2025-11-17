@@ -6,6 +6,11 @@ const ROLE_PERMISSIONS_URL = (rolId) => `/api/permisos/roles/${rolId}`;
 const DEFAULT_MODULE_NAME = 'General';
 const MODULE_VERB_PREFIXES = ['ver', 'gestionar', 'crear', 'editar', 'registrar', 'acceder', 'administrar', 'eliminar', 'listar', 'consultar'];
 
+// Optional grouping: parent module -> list of child modules that should appear
+// as submodules under the parent. Keys/values are normalized via `toTitleCase`.
+const PARENT_MODULE_MAP = {
+    'Seguridad': ['Usuarios', 'Roles', 'Permisos']
+};
 const state = {
     items: [],
     filteredItems: [],
@@ -419,6 +424,34 @@ function buildModulesIndex(permisos) {
 
     modules.forEach(list => {
         list.sort((a, b) => (a.nombre || a.codigo || '').localeCompare(b.nombre || b.codigo || '', 'es', { sensitivity: 'base' }));
+    });
+
+    // Merge configured child modules under parent modules so UI shows a
+    // hierarchical view (e.g. Seguridad -> Usuarios, Roles, Permisos).
+    Object.keys(PARENT_MODULE_MAP).forEach(parentRaw => {
+        const parentName = toTitleCase(parentRaw);
+        const children = Array.isArray(PARENT_MODULE_MAP[parentRaw]) ? PARENT_MODULE_MAP[parentRaw] : [];
+        if (!children.length) return;
+
+        const merged = modules.get(parentName) ? [...modules.get(parentName)] : [];
+
+        children.forEach(childRaw => {
+            const childName = toTitleCase(childRaw);
+            if (!modules.has(childName)) return;
+            const childList = modules.get(childName) || [];
+            // Move each permiso to parent, marking the child as submodule when
+            // not already present.
+            childList.forEach(p => {
+                p.modulo = parentName;
+                if (!p.submodule) p.submodule = childName;
+                merged.push(p);
+            });
+            modules.delete(childName);
+        });
+
+        if (merged.length) {
+            modules.set(parentName, merged);
+        }
     });
 
     return new Map([...modules.entries()].sort((a, b) => a[0].localeCompare(b[0], 'es', { sensitivity: 'base' })));

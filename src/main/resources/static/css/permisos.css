@@ -414,6 +414,86 @@ a {
   color: var(--primary);
 }
 
+
+/* Assign modal/grid styles for hierarchical module display */
+.assign-grid {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  overflow-x: auto;
+  padding: 8px 4px;
+}
+
+.assign-column {
+  min-width: 260px;
+  max-width: 340px;
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  padding: 12px;
+  box-shadow: 0 8px 20px rgba(15,23,42,0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.assign-module-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(227, 230, 239, 0.6);
+}
+
+.assign-module-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--primary-dark);
+}
+
+.assign-module-counter {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.assign-perm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 420px;
+  overflow: auto;
+  padding-right: 6px;
+}
+
+.assign-submodule-header {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  padding: 8px 6px;
+  margin-top: 6px;
+  background: rgba(47,50,64,0.02);
+  border-radius: 8px;
+}
+
+.assign-perm-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 6px;
+  border-radius: 8px;
+}
+
+.assign-perm-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+}
+
+.assign-perm-label {
+  font-size: 0.95rem;
+  color: var(--text);
+}
 .module-card {
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
