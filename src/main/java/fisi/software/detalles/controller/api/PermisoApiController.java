@@ -53,14 +53,7 @@ public class PermisoApiController {
         permisoService.eliminarPermiso(id);
     }
 
-    @GetMapping("/auditoria")
-    @PreAuthorize("hasAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_PERMISOS)")
-    public List<PermisoAuditoriaResponse> listarAuditoria(
-        @RequestParam(name = "permisoId", required = false) Long permisoId,
-        @RequestParam(name = "limite", required = false) Integer limite
-    ) {
-        return permisoService.obtenerAuditoriaPermisos(permisoId, limite);
-    }
+    // Auditoría API removed
 
     @GetMapping("/roles/{rolId}")
     @PreAuthorize("hasAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_PERMISOS)")

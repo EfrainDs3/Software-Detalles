@@ -2,6 +2,7 @@ package fisi.software.detalles.controller;
 
 import fisi.software.detalles.service.InventarioService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +27,7 @@ public class InventarioController {
      * @return Vista de inventario
      */
     @GetMapping
+    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_INVENTARIO, T(fisi.software.detalles.security.Permisos).VER_INVENTARIO, T(fisi.software.detalles.security.Permisos).MODULO_INVENTARIO)")
     public String showInventario(Model model) {
         // Agregar estadísticas iniciales al modelo
         model.addAttribute("stats", inventarioService.obtenerEstadisticasInventario());

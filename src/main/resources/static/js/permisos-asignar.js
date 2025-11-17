@@ -12,6 +12,81 @@ let assignState = {
     isSaving: false
 };
 
+// Parent grouping map: parent module -> array of child module names
+const PARENT_MODULE_MAP = {
+    'Seguridad': ['Usuarios', 'Roles', 'Permisos']
+};
+
+function normalizeModuleName(raw) {
+    if (!raw || typeof raw !== 'string') return '';
+    const s = raw.trim();
+    return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+}
+
+function mergeParentModules(permisosPorModulo) {
+    if (!permisosPorModulo || typeof permisosPorModulo !== 'object') return permisosPorModulo;
+    const map = { ...permisosPorModulo };
+
+    // Detect module keys that encode submodules using common separators
+    const keys = Object.keys(map);
+    const splitRegex = /[\\/\-:>]+/; // separators: \\ , /, -, :, >
+
+    keys.forEach(rawKey => {
+        if (typeof rawKey !== 'string' || !rawKey.trim()) return;
+        const key = rawKey.trim();
+
+        // dot notation
+        let parts = key.split('.').map(s => s.trim()).filter(Boolean);
+        if (parts.length <= 1) {
+            // try other separators
+            parts = key.split(splitRegex).map(s => s.trim()).filter(Boolean);
+        }
+
+        if (parts.length > 1) {
+            const parentName = normalizeModuleName(parts[0]);
+            const subName = normalizeModuleName(parts.slice(1).join(' '));
+            const list = Array.isArray(map[rawKey]) ? map[rawKey] : [];
+            // move entries to parent, marking submodule
+            map[parentName] = (map[parentName] || []).concat(list.map(p => {
+                p.modulo = parentName;
+                if (!p.submodule) p.submodule = subName;
+                return p;
+            }));
+            delete map[rawKey];
+        }
+    });
+
+    // Merge configured child modules under parent modules so UI shows a
+    // hierarchical view (e.g. Seguridad -> Usuarios, Roles, Permisos).
+    Object.keys(PARENT_MODULE_MAP).forEach(parentRaw => {
+        const parentName = normalizeModuleName(parentRaw);
+        const children = Array.isArray(PARENT_MODULE_MAP[parentRaw]) ? PARENT_MODULE_MAP[parentRaw] : [];
+        if (!children.length) return;
+
+        const merged = Array.isArray(map[parentName]) ? [...map[parentName]] : [];
+
+        children.forEach(childRaw => {
+            const childName = normalizeModuleName(childRaw);
+            if (!map[childName]) return;
+            const childList = Array.isArray(map[childName]) ? map[childName] : [];
+            // Move each permiso to parent, marking the child as submodule when
+            // not already present.
+            childList.forEach(p => {
+                p.modulo = parentName;
+                if (!p.submodule) p.submodule = childName;
+                merged.push(p);
+            });
+            delete map[childName];
+        });
+
+        if (merged.length) {
+            map[parentName] = merged;
+        }
+    });
+
+    return map;
+}
+
 function initAssignPermissions() {
     const assignBtn = document.getElementById('assignPermissionsBtn');
     if (assignBtn) assignBtn.addEventListener('click', openAssignModal);
@@ -119,7 +194,7 @@ async function loadPermissionsForRole(rolId) {
         const data = await res.json();
         // data is PermisoRolDetalleResponse with permisos and permisosPorModulo
         assignState.loadedPermisos = Array.isArray(data.permisos) ? data.permisos : [];
-        assignState.permisosPorModulo = data.permisosPorModulo || {}; // map of module -> list
+        assignState.permisosPorModulo = mergeParentModules(data.permisosPorModulo || {}); // map of module -> list
 
         // build selected set
         const currentIds = (assignState.loadedPermisos || [])
@@ -205,32 +280,48 @@ function renderAssignGrid(permisosPorModulo, selectedIds) {
         const list = document.createElement('div');
         list.className = 'assign-perm-list';
 
-        permisos.forEach(p => {
-            const rawId = p.id ?? p.idPermiso ?? p.id_permiso;
-            if (rawId === null || rawId === undefined) {
-                return;
+        // Group permissions by submodule (if present) for hierarchical display
+        const grouped = permisos.reduce((acc, permiso) => {
+            const key = permiso.submodule || '';
+            if (!acc[key]) acc[key] = [];
+            acc[key].push(permiso);
+            return acc;
+        }, {});
+
+        Object.keys(grouped).forEach(subKey => {
+            const group = grouped[subKey];
+            if (subKey) {
+                const subHeader = document.createElement('div');
+                subHeader.className = 'assign-submodule-header';
+                subHeader.textContent = subKey;
+                list.appendChild(subHeader);
             }
-            const id = String(rawId);
-            const label = document.createElement('label');
-            label.className = 'assign-perm-item';
-            label.htmlFor = `assign_perm_${id}`;
 
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.id = `assign_perm_${id}`;
-            checkbox.dataset.permissionId = id;
-            checkbox.dataset.module = mod;
-            checkbox.className = 'assign-perm-checkbox';
-            checkbox.checked = selectedIds.has(id);
-            checkbox.addEventListener('change', handleAssignPermissionToggle);
+            group.forEach(p => {
+                const rawId = p.id ?? p.idPermiso ?? p.id_permiso;
+                if (rawId === null || rawId === undefined) return;
+                const id = String(rawId);
+                const label = document.createElement('label');
+                label.className = 'assign-perm-item';
+                label.htmlFor = `assign_perm_${id}`;
 
-            const span = document.createElement('span');
-            span.className = 'assign-perm-label';
-            span.textContent = p.nombrePermiso ?? p.nombre ?? p.codigo ?? p.codigoPermiso ?? p.name ?? '';
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `assign_perm_${id}`;
+                checkbox.dataset.permissionId = id;
+                checkbox.dataset.module = mod;
+                checkbox.className = 'assign-perm-checkbox';
+                checkbox.checked = selectedIds.has(id);
+                checkbox.addEventListener('change', handleAssignPermissionToggle);
 
-            label.appendChild(checkbox);
-            label.appendChild(span);
-            list.appendChild(label);
+                const span = document.createElement('span');
+                span.className = 'assign-perm-label';
+                span.textContent = p.nombrePermiso ?? p.nombre ?? p.codigo ?? p.codigoPermiso ?? p.name ?? '';
+
+                label.appendChild(checkbox);
+                label.appendChild(span);
+                list.appendChild(label);
+            });
         });
 
         col.appendChild(list);

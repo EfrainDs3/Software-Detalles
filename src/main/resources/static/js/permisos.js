@@ -1,12 +1,16 @@
 // permisos.js - Rediseño del módulo de permisos con matriz por rol
 
 const PERMISSIONS_API_URL = '/api/permisos';
-const PERMISSIONS_AUDIT_URL = '/api/permisos/auditoria';
 const ROLES_API_URL = '/api/roles';
 const ROLE_PERMISSIONS_URL = (rolId) => `/api/permisos/roles/${rolId}`;
 const DEFAULT_MODULE_NAME = 'General';
 const MODULE_VERB_PREFIXES = ['ver', 'gestionar', 'crear', 'editar', 'registrar', 'acceder', 'administrar', 'eliminar', 'listar', 'consultar'];
 
+// Optional grouping: parent module -> list of child modules that should appear
+// as submodules under the parent. Keys/values are normalized via `toTitleCase`.
+const PARENT_MODULE_MAP = {
+    'Seguridad': ['Usuarios', 'Roles', 'Permisos']
+};
 const state = {
     items: [],
     filteredItems: [],
@@ -137,8 +141,6 @@ function cacheDom() {
     dom.detailsUpdated = document.getElementById('detailsUpdated');
     dom.detailsUpdatedBy = document.getElementById('detailsUpdatedBy');
     dom.detailsRoleList = document.getElementById('detailsRoleList');
-    dom.auditTimeline = document.getElementById('auditTimeline');
-    dom.refreshAuditBtn = document.getElementById('refreshAuditBtn');
 
     dom.toastContainer = document.getElementById('toastContainer');
 }
@@ -247,13 +249,7 @@ function bindEvents() {
         dom.detailsClose.addEventListener('click', closeDetailsModal);
     }
 
-    if (dom.refreshAuditBtn) {
-        dom.refreshAuditBtn.addEventListener('click', () => {
-            if (state.detailsId != null) {
-                loadAuditTimeline(state.detailsId);
-            }
-        });
-    }
+    // Audit timeline removed
 
     document.addEventListener('keydown', handleGlobalKeydown);
 
@@ -356,6 +352,14 @@ function mapPermissionResponse(rawPermiso) {
         nombre || codigo
     );
 
+    // Preserve original raw module string when available so we can detect submodules
+    const rawModulo = getFirstNonEmpty(
+        rawPermiso?.modulo,
+        rawPermiso?.module,
+        rawPermiso?.moduloNombre,
+        rawPermiso?.moduleName
+    ) || null;
+
     const descripcion = getFirstNonEmpty(
         rawPermiso?.descripcion,
         rawPermiso?.description,
@@ -374,6 +378,7 @@ function mapPermissionResponse(rawPermiso) {
         id: Number.isNaN(id) ? null : id,
         codigo,
         modulo,
+        rawModulo,
         nombre: nombre || codigo || `Permiso #${id ?? ''}`,
         descripcion,
         estado,
@@ -388,14 +393,65 @@ function mapPermissionResponse(rawPermiso) {
 function buildModulesIndex(permisos) {
     const modules = new Map();
     permisos.forEach(permiso => {
-        const moduleLabel = resolveModuleName(permiso.modulo, permiso.nombre || permiso.codigo);
-        const list = modules.get(moduleLabel) ?? [];
-        list.push({ ...permiso, modulo: moduleLabel });
-        modules.set(moduleLabel, list);
+        // Determine top-level module and optional submodule
+        let topModule = permiso.modulo;
+        let submodule = null;
+        const raw = permiso.rawModulo || permiso.modulo || '';
+        // split by common separators used to indicate submodules
+        const parts = raw.split(/\s*[\\/\-:>]+\s*/).filter(Boolean);
+        if (parts.length > 1) {
+            topModule = toTitleCase(parts[0]);
+            submodule = toTitleCase(parts.slice(1).join(' '));
+        } else {
+            // also try to derive submodule from module string that contains dot notation
+            const dotParts = raw.split('.').map(s => s.trim()).filter(Boolean);
+            if (dotParts.length > 1) {
+                topModule = toTitleCase(dotParts[0]);
+                submodule = toTitleCase(dotParts.slice(1).join(' '));
+            } else {
+                // fallback: keep resolved module
+                topModule = resolveModuleName(permiso.modulo, permiso.nombre || permiso.codigo);
+            }
+        }
+        permiso.modulo = topModule;
+        permiso.submodule = submodule;
+        // Exclude any auditoría/auditoria modules (case-insensitive)
+        if (/auditor/i.test(topModule)) return;
+        const list = modules.get(topModule) ?? [];
+        list.push({ ...permiso });
+        modules.set(topModule, list);
     });
 
     modules.forEach(list => {
         list.sort((a, b) => (a.nombre || a.codigo || '').localeCompare(b.nombre || b.codigo || '', 'es', { sensitivity: 'base' }));
+    });
+
+    // Merge configured child modules under parent modules so UI shows a
+    // hierarchical view (e.g. Seguridad -> Usuarios, Roles, Permisos).
+    Object.keys(PARENT_MODULE_MAP).forEach(parentRaw => {
+        const parentName = toTitleCase(parentRaw);
+        const children = Array.isArray(PARENT_MODULE_MAP[parentRaw]) ? PARENT_MODULE_MAP[parentRaw] : [];
+        if (!children.length) return;
+
+        const merged = modules.get(parentName) ? [...modules.get(parentName)] : [];
+
+        children.forEach(childRaw => {
+            const childName = toTitleCase(childRaw);
+            if (!modules.has(childName)) return;
+            const childList = modules.get(childName) || [];
+            // Move each permiso to parent, marking the child as submodule when
+            // not already present.
+            childList.forEach(p => {
+                p.modulo = parentName;
+                if (!p.submodule) p.submodule = childName;
+                merged.push(p);
+            });
+            modules.delete(childName);
+        });
+
+        if (merged.length) {
+            modules.set(parentName, merged);
+        }
     });
 
     return new Map([...modules.entries()].sort((a, b) => a[0].localeCompare(b[0], 'es', { sensitivity: 'base' })));
@@ -454,13 +510,14 @@ function renderCatalog() {
 
     modules.forEach((permisos, moduleName) => {
         const activos = permisos.filter(p => p.estado === 'ACTIVO').length;
+        const submodules = [...new Set(permisos.map(p => p.submodule).filter(Boolean))];
         const moduleCard = document.createElement('section');
         moduleCard.className = 'catalog-module';
         moduleCard.innerHTML = `
             <header class="catalog-module-header">
                 <div>
                     <h4 class="catalog-module-title">${escapeHtml(moduleName)}</h4>
-                    <p class="catalog-module-subtitle">${permisos.length} ${permisos.length === 1 ? 'permiso' : 'permisos'} en este módulo</p>
+                    <p class="catalog-module-subtitle">${permisos.length} ${permisos.length === 1 ? 'permiso' : 'permisos'} en este módulo${submodules.length ? ' • Submódulos: ' + escapeHtml(submodules.join(', ')) : ''}</p>
                 </div>
                 <span class="catalog-module-counter">${activos}/${permisos.length} activos</span>
             </header>
@@ -773,7 +830,24 @@ function renderPermissionsMatrix() {
         const moduleList = document.createElement('div');
         moduleList.className = 'module-permissions';
 
-        filtered.forEach(permiso => {
+        // Group visible permissions by submodule (preserve order: submodule '' first)
+        const grouped = filtered.reduce((acc, p) => {
+            const key = p.submodule || '';
+            if (!acc[key]) acc[key] = [];
+            acc[key].push(p);
+            return acc;
+        }, {});
+
+        Object.keys(grouped).forEach(subKey => {
+            const group = grouped[subKey];
+            if (subKey) {
+                const subHeader = document.createElement('div');
+                subHeader.className = 'submodule-header';
+                subHeader.textContent = subKey;
+                moduleList.appendChild(subHeader);
+            }
+
+            group.forEach(permiso => {
             const isActive = assignmentState.assignments.has(permiso.id);
             const isDisabled = permiso.estado !== 'ACTIVO';
             const chipName = permiso.nombre || permiso.codigo || `Permiso #${permiso.id ?? ''}`;
@@ -794,6 +868,7 @@ function renderPermissionsMatrix() {
             `;
 
             moduleList.appendChild(chip);
+            });
         });
 
         moduleCard.appendChild(moduleList);
@@ -914,7 +989,15 @@ async function saveAssignments() {
     toggleButtonLoading(dom.saveAssignmentsBtn, true);
 
     try {
-        const payload = { permisoIds: Array.from(assignmentState.assignments) };
+        // Filter assignment IDs to valid permiso ids that are present in state.items
+        const validIds = Array.from(assignmentState.assignments)
+            .map(id => Number(id))
+            .filter(id => !Number.isNaN(id))
+            .filter(id => {
+                const item = state.items.find(it => Number(it.id) === id);
+                return item && !/auditor/i.test(String(item.modulo || ''));
+            });
+        const payload = { permisoIds: validIds };
         const response = await fetch(ROLE_PERMISSIONS_URL(assignmentState.selectedRoleId), {
             method: 'PUT',
             headers: {
@@ -1169,15 +1252,11 @@ async function openDetailsModal(permissionId) {
     renderDetailsSkeleton();
 
     try {
-        const [permiso, audit] = await Promise.all([
-            fetchPermissionDetails(permissionId),
-            loadAuditTimeline(permissionId)
-        ]);
+        const permiso = await fetchPermissionDetails(permissionId);
         renderDetails(permiso);
-        renderAudit(audit);
     } catch (error) {
         showNotification(error.message || 'No se pudo cargar el detalle del permiso', 'error');
-        renderDetailsError(error.message);
+        renderDetailsSkeleton();
     }
 }
 
@@ -1205,20 +1284,7 @@ async function fetchPermissionDetails(id) {
 }
 
 async function loadAuditTimeline(permissionId) {
-    const params = new URLSearchParams({ permisoId: permissionId, limite: '20' });
-    const response = await fetch(`${PERMISSIONS_AUDIT_URL}?${params.toString()}`, {
-        headers: { 'Accept': 'application/json' },
-        credentials: 'include'
-    });
-
-    if (!response.ok) {
-        const body = await tryParseJson(response);
-        throw new Error(body?.message || 'No se pudo cargar el historial de auditoría');
-    }
-
-    const data = await response.json();
-    renderAudit(data);
-    return data;
+    // audit timeline removed
 }
 
 function renderDetailsSkeleton() {
@@ -1237,14 +1303,7 @@ function renderDetailsSkeleton() {
     if (dom.detailsRoleList) {
         dom.detailsRoleList.innerHTML = '<span class="roles-list-empty">Cargando roles...</span>';
     }
-    if (dom.auditTimeline) {
-        dom.auditTimeline.innerHTML = `
-            <li class="audit-placeholder">
-                <i class="fas fa-spinner fa-spin"></i>
-                <span>Cargando historial...</span>
-            </li>
-        `;
-    }
+    // audit timeline removed
 }
 
 function renderDetails(permiso) {
@@ -1286,57 +1345,7 @@ function renderDetails(permiso) {
     }
 }
 
-function renderDetailsError(message) {
-    if (!dom.auditTimeline) return;
-    dom.auditTimeline.innerHTML = `
-        <li class="audit-placeholder error">
-            <i class="fas fa-triangle-exclamation"></i>
-            <span>${escapeHtml(message) || 'No se pudo obtener la auditoría.'}</span>
-        </li>
-    `;
-}
-
-function renderAudit(auditItems) {
-    if (!dom.auditTimeline) return;
-
-    if (!Array.isArray(auditItems) || !auditItems.length) {
-        dom.auditTimeline.innerHTML = `
-            <li class="audit-placeholder">
-                <i class="fas fa-circle-info"></i>
-                <span>Sin movimientos recientes</span>
-            </li>
-        `;
-        return;
-    }
-
-    const fragment = document.createDocumentFragment();
-
-    auditItems.forEach(item => {
-        const li = document.createElement('li');
-        li.className = 'audit-item';
-        const fecha = item.fecha ? formatDateTime(new Date(item.fecha)) : '—';
-        const detalle = item.detalle || '';
-        const usuario = item.usuario || 'sistema';
-
-        li.innerHTML = `
-            <div class="audit-icon">
-                <i class="fas fa-history"></i>
-            </div>
-            <div class="audit-content">
-                <div class="audit-header">
-                    <span class="audit-action">${escapeHtml(item.accion || 'ACCION')}</span>
-                    <span class="audit-date">${fecha}</span>
-                </div>
-                ${detalle ? `<p class="audit-detail">${escapeHtml(detalle)}</p>` : ''}
-                <small class="audit-meta">Registrado por ${escapeHtml(usuario)}</small>
-            </div>
-        `;
-        fragment.appendChild(li);
-    });
-
-    dom.auditTimeline.innerHTML = '';
-    dom.auditTimeline.appendChild(fragment);
-}
+// audit rendering removed
 
 function handleGlobalKeydown(event) {
     if (event.key === 'Escape') {

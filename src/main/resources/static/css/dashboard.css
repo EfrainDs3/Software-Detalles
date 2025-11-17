@@ -212,6 +212,23 @@ body {
     color: #b30000;
 }
 
+/* Allowed module state: make icon and title green */
+.card.allowed .card-icon,
+.card.allowed .card-title {
+    color: #10b981 !important;
+}
+
+/* Disabled/unauthorized module state: dim and prevent pointer events on the card link */
+.card.unauthorized {
+    opacity: 0.65;
+}
+.card-link.unauthorized {
+    pointer-events: auto; /* keep click handler active on the anchor so JS can show message */
+}
+.card-link.unauthorized .card {
+    cursor: pointer;
+}
+
 .card-title {
     font-size: 18px;
     font-weight: bold;

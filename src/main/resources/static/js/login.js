@@ -160,12 +160,14 @@ document.addEventListener('DOMContentLoaded', async function() {
             const nombreCompleto = data?.nombreCompleto || usuario;
             const roles = data?.roles || [];
             const permisos = data?.permisos || [];
+            const modulos = data?.modulos || [];
 
             // Guardar sesión en localStorage
             localStorage.setItem('usuarioLogueado', data?.username || usuario);
             localStorage.setItem('usuarioNombre', nombreCompleto);
             localStorage.setItem('usuarioRoles', JSON.stringify(roles));
             localStorage.setItem('usuarioPermisos', JSON.stringify(permisos));
+            localStorage.setItem('usuarioModulos', JSON.stringify(modulos));
             localStorage.setItem('loginTime', new Date().toISOString());
 
             // Redirigir al dashboard inmediatamente
@@ -308,6 +310,7 @@ function clearStoredSession() {
     localStorage.removeItem('loginTime');
     localStorage.removeItem('usuarioRoles');
     localStorage.removeItem('usuarioPermisos');
+    localStorage.removeItem('usuarioModulos');
 }
 
 // Función para limpiar la sesión (disponible globalmente)

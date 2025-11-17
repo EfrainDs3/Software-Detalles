@@ -5,6 +5,7 @@ import fisi.software.detalles.service.AlmacenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +28,7 @@ public class AlmacenApiController {
      * GET /api/almacenes - Listar todos los almacenes
      */
     @GetMapping
+    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_INVENTARIO, T(fisi.software.detalles.security.Permisos).VER_ALMACENES, T(fisi.software.detalles.security.Permisos).MODULO_ALMACENES, T(fisi.software.detalles.security.Permisos).MODULO_INVENTARIO)")
     public ResponseEntity<List<Almacen>> listarAlmacenes() {
         List<Almacen> almacenes = almacenService.obtenerTodosAlmacenes();
         return ResponseEntity.ok(almacenes);
@@ -36,6 +38,7 @@ public class AlmacenApiController {
      * GET /api/almacenes/{id} - Obtener almacén por ID
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_INVENTARIO, T(fisi.software.detalles.security.Permisos).VER_ALMACENES, T(fisi.software.detalles.security.Permisos).MODULO_ALMACENES, T(fisi.software.detalles.security.Permisos).MODULO_INVENTARIO)")
     public ResponseEntity<Almacen> obtenerAlmacen(@PathVariable Long id) {
         return almacenService.obtenerAlmacenPorId(id)
             .map(ResponseEntity::ok)
@@ -47,6 +50,7 @@ public class AlmacenApiController {
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_INVENTARIO)")
     public ResponseEntity<?> crearAlmacen(
             @RequestParam String nombre,
             @RequestParam(required = false) String ubicacion) {
@@ -65,6 +69,7 @@ public class AlmacenApiController {
      * PUT /api/almacenes/{id} - Actualizar almacén
      */
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_INVENTARIO)")
     public ResponseEntity<?> actualizarAlmacen(
             @PathVariable Long id,
             @RequestParam String nombre,
@@ -84,6 +89,7 @@ public class AlmacenApiController {
      * DELETE /api/almacenes/{id} - Eliminar almacén
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_INVENTARIO)")
     public ResponseEntity<?> eliminarAlmacen(@PathVariable Long id) {
         try {
             almacenService.eliminarAlmacen(id);
@@ -101,6 +107,7 @@ public class AlmacenApiController {
      * GET /api/almacenes/verificar-nombre - Verificar si existe un nombre
      */
     @GetMapping("/verificar-nombre")
+    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_INVENTARIO, T(fisi.software.detalles.security.Permisos).VER_ALMACENES, T(fisi.software.detalles.security.Permisos).MODULO_ALMACENES, T(fisi.software.detalles.security.Permisos).MODULO_INVENTARIO)")
     public ResponseEntity<Map<String, Boolean>> verificarNombre(@RequestParam String nombre) {
         boolean existe = almacenService.existeAlmacenPorNombre(nombre);
         Map<String, Boolean> response = new HashMap<>();

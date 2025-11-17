@@ -17,17 +17,61 @@ public final class Permisos {
         "generar", "descargar"
     );
 
+    // Acceso principal
     public static final String ACCEDER_AL_DASHBOARD = normalizar("Acceder al dashboard");
+
+    // Seguridad / Usuarios
     public static final String VER_USUARIOS = normalizar("Ver usuarios");
     public static final String GESTIONAR_USUARIOS = normalizar("Gestionar usuarios");
     public static final String VER_ROLES = normalizar("Ver roles");
     public static final String GESTIONAR_ROLES = normalizar("Gestionar roles");
     public static final String VER_PERMISOS = normalizar("Ver permisos");
     public static final String GESTIONAR_PERMISOS = normalizar("Gestionar permisos");
+
+    // Clientes
+    public static final String VER_CLIENTES = normalizar("Ver clientes");
     public static final String GESTIONAR_CLIENTES = normalizar("Gestionar clientes");
+
+    // Ventas y caja
+    public static final String VER_VENTAS = normalizar("Ver ventas");
     public static final String REGISTRAR_VENTAS = normalizar("Registrar ventas");
+    public static final String VER_ESTADO_DE_CAJA = normalizar("Ver estado de caja");
+
+    // Inventario / productos
+    public static final String VER_INVENTARIO = normalizar("Ver inventario");
     public static final String GESTIONAR_INVENTARIO = normalizar("Gestionar inventario");
+    public static final String VER_CALZADOS = normalizar("Ver calzados");
+    public static final String VER_ACCESORIOS = normalizar("Ver accesorios");
+    public static final String VER_CATALOGOS_MAESTROS = normalizar("Ver catálogos maestros");
+
+    // Compras / proveedores
+    public static final String VER_COMPRAS = normalizar("Ver compras");
     public static final String GESTIONAR_COMPRAS = normalizar("Gestionar compras");
+    public static final String VER_PROVEEDORES = normalizar("Ver proveedores");
+
+    // Almacenes
+    public static final String VER_ALMACENES = normalizar("Ver almacenes");
+
+    // Reportes y auditoría
+    public static final String VER_REPORTES = normalizar("Ver reportes");
+    public static final String GENERAR_REPORTES = normalizar("Generar reportes");
+    // auditoría removed
+
+    // Autoridades por módulo (MODULO_*)
+    public static final String MODULO_DASHBOARD = autoridadModulo("Dashboard");
+    public static final String MODULO_USUARIOS = autoridadModulo("Usuarios");
+    public static final String MODULO_ROLES = autoridadModulo("Roles");
+    public static final String MODULO_PERMISOS = autoridadModulo("Permisos");
+    public static final String MODULO_CLIENTES = autoridadModulo("Clientes");
+    public static final String MODULO_VENTAS = autoridadModulo("Ventas");
+    public static final String MODULO_CAJA = autoridadModulo("Caja");
+    public static final String MODULO_PRODUCTOS = autoridadModulo("Productos");
+    public static final String MODULO_CATALOGOS = autoridadModulo("Catalogos");
+    public static final String MODULO_INVENTARIO = autoridadModulo("Inventario");
+    public static final String MODULO_ALMACENES = autoridadModulo("Almacenes");
+    public static final String MODULO_COMPRAS = autoridadModulo("Compras");
+    public static final String MODULO_PROVEEDORES = autoridadModulo("Proveedores");
+    public static final String MODULO_REPORTES = autoridadModulo("Reportes");
 
     private Permisos() {
         // Utility class

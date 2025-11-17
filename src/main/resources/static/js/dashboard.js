@@ -8,6 +8,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (!usuarioLogueado || !loginTime) {
             // No hay sesión, redirigir al login
+            localStorage.removeItem('usuarioNombre');
+            localStorage.removeItem('usuarioRoles');
+            localStorage.removeItem('usuarioPermisos');
+            localStorage.removeItem('usuarioModulos');
             window.location.href = '/login';
             return false;
         }
@@ -21,6 +25,10 @@ document.addEventListener('DOMContentLoaded', function() {
             // Sesión expirada
             localStorage.removeItem('usuarioLogueado');
             localStorage.removeItem('loginTime');
+            localStorage.removeItem('usuarioNombre');
+            localStorage.removeItem('usuarioRoles');
+            localStorage.removeItem('usuarioPermisos');
+            localStorage.removeItem('usuarioModulos');
             alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
             window.location.href = '/login';
             return false;
@@ -35,13 +43,65 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Mostrar información del usuario logueado
-    const usuarioLogueado = localStorage.getItem('usuarioLogueado');
+    const usuarioLogueado = localStorage.getItem('usuarioNombre') || localStorage.getItem('usuarioLogueado');
     const topBar = document.querySelector('.top-bar h2');
     if (topBar && usuarioLogueado) {
         topBar.textContent = `Bienvenido, ${usuarioLogueado}`;
     }
 
+    // Utility: show floating message at top-right (type: 'error'|'success'|'info')
+    function showMessage(message, type) {
+        const existing = document.querySelector('.dashboard-message');
+        if (existing) existing.remove();
+
+        const div = document.createElement('div');
+        div.className = `dashboard-message dashboard-message-${type}`;
+        div.textContent = message;
+        div.style.cssText = `position: fixed; top: 20px; right: 20px; z-index: 2000; padding: 12px 16px; border-radius:8px; color: white; font-weight:700; max-width:320px; word-wrap:break-word;box-shadow:0 4px 12px rgba(0,0,0,0.2)`;
+        if (type === 'error') div.style.backgroundColor = '#dc2626';
+        else if (type === 'success') div.style.backgroundColor = '#10b981';
+        else div.style.backgroundColor = '#2563eb';
+
+        document.body.appendChild(div);
+        setTimeout(() => { div.remove(); }, 3000);
+    }
+
     // Las tarjetas ahora usan enlaces directos, no necesitan JavaScript adicional para navegación
+
+    // Apply module permission UI: color allowed modules and block unauthorized clicks
+    (function applyModulePermissions() {
+        let modulos = [];
+        try {
+            modulos = JSON.parse(localStorage.getItem('usuarioModulos') || '[]');
+            if (!Array.isArray(modulos)) modulos = [];
+        } catch (e) {
+            modulos = [];
+        }
+
+        // normalize values to strings
+        const modSet = new Set(modulos.map(m => String(m).toUpperCase()));
+
+        document.querySelectorAll('.card-link').forEach(link => {
+            const modulo = (link.getAttribute('data-modulo') || '').toUpperCase();
+            const card = link.querySelector('.card');
+
+            const allowed = modulo && modSet.has(modulo);
+
+            if (allowed) {
+                if (card) card.classList.add('allowed');
+            } else {
+                // mark unauthorized visually
+                if (card) card.classList.add('unauthorized');
+                link.classList.add('unauthorized');
+
+                // intercept clicks to show friendly message
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    showMessage('No tiene permisos disponibles para este módulo', 'error');
+                });
+            }
+        });
+    })();
 
     // Add click functionality to logout button
     document.querySelector('.logout-btn').addEventListener('click', function() {
@@ -49,6 +109,10 @@ document.addEventListener('DOMContentLoaded', function() {
             // Limpiar sesión
             localStorage.removeItem('usuarioLogueado');
             localStorage.removeItem('loginTime');
+            localStorage.removeItem('usuarioNombre');
+            localStorage.removeItem('usuarioRoles');
+            localStorage.removeItem('usuarioPermisos');
+            localStorage.removeItem('usuarioModulos');
             
             // Mostrar mensaje y redirigir
             alert('Sesión cerrada correctamente');

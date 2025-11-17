@@ -411,8 +411,7 @@ function getPermissionDisplayName(permission) {
         'products.delete': 'Eliminar productos',
         'reports.view': 'Ver reportes',
         'reports.export': 'Exportar reportes',
-        'system.settings': 'Configuración',
-        'system.audit': 'Auditoría'
+        'system.settings': 'Configuración'
     };
     return permissionNames[codigo] || nombre || codigo;
 }

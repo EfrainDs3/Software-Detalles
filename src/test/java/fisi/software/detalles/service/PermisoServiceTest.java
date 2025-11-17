@@ -8,7 +8,6 @@ import fisi.software.detalles.controller.dto.permiso.PermisoRequest;
 import fisi.software.detalles.entity.Permiso;
 import fisi.software.detalles.entity.Rol;
 import fisi.software.detalles.entity.Usuario;
-import fisi.software.detalles.repository.PermisoAuditoriaRepository;
 import fisi.software.detalles.repository.PermisoRepository;
 import fisi.software.detalles.repository.RolRepository;
 import fisi.software.detalles.repository.UsuarioRepository;
@@ -41,12 +40,9 @@ class PermisoServiceTest {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    @Autowired
-    private PermisoAuditoriaRepository permisoAuditoriaRepository;
 
     @BeforeEach
     void setUp() {
-        permisoAuditoriaRepository.deleteAll();
         usuarioRepository.deleteAll();
         rolRepository.deleteAll();
         permisoRepository.deleteAll();
@@ -64,12 +60,6 @@ class PermisoServiceTest {
     assertThat(response.rolesAsignados()).isEmpty();
         assertThat(response.fechaCreacion()).isNotNull();
         assertThat(permisoRepository.findById(response.id())).isPresent();
-        assertThat(permisoAuditoriaRepository.findAll())
-            .singleElement()
-            .satisfies(auditoria -> {
-                assertThat(auditoria.getAccion()).isEqualTo("CREACION");
-                assertThat(auditoria.getPermisoNombre()).isEqualTo("Auditar usuarios");
-            });
     }
 
     @Test
@@ -120,18 +110,13 @@ class PermisoServiceTest {
     }
 
     @Test
-    void actualizarPermisosRolRegistraAuditoria() {
+    void actualizarPermisosRol_SinAuditoria() {
+        // This test ensures permissions for a role can be updated (audit removed)
         Permiso permiso = permisoRepository.save(crearPermiso("Inventario - Ver"));
         Rol rol = rolRepository.save(crearRol("Inventarios"));
 
         permisoService.actualizarPermisosRol(rol.getId(), List.of(permiso.getIdPermiso()));
-
-        assertThat(permisoAuditoriaRepository.findAll())
-            .singleElement()
-            .satisfies(auditoria -> {
-                assertThat(auditoria.getAccion()).isEqualTo("ROL_ACTUALIZADO");
-                assertThat(auditoria.getDetalle()).contains("Inventarios");
-            });
+        // no audit assertions since auditing was removed
     }
 
     @Test

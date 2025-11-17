@@ -14,6 +14,7 @@ function initLogoutButton() {
                     localStorage.removeItem('loginTime');
                     localStorage.removeItem('usuarioRoles');
                     localStorage.removeItem('usuarioPermisos');
+                    localStorage.removeItem('usuarioModulos');
                     window.location.href = '/login';
                 });
             }
