@@ -373,37 +373,7 @@ CREATE TABLE `pagoscomprobante` (
 --
 -- Estructura de tabla para la tabla `pedidoscompra`
 --
-
-CREATE TABLE `pedidoscompra` (
-  `id_pedido_compra` bigint(20) NOT NULL,
-  `id_proveedor` int(11) NOT NULL,
-  `id_usuario` int(11) NOT NULL,
-  `fecha_pedido` datetime NOT NULL DEFAULT current_timestamp(),
-  `fecha_entrega_esperada` date DEFAULT NULL,
-  `estado_pedido` varchar(50) NOT NULL DEFAULT 'Pendiente',
-  `total_pedido` decimal(10,2) NOT NULL DEFAULT 0.00
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `perfiles_estilo_cliente`
---
-
-CREATE TABLE `perfiles_estilo_cliente` (
-  `id_cliente` int(11) NOT NULL,
-  `paleta_color_predominante` varchar(50) DEFAULT NULL,
-  `estilos_preferidos` text DEFAULT NULL,
-  `tallas_frecuentes` varchar(100) DEFAULT NULL,
-  `fecha_ultimo_analisis` datetime NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `permisos`
---
-
+-- Auditoría de permisos eliminada: estructura y datos removidos del volcado.
 CREATE TABLE `permisos` (
   `id_permiso` int(11) NOT NULL,
   `nombre_permiso` varchar(100) NOT NULL,
@@ -422,8 +392,6 @@ INSERT INTO `permisos` (`id_permiso`, `nombre_permiso`, `descripcion`, `estado`,
 (1, 'Acceder al dashboard', 'Permite visualizar el panel principal', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 05:06:44', 'Dashboard'),
 (2, 'Ver reportes', 'Permite ingresar al módulo de reportes', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Reportes'),
 (3, 'Generar reportes', 'Permite generar o exportar reportes cuando estén disponibles', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Reportes'),
-(4, 'Ver auditoría', 'Permite ingresar al módulo de auditoría', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Auditoría'),
-(5, 'Consultar registros de auditoría', 'Permite revisar historial y logs del sistema', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Auditoría'),
 (6, 'Ver usuarios', 'Permite visualizar la lista de usuarios', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 05:06:44', 'Usuarios'),
 (7, 'Registrar usuarios', 'Crear nuevos usuarios del sistema', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Usuarios'),
 (8, 'Editar usuarios', 'Actualizar datos generales y roles de usuarios', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Usuarios'),
@@ -562,8 +530,6 @@ INSERT INTO `permisos_auditoria` (`id_auditoria`, `id_permiso`, `accion`, `detal
 (36, 1, 'ROL_ACTUALIZADO', 'Asignado al rol Cajero', 'EfrainDs3', NULL, 'Acceder al dashboard', '2025-11-06 02:39:43'),
 (37, 2, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Ver reportes', '2025-11-06 05:14:53'),
 (38, 3, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Generar reportes', '2025-11-06 05:14:53'),
-(39, 4, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Ver auditoría', '2025-11-06 05:14:53'),
-(40, 5, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Consultar registros de auditoría', '2025-11-06 05:14:53'),
 (41, 7, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Registrar usuarios', '2025-11-06 05:14:53'),
 (42, 8, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Editar usuarios', '2025-11-06 05:14:53'),
 (43, 9, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Eliminar usuarios', '2025-11-06 05:14:53'),
@@ -777,8 +743,6 @@ INSERT INTO `rol_permisos` (`id_rol`, `nombre_rol`, `id_permiso`, `nombre_permis
 (1, NULL, 1, NULL),
 (1, NULL, 2, NULL),
 (1, NULL, 3, NULL),
-(1, NULL, 4, NULL),
-(1, NULL, 5, NULL),
 (1, NULL, 6, NULL),
 (1, NULL, 7, NULL),
 (1, NULL, 8, NULL),
@@ -1225,9 +1189,7 @@ ALTER TABLE `permisos`
 --
 -- Indices de la tabla `permisos_auditoria`
 --
-ALTER TABLE `permisos_auditoria`
-  ADD PRIMARY KEY (`id_auditoria`),
-  ADD KEY `idx_permisos_auditoria_permiso` (`id_permiso`);
+-- Indices for permisos_auditoria removed as the table was removed from the schema dump.
 
 --
 -- Indices de la tabla `productos`
@@ -1473,8 +1435,7 @@ ALTER TABLE `permisos`
 --
 -- AUTO_INCREMENT de la tabla `permisos_auditoria`
 --
-ALTER TABLE `permisos_auditoria`
-  MODIFY `id_auditoria` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=109;
+-- AUTO_INCREMENT for permisos_auditoria removed (table eliminated from dump).
 
 --
 -- AUTO_INCREMENT de la tabla `productos`

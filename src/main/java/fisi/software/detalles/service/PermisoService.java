@@ -9,6 +9,8 @@ import fisi.software.detalles.repository.RolRepository;
 import fisi.software.detalles.repository.UsuarioRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.hibernate.Hibernate;
 import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
@@ -25,12 +27,7 @@ import java.util.stream.Stream;
 public class PermisoService {
 
     private static final String ESTADO_ACTIVO = "ACTIVO";
-    private static final String ACCION_CREACION = "CREACION";
-    private static final String ACCION_ACTUALIZACION = "ACTUALIZACION";
-    private static final String ACCION_ELIMINACION = "ELIMINACION";
-    private static final String ACCION_ROL_ACTUALIZADO = "ROL_ACTUALIZADO";
-
-    private static final int LIMITE_AUDITORIA = 50;
+    // Audit removed: action constants and audit limit removed
     private static final Set<String> VERBOS_INICIALES = Set.of(
         "ver",
         "gestionar",
@@ -47,7 +44,6 @@ public class PermisoService {
     private final PermisoRepository permisoRepository;
     private final RolRepository rolRepository;
     private final UsuarioRepository usuarioRepository;
-    private final PermisoAuditoriaService permisoAuditoriaService;
 
     @Transactional(readOnly = true)
     public List<PermisoResponse> listarPermisos(Boolean soloActivos, String estado, String termino) {
@@ -102,20 +98,16 @@ public class PermisoService {
     }
 
     public PermisoResponse crearPermiso(PermisoRequest request) {
-        String actor = resolverActor();
         Permiso permiso = new Permiso();
     aplicarDatos(permiso, request, true);
         Permiso guardado = permisoRepository.save(permiso);
-        registrarAuditoria(guardado, ACCION_CREACION, "Se creó el permiso", actor);
         return PermisoResponse.fromEntity(guardado, 0L);
     }
 
     public PermisoResponse actualizarPermiso(Long id, PermisoRequest request) {
-        String actor = resolverActor();
         Permiso permiso = obtenerEntidad(id);
     aplicarDatos(permiso, request, false);
         Permiso guardado = permisoRepository.save(permiso);
-        registrarAuditoria(guardado, ACCION_ACTUALIZACION, "Se actualizó el permiso", actor);
         long totalUsuarios = guardado.getRoles().stream()
             .mapToLong(rol -> usuarioRepository.countByRoles_Id(rol.getId()))
             .sum();
@@ -129,8 +121,6 @@ public class PermisoService {
         if (!permiso.getRoles().isEmpty()) {
             throw new ValidationException("No se puede eliminar el permiso porque se encuentra asignado a roles");
         }
-        String actor = resolverActor();
-        registrarAuditoria(permiso, ACCION_ELIMINACION, "Se eliminó el permiso", actor);
         permisoRepository.delete(permiso);
     }
 
@@ -171,25 +161,7 @@ public class PermisoService {
         Set<Long> removidos = new HashSet<>(permisosOriginales);
         removidos.removeAll(nuevosIds);
 
-        if (!agregados.isEmpty()) {
-            permisoRepository.findAllById(agregados)
-                .forEach(permiso -> registrarAuditoria(
-                    permiso,
-                    ACCION_ROL_ACTUALIZADO,
-                    String.format("Asignado al rol %s", guardado.getNombre()),
-                    actor
-                ));
-        }
-
-        if (!removidos.isEmpty()) {
-            permisoRepository.findAllById(removidos)
-                .forEach(permiso -> registrarAuditoria(
-                    permiso,
-                    ACCION_ROL_ACTUALIZADO,
-                    String.format("Removido del rol %s", guardado.getNombre()),
-                    actor
-                ));
-        }
+        // audit for role assignment removed
 
         List<PermisoResumenResponse> respuesta = guardado.getPermisos().stream()
             .sorted(Comparator.comparing(Permiso::getNombrePermiso, String.CASE_INSENSITIVE_ORDER))
@@ -221,12 +193,6 @@ public class PermisoService {
         return resultado;
     }
 
-    public List<PermisoAuditoriaResponse> obtenerAuditoriaPermisos(Long permisoId, Integer limite) {
-        int limiteEfectivo = (limite != null && limite > 0 && limite <= LIMITE_AUDITORIA)
-            ? limite
-            : LIMITE_AUDITORIA;
-        return permisoAuditoriaService.obtenerHistorial(permisoId, limiteEfectivo);
-    }
 
     private Set<Permiso> obtenerPermisosDesdeIds(List<Long> permisoIds) {
         if (permisoIds == null) {
@@ -369,13 +335,19 @@ public class PermisoService {
         return normalizado.replaceAll("\\p{M}+", "");
     }
 
-    private void registrarAuditoria(Permiso permiso, String accion, String detalle, String actor) {
-        permisoAuditoriaService.registrar(permiso, accion, detalle, actor);
+    private String resolverActor() {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && StringUtils.hasText(auth.getName())) {
+                return auth.getName();
+            }
+        } catch (Exception ignored) {
+            // fall back to system actor
+        }
+        return "system";
     }
 
-    private String resolverActor() {
-        return permisoAuditoriaService.resolverUsuarioActual();
-    }
+    // Audit functionality removed from service
 
     private static class PermisoUsuarioDetalleBuilder {
         private final Permiso permiso;

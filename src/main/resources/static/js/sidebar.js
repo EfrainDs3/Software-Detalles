@@ -195,7 +195,7 @@ function getCurrentPage() {
         'compras/proveedores': 'proveedores',
         'inventario': 'inventario',
         'reportes': 'reportes',
-        'auditoria': 'auditoria'
+        // auditoria removed
     };
 
     if (routeMap.hasOwnProperty(routeKey)) {
