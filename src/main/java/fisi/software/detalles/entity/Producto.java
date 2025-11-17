@@ -50,6 +50,9 @@ public class Producto implements Serializable {
     @Column(name = "peso_gramos")
     private Integer pesoGramos;
 
+    @Column(name = "imagen", length = 255)
+    private String imagen;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_categoria", nullable = false)
     private CategoriaProducto categoria;
@@ -163,6 +166,14 @@ public class Producto implements Serializable {
 
     public void setPesoGramos(Integer pesoGramos) {
         this.pesoGramos = pesoGramos;
+    }
+
+    public String getImagen() {
+        return imagen;
+    }
+
+    public void setImagen(String imagen) {
+        this.imagen = imagen;
     }
 
     public CategoriaProducto getCategoria() {

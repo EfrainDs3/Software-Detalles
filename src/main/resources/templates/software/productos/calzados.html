@@ -117,16 +117,18 @@
                             <input type="text" id="calzadoName" name="name" required placeholder="Ej: Zapatillas Deportivas Nike">
                         </div>
                         <div class="form-group">
-                            <label for="calzadoModel">Modelo *</label>
-                            <select id="calzadoModel" required>
-                                <option value="">Cargando modelos...</option>
+                            <label for="calzadoBrand">Marca *</label>
+                            <select id="calzadoBrand" required>
+                                <option value="">Cargando marcas...</option>
                             </select>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="calzadoBrandName">Marca</label>
-                            <input type="text" id="calzadoBrandName" placeholder="Selecciona un modelo" readonly>
+                            <label for="calzadoModel">Modelo *</label>
+                            <select id="calzadoModel" required disabled>
+                                <option value="">Selecciona una marca primero</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label for="calzadoColor">Color *</label>
@@ -219,7 +221,16 @@
                         <div class="image-preview" id="imagePreview">
                             <i class="fas fa-camera"></i>
                         </div>
+                        <button type="button" class="btn btn-secondary mt-2" id="selectImageBtn">
+                            <i class="fas fa-upload"></i>
+                            <span class="btn-text">Seleccionar imagen</span>
+                        </button>
                         <input type="file" id="calzadoImage" name="image" accept="image/*" style="display: none;">
+                        <p class="image-hint">
+                            Formatos admitidos: JPG, PNG o WEBP (hasta 5&nbsp;MB).
+                            <br>
+                            <span class="image-file-name"></span>
+                        </p>
                     </div>
                 </div>
 

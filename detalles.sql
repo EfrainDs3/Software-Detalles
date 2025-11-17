@@ -295,18 +295,17 @@ INSERT INTO `materialesproducto` (`id_material`, `nombre_material`) VALUES
 CREATE TABLE `modelos` (
   `id_modelo` int(11) NOT NULL,
   `nombre_modelo` varchar(100) NOT NULL,
-  `id_marca` int(11) NOT NULL,
-  `imagen_principal` varchar(2555) DEFAULT NULL
+  `id_marca` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `modelos`
 --
 
-INSERT INTO `modelos` (`id_modelo`, `nombre_modelo`, `id_marca`, `imagen_principal`) VALUES
-(1, 'Air Max720', 1, NULL),
-(2, 'Air Max710', 1, '/img/upload/modelos/nike-air-max710.webp'),
-(3, 'Modelo123', 1, NULL);
+INSERT INTO `modelos` (`id_modelo`, `nombre_modelo`, `id_marca`) VALUES
+(1, 'Air Max720', 1),
+(2, 'Air Max710', 1),
+(3, 'Modelo123', 1);
 
 -- --------------------------------------------------------
 

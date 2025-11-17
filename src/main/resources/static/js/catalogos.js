@@ -20,19 +20,10 @@
     tipos: { page:1, term:'' }
   };
 
-  const PLACEHOLDER_IMAGE = '/img/calzado-default.jpg';
   const ESCAPE_MAP = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
 
   const escapeHtml = (value = '') => String(value ?? '')
     .replace(/[&<>"']/g, (match) => ESCAPE_MAP[match] || match);
-
-  const normalizeImagePath = (value = '') => {
-    if (!value) return '';
-    if (value.startsWith('data:')) return value;
-    if (/^https?:\/\//i.test(value)) return value;
-    if (value.startsWith('/')) return value;
-    return '/' + value.replace(/^\/+/, '');
-  };
 
   // Estado de edición simple
   const editing = { scope:null, id:null };
@@ -313,19 +304,12 @@
     const idDisplay = escapeHtml(id ?? '-');
     const nombre = escapeHtml(modelo.nombre ?? '');
     const marcaNombre = escapeHtml(modelo.marca ?? '');
-    const rawImage = normalizeImagePath(modelo.imagen ?? '');
-    const safeImage = escapeHtml(rawImage);
     const altText = nombre || 'Modelo sin nombre';
-    const hasImage = !!rawImage;
-    const imageMarkup = hasImage
-      ? `<a href="${safeImage}" target="_blank" rel="noopener" title="Ver imagen"><img class="calzado-img" src="${safeImage}" alt="${altText}" loading="lazy"></a>`
-      : `<img class="calzado-img is-placeholder" src="${PLACEHOLDER_IMAGE}" alt="Sin imagen" loading="lazy">`;
     return `
       <tr>
         <td>${idDisplay}</td>
         <td>${nombre}</td>
         <td>${marcaNombre}</td>
-        <td><div class="product-image">${imageMarkup}</div></td>
         <td><div class="action-buttons-cell">
           <button class="btn-icon btn-view" data-scope="modelo" data-id="${escapeHtml(id)}"><i class="fas fa-eye"></i></button>
           <button class="btn-icon btn-edit" data-scope="modelo" data-id="${escapeHtml(id)}"><i class="fas fa-edit"></i></button>
@@ -435,54 +419,17 @@
   function populateModeloMarcas(){ const sel = byId('modeloMarca'); if (!sel) return; sel.innerHTML = '<option value="">Seleccionar marca</option>' + marcas.map(m=>`<option value="${m.id}">${m.nombre}</option>`).join(''); }
 
   // Imagen para Modelo: selección y previsualización
-  function resetModeloImagePreview(){
-    const preview = byId('modeloImagePreview');
-    if (!preview) return;
-    preview.innerHTML = '<i class="fas fa-camera"></i><span>Click para subir imagen</span>';
-    delete preview.dataset.source;
-  }
-  function setModeloImagePreview(src, originalSource){
-    const preview = byId('modeloImagePreview');
-    if (!preview) return;
-    preview.innerHTML = '';
-    const img = document.createElement('img');
-    img.src = src;
-    preview.appendChild(img);
-    preview.dataset.source = originalSource ?? src;
-  }
-  // Abrir selector al hacer click en preview o botón
-  byId('modeloImagePreview')?.addEventListener('click', ()=> byId('modeloImage')?.click());
-  byId('selectModeloImageBtn')?.addEventListener('click', ()=> byId('modeloImage')?.click());
-  // Actualizar preview al seleccionar archivo
-  byId('modeloImage')?.addEventListener('change', (e)=>{
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev)=> setModeloImagePreview(ev.target.result, ev.target.result);
-    reader.readAsDataURL(file);
-  });
-
   byId('addModeloBtn')?.addEventListener('click', ()=>{
     editing.scope='modelo'; editing.id=null; populateModeloMarcas();
     byId('modeloModalTitle').textContent='Nuevo Modelo';
     byId('modeloNombre').value=''; byId('modeloMarca').value='';
-    if (byId('modeloImage')) byId('modeloImage').value='';
-    resetModeloImagePreview();
     openModal('modeloModal');
   });
   byId('saveModeloBtn')?.addEventListener('click', async ()=>{
     const nombre = (byId('modeloNombre').value||'').trim();
     const marcaId = Number(byId('modeloMarca').value||0);
     if (!nombre || !marcaId){ byId('modeloNombre').focus(); return; }
-    let imagen = '';
-    const preview = byId('modeloImagePreview');
-    if (preview && preview.dataset.source) {
-      imagen = preview.dataset.source;
-    } else {
-      const imgEl = preview ? preview.querySelector('img') : null;
-      if (imgEl && imgEl.src) imagen = imgEl.src;
-    }
-    const payload = { nombre, marcaId, imagen };
+    const payload = { nombre, marcaId };
     try {
       if (editing.scope==='modelo' && editing.id){
         await apiFetch(`/modelos/${editing.id}`, { method:'PUT', body: payload });
@@ -566,15 +513,10 @@
     const nombre = escapeHtml(it.nombre ?? '');
     const marca = escapeHtml(it.marca ?? '-');
     const identifier = escapeHtml(it.id ?? '-');
-    const normalizedImage = normalizeImagePath(it.imagen ?? '');
-    const imageMarkup = normalizedImage
-      ? `<a href="${escapeHtml(normalizedImage)}" target="_blank" rel="noopener" title="Ver imagen"><img src="${escapeHtml(normalizedImage)}" alt="${nombre}" style="max-width:100%;margin-top:8px;border-radius:8px;"></a>`
-      : `<img src="${PLACEHOLDER_IMAGE}" alt="Sin imagen" style="max-width:120px;margin-top:12px;opacity:0.7;">`;
     body.innerHTML = `
       <p><strong>ID:</strong> ${identifier}</p>
       <p><strong>Modelo:</strong> ${nombre}</p>
       <p><strong>Marca:</strong> ${marca}</p>
-      ${imageMarkup}
     `;
     openModal('modeloDetalleModal');
   }
@@ -590,8 +532,6 @@
     byId('modeloModalTitle').textContent='Editar Modelo';
     byId('modeloNombre').value=it.nombre;
     byId('modeloMarca').value=String(it.marcaId||'');
-    if (byId('modeloImage')) byId('modeloImage').value='';
-  if (it.imagen){ setModeloImagePreview(it.imagen, it.imagen); } else { resetModeloImagePreview(); }
     openModal('modeloModal');
   }
   function editMaterial(id){ const it = materiales.find(x=>x.id===id); if (!it) return; editing.scope='material'; editing.id=id; byId('materialModalTitle').textContent='Editar Material'; byId('materialNombre').value=it.nombre; openModal('materialModal'); }

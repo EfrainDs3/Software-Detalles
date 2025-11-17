@@ -92,7 +92,25 @@
       }
     });
 
-    document.getElementById('selectImageBtn')?.addEventListener('click', ()=> document.getElementById('accesorioImage')?.click());
+    const selectImageBtn = document.getElementById('selectImageBtn');
+    if (selectImageBtn){
+      selectImageBtn.addEventListener('click', abrirSelectorImagen);
+    }
+    const imagePreview = document.getElementById('imagePreview');
+    if (imagePreview){
+      imagePreview.addEventListener('click', abrirSelectorImagen);
+      imagePreview.style.cursor = 'pointer';
+      imagePreview.setAttribute('title', 'Seleccionar imagen');
+      if (imagePreview.tabIndex < 0){
+        imagePreview.tabIndex = 0;
+      }
+      imagePreview.addEventListener('keydown', (event)=>{
+        if (event.key === 'Enter' || event.key === ' '){
+          event.preventDefault();
+          abrirSelectorImagen();
+        }
+      });
+    }
     document.getElementById('accesorioImage')?.addEventListener('change', manejarImagenSeleccionada);
 
     document.getElementById('addTallaBtn')?.addEventListener('click', ()=>{
@@ -118,6 +136,67 @@
     });
 
     document.getElementById('accesoriosTableBody')?.addEventListener('click', manejarAccionesTabla);
+    actualizarEstadoSelectorImagen();
+  }
+
+  function abrirSelectorImagen(){
+    document.getElementById('accesorioImage')?.click();
+  }
+
+  function limpiarPreviewImagen(){
+    const preview = document.getElementById('imagePreview');
+    if (!preview) return;
+    preview.innerHTML = '<i class="fas fa-camera"></i>';
+    preview.style.backgroundImage = '';
+    delete preview.dataset.source;
+    delete preview.dataset.modelImage;
+    delete preview.dataset.userImage;
+    delete preview.dataset.productImage;
+  }
+
+  function actualizarEstadoSelectorImagen({ texto, archivo } = {}){
+    const button = document.getElementById('selectImageBtn');
+    const label = button?.querySelector('.btn-text');
+    if (label){
+      label.textContent = texto || 'Seleccionar imagen';
+    }
+    const fileNameLabel = document.querySelector('#accesorioModal .image-file-name');
+    if (fileNameLabel){
+      fileNameLabel.textContent = archivo ? `Archivo seleccionado: ${archivo}` : '';
+    }
+  }
+
+  function extraerNombreArchivo(ruta){
+    if (!ruta) return '';
+    const partes = ruta.split('/');
+    if (!partes.length){
+      return '';
+    }
+    return partes[partes.length - 1] || '';
+  }
+
+  function establecerImagenProducto(ruta, nombreProducto){
+    const preview = document.getElementById('imagePreview');
+    if (!preview || !ruta) return;
+    preview.innerHTML = `<img src="${ruta}" alt="${nombreProducto || 'Imagen del accesorio'}">`;
+    preview.style.backgroundImage = '';
+    preview.dataset.source = ruta;
+    preview.dataset.productImage = 'true';
+    delete preview.dataset.userImage;
+    delete preview.dataset.modelImage;
+    actualizarEstadoSelectorImagen({ texto: 'Cambiar imagen', archivo: extraerNombreArchivo(ruta) });
+  }
+
+  function obtenerImagenParaEnvio(){
+    const preview = document.getElementById('imagePreview');
+    if (!preview) return null;
+    const source = preview.dataset.source;
+    const esUsuario = preview.dataset.userImage === 'true';
+    const esProducto = preview.dataset.productImage === 'true';
+    if (!source || (!esUsuario && !esProducto)){
+      return null;
+    }
+    return source;
   }
 
   async function cargarCatalogos(){
@@ -187,7 +266,7 @@
   function actualizarImagenDesdeModelo(){
     const preview = document.getElementById('imagePreview');
     if (!preview) return;
-    if (preview.dataset.userImage === 'true'){
+    if (preview.dataset.userImage === 'true' || preview.dataset.productImage === 'true'){
       return;
     }
     const modeloSeleccionado = obtenerModeloSeleccionado();
@@ -196,10 +275,10 @@
       preview.style.backgroundImage = '';
       preview.dataset.source = modeloSeleccionado.imagen;
       preview.dataset.modelImage = 'true';
+      actualizarEstadoSelectorImagen({ texto: 'Cambiar imagen' });
     } else {
-      preview.style.backgroundImage = '';
-      delete preview.dataset.source;
-      delete preview.dataset.modelImage;
+      limpiarPreviewImagen();
+      actualizarEstadoSelectorImagen();
     }
   }
 
@@ -214,7 +293,7 @@
       id: item.id,
       nombre: item.nombre,
       descripcion: item.descripcion,
-  categoria: item.categoria,
+      categoria: item.categoria,
       marca: item.marca,
       modelo: item.modelo,
       material: item.material,
@@ -223,13 +302,13 @@
       precioVenta: item.precioVenta,
       costoCompra: item.costoCompra,
       color: item.color,
-  tipo: item.tipo,
+      tipo: item.tipo,
       dimensiones: item.dimensiones,
       pesoGramos: item.pesoGramos,
       codigoBarra: item.codigoBarra,
       tallas: Array.isArray(item.tallas) ? item.tallas : [],
       tiposProducto: Array.isArray(item.tiposProducto) ? item.tiposProducto : [],
-      imagenModelo: item.modelo?.imagen || null,
+      imagen: item.imagen || null,
       activo: item.activo !== false
     };
   }
@@ -324,8 +403,11 @@
   }
 
   function obtenerImagenProducto(item){
-    if (item?.imagenModelo){
-      return item.imagenModelo;
+    if (item?.imagen){
+      return item.imagen;
+    }
+    if (item?.modelo?.imagen){
+      return item.modelo.imagen;
     }
     return PLACEHOLDER_IMG;
   }
@@ -373,17 +455,15 @@
     if (marcaInput){
       marcaInput.value = '';
     }
+    const imageInput = document.getElementById('accesorioImage');
+    if (imageInput){
+      imageInput.value = '';
+    }
+    limpiarPreviewImagen();
+    actualizarEstadoSelectorImagen();
     const tallasContainer = document.getElementById('tallasContainer');
     if (tallasContainer){
       tallasContainer.innerHTML = '';
-    }
-    const preview = document.getElementById('imagePreview');
-    if (preview){
-    
-      preview.style.backgroundImage = '';
-      delete preview.dataset.source;
-      delete preview.dataset.modelImage;
-      delete preview.dataset.userImage;
     }
     actualizarPreview();
   }
@@ -391,15 +471,21 @@
   function cargarEnFormulario(item){
     const nombreInput = document.getElementById('accesorioName');
     if (nombreInput) nombreInput.value = item.nombre || '';
-  const modeloSelect = document.getElementById('accesorioModel');
-  if (modeloSelect) modeloSelect.value = item.modelo?.id || '';
-  actualizarMarcaDesdeModelo();
-  const marcaInput = document.getElementById('accesorioBrandName');
-  if (marcaInput) marcaInput.value = item.marca?.nombre || '';
-  const colorSelect = document.getElementById('accesorioColor');
-  if (colorSelect) colorSelect.value = item.color || '';
-  const tipoSelect = document.getElementById('accesorioType');
-  if (tipoSelect) tipoSelect.value = item.tipo || '';
+    limpiarPreviewImagen();
+    if (item.imagen){
+      establecerImagenProducto(item.imagen, item.nombre);
+    } else {
+      actualizarEstadoSelectorImagen();
+    }
+    const modeloSelect = document.getElementById('accesorioModel');
+    if (modeloSelect) modeloSelect.value = item.modelo?.id || '';
+    actualizarMarcaDesdeModelo();
+    const marcaInput = document.getElementById('accesorioBrandName');
+    if (marcaInput) marcaInput.value = item.marca?.nombre || '';
+    const colorSelect = document.getElementById('accesorioColor');
+    if (colorSelect) colorSelect.value = item.color || '';
+    const tipoSelect = document.getElementById('accesorioType');
+    if (tipoSelect) tipoSelect.value = item.tipo || '';
     const materialSelect = document.getElementById('accesorioMaterial');
     if (materialSelect) materialSelect.value = item.material?.id || '';
     const categoriaSelect = document.getElementById('accesorioCategory');
@@ -431,7 +517,9 @@
         agregarTalla();
       }
     }
-    actualizarImagenDesdeModelo();
+    if (!item.imagen){
+      actualizarImagenDesdeModelo();
+    }
     actualizarPreview();
   }
 
@@ -506,6 +594,7 @@
     const dimensiones = obtenerValor('accesorioDimensions');
     const descripcion = obtenerValor('accesorioDescription');
     const codigoBarra = obtenerValor('accesorioCodigoBarra');
+    const imagen = obtenerImagenParaEnvio();
 
     const pesoEntrada = obtenerValor('accesorioWeight');
     const pesoGramos = convertirPesoAGramos(pesoEntrada);
@@ -530,7 +619,8 @@
   tipo: tipoSeleccionado || 'Accesorio',
       dimensiones,
       pesoGramos,
-      tallas
+      tallas,
+      imagen
     };
   }
 
@@ -736,8 +826,10 @@
         preview.dataset.source = e.target?.result;
         preview.dataset.userImage = 'true';
         delete preview.dataset.modelImage;
+        delete preview.dataset.productImage;
         preview.style.backgroundImage = '';
       }
+      actualizarEstadoSelectorImagen({ texto: 'Cambiar imagen', archivo: file.name });
     };
     reader.readAsDataURL(file);
   }

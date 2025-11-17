@@ -7,6 +7,7 @@
   const state = {
     items: [],
     combos: {
+      marcas: [],
       modelos: [],
       materiales: [],
       unidades: [],
@@ -109,10 +110,25 @@
       });
     }
 
-    document.getElementById('selectImageBtn')?.addEventListener('click', ()=>{
-      document.getElementById('calzadoImage')?.click();
-    });
-
+    const selectImageBtn = document.getElementById('selectImageBtn');
+    if (selectImageBtn){
+      selectImageBtn.addEventListener('click', abrirSelectorImagen);
+    }
+    const imagePreview = document.getElementById('imagePreview');
+    if (imagePreview){
+      imagePreview.addEventListener('click', abrirSelectorImagen);
+      imagePreview.style.cursor = 'pointer';
+      imagePreview.setAttribute('title', 'Seleccionar imagen');
+      if (imagePreview.tabIndex < 0){
+        imagePreview.tabIndex = 0;
+      }
+      imagePreview.addEventListener('keydown', (event)=>{
+        if (event.key === 'Enter' || event.key === ' '){
+          event.preventDefault();
+          abrirSelectorImagen();
+        }
+      });
+    }
     document.getElementById('calzadoImage')?.addEventListener('change', manejarImagenSeleccionada);
 
     const addTallaBtn = document.getElementById('addTallaBtn');
@@ -126,13 +142,19 @@
     const modelSelect = document.getElementById('calzadoModel');
     if (modelSelect){
       modelSelect.addEventListener('change', ()=>{
-        actualizarMarcaDesdeModelo();
         actualizarImagenDesdeModelo();
         actualizarPreview();
       });
     }
 
-    ['calzadoName','calzadoModel','calzadoCategory','calzadoColor','calzadoType','calzadoMaterial','calzadoUnidad','calzadoDimensiones','calzadoPeso','calzadoBrandName'].forEach(id=>{
+    const brandSelect = document.getElementById('calzadoBrand');
+    if (brandSelect){
+      brandSelect.addEventListener('change', ()=>{
+        manejarCambioMarca();
+      });
+    }
+
+    ['calzadoName','calzadoModel','calzadoCategory','calzadoColor','calzadoType','calzadoMaterial','calzadoUnidad','calzadoDimensiones','calzadoPeso'].forEach(id=>{
       const el = document.getElementById(id);
       if (el){
         el.addEventListener('input', actualizarPreview);
@@ -145,17 +167,80 @@
     document.getElementById('calzadoCategory')?.addEventListener('change', actualizarPreview);
 
     document.getElementById('calzadosTableBody')?.addEventListener('click', manejarAccionesTabla);
+    actualizarEstadoSelectorImagen();
+  }
+
+  function abrirSelectorImagen(){
+    document.getElementById('calzadoImage')?.click();
+  }
+
+  function limpiarPreviewImagen(){
+    const preview = document.getElementById('imagePreview');
+    if (!preview) return;
+    preview.innerHTML = '<i class="fas fa-camera"></i>';
+    preview.style.backgroundImage = '';
+    delete preview.dataset.source;
+    delete preview.dataset.modelImage;
+    delete preview.dataset.userImage;
+    delete preview.dataset.productImage;
+  }
+
+  function actualizarEstadoSelectorImagen({ texto, archivo } = {}){
+    const button = document.getElementById('selectImageBtn');
+    const label = button?.querySelector('.btn-text');
+    if (label){
+      label.textContent = texto || 'Seleccionar imagen';
+    }
+    const fileNameLabel = document.querySelector('#calzadoModal .image-file-name');
+    if (fileNameLabel){
+      fileNameLabel.textContent = archivo ? `Archivo seleccionado: ${archivo}` : '';
+    }
+  }
+
+  function extraerNombreArchivo(ruta){
+    if (!ruta) return '';
+    const partes = ruta.split('/');
+    if (!partes.length){
+      return '';
+    }
+    return partes[partes.length - 1] || '';
+  }
+
+  function establecerImagenProducto(ruta, nombreProducto){
+    const preview = document.getElementById('imagePreview');
+    if (!preview || !ruta) return;
+    preview.innerHTML = `<img src="${ruta}" alt="${nombreProducto || 'Imagen del producto'}">`;
+    preview.style.backgroundImage = '';
+    preview.dataset.source = ruta;
+    preview.dataset.productImage = 'true';
+    delete preview.dataset.userImage;
+    delete preview.dataset.modelImage;
+    actualizarEstadoSelectorImagen({ texto: 'Cambiar imagen', archivo: extraerNombreArchivo(ruta) });
+  }
+
+  function obtenerImagenParaEnvio(){
+    const preview = document.getElementById('imagePreview');
+    if (!preview) return null;
+    const source = preview.dataset.source;
+    const esUsuario = preview.dataset.userImage === 'true';
+    const esProducto = preview.dataset.productImage === 'true';
+    if (!source || (!esUsuario && !esProducto)){
+      return null;
+    }
+    return source;
   }
 
   async function cargarCatalogos(){
     try {
-      const [modelos, materiales, unidades, tipos, proveedores] = await Promise.all([
+      const [marcas, modelos, materiales, unidades, tipos, proveedores] = await Promise.all([
+        apiGet(`${CATALOG_BASE}/marcas`),
         apiGet(`${CATALOG_BASE}/modelos`),
         apiGet(`${CATALOG_BASE}/materiales`),
         apiGet(`${CATALOG_BASE}/unidades`),
         apiGet(`${CATALOG_BASE}/tipos`),
         apiGet(PROVIDER_API)
       ]);
+      state.combos.marcas = Array.isArray(marcas) ? marcas : [];
       state.combos.modelos = Array.isArray(modelos) ? modelos : [];
       state.combos.materiales = Array.isArray(materiales) ? materiales : [];
       state.combos.unidades = Array.isArray(unidades) ? unidades : [];
@@ -168,12 +253,17 @@
   }
 
   function poblarSelects(){
-    poblarSelect('calzadoModel', state.combos.modelos, { value: 'id', label: 'nombre', extra: 'marca' }, 'Sin modelos registrados');
+    poblarSelect('calzadoBrand', state.combos.marcas, { value: 'id', label: 'nombre' });
+    const brandSelectEl = document.getElementById('calzadoBrand');
+    if (brandSelectEl && brandSelectEl.options.length){
+      brandSelectEl.options[0].textContent = 'Seleccionar marca';
+    }
+    const marcaSeleccionada = convertirEntero(obtenerValor('calzadoBrand'));
+    poblarModelosPorMarca(marcaSeleccionada, { preserveSelection: true });
     poblarSelect('calzadoMaterial', state.combos.materiales, { value: 'id', label: 'nombre' });
     poblarSelect('calzadoUnidad', state.combos.unidades, { value: 'id', label: 'nombre', extra: 'abreviatura' });
     poblarSelect('calzadoCategory', state.combos.tipos, { value: 'id', label: 'nombre' });
     poblarSelect('calzadoProveedor', state.combos.proveedores, { value: 'idProveedor', label: 'razonSocial', extra: 'nombreComercial' });
-    actualizarMarcaDesdeModelo();
     actualizarImagenDesdeModelo();
     actualizarPreview();
   }
@@ -194,6 +284,74 @@
     }
   }
 
+  function poblarModelosPorMarca(marcaId, options = {}){
+    const select = document.getElementById('calzadoModel');
+    if (!select) return;
+    const { forcedValue = null, preserveSelection = false } = options;
+    const previous = select.value;
+
+    const marcaParsed = marcaId == null ? null : Number(marcaId);
+    if (marcaParsed == null || Number.isNaN(marcaParsed)){
+      select.innerHTML = '<option value="">Selecciona una marca primero</option>';
+      select.disabled = true;
+      select.value = '';
+      return;
+    }
+
+    const modelosDisponibles = state.combos.modelos.filter(modelo => Number(modelo.marcaId) === marcaParsed);
+
+    if (!modelosDisponibles.length){
+      select.innerHTML = '<option value="">Sin modelos disponibles para la marca</option>';
+      select.disabled = true;
+      select.value = '';
+      return;
+    }
+
+    select.disabled = false;
+    select.innerHTML = '<option value="">Seleccionar modelo</option>';
+    modelosDisponibles.forEach(modelo => {
+      const option = document.createElement('option');
+      option.value = modelo.id;
+      option.textContent = modelo.nombre;
+      select.appendChild(option);
+    });
+
+    let valueToRestore = null;
+    if (forcedValue != null){
+      valueToRestore = String(forcedValue);
+    } else if (preserveSelection && modelosDisponibles.some(modelo => String(modelo.id) === previous)){
+      valueToRestore = previous;
+    }
+
+    if (valueToRestore){
+      select.value = valueToRestore;
+    } else {
+      select.value = '';
+    }
+  }
+
+  function obtenerMarcaSeleccionada(){
+    const selectMarca = document.getElementById('calzadoBrand');
+    if (!selectMarca) return null;
+    const value = parseInt(selectMarca.value, 10);
+    if (Number.isNaN(value)){
+      return null;
+    }
+    return state.combos.marcas.find(marca => Number(marca.id) === value) || null;
+  }
+
+  function obtenerMarcaIdPorModelo(modeloId){
+    if (modeloId == null){
+      return null;
+    }
+    const modelo = state.combos.modelos.find(item => Number(item.id) === Number(modeloId));
+    if (!modelo || modelo.marcaId == null){
+      return null;
+    }
+    const marcaId = Number(modelo.marcaId);
+    return Number.isNaN(marcaId) ? null : marcaId;
+  }
+
   function obtenerModeloSeleccionado(){
     const selectModelo = document.getElementById('calzadoModel');
     if (!selectModelo) return null;
@@ -204,17 +362,17 @@
     return state.combos.modelos.find(modelo => Number(modelo.id) === value) || null;
   }
 
-  function actualizarMarcaDesdeModelo(){
-    const marcaInput = document.getElementById('calzadoBrandName');
-    if (!marcaInput) return;
-    const modeloSeleccionado = obtenerModeloSeleccionado();
-    marcaInput.value = modeloSeleccionado?.marca || '';
+  function manejarCambioMarca(){
+    const marcaSeleccionada = convertirEntero(obtenerValor('calzadoBrand'));
+    poblarModelosPorMarca(marcaSeleccionada);
+    actualizarImagenDesdeModelo();
+    actualizarPreview();
   }
 
   function actualizarImagenDesdeModelo(){
     const preview = document.getElementById('imagePreview');
     if (!preview) return;
-    if (preview.dataset.userImage === 'true'){
+    if (preview.dataset.userImage === 'true' || preview.dataset.productImage === 'true'){
       return;
     }
     const modeloSeleccionado = obtenerModeloSeleccionado();
@@ -223,10 +381,10 @@
       preview.style.backgroundImage = '';
       preview.dataset.source = modeloSeleccionado.imagen;
       preview.dataset.modelImage = 'true';
+      actualizarEstadoSelectorImagen({ texto: 'Cambiar imagen' });
     } else {
-      preview.style.backgroundImage = '';
-      delete preview.dataset.source;
-      delete preview.dataset.modelImage;
+      limpiarPreviewImagen();
+      actualizarEstadoSelectorImagen();
     }
   }
 
@@ -255,7 +413,8 @@
       pesoGramos: item.pesoGramos,
       tallas: Array.isArray(item.tallas) ? item.tallas : [],
       tiposProducto: Array.isArray(item.tiposProducto) ? item.tiposProducto : [],
-      imagenModelo: item.modelo?.imagen || null,
+      imagen: item.imagen || null,
+      codigoBarra: item.codigoBarra,
       activo: item.activo !== false
     };
   }
@@ -349,8 +508,11 @@
   }
 
   function obtenerImagenProducto(item){
-    if (item?.imagenModelo){
-      return item.imagenModelo;
+    if (item?.imagen){
+      return item.imagen;
+    }
+    if (item?.modelo?.imagen){
+      return item.modelo.imagen;
     }
     return PLACEHOLDER_IMG;
   }
@@ -394,52 +556,76 @@
 
   function resetFormulario(){
     document.getElementById('calzadoForm')?.reset();
-    const marcaInput = document.getElementById('calzadoBrandName');
-    if (marcaInput){
-      marcaInput.value = '';
+    const marcaSelect = document.getElementById('calzadoBrand');
+    if (marcaSelect){
+      marcaSelect.value = '';
     }
+    poblarModelosPorMarca(null);
+    const imageInput = document.getElementById('calzadoImage');
+    if (imageInput){
+      imageInput.value = '';
+    }
+    limpiarPreviewImagen();
+    actualizarEstadoSelectorImagen();
     const tallasContainer = document.getElementById('tallasContainer');
     if (tallasContainer){
       tallasContainer.innerHTML = '';
-    }
-    const preview = document.getElementById('imagePreview');
-    if (preview){
-      preview.style.backgroundImage = '';
-      delete preview.dataset.source;
-      delete preview.dataset.modelImage;
-      delete preview.dataset.userImage;
     }
     actualizarPreview();
   }
 
   function cargarEnFormulario(item){
-  const nombreInput = document.getElementById('calzadoName');
-  if (nombreInput) nombreInput.value = item.nombre || '';
-  const modeloSelect = document.getElementById('calzadoModel');
-  if (modeloSelect) modeloSelect.value = item.modelo?.id || '';
-  actualizarMarcaDesdeModelo();
-  const marcaInput = document.getElementById('calzadoBrandName');
-  if (marcaInput) marcaInput.value = item.marca?.nombre || '';
-  const colorSelect = document.getElementById('calzadoColor');
-  if (colorSelect) colorSelect.value = item.color || '';
-  const tipoSelect = document.getElementById('calzadoType');
-  if (tipoSelect) tipoSelect.value = item.tipo || '';
-  const proveedorSelect = document.getElementById('calzadoProveedor');
-  if (proveedorSelect) proveedorSelect.value = item.proveedor?.id || '';
-  const materialSelect = document.getElementById('calzadoMaterial');
-  if (materialSelect) materialSelect.value = item.material?.id || '';
-  const tipoProductoSelect = document.getElementById('calzadoCategory');
-  if (tipoProductoSelect) tipoProductoSelect.value = item.tiposProducto?.[0]?.id || '';
-  const unidadSelect = document.getElementById('calzadoUnidad');
-  if (unidadSelect) unidadSelect.value = item.unidad?.id || '';
-  const dimensionesInput = document.getElementById('calzadoDimensiones');
-  if (dimensionesInput) dimensionesInput.value = item.dimensiones || '';
-  const pesoInput = document.getElementById('calzadoPeso');
-  if (pesoInput) pesoInput.value = item.pesoGramos ? (item.pesoGramos / 1000) : '';
-  const descripcionInput = document.getElementById('calzadoDescription');
-  if (descripcionInput) descripcionInput.value = item.descripcion || '';
-  const codigoBarraInput = document.getElementById('calzadoCodigoBarra');
-  if (codigoBarraInput) codigoBarraInput.value = item.codigoBarra || '';
+    const nombreInput = document.getElementById('calzadoName');
+    if (nombreInput) nombreInput.value = item.nombre || '';
+    limpiarPreviewImagen();
+    if (item.imagen){
+      establecerImagenProducto(item.imagen, item.nombre);
+    } else {
+      actualizarEstadoSelectorImagen();
+    }
+    const marcaSelect = document.getElementById('calzadoBrand');
+    const modeloIdRaw = item.modelo?.id;
+    let modeloId = modeloIdRaw != null ? Number(modeloIdRaw) : null;
+    let marcaId = item.marca?.id != null ? Number(item.marca.id) : null;
+    if ((marcaId == null || Number.isNaN(marcaId)) && modeloId != null){
+      marcaId = obtenerMarcaIdPorModelo(modeloId);
+    }
+    if (Number.isNaN(marcaId)){
+      marcaId = null;
+    }
+    if (Number.isNaN(modeloId)){
+      modeloId = null;
+    }
+    if (marcaSelect){
+      marcaSelect.value = marcaId != null ? String(marcaId) : '';
+      poblarModelosPorMarca(marcaId, { forcedValue: modeloId });
+    } else {
+      poblarModelosPorMarca(null);
+    }
+    const modeloSelect = document.getElementById('calzadoModel');
+    if (modeloSelect && modeloId != null){
+      modeloSelect.value = String(modeloId);
+    }
+    const colorSelect = document.getElementById('calzadoColor');
+    if (colorSelect) colorSelect.value = item.color || '';
+    const tipoSelect = document.getElementById('calzadoType');
+    if (tipoSelect) tipoSelect.value = item.tipo || '';
+    const proveedorSelect = document.getElementById('calzadoProveedor');
+    if (proveedorSelect) proveedorSelect.value = item.proveedor?.id || '';
+    const materialSelect = document.getElementById('calzadoMaterial');
+    if (materialSelect) materialSelect.value = item.material?.id || '';
+    const tipoProductoSelect = document.getElementById('calzadoCategory');
+    if (tipoProductoSelect) tipoProductoSelect.value = item.tiposProducto?.[0]?.id || '';
+    const unidadSelect = document.getElementById('calzadoUnidad');
+    if (unidadSelect) unidadSelect.value = item.unidad?.id || '';
+    const dimensionesInput = document.getElementById('calzadoDimensiones');
+    if (dimensionesInput) dimensionesInput.value = item.dimensiones || '';
+    const pesoInput = document.getElementById('calzadoPeso');
+    if (pesoInput) pesoInput.value = item.pesoGramos ? (item.pesoGramos / 1000) : '';
+    const descripcionInput = document.getElementById('calzadoDescription');
+    if (descripcionInput) descripcionInput.value = item.descripcion || '';
+    const codigoBarraInput = document.getElementById('calzadoCodigoBarra');
+    if (codigoBarraInput) codigoBarraInput.value = item.codigoBarra || '';
 
     const tallasContainer = document.getElementById('tallasContainer');
     if (tallasContainer){
@@ -455,7 +641,9 @@
         agregarTalla();
       }
     }
-    actualizarImagenDesdeModelo();
+    if (!item.imagen){
+      actualizarImagenDesdeModelo();
+    }
     actualizarPreview();
   }
 
@@ -529,6 +717,7 @@
     const dimensiones = obtenerValor('calzadoDimensiones');
     const descripcion = obtenerValor('calzadoDescription');
     const codigoBarra = obtenerValor('calzadoCodigoBarra');
+    const imagen = obtenerImagenParaEnvio();
 
     const pesoEntrada = obtenerValor('calzadoPeso');
     const pesoGramos = convertirPesoAGramos(pesoEntrada);
@@ -553,7 +742,8 @@
       tipo,
       dimensiones,
       pesoGramos,
-      tallas
+      tallas,
+      imagen
     };
   }
 
@@ -624,14 +814,15 @@
   function actualizarPreview(){
     const nombre = obtenerValor('calzadoName') || 'Nombre del Calzado';
     const modeloSeleccionado = obtenerModeloSeleccionado();
-  const marca = obtenerValor('calzadoBrandName') || (modeloSeleccionado?.marca ?? 'Marca');
-  const modeloNombre = modeloSeleccionado?.nombre || 'Modelo';
+    const marcaSeleccionada = obtenerMarcaSeleccionada();
+    const marca = marcaSeleccionada?.nombre || (modeloSeleccionado?.marca ?? 'Marca');
+    const modeloNombre = modeloSeleccionado?.nombre || 'Modelo';
     const tallas = recolectarTallas();
 
     const previewName = document.getElementById('previewCalzadoName');
     if (previewName) previewName.textContent = nombre;
-  const previewDetails = document.getElementById('previewCalzadoDetails');
-  if (previewDetails) previewDetails.textContent = `${marca} - ${modeloNombre}`;
+    const previewDetails = document.getElementById('previewCalzadoDetails');
+    if (previewDetails) previewDetails.textContent = `${marca} - ${modeloNombre}`;
     const colorLabel = document.querySelector('.preview-color');
     if (colorLabel) colorLabel.textContent = `Color: ${obtenerValor('calzadoColor') || '--'}`;
     const typeLabel = document.querySelector('.preview-type');
@@ -749,7 +940,10 @@
         preview.dataset.source = e.target?.result;
         preview.dataset.userImage = 'true';
         delete preview.dataset.modelImage;
+        delete preview.dataset.productImage;
+        preview.style.backgroundImage = '';
       }
+      actualizarEstadoSelectorImagen({ texto: 'Cambiar imagen', archivo: file.name });
     };
     reader.readAsDataURL(file);
   }
