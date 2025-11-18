@@ -26,10 +26,10 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function cacheDom() {
-    dom.tableBody = document.getElementById('permissionsTableBody');
-    dom.searchInput = document.getElementById('searchInput');
-    dom.statusFilter = document.getElementById('statusFilter');
-    dom.refreshBtn = document.getElementById('refreshBtn');
+    dom.catalogContainer = document.getElementById('catalogContainer');
+    dom.catalogSearchInput = document.getElementById('catalogSearchInput');
+    dom.catalogStatusFilter = document.getElementById('catalogStatusFilter');
+    dom.refreshCatalogBtn = document.getElementById('refreshCatalogBtn');
     dom.addPermissionBtn = document.getElementById('addPermissionBtn');
     dom.summaryTotal = document.getElementById('totalPermits');
     dom.summaryActive = document.getElementById('activePermits');
@@ -43,7 +43,7 @@ function cacheDom() {
     dom.permissionModalCancel = document.getElementById('permissionModalCancel');
     dom.permissionModalSubmit = document.getElementById('permissionModalSubmit');
 
-    dom.permissionCode = document.getElementById('permissionCode');
+    dom.permissionModule = document.getElementById('permissionModule');
     dom.permissionName = document.getElementById('permissionName');
     dom.permissionDescription = document.getElementById('permissionDescription');
     dom.permissionStatus = document.getElementById('permissionStatus');
@@ -75,22 +75,22 @@ function cacheDom() {
 }
 
 function bindEvents() {
-    if (dom.searchInput) {
-        dom.searchInput.addEventListener('input', debounce(() => {
-            state.filters.termino = dom.searchInput.value.trim();
+    if (dom.catalogSearchInput) {
+        dom.catalogSearchInput.addEventListener('input', debounce(() => {
+            state.filters.termino = dom.catalogSearchInput.value.trim();
             fetchAndRenderPermissions();
         }, 300));
     }
 
-    if (dom.statusFilter) {
-        dom.statusFilter.addEventListener('change', () => {
-            state.filters.estado = dom.statusFilter.value;
+    if (dom.catalogStatusFilter) {
+        dom.catalogStatusFilter.addEventListener('change', () => {
+            state.filters.estado = dom.catalogStatusFilter.value;
             fetchAndRenderPermissions();
         });
     }
 
-    if (dom.refreshBtn) {
-        dom.refreshBtn.addEventListener('click', () => fetchAndRenderPermissions());
+    if (dom.refreshCatalogBtn) {
+        dom.refreshCatalogBtn.addEventListener('click', () => fetchAndRenderPermissions());
     }
 
     if (dom.addPermissionBtn) {
@@ -133,8 +133,8 @@ function bindEvents() {
         });
     }
 
-    if (dom.tableBody) {
-        dom.tableBody.addEventListener('click', handleTableClick);
+    if (dom.catalogContainer) {
+        dom.catalogContainer.addEventListener('click', handleCatalogClick);
     }
 
     document.addEventListener('keydown', handleGlobalKeydown);
@@ -204,14 +204,22 @@ async function fetchPermissionsFromApi() {
 }
 
 function mapPermissionResponse(permiso) {
+    const id = permiso.id ?? permiso.idPermiso ?? null;
+    const modulo = permiso.modulo ?? permiso.module ?? 'GENERAL';
+    const nombre = permiso.nombre ?? permiso.nombrePermiso ?? `Permiso ${formatId(id)}`;
+    const descripcion = permiso.descripcion ?? permiso.detalle ?? '';
+    const estado = (permiso.estado ?? 'ACTIVO').toUpperCase();
+    const rolesAsignados = Array.isArray(permiso.rolesAsignados) ? permiso.rolesAsignados : [];
+
     return {
-        id: permiso.id,
-        codigo: permiso.codigo,
-        nombre: permiso.nombre,
-        descripcion: permiso.descripcion || 'Sin descripción',
-        estado: permiso.estado || 'ACTIVO',
-        totalRoles: Number(permiso.totalRoles ?? 0),
-        roles: Array.isArray(permiso.rolesAsignados) ? permiso.rolesAsignados : [],
+        id,
+        modulo,
+        codigo: permiso.codigo ?? buildPermissionCode(modulo, nombre, id),
+        nombre,
+        descripcion,
+        estado,
+        totalRoles: Number(permiso.totalRoles ?? rolesAsignados.length ?? 0),
+        roles: rolesAsignados,
         totalUsuarios: Number(permiso.totalUsuarios ?? 0),
         creadoPor: permiso.creadoPor,
         fechaCreacion: permiso.fechaCreacion ? new Date(permiso.fechaCreacion) : null,
@@ -221,113 +229,123 @@ function mapPermissionResponse(permiso) {
 }
 
 function renderLoadingState() {
-    if (!dom.tableBody) return;
-    dom.tableBody.innerHTML = `
-        <tr class="table-placeholder">
-            <td colspan="7">
-                <div class="placeholder-content">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    <span>Cargando permisos...</span>
-                </div>
-            </td>
-        </tr>
+    if (!dom.catalogContainer) return;
+    dom.catalogContainer.innerHTML = `
+        <div class="catalog-placeholder">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>Cargando permisos...</span>
+        </div>
     `;
 }
 
 function renderErrorState() {
-    if (!dom.tableBody) return;
-    dom.tableBody.innerHTML = `
-        <tr class="table-placeholder">
-            <td colspan="7">
-                <div class="placeholder-content error">
-                    <i class="fas fa-triangle-exclamation"></i>
-                    <span>${state.error}</span>
-                </div>
-            </td>
-        </tr>
+    if (!dom.catalogContainer) return;
+    dom.catalogContainer.innerHTML = `
+        <div class="catalog-placeholder">
+            <i class="fas fa-triangle-exclamation"></i>
+            <span>${escapeHtml(state.error || 'Error al cargar los permisos')}</span>
+        </div>
     `;
     renderSummary();
 }
 
 function renderPermissions() {
-    if (!dom.tableBody) return;
+    if (!dom.catalogContainer) return;
 
     if (!state.items.length) {
-        dom.tableBody.innerHTML = `
-            <tr class="table-placeholder">
-                <td colspan="7">
-                    <div class="placeholder-content">
-                        <i class="fas fa-inbox"></i>
-                        <span>No se encontraron permisos con los filtros actuales</span>
-                    </div>
-                </td>
-            </tr>
+        dom.catalogContainer.innerHTML = `
+            <div class="catalog-placeholder">
+                <i class="fas fa-inbox"></i>
+                <span>No se encontraron permisos con los filtros actuales</span>
+            </div>
         `;
         return;
     }
 
+    const grouped = state.items.reduce((acc, permiso) => {
+        const key = permiso.modulo || 'GENERAL';
+        if (!acc[key]) {
+            acc[key] = [];
+        }
+        acc[key].push(permiso);
+        return acc;
+    }, {});
+
     const fragment = document.createDocumentFragment();
+    const modules = Object.keys(grouped).sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
 
-    state.items.forEach((permiso) => {
-            const tr = document.createElement('tr');
-            tr.dataset.permissionId = permiso.id;
-            const displayName = permiso.nombre && permiso.nombre.trim() !== '' ? permiso.nombre : permiso.codigo;
-        const rolesMarkup = permiso.roles.length
-            ? `<div class="roles-list">${permiso.roles
-                .map(rol => `<span class="role-chip">${escapeHtml(rol)}</span>`)
-                .join('')}</div>`
-            : '<span class="roles-list roles-list-empty">Sin roles asignados</span>';
+    modules.forEach((moduleName) => {
+        const permisos = grouped[moduleName].slice().sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
+        const section = document.createElement('section');
+        section.className = 'catalog-module';
+        section.dataset.module = moduleName;
 
-        tr.innerHTML = `
-            <td>
-                <div class="code-cell">
-                    <span class="badge-id">${formatId(permiso.id)}</span>
-                    <span class="code">${escapeHtml(permiso.codigo)}</span>
+        const moduleCountLabel = `${permisos.length} ${permisos.length === 1 ? 'permiso' : 'permisos'}`;
+        section.innerHTML = `
+            <div class="catalog-module-header">
+                <div>
+                    <h4 class="catalog-module-title">${escapeHtml(moduleName)}</h4>
+                    <p class="catalog-module-subtitle">Permisos registrados para este módulo.</p>
                 </div>
-            </td>
-            <td>
-                <div class="name-cell">
-                    <span class="name">${escapeHtml(displayName)}</span>
-                </div>
-            </td>
-            <td>
-                <span class="description">${escapeHtml(permiso.descripcion)}</span>
-            </td>
-            <td>
-                <div class="assignment-chip">
-                    <span><i class="fas fa-user-shield"></i> ${permiso.totalRoles} roles</span>
-                    <span><i class="fas fa-user-check"></i> ${permiso.totalUsuarios} directos</span>
-                    ${rolesMarkup}
-                </div>
-            </td>
-            <td>
-                <span class="status-badge ${permiso.estado === 'ACTIVO' ? 'status-active' : 'status-inactive'}">
-                    ${permiso.estado === 'ACTIVO' ? 'Activo' : 'Inactivo'}
-                </span>
-            </td>
-            <td>
-                <div class="updated-cell">
-                    <span>${formatDateTime(permiso.fechaActualizacion)}</span>
-                    <small class="text-muted">${permiso.actualizadoPor ? `por ${escapeHtml(permiso.actualizadoPor)}` : '—'}</small>
-                </div>
-            </td>
-            <td class="align-right action-buttons-cell">
-                <button type="button" class="btn-icon btn-view" data-action="view" title="Ver detalle">
-                    <i class="fas fa-eye"></i>
-                </button>
-                <button type="button" class="btn-icon btn-edit" data-action="edit" title="Editar permiso">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button type="button" class="btn-icon btn-delete" data-action="delete" title="Eliminar permiso">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </td>
+                <span class="catalog-module-counter">${moduleCountLabel}</span>
+            </div>
         `;
-        fragment.appendChild(tr);
+
+        const body = document.createElement('div');
+        body.className = 'catalog-module-body';
+
+        permisos.forEach((permiso) => {
+            body.appendChild(createPermissionCard(permiso));
+        });
+
+        section.appendChild(body);
+        fragment.appendChild(section);
     });
 
-    dom.tableBody.innerHTML = '';
-    dom.tableBody.appendChild(fragment);
+    dom.catalogContainer.innerHTML = '';
+    dom.catalogContainer.appendChild(fragment);
+}
+
+function createPermissionCard(permiso) {
+    const card = document.createElement('div');
+    card.className = 'catalog-permission';
+    card.dataset.permissionId = permiso.id ?? '';
+
+    const rolesLabel = `${permiso.totalRoles ?? 0} ${(permiso.totalRoles ?? 0) === 1 ? 'rol' : 'roles'}`;
+    const usuariosLabel = `${permiso.totalUsuarios ?? 0} ${(permiso.totalUsuarios ?? 0) === 1 ? 'usuario' : 'usuarios'}`;
+    const descripcion = permiso.descripcion && permiso.descripcion.trim().length
+        ? permiso.descripcion
+        : 'Sin descripción';
+
+    card.innerHTML = `
+        <div class="catalog-permission-info">
+            <div class="catalog-permission-heading">
+                <h5>${escapeHtml(permiso.nombre)}</h5>
+                <span class="catalog-permission-code">${escapeHtml(permiso.codigo)}</span>
+            </div>
+            <p class="catalog-permission-description">${escapeHtml(descripcion)}</p>
+            <div class="catalog-permission-badges">
+                <span class="badge badge-status ${permiso.estado === 'ACTIVO' ? '' : 'inactive'}">
+                    ${permiso.estado === 'ACTIVO' ? 'Activo' : 'Inactivo'}
+                </span>
+                <span class="badge badge-assignment"><i class="fas fa-user-shield"></i> ${rolesLabel}</span>
+                <span class="badge badge-assignment"><i class="fas fa-user-check"></i> ${usuariosLabel}</span>
+            </div>
+        </div>
+        <div class="catalog-permission-actions">
+            <button type="button" class="btn btn-light" data-action="view" title="Ver detalle">
+                <i class="fas fa-eye"></i>
+            </button>
+            <button type="button" class="btn btn-light" data-action="edit" title="Editar permiso">
+                <i class="fas fa-edit"></i>
+            </button>
+            <button type="button" class="btn btn-danger" data-action="delete" title="Eliminar permiso">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    `;
+
+    return card;
 }
 
 function renderSummary() {
@@ -345,18 +363,24 @@ function renderSummary() {
     dom.summaryUpdated.textContent = state.lastUpdated ? formatDateTime(state.lastUpdated) : '—';
 }
 
-function handleTableClick(event) {
+function handleCatalogClick(event) {
     const button = event.target.closest('button[data-action]');
     if (!button) {
         return;
     }
 
-    const row = button.closest('tr[data-permission-id]');
-    if (!row) {
+    const card = button.closest('.catalog-permission');
+    if (!card) {
         return;
     }
 
-    const id = Number(row.dataset.permissionId);
+    const idAttr = card.dataset.permissionId;
+    const id = idAttr ? Number(idAttr) : null;
+    if (id == null || Number.isNaN(id)) {
+        showNotification('No se pudo identificar el permiso seleccionado.', 'error');
+        return;
+    }
+
     const permiso = state.items.find(item => item.id === id);
     if (!permiso) {
         showNotification('No se encontró la información del permiso seleccionado.', 'error');
@@ -387,7 +411,7 @@ function openPermissionModal(mode, permiso = null) {
 
     if (mode === 'edit' && permiso) {
         dom.permissionModalTitle.textContent = 'Editar permiso';
-        dom.permissionCode.value = permiso.codigo;
+        dom.permissionModule.value = permiso.modulo || '';
         dom.permissionName.value = permiso.nombre;
         dom.permissionDescription.value = permiso.descripcion === 'Sin descripción' ? '' : permiso.descripcion;
         dom.permissionStatus.value = permiso.estado || 'ACTIVO';
@@ -400,7 +424,7 @@ function openPermissionModal(mode, permiso = null) {
     dom.permissionModal.setAttribute('aria-hidden', 'false');
     dom.permissionModal.classList.add('is-open');
     document.body.classList.add('modal-open');
-    dom.permissionCode?.focus();
+    dom.permissionModule?.focus();
 }
 
 function closePermissionModal() {
@@ -417,14 +441,14 @@ async function handlePermissionSubmit(event) {
     if (!dom.permissionForm) return;
 
     const payload = {
-        codigo: dom.permissionCode.value.trim(),
+        modulo: dom.permissionModule.value.trim(),
         nombre: dom.permissionName.value.trim(),
         descripcion: dom.permissionDescription.value.trim() || null,
         estado: dom.permissionStatus.value || 'ACTIVO'
     };
 
-    if (!payload.codigo || !payload.nombre) {
-        showNotification('Completa el código y el nombre del permiso.', 'warning');
+    if (!payload.modulo || !payload.nombre) {
+        showNotification('Completa el módulo y el nombre del permiso.', 'warning');
         return;
     }
 
@@ -466,7 +490,7 @@ function openConfirmModal(permiso) {
     if (!dom.confirmModal) return;
 
     state.deleteTarget = permiso;
-    const confirmName = permiso.nombre && permiso.nombre.trim() !== '' ? permiso.nombre : permiso.codigo;
+    const confirmName = permiso.nombre && permiso.nombre.trim().length ? permiso.nombre : permiso.codigo;
     dom.confirmMessage.textContent = `¿Quieres eliminar el permiso \"${confirmName}\"?`;
 
     if ((permiso.totalRoles ?? 0) > 0 || (permiso.totalUsuarios ?? 0) > 0) {
@@ -620,7 +644,7 @@ function renderDetailsSkeleton() {
 function renderDetails(permiso) {
     dom.detailsCode.textContent = permiso.codigo;
     dom.detailsName.textContent = permiso.nombre;
-    dom.detailsDescription.textContent = permiso.descripcion || 'Sin descripción';
+    dom.detailsDescription.textContent = permiso.descripcion && permiso.descripcion.trim().length ? permiso.descripcion : 'Sin descripción';
     dom.detailsStatus.textContent = permiso.estado === 'ACTIVO' ? 'Activo' : 'Inactivo';
     dom.detailsStatus.className = `status-badge ${permiso.estado === 'ACTIVO' ? 'status-active' : 'status-inactive'}`;
     dom.detailsRoles.textContent = permiso.totalRoles ?? 0;
@@ -709,6 +733,20 @@ function handleGlobalKeydown(event) {
 function formatId(id) {
     if (id == null) return '--';
     return String(id).padStart(3, '0');
+}
+
+function buildPermissionCode(modulo, nombre, id) {
+    const base = [modulo, nombre].filter(Boolean).join(' ').trim();
+    if (!base) {
+        return `PERMISO_${formatId(id)}`;
+    }
+    const sanitized = base
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toUpperCase()
+        .replace(/[^A-Z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '');
+    return sanitized || `PERMISO_${formatId(id)}`;
 }
 
 function formatDateTime(value) {

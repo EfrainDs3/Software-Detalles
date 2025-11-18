@@ -99,6 +99,8 @@ function initAssignPermissions() {
 
     const saveBtn = document.getElementById('assignSaveBtn');
     if (saveBtn) saveBtn.addEventListener('click', saveAssignments);
+    // keep save disabled until a role is selected
+    if (saveBtn) saveBtn.disabled = true;
 
     const reloadBtn = document.getElementById('reloadAssignBtn');
     if (reloadBtn) reloadBtn.addEventListener('click', () => {
@@ -111,6 +113,9 @@ function initAssignPermissions() {
         if (!Number.isNaN(val)) {
             assignState.currentRoleId = val;
             loadPermissionsForRole(val);
+            // enable save when a role is chosen
+            const saveBtnInner = document.getElementById('assignSaveBtn');
+            if (saveBtnInner) saveBtnInner.disabled = false;
         }
     });
 
@@ -174,6 +179,8 @@ async function populateRoleSelect() {
         opt.textContent = name;
         select.appendChild(opt);
     });
+    // enable select UI
+    select.disabled = false;
 }
 
 function renderAssignPlaceholder(message) {

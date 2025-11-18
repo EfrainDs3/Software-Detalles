@@ -62,6 +62,11 @@ public class PermisoService {
         permisos.forEach(p -> Hibernate.initialize(p.getRoles()));
 
         return permisos.stream()
+            .filter(permiso -> {
+                String modulo = Optional.ofNullable(permiso.getModulo()).orElse("");
+                String normalized = modulo.toUpperCase(Locale.ROOT);
+                return !normalized.equals("AUDITORÍA") && !normalized.equals("AUDITORIA");
+            })
             .map(permiso -> {
                 long totalUsuarios = permiso.getRoles().stream()
                     .mapToLong(rol -> usuarioRepository.countByRoles_Id(rol.getId()))
@@ -124,16 +129,18 @@ public class PermisoService {
         // initialize permisos collection to avoid lazy loading in view
         Hibernate.initialize(rol.getPermisos());
         List<Permiso> permisosEnt = new ArrayList<>(rol.getPermisos());
-        // apply filtering for 'usuario' like roles
-        if (isStandardUserRole(rol)) {
-            permisosEnt = permisosEnt.stream()
-                .filter(p -> !RESTRICTED_MODULES_FOR_STANDARD_USER.contains(
-                    Optional.ofNullable(p.getModulo()).orElse("GENERAL").toUpperCase(Locale.ROOT)
-                ))
-                .toList();
-        }
+
+        // NOTE: previous behavior removed filtering for 'usuario' roles so that
+        // all roles can see the full set of permisos assigned to them. This
+        // ensures that non-admin roles will still display permisos from all
+        // modules (the UI can decide how to present or hide modules).
 
         List<PermisoResumenResponse> permisos = permisosEnt.stream()
+            .filter(permiso -> {
+                String modulo = Optional.ofNullable(permiso.getModulo()).orElse("");
+                String normalized = modulo.toUpperCase(Locale.ROOT);
+                return !normalized.equals("AUDITORÍA") && !normalized.equals("AUDITORIA");
+            })
             .sorted(Comparator.comparing(Permiso::getNombrePermiso, String.CASE_INSENSITIVE_ORDER))
             .map(PermisoResumenResponse::fromEntity)
             .toList();
@@ -257,13 +264,19 @@ public class PermisoService {
 
     private Map<String, List<PermisoResumenResponse>> agruparPorModulo(List<PermisoResumenResponse> permisos) {
         if (permisos == null) return Collections.emptyMap();
-        return permisos.stream()
+        Map<String, List<PermisoResumenResponse>> agrupados = permisos.stream()
+            .filter(item -> {
+                String normalized = Optional.ofNullable(item.modulo()).orElse("").toUpperCase(Locale.ROOT);
+                return !normalized.equals("AUDITORÍA") && !normalized.equals("AUDITORIA");
+            })
             .collect(Collectors.groupingBy(p -> Optional.ofNullable(p.modulo()).orElse("GENERAL").toUpperCase(Locale.ROOT),
                 Collectors.collectingAndThen(Collectors.toList(), list ->
                     list.stream()
                         .sorted(Comparator.comparing(PermisoResumenResponse::nombre, String.CASE_INSENSITIVE_ORDER))
                         .collect(Collectors.toList())
                 )));
+        agrupados.values().removeIf(List::isEmpty);
+        return agrupados;
     }
 
     private static class PermisoUsuarioDetalleBuilder {
@@ -297,10 +310,7 @@ public class PermisoService {
      * Detects roles that should be considered 'standard usuario' roles.
      * Current heuristic: role name contains the token "usuario" (case-insensitive).
      */
-    private boolean isStandardUserRole(Rol rol) {
-        if (rol == null || rol.getNombre() == null) return false;
-        return rol.getNombre().toLowerCase(Locale.ROOT).contains("usuario");
-    }
+    // (Removed isStandardUserRole helper) role-based filtering moved to UI side if needed.
 
     /**
      * Decide whether to apply filtering for a user: user has at least one usuario-like role
