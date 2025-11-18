@@ -50,6 +50,9 @@ public class Permiso {
         LocalDateTime ahora = LocalDateTime.now();
         this.fechaCreacion = ahora;
         this.fechaActualizacion = ahora;
+        if (this.descripcion == null) {
+            this.descripcion = "";
+        }
         if (this.estado == null) {
             this.estado = "ACTIVO";
         }
@@ -61,6 +64,9 @@ public class Permiso {
     @PreUpdate
     protected void onUpdate() {
         this.fechaActualizacion = LocalDateTime.now();
+        if (this.descripcion == null) {
+            this.descripcion = "";
+        }
         if (this.estado == null) {
             this.estado = "ACTIVO";
         }

@@ -8,7 +8,6 @@ import fisi.software.detalles.controller.dto.permiso.PermisoRequest;
 import fisi.software.detalles.entity.Permiso;
 import fisi.software.detalles.entity.Rol;
 import fisi.software.detalles.entity.Usuario;
-import fisi.software.detalles.repository.PermisoAuditoriaRepository;
 import fisi.software.detalles.repository.PermisoRepository;
 import fisi.software.detalles.repository.RolRepository;
 import fisi.software.detalles.repository.UsuarioRepository;
@@ -41,12 +40,8 @@ class PermisoServiceTest {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    @Autowired
-    private PermisoAuditoriaRepository permisoAuditoriaRepository;
-
     @BeforeEach
     void setUp() {
-        permisoAuditoriaRepository.deleteAll();
         usuarioRepository.deleteAll();
         rolRepository.deleteAll();
         permisoRepository.deleteAll();
@@ -54,28 +49,22 @@ class PermisoServiceTest {
 
     @Test
     void crearPermisoPersisteCorrectamente() {
-        PermisoRequest request = new PermisoRequest("USERS_AUDIT", "Auditar usuarios", "Acceso a registros de auditoría", "ACTIVO");
+        PermisoRequest request = new PermisoRequest("Permisos", "Auditar usuarios", "Acceso a registros de auditoría", "ACTIVO");
 
         PermisoResponse response = permisoService.crearPermiso(request);
 
         assertThat(response.id()).isNotNull();
-        assertThat(response.codigo()).isEqualTo("USERS_AUDIT");
+        assertThat(response.modulo()).isEqualTo("Permisos");
+        assertThat(response.nombre()).isEqualTo("Auditar usuarios");
         assertThat(response.estado()).isEqualTo("ACTIVO");
-    assertThat(response.rolesAsignados()).isEmpty();
-        assertThat(response.creadoPor()).isEqualTo("sistema");
+        assertThat(response.rolesAsignados()).isEmpty();
         assertThat(response.fechaCreacion()).isNotNull();
         assertThat(permisoRepository.findById(response.id())).isPresent();
-        assertThat(permisoAuditoriaRepository.findAll())
-            .singleElement()
-            .satisfies(auditoria -> {
-                assertThat(auditoria.getAccion()).isEqualTo("CREACION");
-                assertThat(auditoria.getPermisoCodigo()).isEqualTo("USERS_AUDIT");
-            });
     }
 
     @Test
     void eliminarPermisoAsignadoProvocaError() {
-        Permiso permiso = permisoRepository.save(crearPermiso("USERS_VIEW", "Ver usuarios"));
+        Permiso permiso = permisoRepository.save(crearPermiso("Usuarios", "Ver usuarios"));
         Rol rol = rolRepository.save(crearRol("Administrador"));
         rol.getPermisos().add(permiso);
         rolRepository.save(rol);
@@ -87,9 +76,9 @@ class PermisoServiceTest {
 
     @Test
     void listarPermisosPermiteFiltrarPorEstadoYTermino() {
-        permisoRepository.save(crearPermiso("CATALOGO_VER", "Ver catálogo", "ACTIVO", "permite ver catálogo"));
-        permisoRepository.save(crearPermiso("CATALOGO_EDIT", "Editar catálogo", "ACTIVO", "editar"));
-        permisoRepository.save(crearPermiso("VENTAS_VER", "Ver ventas", "INACTIVO", "consulta"));
+        permisoRepository.save(crearPermiso("Catalogo", "Ver catalogo", "ACTIVO", "permite ver catalogo"));
+        permisoRepository.save(crearPermiso("Catalogo", "Editar catalogo", "ACTIVO", "editar"));
+        permisoRepository.save(crearPermiso("Ventas", "Ver ventas", "INACTIVO", "consulta"));
 
         List<PermisoResponse> activos = permisoService.listarPermisos(null, "ACTIVO", "catalogo");
         assertThat(activos).hasSize(2);
@@ -97,7 +86,7 @@ class PermisoServiceTest {
         List<PermisoResponse> inactivos = permisoService.listarPermisos(null, "INACTIVO", null);
         assertThat(inactivos)
             .singleElement()
-            .satisfies(resp -> assertThat(resp.codigo()).isEqualTo("VENTAS_VER"));
+            .satisfies(resp -> assertThat(resp.modulo()).isEqualTo("Ventas"));
 
         List<PermisoResponse> sinCoincidencias = permisoService.listarPermisos(null, null, "inventario");
         assertThat(sinCoincidencias).isEmpty();
@@ -105,9 +94,9 @@ class PermisoServiceTest {
 
     @Test
     void actualizarPermisosRolReemplazaColeccion() {
-        Permiso permisoA = permisoRepository.save(crearPermiso("A", "Permiso A"));
-        Permiso permisoB = permisoRepository.save(crearPermiso("B", "Permiso B"));
-        Permiso permisoC = permisoRepository.save(crearPermiso("C", "Permiso C"));
+        Permiso permisoA = permisoRepository.save(crearPermiso("General", "Permiso A"));
+        Permiso permisoB = permisoRepository.save(crearPermiso("General", "Permiso B"));
+        Permiso permisoC = permisoRepository.save(crearPermiso("General", "Permiso C"));
         Rol rol = rolRepository.save(crearRol("Supervisor"));
 
         PermisoRolDetalleResponse response = permisoService.actualizarPermisosRol(rol.getId(), List.of(permisoA.getIdPermiso(), permisoB.getIdPermiso()));
@@ -121,24 +110,8 @@ class PermisoServiceTest {
     }
 
     @Test
-    void actualizarPermisosRolRegistraAuditoria() {
-        Permiso permiso = permisoRepository.save(crearPermiso("INV_VER", "Inventario - Ver"));
-        Rol rol = rolRepository.save(crearRol("Inventarios"));
-
-        permisoService.actualizarPermisosRol(rol.getId(), List.of(permiso.getIdPermiso()));
-
-        assertThat(permisoAuditoriaRepository.findAll())
-            .singleElement()
-            .satisfies(auditoria -> {
-                assertThat(auditoria.getAccion()).isEqualTo("ROL_ACTUALIZADO");
-                assertThat(auditoria.getDetalle()).contains("Inventarios");
-            });
-    }
-
-    @Test
     void listarPermisosUsuarioIncluyeRolesYAAsignacionesDirectas() {
-        Permiso permisoRol = permisoRepository.save(crearPermiso("R", "Permiso Rol"));
-        Permiso permisoDirecto = permisoRepository.save(crearPermiso("D", "Permiso Directo"));
+        Permiso permisoRol = permisoRepository.save(crearPermiso("General", "Permiso Rol"));
         Rol rol = rolRepository.save(crearRol("Gerente"));
         rol.getPermisos().add(permisoRol);
         rolRepository.save(rol);
@@ -155,7 +128,7 @@ class PermisoServiceTest {
         List<PermisoUsuarioDetalleResponse> permisos = permisoService.listarPermisosPorUsuario(usuario.getId());
 
         assertThat(permisos).hasSize(1);
-        assertThat(permisos).filteredOn(p -> p.permiso().codigo().equals("R"))
+        assertThat(permisos).filteredOn(p -> p.permiso().nombre().equals("Permiso Rol"))
             .singleElement()
             .satisfies(detalle -> {
                 assertThat(detalle.asignadoDirecto()).isFalse();
@@ -163,13 +136,13 @@ class PermisoServiceTest {
             });
     }
 
-    private Permiso crearPermiso(String codigo, String nombre) {
-        return crearPermiso(codigo, nombre, "ACTIVO", null);
+    private Permiso crearPermiso(String modulo, String nombre) {
+        return crearPermiso(modulo, nombre, "ACTIVO", null);
     }
 
-    private Permiso crearPermiso(String codigo, String nombre, String estado, String descripcion) {
+    private Permiso crearPermiso(String modulo, String nombre, String estado, String descripcion) {
         Permiso permiso = new Permiso();
-        permiso.setCodigo(codigo);
+        permiso.setModulo(modulo);
         permiso.setNombrePermiso(nombre);
         permiso.setEstado(estado);
         permiso.setDescripcion(descripcion);

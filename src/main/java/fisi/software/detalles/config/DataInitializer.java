@@ -7,14 +7,12 @@ import fisi.software.detalles.repository.PermisoRepository;
 import fisi.software.detalles.repository.RolRepository;
 import fisi.software.detalles.repository.TipoDocumentoRepository;
 import fisi.software.detalles.service.DataCleanupService;
-import fisi.software.detalles.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -39,7 +37,6 @@ public class DataInitializer {
     private final TipoDocumentoRepository tipoDocumentoRepository;
     private final RolRepository rolRepository;
     private final PermisoRepository permisoRepository;
-    private final UsuarioRepository usuarioRepository;
     private final DataCleanupService dataCleanupService;
     
     /**
@@ -50,7 +47,6 @@ public class DataInitializer {
         return args -> {
             // Run cleanup through a dedicated transactional service to avoid lazy-init outside session
             dataCleanupService.performFullCleanup();
-            dataCleanupService.deletePermissionByCode("ROLES_VIEW");
             log.info("📝 Roles actualmente en la base de datos:");
             rolRepository.findAll().forEach(r -> log.info("  - id={} nombre='{}' estado={}", r.getId(), r.getNombre(), r.getEstado()));
             inicializarTiposDocumento();
@@ -81,30 +77,6 @@ public class DataInitializer {
         } else {
             log.info("✅ Tipos de documento ya existen en la base de datos (Total: {})", count);
         }
-    }
-
-    private void deleteTestUsers() {
-        log.error("🔍 Eliminando usuarios de prueba...");
-
-        List<String> testEmails = Arrays.asList(
-            "admin@test.com",
-            "gerente@test.com", 
-            "supervisor@test.com",
-            "analista@test.com",
-            "vendedor@test.com",
-            "cajero@test.com",
-            "almacenero@test.com",
-            "compras@test.com"
-        );
-
-        testEmails.forEach(email -> {
-            usuarioRepository.findByEmailIgnoreCase(email).ifPresent(user -> {
-                usuarioRepository.delete(user);
-                log.error("  🗑️ Usuario de prueba eliminado: {}", email);
-            });
-        });
-
-        log.error("✅ Eliminación de usuarios de prueba completada");
     }
 
     /**
@@ -154,34 +126,33 @@ public class DataInitializer {
         log.info("Verificando permisos por defecto...");
 
         List<PermisoSeed> permisos = Arrays.asList(
-            new PermisoSeed("DASHBOARD_VIEW", "Acceder al dashboard", "Permite visualizar el panel principal", List.of("Administrador", "Gerente", "Analista")),
-            new PermisoSeed("USERS_VIEW", "Ver usuarios", "Permite visualizar la lista de usuarios", List.of("Administrador", "Gerente", "Supervisor")),
-            new PermisoSeed("USERS_MANAGE", "Gestionar usuarios", "Permite crear, editar y eliminar usuarios", List.of("Administrador", "Gerente")),
-            // ROLES_VIEW removed by initializer for security - not seeded
-            new PermisoSeed("ROLES_MANAGE", "Gestionar roles", "Permite crear, editar y eliminar roles", List.of("Administrador")),
-            new PermisoSeed("PERMISSIONS_VIEW", "Ver permisos", "Permite visualizar permisos del sistema", List.of("Administrador", "Gerente")),
-            new PermisoSeed("PERMISSIONS_MANAGE", "Gestionar permisos", "Permite asignar y revocar permisos", List.of("Administrador")),
-            new PermisoSeed("VENTAS_REGISTRAR", "Registrar ventas", "Permite registrar nuevas ventas", List.of("Administrador", "Vendedor", "Cajero")),
-            new PermisoSeed("INVENTARIO_GESTIONAR", "Gestionar inventario", "Permite gestionar stock y movimientos", List.of("Administrador", "Almacenero")),
-            new PermisoSeed("COMPRAS_GESTIONAR", "Gestionar compras", "Permite registrar órdenes de compra", List.of("Administrador", "Compras"))
+            new PermisoSeed("Dashboard", "Acceder al dashboard", "Permite visualizar el panel principal", List.of("Administrador", "Gerente", "Analista")),
+            new PermisoSeed("Usuarios", "Ver usuarios", "Permite visualizar la lista de usuarios", List.of("Administrador", "Gerente", "Supervisor")),
+            new PermisoSeed("Usuarios", "Gestionar usuarios", "Permite crear, editar y eliminar usuarios", List.of("Administrador", "Gerente")),
+            new PermisoSeed("Roles", "Gestionar roles", "Permite crear, editar y eliminar roles", List.of("Administrador")),
+            new PermisoSeed("Permisos", "Ver permisos", "Permite visualizar permisos del sistema", List.of("Administrador", "Gerente")),
+            new PermisoSeed("Permisos", "Gestionar permisos", "Permite asignar y revocar permisos", List.of("Administrador")),
+            new PermisoSeed("Ventas", "Registrar ventas", "Permite registrar nuevas ventas", List.of("Administrador", "Vendedor", "Cajero")),
+            new PermisoSeed("Inventario", "Gestionar inventario", "Permite gestionar stock y movimientos", List.of("Administrador", "Almacenero")),
+            new PermisoSeed("Compras", "Gestionar compras", "Permite registrar órdenes de compra", List.of("Administrador", "Compras"))
         );
 
         Map<String, Permiso> permisosMap = new HashMap<>();
 
         permisos.forEach(seed -> {
-            permisoRepository.findByCodigoIgnoreCase(seed.codigo())
+            permisoRepository.findByModuloIgnoreCaseAndNombrePermisoIgnoreCase(seed.modulo(), seed.nombre())
                 .ifPresentOrElse(existing -> {
                     actualizarDatosPermiso(existing, seed);
-                    permisosMap.put(existing.getCodigo(), existing);
+                    permisosMap.put(buildSeedKey(seed), existing);
                 }, () -> {
                     Permiso permiso = new Permiso();
-                    permiso.setCodigo(seed.codigo());
+                    permiso.setModulo(seed.modulo());
                     permiso.setNombrePermiso(seed.nombre());
                     permiso.setDescripcion(seed.descripcion());
                     permiso.setEstado(ESTADO_ACTIVO);
                     Permiso guardado = permisoRepository.save(permiso);
-                    permisosMap.put(guardado.getCodigo(), guardado);
-                    log.info("  ➕ Permiso creado: {}", guardado.getCodigo());
+                    permisosMap.put(buildSeedKey(seed), guardado);
+                    log.info("  ➕ Permiso creado: {}", guardado.getNombrePermiso());
                 });
         });
 
@@ -194,6 +165,10 @@ public class DataInitializer {
 
     private void actualizarDatosPermiso(Permiso permiso, PermisoSeed seed) {
         boolean requiereActualizacion = false;
+        if (!Objects.equals(permiso.getModulo(), seed.modulo())) {
+            permiso.setModulo(seed.modulo());
+            requiereActualizacion = true;
+        }
         if (!Objects.equals(permiso.getNombrePermiso(), seed.nombre())) {
             permiso.setNombrePermiso(seed.nombre());
             requiereActualizacion = true;
@@ -217,19 +192,23 @@ public class DataInitializer {
 
         seeds.forEach(seed -> seed.rolesPorDefecto().forEach(rolNombre -> {
             Rol rol = roles.get(rolNombre.toLowerCase());
-            Permiso permiso = permisosMap.get(seed.codigo());
+            Permiso permiso = permisosMap.get(buildSeedKey(seed));
             if (rol != null && permiso != null && rol.getPermisos().stream().noneMatch(p -> p.getIdPermiso().equals(permiso.getIdPermiso()))) {
                 rol.getPermisos().add(permiso);
-                log.info("  ✅ Permiso {} asignado al rol {}", permiso.getCodigo(), rol.getNombre());
+                log.info("  ✅ Permiso '{}' asignado al rol {}", permiso.getNombrePermiso(), rol.getNombre());
             }
         }));
 
         rolRepository.saveAll(roles.values());
     }
 
+    private String buildSeedKey(PermisoSeed seed) {
+        return (seed.modulo() + "::" + seed.nombre()).toUpperCase();
+    }
+
     private record RolSeed(String nombre, String descripcion) { }
 
-    private record PermisoSeed(String codigo, String nombre, String descripcion, List<String> rolesPorDefecto) { }
+    private record PermisoSeed(String modulo, String nombre, String descripcion, List<String> rolesPorDefecto) { }
 
     // deletePermissionByCode moved to DataCleanupService
 }

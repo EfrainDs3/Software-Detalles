@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 29-10-2025 a las 18:27:42
+-- Tiempo de generación: 17-11-2025 a las 22:52:57
 -- Versión del servidor: 10.4.32-MariaDB
--- Versión de PHP: 8.2.12
+-- Versión de PHP: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -33,6 +33,13 @@ CREATE TABLE `almacenes` (
   `ubicacion` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `almacenes`
+--
+
+INSERT INTO `almacenes` (`id_almacen`, `nombre_almacen`, `ubicacion`) VALUES
+(1, 'Almacen 2', 'Av Principal 123');
+
 -- --------------------------------------------------------
 
 --
@@ -45,7 +52,7 @@ CREATE TABLE `aperturascaja` (
   `id_usuario` int(11) NOT NULL,
   `fecha_apertura` date NOT NULL,
   `hora_apertura` time NOT NULL,
-  `monto_inicial` decimal(10,2) NOT NULL
+  `monto_inicial` decimal(38,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -71,17 +78,10 @@ CREATE TABLE `bitacora` (
 
 CREATE TABLE `cajas` (
   `id_caja` int(11) NOT NULL,
-  `nombre_caja` varchar(50) NOT NULL,
+  `nombre_caja` varchar(255) NOT NULL,
   `ubicacion` varchar(255) DEFAULT NULL,
-  `estado` varchar(20) NOT NULL DEFAULT 'Cerrada'
+  `estado` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Volcado de datos para la tabla `cajas`
---
-
-INSERT INTO `cajas` (`id_caja`, `nombre_caja`, `ubicacion`, `estado`) VALUES
-(1, 'caja 1', NULL, 'Cerrada');
 
 -- --------------------------------------------------------
 
@@ -115,9 +115,9 @@ CREATE TABLE `cierrescaja` (
   `id_usuario` int(11) NOT NULL,
   `fecha_cierre` date NOT NULL,
   `hora_cierre` time NOT NULL,
-  `monto_final` decimal(10,2) NOT NULL,
-  `monto_esperado` decimal(10,2) NOT NULL,
-  `diferencia` decimal(10,2) NOT NULL,
+  `monto_final` decimal(38,2) NOT NULL,
+  `monto_esperado` decimal(38,2) NOT NULL,
+  `diferencia` decimal(38,2) NOT NULL,
   `observaciones` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -146,9 +146,7 @@ CREATE TABLE `clientes` (
 
 INSERT INTO `clientes` (`id_cliente`, `nombre`, `apellido`, `id_tipodocumento`, `numero_documento`, `direccion`, `telefono`, `email`, `fecha_registro`, `estado`) VALUES
 (1, 'Santiago Efrain', 'Torres Murrieta ', 1, '75859114', 'Jr Tnaga Mandapio', '964983465', 'santiagotorresmurrieta@gmail.com', '2025-10-08 03:30:17', 1),
-(3, 'Anggelo Lucciano ', 'Urbina Espinoza', 1, '72863068', 'Jr. San Martín 123\n', '903 171 836', 'anggelolucciano21@gmail.com', '2025-10-19 17:57:57', 1),
-(4, 'Anlly Luz', 'Riva Yomona', 1, '72010812', 'Jr Lamas', '993339170', 'al.rivayo@unsm.edu.pe', '2025-10-19 17:59:08', 1),
-(5, 'Efrain', 'Tores', 1, '01101067', 'Jr. San Martín 123\nOficina 01', '964983465', 'club.de.los.gatos01@gmail.com', '2025-10-19 19:39:36', 0);
+(2, 'ANGGELO LUCCIANO', 'URBINA ESPINOZA', 2, '20154544667', 'JR. RICARDO PALMA 444', '-', NULL, '2025-11-11 17:39:19', 0);
 
 -- --------------------------------------------------------
 
@@ -236,12 +234,35 @@ CREATE TABLE `historial_recomendaciones` (
 --
 
 CREATE TABLE `inventario` (
-  `id_inventario` int(11) NOT NULL,
+  `id_inventario` bigint(20) NOT NULL,
   `id_producto` int(11) NOT NULL,
   `id_almacen` int(11) NOT NULL,
   `cantidad_stock` int(11) NOT NULL DEFAULT 0,
   `stock_minimo` int(11) NOT NULL DEFAULT 5,
   `fecha_ultima_actualizacion` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `inventario`
+--
+
+INSERT INTO `inventario` (`id_inventario`, `id_producto`, `id_almacen`, `cantidad_stock`, `stock_minimo`, `fecha_ultima_actualizacion`) VALUES
+(4, 1, 1, 2, 1, '2025-10-30 06:42:02'),
+(5, 2, 1, 2, 1, '2025-10-30 06:28:14');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `inventario_talla`
+--
+
+CREATE TABLE `inventario_talla` (
+  `id_inventario_talla` bigint(20) NOT NULL,
+  `cantidad_stock` int(11) NOT NULL,
+  `fecha_ultima_actualizacion` datetime(6) NOT NULL,
+  `stock_minimo` int(11) NOT NULL,
+  `talla` varchar(64) DEFAULT NULL,
+  `id_inventario` bigint(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -289,17 +310,18 @@ INSERT INTO `materialesproducto` (`id_material`, `nombre_material`) VALUES
 CREATE TABLE `modelos` (
   `id_modelo` int(11) NOT NULL,
   `nombre_modelo` varchar(100) NOT NULL,
-  `id_marca` int(11) NOT NULL,
-  `imagen_principal` varchar(2555) DEFAULT NULL
+  `id_marca` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `modelos`
 --
 
-INSERT INTO `modelos` (`id_modelo`, `nombre_modelo`, `id_marca`, `imagen_principal`) VALUES
-(1, 'Air Max720', 1, NULL),
-(2, 'Air Max710', 1, '/img/upload/modelos/nike-air-max710.webp');
+INSERT INTO `modelos` (`id_modelo`, `nombre_modelo`, `id_marca`) VALUES
+(1, 'Air Max720', 1),
+(2, 'Air Max710', 1),
+(3, 'Modelo123', 1),
+(4, 'Modelo2', 1);
 
 -- --------------------------------------------------------
 
@@ -332,9 +354,21 @@ CREATE TABLE `movimientosinventario` (
   `cantidad` int(11) NOT NULL,
   `fecha_movimiento` datetime NOT NULL DEFAULT current_timestamp(),
   `id_usuario` int(11) NOT NULL,
-  `observaciones` text DEFAULT NULL,
-  `referencia_doc` varchar(50) DEFAULT NULL
+  `observaciones` varchar(500) DEFAULT NULL,
+  `referencia_doc` varchar(50) DEFAULT NULL,
+  `talla` varchar(64) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `movimientosinventario`
+--
+
+INSERT INTO `movimientosinventario` (`id_movimiento_inv`, `id_producto`, `id_almacen`, `id_tipo_movimiento`, `cantidad`, `fecha_movimiento`, `id_usuario`, `observaciones`, `referencia_doc`, `talla`) VALUES
+(1, 1, 1, 2, 1, '2025-10-30 06:00:12', 4, NULL, NULL, NULL),
+(2, 2, 1, 3, 2, '2025-10-30 06:28:14', 4, NULL, NULL, NULL),
+(3, 1, 1, 1, 1, '2025-10-30 06:36:34', 4, NULL, NULL, NULL),
+(4, 1, 1, 2, 1, '2025-10-30 06:40:20', 4, NULL, NULL, NULL),
+(5, 1, 1, 2, 1, '2025-10-30 06:42:02', 4, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -388,31 +422,101 @@ CREATE TABLE `perfiles_estilo_cliente` (
 
 CREATE TABLE `permisos` (
   `id_permiso` int(11) NOT NULL,
-  `nombre_permiso` varchar(100) NOT NULL,
-  `descripcion` varchar(255) DEFAULT NULL,
-  `codigo` varchar(255) DEFAULT NULL,
-  `estado` varchar(255) DEFAULT NULL,
-  `creado_por` varchar(100) DEFAULT NULL,
-  `actualizado_por` varchar(100) DEFAULT NULL,
+  `nombre_permiso` varchar(150) NOT NULL,
+  `descripcion` varchar(255) NOT NULL,
+  `estado` varchar(20) NOT NULL,
   `fecha_creacion` datetime NOT NULL DEFAULT current_timestamp(),
-  `fecha_actualizacion` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `fecha_actualizacion` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `modulo` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `permisos`
 --
 
-INSERT INTO `permisos` (`id_permiso`, `nombre_permiso`, `descripcion`, `codigo`, `estado`, `creado_por`, `actualizado_por`, `fecha_creacion`, `fecha_actualizacion`) VALUES
-(1, 'Acceder al dashboard', 'Permite visualizar el panel principal', 'DASHBOARD_VIEW', 'ACTIVO', NULL, 'anonymousUser', '2025-10-14 20:53:43', '2025-10-15 05:00:47'),
-(2, 'Ver usuarios', 'Permite visualizar la lista de usuarios', 'USERS_VIEW', 'ACTIVO', NULL, NULL, '2025-10-14 20:53:43', '2025-10-14 20:53:43'),
-(3, 'Gestionar usuarios', 'Permite crear, editar y eliminar usuarios', 'USERS_MANAGE', 'ACTIVO', NULL, NULL, '2025-10-14 20:53:43', '2025-10-14 20:53:43'),
-(5, 'Gestionar roles', 'Permite crear, editar y eliminar roles', 'ROLES_MANAGE', 'ACTIVO', NULL, NULL, '2025-10-14 20:53:43', '2025-10-14 20:53:43'),
-(6, 'Ver permisos', 'Permite visualizar permisos del sistema', 'PERMISSIONS_VIEW', 'ACTIVO', NULL, NULL, '2025-10-14 20:53:43', '2025-10-14 20:53:43'),
-(7, 'Gestionar permisos', 'Permite asignar y revocar permisos', 'PERMISSIONS_MANAGE', 'ACTIVO', NULL, NULL, '2025-10-14 20:53:43', '2025-10-14 20:53:43'),
-(8, 'Registrar ventas', 'Permite registrar nuevas ventas', 'VENTAS_REGISTRAR', 'ACTIVO', NULL, NULL, '2025-10-14 20:53:43', '2025-10-14 20:53:43'),
-(9, 'Gestionar inventario', 'Permite gestionar stock y movimientos', 'INVENTARIO_GESTIONAR', 'ACTIVO', NULL, NULL, '2025-10-14 20:53:43', '2025-10-14 20:53:43'),
-(10, 'Gestionar compras', 'Permite registrar órdenes de compra', 'COMPRAS_GESTIONAR', 'ACTIVO', NULL, NULL, '2025-10-14 20:53:43', '2025-10-14 20:53:43'),
-(12, 'barredor', 'barredor 1234', 'XFRTTQ', 'INACTIVO', 'anonymousUser', 'anonymousUser', '2025-10-16 15:02:02', '2025-10-22 13:25:42');
+INSERT INTO `permisos` (`id_permiso`, `nombre_permiso`, `descripcion`, `estado`, `fecha_creacion`, `fecha_actualizacion`, `modulo`) VALUES
+(1, 'Acceder al dashboard', 'Permite visualizar el panel principal', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 05:06:44', 'Dashboard'),
+(2, 'Ver reportes', 'Permite ingresar al módulo de reportes', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Reportes'),
+(3, 'Generar reportes', 'Permite generar o exportar reportes cuando estén disponibles', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Reportes'),
+(4, 'Ver auditoría', 'Permite ingresar al módulo de auditoría', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Auditoría'),
+(5, 'Consultar registros de auditoría', 'Permite revisar historial y logs del sistema', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Auditoría'),
+(6, 'Ver usuarios', 'Permite visualizar la lista de usuarios', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 05:06:44', 'Usuarios'),
+(7, 'Registrar usuarios', 'Crear nuevos usuarios del sistema', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Usuarios'),
+(8, 'Editar usuarios', 'Actualizar datos generales y roles de usuarios', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Usuarios'),
+(9, 'Eliminar usuarios', 'Eliminar o desactivar usuarios', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Usuarios'),
+(11, 'Registrar roles', 'Crear nuevos roles', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Roles'),
+(12, 'Editar roles', 'Actualizar nombre, descripción o permisos del rol', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Roles'),
+(13, 'Cambiar estado de roles', 'Activar o suspender roles existentes', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Roles'),
+(14, 'Eliminar roles', 'Eliminar roles del sistema', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Roles'),
+(15, 'Ver permisos', 'Permite visualizar permisos del sistema', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 05:06:44', 'Permisos'),
+(16, 'Registrar permisos', 'Crear nuevos permisos funcionales', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Permisos'),
+(17, 'Editar permisos', 'Modificar nombre, módulo o descripción de permisos', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Permisos'),
+(18, 'Eliminar permisos', 'Eliminar permisos que no estén asignados', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Permisos'),
+(19, 'Ver auditoría de permisos', 'Revisar historial de cambios de permisos', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Permisos'),
+(20, 'Gestionar asignaciones de permisos', 'Asignar o revocar permisos para roles', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Permisos'),
+(21, 'Ver permisos por usuario', 'Consultar permisos efectivos de un usuario', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Permisos'),
+(22, 'Ver calzados', 'Listar calzados registrados', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Productos'),
+(23, 'Registrar calzados', 'Crear nuevos calzados', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Productos'),
+(24, 'Editar calzados', 'Actualizar información de calzados', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Productos'),
+(25, 'Eliminar calzados', 'Eliminar calzados del catálogo', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Productos'),
+(26, 'Ver accesorios', 'Listar accesorios registrados', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Productos'),
+(27, 'Registrar accesorios', 'Crear nuevos accesorios', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Productos'),
+(28, 'Editar accesorios', 'Actualizar información de accesorios', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Productos'),
+(29, 'Eliminar accesorios', 'Eliminar accesorios del catálogo', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Productos'),
+(30, 'Ver catálogos maestros', 'Listar marcas, modelos, materiales, unidades y tipos', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Catálogos'),
+(31, 'Gestionar marcas', 'Crear, editar o eliminar marcas', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Catálogos'),
+(32, 'Gestionar modelos', 'Crear, editar o eliminar modelos', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Catálogos'),
+(33, 'Gestionar materiales', 'Crear, editar o eliminar materiales', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Catálogos'),
+(34, 'Gestionar unidades', 'Crear, editar o eliminar unidades de medida', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Catálogos'),
+(35, 'Gestionar tipos de producto', 'Crear, editar o eliminar tipos de producto', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Catálogos'),
+(36, 'Ver clientes', 'Listar clientes activos e inactivos', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Clientes'),
+(37, 'Registrar clientes', 'Crear clientes desde el módulo interno', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Clientes'),
+(38, 'Editar clientes', 'Actualizar datos personales de clientes', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Clientes'),
+(39, 'Eliminar clientes', 'Eliminar o inactivar clientes registrados', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Clientes'),
+(40, 'Reactivar clientes', 'Reactivar clientes inactivos', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Clientes'),
+(41, 'Buscar clientes', 'Utilizar el buscador interno de clientes', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Clientes'),
+(42, 'Consultar RENIEC', 'Consumir el servicio RENIEC desde el sistema', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Integraciones'),
+(43, 'Probar integración RENIEC', 'Ejecutar consultas de prueba al servicio RENIEC', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Integraciones'),
+(44, 'Ver proveedores', 'Listar proveedores registrados', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Proveedores'),
+(45, 'Registrar proveedores', 'Crear nuevos proveedores', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Proveedores'),
+(46, 'Editar proveedores', 'Actualizar datos de proveedores', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Proveedores'),
+(47, 'Eliminar proveedores', 'Eliminar proveedores del sistema', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Proveedores'),
+(48, 'Buscar proveedores', 'Buscar proveedores por nombre, comercio o RUC', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Proveedores'),
+(49, 'Consultar proveedores por rubro', 'Filtrar proveedores por rubro', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Proveedores'),
+(50, 'Verificar RUC de proveedor', 'Verificar existencia de RUC registrados', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Proveedores'),
+(51, 'Ver ventas', 'Listar ventas realizadas', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Ventas'),
+(52, 'Registrar ventas', 'Permite registrar nuevas ventas', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 05:06:44', 'Ventas'),
+(53, 'Editar ventas', 'Actualizar información de ventas registradas', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Ventas'),
+(54, 'Emitir comprobantes de venta', 'Generar comprobantes PDF desde las ventas', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Ventas'),
+(55, 'Ver estado de caja', 'Consultar el estado actual de las cajas', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Caja'),
+(56, 'Aperturar caja', 'Registrar la apertura de una caja', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Caja'),
+(57, 'Cerrar caja', 'Registrar el cierre de caja', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Caja'),
+(58, 'Ver historial de caja', 'Listar movimientos y aperturas de caja', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Caja'),
+(59, 'Listar cajas activas', 'Consultar cajas disponibles para apertura', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Caja'),
+(60, 'Registrar cajas', 'Crear nuevas cajas registradoras', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Caja'),
+(61, 'Ver compras', 'Acceder al módulo de compras', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Compras'),
+(62, 'Gestionar compras', 'Permite registrar órdenes de compra', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 05:06:44', 'Compras'),
+(63, 'Ver inventario', 'Listar inventario central y por almacén', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Inventario'),
+(64, 'Registrar inventario en almacén', 'Registrar productos en un almacén', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Inventario'),
+(65, 'Ajustar stock de inventario', 'Aplicar ajustes manuales de stock', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Inventario'),
+(66, 'Transferir stock entre almacenes', 'Transferir productos entre almacenes', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Inventario'),
+(67, 'Ver productos con stock bajo', 'Listar productos con stock mínimo', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Inventario'),
+(68, 'Ver movimientos de inventario', 'Consultar movimientos registrados', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Inventario'),
+(69, 'Ver kardex de producto', 'Consultar kardex de un producto', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Inventario'),
+(70, 'Ver estadísticas de inventario', 'Consultar métricas globales de inventario', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Inventario'),
+(71, 'Listar productos disponibles para inventario', 'Listar productos sin ubicación en almacén', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Inventario'),
+(72, 'Listar almacenes para inventario', 'Obtener almacenes disponibles en inventario', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Inventario'),
+(73, 'Listar tipos de movimiento de inventario', 'Consultar tipos de movimiento admitidos', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Inventario'),
+(74, 'Ver almacenes', 'Listar almacenes registrados', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Almacenes'),
+(75, 'Registrar almacenes', 'Crear nuevos almacenes físicos', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Almacenes'),
+(76, 'Editar almacenes', 'Actualizar datos de almacenes', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Almacenes'),
+(77, 'Eliminar almacenes', 'Eliminar almacenes existentes', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Almacenes'),
+(78, 'Verificar nombre de almacén', 'Comprobar disponibilidad de nombres de almacén', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Almacenes'),
+(79, 'Gestionar usuarios', 'Permite crear, editar y eliminar usuarios', 'ACTIVO', '2025-11-06 05:06:44', '2025-11-11 17:30:48', 'Usuarios'),
+(80, 'Gestionar roles', 'Permite crear, editar y eliminar roles', 'ACTIVO', '2025-11-06 05:06:44', '2025-11-11 17:30:48', 'Roles'),
+(81, 'Gestionar permisos', 'Permite asignar y revocar permisos', 'ACTIVO', '2025-11-06 05:06:44', '2025-11-11 17:30:48', 'Permisos'),
+(82, 'Gestionar inventario', 'Permite gestionar stock y movimientos', 'ACTIVO', '2025-11-06 05:06:44', '2025-11-11 17:30:48', 'Inventario'),
+(83, 'Gestionar clientes', 'Permite crear, editar y eliminar clientes', 'ACTIVO', '2025-11-11 17:30:48', '2025-11-11 17:30:48', 'Clientes');
 
 -- --------------------------------------------------------
 
@@ -438,59 +542,112 @@ CREATE TABLE `permisos_auditoria` (
 INSERT INTO `permisos_auditoria` (`id_auditoria`, `id_permiso`, `accion`, `detalle`, `usuario`, `permiso_codigo`, `permiso_nombre`, `fecha`) VALUES
 (1, 1, 'ACTUALIZACION', 'Se actualizó el permiso', 'anonymousUser', 'DASHBOARD_VIEW', 'Acceder al dashboard', '2025-10-15 05:00:01'),
 (2, 1, 'ACTUALIZACION', 'Se actualizó el permiso', 'anonymousUser', 'DASHBOARD_VIEW', 'Acceder al dashboard', '2025-10-15 05:00:47'),
-(3, 9, 'ROL_ACTUALIZADO', 'Removido del rol Almacenero', 'anonymousUser', 'INVENTARIO_GESTIONAR', 'Gestionar inventario', '2025-10-16 03:09:00'),
-(4, 1, 'ROL_ACTUALIZADO', 'Removido del rol Administrador', 'anonymousUser', 'DASHBOARD_VIEW', 'Acceder al dashboard', '2025-10-16 03:12:58'),
-(5, 2, 'ROL_ACTUALIZADO', 'Removido del rol Administrador', 'anonymousUser', 'USERS_VIEW', 'Ver usuarios', '2025-10-16 03:12:58'),
-(6, 3, 'ROL_ACTUALIZADO', 'Removido del rol Administrador', 'anonymousUser', 'USERS_MANAGE', 'Gestionar usuarios', '2025-10-16 03:12:58'),
-(7, 4, 'ROL_ACTUALIZADO', 'Removido del rol Administrador', 'anonymousUser', 'ROLES_VIEW', 'Ver roles', '2025-10-16 03:12:58'),
-(8, 5, 'ROL_ACTUALIZADO', 'Removido del rol Administrador', 'anonymousUser', 'ROLES_MANAGE', 'Gestionar roles', '2025-10-16 03:12:58'),
-(9, 6, 'ROL_ACTUALIZADO', 'Removido del rol Administrador', 'anonymousUser', 'PERMISSIONS_VIEW', 'Ver permisos', '2025-10-16 03:12:58'),
-(10, 7, 'ROL_ACTUALIZADO', 'Removido del rol Administrador', 'anonymousUser', 'PERMISSIONS_MANAGE', 'Gestionar permisos', '2025-10-16 03:12:58'),
-(11, 8, 'ROL_ACTUALIZADO', 'Removido del rol Administrador', 'anonymousUser', 'VENTAS_REGISTRAR', 'Registrar ventas', '2025-10-16 03:12:58'),
-(12, 9, 'ROL_ACTUALIZADO', 'Removido del rol Administrador', 'anonymousUser', 'INVENTARIO_GESTIONAR', 'Gestionar inventario', '2025-10-16 03:12:58'),
-(13, 10, 'ROL_ACTUALIZADO', 'Removido del rol Administrador', 'anonymousUser', 'COMPRAS_GESTIONAR', 'Gestionar compras', '2025-10-16 03:12:58'),
-(14, 2, 'ROL_ACTUALIZADO', 'Asignado al rol PruebaPermisos', 'anonymousUser', 'USERS_VIEW', 'Ver usuarios', '2025-10-16 04:25:44'),
-(15, 3, 'ROL_ACTUALIZADO', 'Asignado al rol PruebaPermisos', 'anonymousUser', 'USERS_MANAGE', 'Gestionar usuarios', '2025-10-16 04:25:44'),
-(16, 9, 'ROL_ACTUALIZADO', 'Asignado al rol PruebaPermisos', 'anonymousUser', 'INVENTARIO_GESTIONAR', 'Gestionar inventario', '2025-10-16 04:25:44'),
-(17, 1, 'ROL_ACTUALIZADO', 'Asignado al rol PruebaPermisos', 'anonymousUser', 'DASHBOARD_VIEW', 'Acceder al dashboard', '2025-10-16 04:26:05'),
-(18, 7, 'ROL_ACTUALIZADO', 'Asignado al rol PruebaPermisos', 'anonymousUser', 'PERMISSIONS_MANAGE', 'Gestionar permisos', '2025-10-16 04:26:05'),
-(19, 2, 'ROL_ACTUALIZADO', 'Removido del rol PruebaPermisos', 'anonymousUser', 'USERS_VIEW', 'Ver usuarios', '2025-10-16 04:26:05'),
-(20, 3, 'ROL_ACTUALIZADO', 'Removido del rol PruebaPermisos', 'anonymousUser', 'USERS_MANAGE', 'Gestionar usuarios', '2025-10-16 04:26:05'),
-(21, 9, 'ROL_ACTUALIZADO', 'Removido del rol PruebaPermisos', 'anonymousUser', 'INVENTARIO_GESTIONAR', 'Gestionar inventario', '2025-10-16 04:26:05'),
-(22, 11, 'CREACION', 'Se creó el permiso', 'anonymousUser', 'TEST_PERMISSION', 'Permiso de prueba', '2025-10-16 04:26:10'),
-(29, 12, 'CREACION', 'Se creó el permiso', 'anonymousUser', 'XFRTTQ', 'barredor', '2025-10-16 15:02:02'),
-(30, 12, 'ELIMINACION', 'Se eliminó el permiso', 'anonymousUser', 'XFRTTQ', 'barredor', '2025-10-16 15:02:21'),
-(31, 12, 'ELIMINACION', 'Se eliminó el permiso', 'anonymousUser', 'XFRTTQ', 'barredor', '2025-10-16 15:02:27'),
-(32, 12, 'ELIMINACION', 'Se eliminó el permiso', 'anonymousUser', 'XFRTTQ', 'barredor', '2025-10-16 15:02:28'),
-(33, 12, 'ELIMINACION', 'Se eliminó el permiso', 'anonymousUser', 'XFRTTQ', 'barredor', '2025-10-16 15:02:28'),
-(34, 12, 'ELIMINACION', 'Se eliminó el permiso', 'anonymousUser', 'XFRTTQ', 'barredor', '2025-10-16 15:02:28'),
-(35, 12, 'ELIMINACION', 'Se eliminó el permiso', 'anonymousUser', 'XFRTTQ', 'barredor', '2025-10-16 15:02:28'),
-(36, 12, 'ELIMINACION', 'Se eliminó el permiso', 'anonymousUser', 'XFRTTQ', 'barredor', '2025-10-16 15:02:29'),
-(37, 12, 'ELIMINACION', 'Se eliminó el permiso', 'anonymousUser', 'XFRTTQ', 'barredor', '2025-10-16 15:02:29'),
-(38, 12, 'ELIMINACION', 'Se eliminó el permiso', 'anonymousUser', 'XFRTTQ', 'barredor', '2025-10-16 15:02:29'),
-(39, 12, 'ELIMINACION', 'Se eliminó el permiso', 'anonymousUser', 'XFRTTQ', 'barredor', '2025-10-16 15:02:29'),
-(40, 12, 'ELIMINACION', 'Se eliminó el permiso', 'anonymousUser', 'XFRTTQ', 'barredor', '2025-10-16 15:02:29'),
-(41, 12, 'ACTUALIZACION', 'Se actualizó el permiso', 'anonymousUser', 'XFRTTQ', 'barredor', '2025-10-16 15:03:08'),
-(42, 12, 'ELIMINACION', 'Se eliminó el permiso', 'anonymousUser', 'XFRTTQ', 'barredor', '2025-10-16 15:03:15'),
-(43, 12, 'ELIMINACION', 'Se eliminó el permiso', 'anonymousUser', 'XFRTTQ', 'barredor', '2025-10-16 15:03:16'),
-(44, 12, 'ELIMINACION', 'Se eliminó el permiso', 'anonymousUser', 'XFRTTQ', 'barredor', '2025-10-16 15:03:16'),
-(45, 12, 'ELIMINACION', 'Se eliminó el permiso', 'anonymousUser', 'XFRTTQ', 'barredor', '2025-10-16 15:03:16'),
-(46, 12, 'ELIMINACION', 'Se eliminó el permiso', 'anonymousUser', 'XFRTTQ', 'barredor', '2025-10-16 15:03:16'),
-(47, 12, 'ELIMINACION', 'Se eliminó el permiso', 'anonymousUser', 'XFRTTQ', 'barredor', '2025-10-16 15:03:16'),
-(48, 12, 'ELIMINACION', 'Se eliminó el permiso', 'anonymousUser', 'XFRTTQ', 'barredor', '2025-10-16 15:03:17'),
-(49, 12, 'ELIMINACION', 'Se eliminó el permiso', 'anonymousUser', 'XFRTTQ', 'barredor', '2025-10-22 13:17:35'),
-(50, 12, 'ELIMINACION', 'Se eliminó el permiso', 'anonymousUser', 'XFRTTQ', 'barredor', '2025-10-22 13:17:38'),
-(51, 12, 'ELIMINACION', 'Se eliminó el permiso', 'anonymousUser', 'XFRTTQ', 'barredor', '2025-10-22 13:17:40'),
-(52, 12, 'ELIMINACION', 'Se eliminó el permiso', 'anonymousUser', 'XFRTTQ', 'barredor', '2025-10-22 13:17:41'),
-(53, 12, 'ELIMINACION', 'Se eliminó el permiso', 'anonymousUser', 'XFRTTQ', 'barredor', '2025-10-22 13:17:41'),
-(54, 12, 'ELIMINACION', 'Se eliminó el permiso', 'anonymousUser', 'XFRTTQ', 'barredor', '2025-10-22 13:17:41'),
-(55, 12, 'ELIMINACION', 'Se eliminó el permiso', 'anonymousUser', 'XFRTTQ', 'barredor', '2025-10-22 13:17:42'),
-(56, 12, 'ELIMINACION', 'Se eliminó el permiso', 'anonymousUser', 'XFRTTQ', 'barredor', '2025-10-22 13:17:42'),
-(57, 12, 'ELIMINACION', 'Se eliminó el permiso', 'anonymousUser', 'XFRTTQ', 'barredor', '2025-10-22 13:17:42'),
-(58, 12, 'ELIMINACION', 'Se eliminó el permiso', 'anonymousUser', 'XFRTTQ', 'barredor', '2025-10-22 13:17:42'),
-(59, 12, 'ELIMINACION', 'Se eliminó el permiso', 'anonymousUser', 'XFRTTQ', 'barredor', '2025-10-22 13:17:43'),
-(60, 12, 'ELIMINACION', 'Se eliminó el permiso', 'anonymousUser', 'XFRTTQ', 'barredor', '2025-10-22 13:17:44'),
-(61, 12, 'ACTUALIZACION', 'Se actualizó el permiso', 'anonymousUser', 'XFRTTQ', 'barredor', '2025-10-22 13:25:42');
+(3, 2, 'ROL_ACTUALIZADO', 'Removido del rol Administrador', 'anonymousUser', NULL, 'Ver usuarios', '2025-11-05 23:54:33'),
+(4, 6, 'ROL_ACTUALIZADO', 'Removido del rol Administrador', 'anonymousUser', NULL, 'Ver permisos', '2025-11-05 23:54:33'),
+(5, 8, 'ROL_ACTUALIZADO', 'Removido del rol Administrador', 'anonymousUser', NULL, 'Registrar ventas', '2025-11-05 23:54:33'),
+(6, 2, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'anonymousUser', NULL, 'Ver usuarios', '2025-11-05 23:54:44'),
+(7, 6, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'anonymousUser', NULL, 'Ver permisos', '2025-11-05 23:54:44'),
+(8, 8, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'anonymousUser', NULL, 'Registrar ventas', '2025-11-05 23:54:44'),
+(9, 1, 'ROL_ACTUALIZADO', 'Asignado al rol Almacenero', 'anonymousUser', NULL, 'Acceder al dashboard', '2025-11-05 23:54:54'),
+(10, 3, 'ROL_ACTUALIZADO', 'Asignado al rol Almacenero', 'anonymousUser', NULL, 'Gestionar usuarios', '2025-11-05 23:54:54'),
+(11, 5, 'ROL_ACTUALIZADO', 'Asignado al rol Almacenero', 'anonymousUser', NULL, 'Gestionar roles', '2025-11-05 23:54:54'),
+(12, 7, 'ROL_ACTUALIZADO', 'Asignado al rol Almacenero', 'anonymousUser', NULL, 'Gestionar permisos', '2025-11-05 23:54:54'),
+(13, 10, 'ROL_ACTUALIZADO', 'Asignado al rol Almacenero', 'anonymousUser', NULL, 'Gestionar compras', '2025-11-05 23:54:54'),
+(14, 1, 'ROL_ACTUALIZADO', 'Removido del rol Almacenero', 'anonymousUser', NULL, 'Acceder al dashboard', '2025-11-05 23:56:06'),
+(15, 3, 'ROL_ACTUALIZADO', 'Removido del rol Almacenero', 'anonymousUser', NULL, 'Gestionar usuarios', '2025-11-05 23:56:06'),
+(16, 5, 'ROL_ACTUALIZADO', 'Removido del rol Almacenero', 'anonymousUser', NULL, 'Gestionar roles', '2025-11-05 23:56:06'),
+(17, 7, 'ROL_ACTUALIZADO', 'Removido del rol Almacenero', 'anonymousUser', NULL, 'Gestionar permisos', '2025-11-05 23:56:06'),
+(18, 9, 'ROL_ACTUALIZADO', 'Removido del rol Almacenero', 'anonymousUser', NULL, 'Gestionar inventario', '2025-11-05 23:56:06'),
+(19, 10, 'ROL_ACTUALIZADO', 'Removido del rol Almacenero', 'anonymousUser', NULL, 'Gestionar compras', '2025-11-05 23:56:06'),
+(20, 3, 'ROL_ACTUALIZADO', 'Asignado al rol Cajero', 'anonymousUser', NULL, 'Gestionar usuarios', '2025-11-05 23:56:38'),
+(21, 5, 'ROL_ACTUALIZADO', 'Asignado al rol Cajero', 'anonymousUser', NULL, 'Gestionar roles', '2025-11-05 23:56:38'),
+(22, 7, 'ROL_ACTUALIZADO', 'Asignado al rol Cajero', 'anonymousUser', NULL, 'Gestionar permisos', '2025-11-05 23:56:38'),
+(23, 9, 'ROL_ACTUALIZADO', 'Asignado al rol Cajero', 'anonymousUser', NULL, 'Gestionar inventario', '2025-11-05 23:56:38'),
+(24, 10, 'ROL_ACTUALIZADO', 'Asignado al rol Cajero', 'anonymousUser', NULL, 'Gestionar compras', '2025-11-05 23:56:38'),
+(25, 3, 'ROL_ACTUALIZADO', 'Removido del rol Cajero', 'anonymousUser', NULL, 'Gestionar usuarios', '2025-11-05 23:56:45'),
+(26, 5, 'ROL_ACTUALIZADO', 'Removido del rol Cajero', 'anonymousUser', NULL, 'Gestionar roles', '2025-11-05 23:56:45'),
+(27, 7, 'ROL_ACTUALIZADO', 'Removido del rol Cajero', 'anonymousUser', NULL, 'Gestionar permisos', '2025-11-05 23:56:45'),
+(28, 9, 'ROL_ACTUALIZADO', 'Removido del rol Cajero', 'anonymousUser', NULL, 'Gestionar inventario', '2025-11-05 23:56:45'),
+(29, 10, 'ROL_ACTUALIZADO', 'Removido del rol Cajero', 'anonymousUser', NULL, 'Gestionar compras', '2025-11-05 23:56:45'),
+(30, 8, 'ROL_ACTUALIZADO', 'Removido del rol Cajero', 'anonymousUser', NULL, 'Registrar ventas', '2025-11-06 01:12:09'),
+(31, 8, 'ROL_ACTUALIZADO', 'Asignado al rol Gerente', 'anonymousUser', NULL, 'Registrar ventas', '2025-11-06 01:15:42'),
+(32, 2, 'ROL_ACTUALIZADO', 'Removido del rol Gerente', 'anonymousUser', NULL, 'Ver usuarios', '2025-11-06 01:15:42'),
+(33, 3, 'ROL_ACTUALIZADO', 'Removido del rol Gerente', 'anonymousUser', NULL, 'Gestionar usuarios', '2025-11-06 01:15:42'),
+(34, 6, 'ROL_ACTUALIZADO', 'Removido del rol Gerente', 'anonymousUser', NULL, 'Ver permisos', '2025-11-06 01:15:42'),
+(35, 1, 'ROL_ACTUALIZADO', 'Asignado al rol Vendedor', 'EfrainDs3', NULL, 'Acceder al dashboard', '2025-11-06 02:17:40'),
+(36, 1, 'ROL_ACTUALIZADO', 'Asignado al rol Cajero', 'EfrainDs3', NULL, 'Acceder al dashboard', '2025-11-06 02:39:43'),
+(37, 2, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Ver reportes', '2025-11-06 05:14:53'),
+(38, 3, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Generar reportes', '2025-11-06 05:14:53'),
+(39, 4, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Ver auditoría', '2025-11-06 05:14:53'),
+(40, 5, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Consultar registros de auditoría', '2025-11-06 05:14:53'),
+(41, 7, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Registrar usuarios', '2025-11-06 05:14:53'),
+(42, 8, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Editar usuarios', '2025-11-06 05:14:53'),
+(43, 9, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Eliminar usuarios', '2025-11-06 05:14:53'),
+(44, 11, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Registrar roles', '2025-11-06 05:14:53'),
+(45, 12, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Editar roles', '2025-11-06 05:14:53'),
+(46, 13, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Cambiar estado de roles', '2025-11-06 05:14:53'),
+(47, 14, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Eliminar roles', '2025-11-06 05:14:53'),
+(48, 16, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Registrar permisos', '2025-11-06 05:14:53'),
+(49, 17, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Editar permisos', '2025-11-06 05:14:53'),
+(50, 18, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Eliminar permisos', '2025-11-06 05:14:53'),
+(51, 19, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Ver auditoría de permisos', '2025-11-06 05:14:53'),
+(52, 20, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Gestionar asignaciones de permisos', '2025-11-06 05:14:53'),
+(53, 21, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Ver permisos por usuario', '2025-11-06 05:14:53'),
+(54, 22, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Ver calzados', '2025-11-06 05:14:53'),
+(55, 23, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Registrar calzados', '2025-11-06 05:14:53'),
+(56, 24, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Editar calzados', '2025-11-06 05:14:53'),
+(57, 25, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Eliminar calzados', '2025-11-06 05:14:53'),
+(58, 26, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Ver accesorios', '2025-11-06 05:14:53'),
+(59, 27, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Registrar accesorios', '2025-11-06 05:14:53'),
+(60, 28, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Editar accesorios', '2025-11-06 05:14:53'),
+(61, 29, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Eliminar accesorios', '2025-11-06 05:14:53'),
+(62, 30, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Ver catálogos maestros', '2025-11-06 05:14:53'),
+(63, 31, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Gestionar marcas', '2025-11-06 05:14:53'),
+(64, 32, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Gestionar modelos', '2025-11-06 05:14:53'),
+(65, 33, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Gestionar materiales', '2025-11-06 05:14:53'),
+(66, 34, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Gestionar unidades', '2025-11-06 05:14:53'),
+(67, 35, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Gestionar tipos de producto', '2025-11-06 05:14:53'),
+(68, 36, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Ver clientes', '2025-11-06 05:14:53'),
+(69, 37, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Registrar clientes', '2025-11-06 05:14:54'),
+(70, 38, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Editar clientes', '2025-11-06 05:14:54'),
+(71, 39, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Eliminar clientes', '2025-11-06 05:14:54'),
+(72, 40, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Reactivar clientes', '2025-11-06 05:14:54'),
+(73, 41, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Buscar clientes', '2025-11-06 05:14:54'),
+(74, 42, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Consultar RENIEC', '2025-11-06 05:14:54'),
+(75, 43, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Probar integración RENIEC', '2025-11-06 05:14:54'),
+(76, 44, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Ver proveedores', '2025-11-06 05:14:54'),
+(77, 45, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Registrar proveedores', '2025-11-06 05:14:54'),
+(78, 46, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Editar proveedores', '2025-11-06 05:14:54'),
+(79, 47, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Eliminar proveedores', '2025-11-06 05:14:54'),
+(80, 48, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Buscar proveedores', '2025-11-06 05:14:54'),
+(81, 49, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Consultar proveedores por rubro', '2025-11-06 05:14:54'),
+(82, 50, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Verificar RUC de proveedor', '2025-11-06 05:14:54'),
+(83, 51, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Ver ventas', '2025-11-06 05:14:54'),
+(84, 53, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Editar ventas', '2025-11-06 05:14:54'),
+(85, 54, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Emitir comprobantes de venta', '2025-11-06 05:14:54'),
+(86, 55, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Ver estado de caja', '2025-11-06 05:14:54'),
+(87, 56, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Aperturar caja', '2025-11-06 05:14:54'),
+(88, 57, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Cerrar caja', '2025-11-06 05:14:54'),
+(89, 58, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Ver historial de caja', '2025-11-06 05:14:54'),
+(90, 59, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Listar cajas activas', '2025-11-06 05:14:54'),
+(91, 60, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Registrar cajas', '2025-11-06 05:14:54'),
+(92, 61, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Ver compras', '2025-11-06 05:14:54'),
+(93, 63, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Ver inventario', '2025-11-06 05:14:54'),
+(94, 64, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Registrar inventario en almacén', '2025-11-06 05:14:54'),
+(95, 65, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Ajustar stock de inventario', '2025-11-06 05:14:54'),
+(96, 66, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Transferir stock entre almacenes', '2025-11-06 05:14:54'),
+(97, 67, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Ver productos con stock bajo', '2025-11-06 05:14:54'),
+(98, 68, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Ver movimientos de inventario', '2025-11-06 05:14:54'),
+(99, 69, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Ver kardex de producto', '2025-11-06 05:14:54'),
+(100, 70, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Ver estadísticas de inventario', '2025-11-06 05:14:54'),
+(101, 71, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Listar productos disponibles para inventario', '2025-11-06 05:14:54'),
+(102, 72, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Listar almacenes para inventario', '2025-11-06 05:14:54'),
+(103, 73, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Listar tipos de movimiento de inventario', '2025-11-06 05:14:54'),
+(104, 74, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Ver almacenes', '2025-11-06 05:14:54'),
+(105, 75, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Registrar almacenes', '2025-11-06 05:14:54'),
+(106, 76, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Editar almacenes', '2025-11-06 05:14:54'),
+(107, 77, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Eliminar almacenes', '2025-11-06 05:14:54'),
+(108, 78, 'ROL_ACTUALIZADO', 'Asignado al rol Administrador', 'EfrainDs3', NULL, 'Verificar nombre de almacén', '2025-11-06 05:14:54');
 
 -- --------------------------------------------------------
 
@@ -512,18 +669,23 @@ CREATE TABLE `productos` (
   `tipo` varchar(20) DEFAULT NULL,
   `dimensiones` varchar(50) DEFAULT NULL,
   `peso_gramos` int(11) DEFAULT NULL,
-  `estado` int(11) NOT NULL DEFAULT 1,
+  `estado` bit(1) NOT NULL,
   `id_modelo` int(11) DEFAULT NULL,
-  `id_material` int(11) DEFAULT NULL
+  `id_material` int(11) DEFAULT NULL,
+  `imagen` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `productos`
 --
 
-INSERT INTO `productos` (`id_producto`, `nombre_producto`, `descripcion`, `precio_venta`, `costo_compra`, `codigo_barra`, `id_categoria`, `id_proveedor`, `id_unidad_medida`, `color`, `tipo`, `dimensiones`, `peso_gramos`, `estado`, `id_modelo`, `id_material`) VALUES
-(1, 'Zapatillas Deportivas Nike', 'ZapatillaNiker', 200.00, 205.00, NULL, 1, 2, 1, 'Blanco', 'Hombre', '30 x 20 x 12 cm', 1000, 1, 2, 1),
-(2, 'Cinturón de Cuero Premium', 'Cinturon de cuero', 200.00, 2000.00, NULL, 2, 2, 2, 'Blanco', 'Accesorio', '120 x 4 x 0.5 cm', 11, 1, 2, 1);
+INSERT INTO `productos` (`id_producto`, `nombre_producto`, `descripcion`, `precio_venta`, `costo_compra`, `codigo_barra`, `id_categoria`, `id_proveedor`, `id_unidad_medida`, `color`, `tipo`, `dimensiones`, `peso_gramos`, `estado`, `id_modelo`, `id_material`, `imagen`) VALUES
+(1, 'Zapatillas Deportivas Nike', 'ZapatillaNiker', 200.00, 205.00, NULL, 1, 2, 1, 'Blanco', 'Hombre', '30 x 20 x 12 cm', 1000, b'1', 2, 1, NULL),
+(2, 'Cinturón de Cuero', 'Cinturon de cuero', 200.00, 2000.00, NULL, 2, 2, 2, 'Blanco', 'Hombre', '120 x 4 x 0.5 cm', 11, b'1', 2, 1, NULL),
+(4, 'Zapatillas Deportivas Nike', 'Zapato123', 200.00, 200.00, NULL, 1, 2, 1, 'Blanco', 'Hombre', '30 x 20 x 12 cm', 2000, b'1', 3, 1, NULL),
+(5, 'Alexander123', NULL, 122.00, NULL, NULL, 2, 2, 2, 'Blanco', 'Hombre', '120 x 4 x 0.5 cm', 11, b'1', 3, 1, NULL),
+(6, 'Zapatilla Nike123', 'Zapatilla deportiva Nike', 250.00, 210.00, NULL, 1, 2, 1, 'Blanco y Rojo', 'Niños', '30x20', 1000, b'1', 3, 1, NULL),
+(9, 'Zapatillas1', NULL, 311.00, 313.00, NULL, 1, 2, 1, 'Blanco', 'Hombre', NULL, NULL, b'1', 4, 1, '/img/upload/productos/calzados/zapatillas1.jpg');
 
 -- --------------------------------------------------------
 
@@ -542,7 +704,11 @@ CREATE TABLE `producto_tipos` (
 
 INSERT INTO `producto_tipos` (`id_producto`, `id_tipo`) VALUES
 (1, 1),
-(2, 1);
+(2, 1),
+(4, 1),
+(5, 1),
+(6, 1),
+(9, 1);
 
 -- --------------------------------------------------------
 
@@ -601,12 +767,12 @@ CREATE TABLE `roles` (
 INSERT INTO `roles` (`id_rol`, `nombre_rol`, `estado`, `descripcion`) VALUES
 (1, 'Administrador', 1, 'Acceso total al sistema'),
 (6, 'Gerente', 1, 'Gestión de operaciones y reportes'),
+(7, 'Supervisor', 1, 'Supervisión general de las operaciones'),
 (8, 'Analista', 1, 'Acceso a reportes y estadísticas'),
 (9, 'Vendedor', 1, 'Acceso a ventas y clientes'),
 (10, 'Cajero', 1, 'Gestión de caja y cobranzas'),
 (11, 'Almacenero', 1, 'Gestión de inventario y almacén'),
-(12, 'Compras', 1, 'Gestión de proveedores y compras'),
-(16, 'Supervisor', 1, 'Supervisión general de las operaciones');
+(12, 'Compras', 1, 'Gestión de proveedores y compras');
 
 -- --------------------------------------------------------
 
@@ -616,34 +782,110 @@ INSERT INTO `roles` (`id_rol`, `nombre_rol`, `estado`, `descripcion`) VALUES
 
 CREATE TABLE `rol_permisos` (
   `id_rol` int(11) NOT NULL,
-  `id_permiso` int(11) NOT NULL
+  `nombre_rol` varchar(255) DEFAULT NULL,
+  `id_permiso` int(11) NOT NULL,
+  `nombre_permiso` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `rol_permisos`
 --
 
-INSERT INTO `rol_permisos` (`id_rol`, `id_permiso`) VALUES
-(1, 1),
-(1, 2),
-(1, 3),
-(1, 5),
-(1, 6),
-(1, 7),
-(1, 8),
-(1, 9),
-(1, 10),
-(6, 1),
-(6, 2),
-(6, 3),
-(6, 6),
-(8, 1),
-(8, 8),
-(9, 8),
-(10, 8),
-(11, 9),
-(12, 10),
-(16, 2);
+INSERT INTO `rol_permisos` (`id_rol`, `nombre_rol`, `id_permiso`, `nombre_permiso`) VALUES
+(1, NULL, 1, NULL),
+(1, NULL, 2, NULL),
+(1, NULL, 3, NULL),
+(1, NULL, 4, NULL),
+(1, NULL, 5, NULL),
+(1, NULL, 6, NULL),
+(1, NULL, 7, NULL),
+(1, NULL, 8, NULL),
+(1, NULL, 9, NULL),
+(1, NULL, 11, NULL),
+(1, NULL, 12, NULL),
+(1, NULL, 13, NULL),
+(1, NULL, 14, NULL),
+(1, NULL, 15, NULL),
+(1, NULL, 16, NULL),
+(1, NULL, 17, NULL),
+(1, NULL, 18, NULL),
+(1, NULL, 19, NULL),
+(1, NULL, 20, NULL),
+(1, NULL, 21, NULL),
+(1, NULL, 22, NULL),
+(1, NULL, 23, NULL),
+(1, NULL, 24, NULL),
+(1, NULL, 25, NULL),
+(1, NULL, 26, NULL),
+(1, NULL, 27, NULL),
+(1, NULL, 28, NULL),
+(1, NULL, 29, NULL),
+(1, NULL, 30, NULL),
+(1, NULL, 31, NULL),
+(1, NULL, 32, NULL),
+(1, NULL, 33, NULL),
+(1, NULL, 34, NULL),
+(1, NULL, 35, NULL),
+(1, NULL, 36, NULL),
+(1, NULL, 37, NULL),
+(1, NULL, 38, NULL),
+(1, NULL, 39, NULL),
+(1, NULL, 40, NULL),
+(1, NULL, 41, NULL),
+(1, NULL, 42, NULL),
+(1, NULL, 43, NULL),
+(1, NULL, 44, NULL),
+(1, NULL, 45, NULL),
+(1, NULL, 46, NULL),
+(1, NULL, 47, NULL),
+(1, NULL, 48, NULL),
+(1, NULL, 49, NULL),
+(1, NULL, 50, NULL),
+(1, NULL, 51, NULL),
+(1, NULL, 52, NULL),
+(1, NULL, 53, NULL),
+(1, NULL, 54, NULL),
+(1, NULL, 55, NULL),
+(1, NULL, 56, NULL),
+(1, NULL, 57, NULL),
+(1, NULL, 58, NULL),
+(1, NULL, 59, NULL),
+(1, NULL, 60, NULL),
+(1, NULL, 61, NULL),
+(1, NULL, 62, NULL),
+(1, NULL, 63, NULL),
+(1, NULL, 64, NULL),
+(1, NULL, 65, NULL),
+(1, NULL, 66, NULL),
+(1, NULL, 67, NULL),
+(1, NULL, 68, NULL),
+(1, NULL, 69, NULL),
+(1, NULL, 70, NULL),
+(1, NULL, 71, NULL),
+(1, NULL, 72, NULL),
+(1, NULL, 73, NULL),
+(1, NULL, 74, NULL),
+(1, NULL, 75, NULL),
+(1, NULL, 76, NULL),
+(1, NULL, 77, NULL),
+(1, NULL, 78, NULL),
+(1, NULL, 79, NULL),
+(1, NULL, 80, NULL),
+(1, NULL, 81, NULL),
+(1, NULL, 82, NULL),
+(1, NULL, 83, NULL),
+(6, NULL, 1, NULL),
+(6, NULL, 6, NULL),
+(6, NULL, 15, NULL),
+(6, NULL, 79, NULL),
+(6, NULL, 83, NULL),
+(7, NULL, 6, NULL),
+(8, NULL, 1, NULL),
+(9, NULL, 52, NULL),
+(9, NULL, 83, NULL),
+(10, NULL, 52, NULL),
+(11, NULL, 82, NULL),
+(12, NULL, 62, NULL);
 
 -- --------------------------------------------------------
 
@@ -664,7 +906,11 @@ CREATE TABLE `tallas` (
 
 INSERT INTO `tallas` (`id_producto`, `talla`, `precio_venta`, `costo_compra`) VALUES
 (1, '35', 200.00, 205.00),
-(2, 'M', 200.00, 2000.00);
+(2, 'M', 200.00, 2000.00),
+(4, '12', 200.00, 200.00),
+(5, '12', 122.00, NULL),
+(6, '42', 250.00, 210.00),
+(9, '31', 311.00, 313.00);
 
 -- --------------------------------------------------------
 
@@ -697,14 +943,6 @@ CREATE TABLE `tiposcomprobantepago` (
   `serie_documento` varchar(10) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Volcado de datos para la tabla `tiposcomprobantepago`
---
-
-INSERT INTO `tiposcomprobantepago` (`id_tipo_comprobante`, `nombre_tipo`, `serie_documento`) VALUES
-(1, 'Boleta de Venta', NULL),
-(2, 'Factura', NULL);
-
 -- --------------------------------------------------------
 
 --
@@ -717,6 +955,15 @@ CREATE TABLE `tiposmovimientoinventario` (
   `es_entrada` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `tiposmovimientoinventario`
+--
+
+INSERT INTO `tiposmovimientoinventario` (`id_tipo_movimiento`, `nombre_tipo`, `es_entrada`) VALUES
+(1, 'Salida', 0),
+(2, 'Entrada', 1),
+(3, 'Entrada - Registro Inicial', 1);
+
 -- --------------------------------------------------------
 
 --
@@ -727,14 +974,6 @@ CREATE TABLE `tipospago` (
   `id_tipopago` int(11) NOT NULL,
   `tipo_pago` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Volcado de datos para la tabla `tipospago`
---
-
-INSERT INTO `tipospago` (`id_tipopago`, `tipo_pago`) VALUES
-(1, 'Efectivo'),
-(2, 'Tarjeta');
 
 -- --------------------------------------------------------
 
@@ -801,10 +1040,11 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id_usuario`, `nombres`, `apellidos`, `id_tipodocumento`, `numero_documento`, `celular`, `direccion`, `username`, `email`, `contraseña_hash`, `estado`, `fecha_creacion`, `fecha_ultima_sesion`) VALUES
-(4, 'Santiago Efrain', 'Torres Murrieta', 1, '75859114', '964983465', 'juan pablo de la cruz', 'EfrainDs3', 'santiagotorresmurrieta@gmail.com', '$2a$10$rYmgAt7/zBq5.9IEcNfwjew.bCsMzYfVlKtf/Kx4.357vLVFmyCWC', 1, '2025-10-08 15:17:29', '2025-10-22 12:33:55'),
-(5, 'Anggelo Lucciano', 'Urbina Espinoza', 1, '72863068', '903 171 836', 'juan pablo de la cruz', 'Ubuntu', 'anggelolucciano21@gmail.com', '$2a$10$VwIkH6380fJV0oPcQXNKiO1oU8zqQ1vKsc0uWSkm.vtCWoTPHzzMG', 1, '2025-10-08 15:46:19', '2025-10-08 15:54:27'),
-(6, 'Anlly Luz', 'Riva Yomona', 1, '72010812', '999888777', 'Calle Nueva 456', 'Anlly', 'al.rivayo@unsm.edu.pe', '$2a$10$E.7vIdGVqCYy5eoYIBjF/uYDym2.b6B6U6.TlT9uKd0tFUl4DMfJW', 1, '2025-10-08 15:57:57', '2025-10-23 14:16:42'),
-(12, 'Danny Alexander', 'Garcia Salas', 1, '98765432', '999888777', 'juan pablo de la cruz', 'Dingui', 'ia.jadrixgr26@gmail.com', '$2a$10$xKxtzv1ECV/74oi69b9hPubeUZgmSnrAUoxmjmSaz0NyeVOYE9BHW', 1, '2025-10-08 16:27:52', '2025-10-16 04:28:47');
+(4, 'Santiago Efrain', 'Torres Murrieta', 1, '75859114', '964983465', 'juan pablo de la cruz', 'EfrainDs3', 'santiagotorresmurrieta@gmail.com', '$2a$10$6587YGgYKDWyAywi61/cB.TFF.U6LrTWacPvzWaBZ9xoVsuGGy.4.', 1, '2025-10-08 15:17:29', '2025-11-17 21:46:45'),
+(5, 'Anggelo Lucciano', 'Urbina Espinoza', 1, '72863068', '903 171 836', 'juan pablo de la cruz', 'Ubuntu', 'anggelolucciano21@gmail.com', '$2a$10$VwIkH6380fJV0oPcQXNKiO1oU8zqQ1vKsc0uWSkm.vtCWoTPHzzMG', 1, '2025-10-08 15:46:19', '2025-11-06 07:03:55'),
+(6, 'Anlly Luz', 'Riva Yomona', 1, '72010812', '999888777', 'Calle Nueva 456', 'Anlly', 'al.rivayo@unsm.edu.pe', '$2a$10$E.7vIdGVqCYy5eoYIBjF/uYDym2.b6B6U6.TlT9uKd0tFUl4DMfJW', 1, '2025-10-08 15:57:57', '2025-11-06 01:16:25'),
+(12, 'Danny Alexander', 'Garcia Salas', 1, '98765432', '999888777', 'juan pablo de la cruz', 'Dingui', 'ia.jadrixgr26@gmail.com', '$2a$10$xKxtzv1ECV/74oi69b9hPubeUZgmSnrAUoxmjmSaz0NyeVOYE9BHW', 1, '2025-10-08 16:27:52', '2025-10-15 22:05:53'),
+(17, 'Alex', 'Pezo', 1, '73325101', '999999999', 'Jr. Trapoto', 'arxse', 'da.pezoin@unsm.edu.pe', '$2a$10$u6dftyj8BINK8/zY5GG.TO36M86byX5s8aWraTFHw4Zit3AiA2YSi', 1, '2025-10-15 22:08:21', '2025-10-15 22:12:18');
 
 -- --------------------------------------------------------
 
@@ -823,9 +1063,10 @@ CREATE TABLE `usuario_roles` (
 
 INSERT INTO `usuario_roles` (`id_usuario`, `id_rol`) VALUES
 (4, 1),
-(5, 11),
-(6, 10),
-(12, 10);
+(5, 10),
+(6, 6),
+(12, 1),
+(17, 1);
 
 --
 -- Índices para tablas volcadas
@@ -930,6 +1171,13 @@ ALTER TABLE `inventario`
   ADD PRIMARY KEY (`id_inventario`),
   ADD UNIQUE KEY `id_producto` (`id_producto`,`id_almacen`),
   ADD KEY `id_almacen` (`id_almacen`);
+
+--
+-- Indices de la tabla `inventario_talla`
+--
+ALTER TABLE `inventario_talla`
+  ADD PRIMARY KEY (`id_inventario_talla`),
+  ADD KEY `FKa1pg9fk706b0rk23nqj2n7rsy` (`id_inventario`);
 
 --
 -- Indices de la tabla `marcasproducto`
@@ -1126,7 +1374,7 @@ ALTER TABLE `usuario_roles`
 -- AUTO_INCREMENT de la tabla `almacenes`
 --
 ALTER TABLE `almacenes`
-  MODIFY `id_almacen` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_almacen` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `aperturascaja`
@@ -1144,7 +1392,7 @@ ALTER TABLE `bitacora`
 -- AUTO_INCREMENT de la tabla `cajas`
 --
 ALTER TABLE `cajas`
-  MODIFY `id_caja` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_caja` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `categoriasproducto`
@@ -1162,7 +1410,7 @@ ALTER TABLE `cierrescaja`
 -- AUTO_INCREMENT de la tabla `clientes`
 --
 ALTER TABLE `clientes`
-  MODIFY `id_cliente` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_cliente` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `comprobantespago`
@@ -1198,7 +1446,13 @@ ALTER TABLE `historial_recomendaciones`
 -- AUTO_INCREMENT de la tabla `inventario`
 --
 ALTER TABLE `inventario`
-  MODIFY `id_inventario` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_inventario` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT de la tabla `inventario_talla`
+--
+ALTER TABLE `inventario_talla`
+  MODIFY `id_inventario_talla` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `marcasproducto`
@@ -1216,7 +1470,7 @@ ALTER TABLE `materialesproducto`
 -- AUTO_INCREMENT de la tabla `modelos`
 --
 ALTER TABLE `modelos`
-  MODIFY `id_modelo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_modelo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `movimientoscaja`
@@ -1228,7 +1482,7 @@ ALTER TABLE `movimientoscaja`
 -- AUTO_INCREMENT de la tabla `movimientosinventario`
 --
 ALTER TABLE `movimientosinventario`
-  MODIFY `id_movimiento_inv` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_movimiento_inv` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de la tabla `pagoscomprobante`
@@ -1246,19 +1500,19 @@ ALTER TABLE `pedidoscompra`
 -- AUTO_INCREMENT de la tabla `permisos`
 --
 ALTER TABLE `permisos`
-  MODIFY `id_permiso` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id_permiso` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=84;
 
 --
 -- AUTO_INCREMENT de la tabla `permisos_auditoria`
 --
 ALTER TABLE `permisos_auditoria`
-  MODIFY `id_auditoria` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=62;
+  MODIFY `id_auditoria` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=109;
 
 --
 -- AUTO_INCREMENT de la tabla `productos`
 --
 ALTER TABLE `productos`
-  MODIFY `id_producto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_producto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT de la tabla `proveedores`
@@ -1270,7 +1524,7 @@ ALTER TABLE `proveedores`
 -- AUTO_INCREMENT de la tabla `roles`
 --
 ALTER TABLE `roles`
-  MODIFY `id_rol` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `id_rol` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT de la tabla `tipodocumento`
@@ -1282,19 +1536,19 @@ ALTER TABLE `tipodocumento`
 -- AUTO_INCREMENT de la tabla `tiposcomprobantepago`
 --
 ALTER TABLE `tiposcomprobantepago`
-  MODIFY `id_tipo_comprobante` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_tipo_comprobante` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `tiposmovimientoinventario`
 --
 ALTER TABLE `tiposmovimientoinventario`
-  MODIFY `id_tipo_movimiento` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_tipo_movimiento` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `tipospago`
 --
 ALTER TABLE `tipospago`
-  MODIFY `id_tipopago` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_tipopago` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `tiposproducto`
@@ -1312,7 +1566,7 @@ ALTER TABLE `unidadesmedida`
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
+  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- Restricciones para tablas volcadas
@@ -1386,6 +1640,12 @@ ALTER TABLE `historial_recomendaciones`
 ALTER TABLE `inventario`
   ADD CONSTRAINT `inventario_ibfk_1` FOREIGN KEY (`id_producto`) REFERENCES `productos` (`id_producto`) ON DELETE CASCADE,
   ADD CONSTRAINT `inventario_ibfk_2` FOREIGN KEY (`id_almacen`) REFERENCES `almacenes` (`id_almacen`) ON DELETE CASCADE;
+
+--
+-- Filtros para la tabla `inventario_talla`
+--
+ALTER TABLE `inventario_talla`
+  ADD CONSTRAINT `FKa1pg9fk706b0rk23nqj2n7rsy` FOREIGN KEY (`id_inventario`) REFERENCES `inventario` (`id_inventario`);
 
 --
 -- Filtros para la tabla `modelos`
