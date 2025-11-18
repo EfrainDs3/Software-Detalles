@@ -10,7 +10,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -756,16 +761,70 @@ public class InventarioService {
 
         List<InventarioTalla> tallas = inventarioTallaRepository.findByInventario(inventario);
 
-        List<TallaStockDetalleDto> tallasDetalle = tallas.stream()
-            .map(t -> new TallaStockDetalleDto(
-                t.getTalla(),
-                t.getCantidadStock(),
-                t.getStockMinimo(),
-                t.getFechaUltimaActualizacion(),
-                t.isStockBajo(),
-                t.isAgotado()
-            ))
-            .collect(Collectors.toList());
+        Map<String, InventarioTalla> tallasPorNombre = new LinkedHashMap<>();
+        for (InventarioTalla talla : tallas) {
+            String clave = Optional.ofNullable(talla.getTalla())
+                .map(String::trim)
+                .filter(nombre -> !nombre.isEmpty())
+                .map(String::toUpperCase)
+                .orElse(null);
+
+            if (clave != null && !tallasPorNombre.containsKey(clave)) {
+                tallasPorNombre.put(clave, talla);
+            }
+        }
+
+        List<TallaStockDetalleDto> tallasDetalle = new ArrayList<>();
+        Set<String> tallasIncluidas = new HashSet<>();
+
+        for (InventarioTalla talla : tallasPorNombre.values()) {
+            tallasDetalle.add(new TallaStockDetalleDto(
+                talla.getTalla(),
+                talla.getCantidadStock(),
+                talla.getStockMinimo(),
+                talla.getFechaUltimaActualizacion(),
+                talla.isStockBajo(),
+                talla.isAgotado()
+            ));
+
+            Optional.ofNullable(talla.getTalla())
+                .map(String::trim)
+                .filter(nombre -> !nombre.isEmpty())
+                .map(String::toUpperCase)
+                .ifPresent(tallasIncluidas::add);
+        }
+
+        Set<ProductoTalla> tallasProducto = Optional.ofNullable(inventario.getProducto())
+            .map(Producto::getTallas)
+            .orElseGet(Collections::emptySet);
+
+        for (ProductoTalla productoTalla : tallasProducto) {
+            String tallaNombre = Optional.ofNullable(productoTalla.getTalla())
+                .map(String::trim)
+                .orElse(null);
+
+            if (tallaNombre == null || tallaNombre.isEmpty()) {
+                continue;
+            }
+
+            String clave = tallaNombre.toUpperCase();
+            if (!tallasIncluidas.contains(clave)) {
+                tallasDetalle.add(new TallaStockDetalleDto(
+                    tallaNombre,
+                    0,
+                    0,
+                    LocalDateTime.now(),
+                    true,
+                    true
+                ));
+                tallasIncluidas.add(clave);
+            }
+        }
+
+        tallasDetalle.sort(Comparator.comparing(dto -> {
+            String nombre = dto.talla();
+            return nombre != null ? nombre.toUpperCase() : "";
+        }));
 
         return new InventarioConTallasDto(
             inventario.getId(),

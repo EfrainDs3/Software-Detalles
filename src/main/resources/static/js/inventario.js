@@ -78,10 +78,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const cancelRegistrarBtn = document.getElementById('cancelRegistrarBtn');
     const registrarProductoForm = document.getElementById('registrarProductoForm');
     const productoSelect = document.getElementById('productoSelect');
+    const productoSearchInput = document.getElementById('productoSearchInput');
+    const productoSearchResults = document.getElementById('productoSearchResults');
+    const productoSelectContainer = document.getElementById('productoSelectContainer');
     const codigoBarraDisplay = document.getElementById('codigoBarraDisplay');
     const almacenSelect = document.getElementById('almacenSelect');
-    const stockMinimoRegistro = document.getElementById('stockMinimoRegistro');
-    const stockInicial = document.getElementById('stockInicial');
     const productDetailsDisplay = document.getElementById('productDetailsDisplay');
     const productCategoriaDisplay = document.getElementById('productCategoria');
     const productMarcaDisplay = document.getElementById('productMarca');
@@ -120,6 +121,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let isSubmittingAjuste = false;
     let tallasDisponiblesActuales = []; // Para almacenar las tallas del producto actual
     let selectedTallaData = null; // Para almacenar los datos de la talla seleccionada
+    let productoDropdownItems = [];
+    let productoHighlightedIndex = -1;
 
     // --- Funciones Utilitarias ---
 
@@ -301,25 +304,221 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    function formatProductoLabel(producto) {
+        if (!producto) {
+            return '';
+        }
+
+        const detalles = [producto.talla, producto.color]
+            .filter(valor => valor && valor !== '-' && valor !== 'Sin dato')
+            .join(' · ');
+
+        return detalles
+            ? `${producto.nombre_producto} · ${detalles}`
+            : producto.nombre_producto;
+    }
+
+    function formatProductoMeta(producto) {
+        if (!producto) {
+            return '';
+        }
+
+        const meta = [];
+        if (producto.codigo_barra) {
+            meta.push(`Código: ${producto.codigo_barra}`);
+        }
+        if (producto.marca && producto.marca !== '-') {
+            meta.push(`Marca: ${producto.marca}`);
+        }
+        if (producto.categoria && producto.categoria !== 'Sin categoría') {
+            meta.push(producto.categoria);
+        }
+        return meta.join(' · ');
+    }
+
+    function findProductoById(id) {
+        if (id == null) {
+            return null;
+        }
+        return productosDisponibles.find(producto => String(producto.id) === String(id));
+    }
+
+    function closeProductoDropdown() {
+        if (productoSearchResults) {
+            productoSearchResults.classList.remove('visible');
+        }
+        productoDropdownItems = [];
+        productoHighlightedIndex = -1;
+    }
+
+    function openProductoDropdown() {
+        if (productoSearchResults && productoDropdownItems.length > 0 && document.activeElement === productoSearchInput) {
+            productoSearchResults.classList.add('visible');
+        }
+    }
+
+    function highlightProductoDropdownItem(index) {
+        if (!productoDropdownItems.length) {
+            productoHighlightedIndex = -1;
+            return;
+        }
+
+        productoDropdownItems.forEach(item => item.classList.remove('active'));
+
+        if (index >= 0 && index < productoDropdownItems.length) {
+            productoDropdownItems[index].classList.add('active');
+            productoHighlightedIndex = index;
+
+            const itemElement = productoDropdownItems[index];
+            const container = productoSearchResults;
+            if (itemElement && container) {
+                const itemTop = itemElement.offsetTop;
+                const itemBottom = itemTop + itemElement.offsetHeight;
+                if (itemTop < container.scrollTop) {
+                    container.scrollTop = itemTop;
+                } else if (itemBottom > container.scrollTop + container.clientHeight) {
+                    container.scrollTop = itemBottom - container.clientHeight;
+                }
+            }
+        } else {
+            productoHighlightedIndex = -1;
+        }
+    }
+
+    function selectProducto(producto) {
+        if (!productoSelect) {
+            return;
+        }
+
+        if (!producto) {
+            productoSelect.value = '';
+            if (productoSearchInput) {
+                productoSearchInput.value = '';
+            }
+            updateProductDetails();
+            closeProductoDropdown();
+            return;
+        }
+
+        productoSelect.value = producto.id;
+        if (productoSearchInput) {
+            productoSearchInput.value = formatProductoLabel(producto);
+        }
+        updateProductDetails();
+        closeProductoDropdown();
+    }
+
     function rebuildProductoSelectOptions(selectedId = '') {
+        if (!productoSelect) {
+            return;
+        }
+
+        const searchTerm = (productoSearchInput?.value || '').trim().toLowerCase();
+
         productoSelect.innerHTML = '<option value="">Seleccionar producto</option>';
 
+        const resultados = [];
+
         productosDisponibles.forEach(producto => {
+            if (!producto) {
+                return;
+            }
+
             const option = document.createElement('option');
             option.value = producto.id;
-            option.textContent = `${producto.nombre_producto} (${producto.talla} - ${producto.color})`;
-            option.dataset.codigo = producto.codigo_barra || '';
-            option.dataset.categoria = producto.categoria || 'Sin categoría';
-            option.dataset.marca = producto.marca || '-';
-            option.dataset.talla = producto.talla || '-';
-            option.dataset.color = producto.color || '-';
-            option.dataset.descripcion = producto.descripcion || '-';
-            option.dataset.precio = producto.precio_venta != null ? producto.precio_venta : '';
+            option.textContent = producto.nombre_producto;
             productoSelect.appendChild(option);
+
+            const searchable = [
+                producto.nombre_producto,
+                producto.codigo_barra,
+                producto.talla,
+                producto.color,
+                producto.marca,
+                producto.descripcion
+            ].filter(Boolean).join(' ').toLowerCase();
+
+            if (!searchTerm || searchable.includes(searchTerm)) {
+                resultados.push(producto);
+            }
         });
 
+        if (productoSearchResults) {
+            productoSearchResults.innerHTML = '';
+
+            if (resultados.length === 0) {
+                const emptyItem = document.createElement('li');
+                emptyItem.className = 'searchable-option-empty';
+                emptyItem.textContent = searchTerm
+                    ? 'Sin resultados para tu búsqueda'
+                    : 'No hay productos disponibles para registrar';
+                productoSearchResults.appendChild(emptyItem);
+                productoDropdownItems = [];
+                if (document.activeElement === productoSearchInput && searchTerm) {
+                    productoSearchResults.classList.add('visible');
+                } else {
+                    productoSearchResults.classList.remove('visible');
+                }
+            } else {
+                resultados.forEach((producto, index) => {
+                    const item = document.createElement('li');
+                    item.dataset.id = producto.id;
+
+                    const title = document.createElement('span');
+                    title.className = 'searchable-option-title';
+                    title.textContent = formatProductoLabel(producto);
+
+                    const meta = document.createElement('span');
+                    meta.className = 'searchable-option-meta';
+                    meta.textContent = formatProductoMeta(producto);
+
+                    item.appendChild(title);
+                    if (meta.textContent) {
+                        item.appendChild(meta);
+                    }
+
+                    item.addEventListener('mousedown', (event) => {
+                        event.preventDefault();
+                        selectProducto(producto);
+                    });
+
+                    item.addEventListener('mouseenter', () => {
+                        highlightProductoDropdownItem(index);
+                    });
+
+                    productoSearchResults.appendChild(item);
+                });
+
+                productoDropdownItems = Array.from(productoSearchResults.querySelectorAll('li[data-id]'));
+            }
+
+            if (document.activeElement === productoSearchInput) {
+                if (resultados.length > 0) {
+                    openProductoDropdown();
+                    highlightProductoDropdownItem(0);
+                } else if (!searchTerm) {
+                    closeProductoDropdown();
+                }
+            } else {
+                closeProductoDropdown();
+            }
+        }
+
         if (selectedId) {
-            productoSelect.value = selectedId;
+            const selectedProducto = productosDisponibles.find(producto => String(producto.id) === String(selectedId));
+            if (selectedProducto) {
+                productoSelect.value = selectedId;
+                if (productoSearchInput) {
+                    productoSearchInput.value = formatProductoLabel(selectedProducto);
+                }
+            } else {
+                productoSelect.value = '';
+                if (productoSearchInput && !searchTerm) {
+                    productoSearchInput.value = '';
+                }
+            }
+        } else if (!searchTerm && productoSearchInput) {
+            productoSearchInput.value = '';
         }
     }
 
@@ -664,6 +863,20 @@ document.addEventListener('DOMContentLoaded', () => {
         registrarProductoForm.reset();
         productDetailsDisplay.style.display = 'none';
         codigoBarraDisplay.value = '';
+        if (productoSearchInput) {
+            productoSearchInput.value = '';
+        }
+        if (productoSelect) {
+            productoSelect.value = '';
+        }
+        closeProductoDropdown();
+        if (productoSearchResults) {
+            productoSearchResults.scrollTop = 0;
+        }
+        rebuildProductoSelectOptions();
+        if (productoSearchInput) {
+            setTimeout(() => productoSearchInput.focus(), 0);
+        }
         
         productCategoriaDisplay.textContent = '-';
         productMarcaDisplay.textContent = '-';
@@ -676,27 +889,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateProductDetails() {
-        const selectedOption = productoSelect.options[productoSelect.selectedIndex];
-        
-        if (selectedOption.value) {
-            codigoBarraDisplay.value = selectedOption.dataset.codigo || '';
+        const selectedId = productoSelect ? productoSelect.value : '';
+        const producto = productosDisponibles.find(item => String(item.id) === String(selectedId));
 
-            productCategoriaDisplay.textContent = selectedOption.dataset.categoria || '-';
-            productMarcaDisplay.textContent = selectedOption.dataset.marca || '-';
-            productTallaDisplay.textContent = selectedOption.dataset.talla || '-';
-            productColorDisplay.textContent = selectedOption.dataset.color || '-';
+        if (producto) {
+            codigoBarraDisplay.value = producto.codigo_barra || '';
+            productCategoriaDisplay.textContent = producto.categoria || '-';
+            productMarcaDisplay.textContent = producto.marca || '-';
+            productTallaDisplay.textContent = producto.talla || '-';
+            productColorDisplay.textContent = producto.color || '-';
 
-            const descripcion = selectedOption.dataset.descripcion?.trim();
-            productDescripcionDisplay.textContent = descripcion && descripcion.length > 0 ? descripcion : '-';
+            const descripcion = (producto.descripcion || '').trim();
+            productDescripcionDisplay.textContent = descripcion.length > 0 ? descripcion : '-';
 
-            const rawPrice = selectedOption.dataset.precio;
-            if (rawPrice !== undefined && rawPrice !== null && rawPrice !== '') {
-                const parsedPrice = Number(rawPrice);
+            if (producto.precio_venta != null && producto.precio_venta !== '') {
+                const parsedPrice = Number(producto.precio_venta);
                 productPrecioDisplay.textContent = Number.isFinite(parsedPrice)
                     ? formatCurrency(parsedPrice)
                     : '-';
             } else {
                 productPrecioDisplay.textContent = '-';
+            }
+
+            if (productoSearchInput && productoSearchInput.value.trim() === '') {
+                productoSearchInput.value = formatProductoLabel(producto);
             }
 
             productDetailsDisplay.style.display = 'block';
@@ -1250,6 +1466,75 @@ document.addEventListener('DOMContentLoaded', () => {
     categoriaFilter.addEventListener('change', applyFilters);
     stockFilter.addEventListener('change', applyFilters);
 
+    if (productoSearchInput) {
+        productoSearchInput.addEventListener('input', () => {
+            if (productoSelect) {
+                productoSelect.value = '';
+            }
+            updateProductDetails();
+            rebuildProductoSelectOptions();
+            openProductoDropdown();
+        });
+
+        productoSearchInput.addEventListener('focus', () => {
+            rebuildProductoSelectOptions(productoSelect ? productoSelect.value : '');
+            openProductoDropdown();
+        });
+
+        productoSearchInput.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                if (!productoDropdownItems.length) {
+                    rebuildProductoSelectOptions(productoSelect ? productoSelect.value : '');
+                }
+                const nextIndex = productoHighlightedIndex + 1 >= productoDropdownItems.length
+                    ? 0
+                    : productoHighlightedIndex + 1;
+                highlightProductoDropdownItem(nextIndex);
+                openProductoDropdown();
+            } else if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                if (!productoDropdownItems.length) {
+                    rebuildProductoSelectOptions(productoSelect ? productoSelect.value : '');
+                }
+                let nextIndex = productoHighlightedIndex - 1;
+                if (nextIndex < 0) {
+                    nextIndex = productoDropdownItems.length - 1;
+                }
+                highlightProductoDropdownItem(nextIndex);
+                openProductoDropdown();
+            } else if (event.key === 'Enter') {
+                if (!productoDropdownItems.length) {
+                    return;
+                }
+                event.preventDefault();
+                const index = productoHighlightedIndex >= 0 ? productoHighlightedIndex : 0;
+                const item = productoDropdownItems[index];
+                if (item && item.dataset.id) {
+                    const producto = findProductoById(item.dataset.id);
+                    if (producto) {
+                        selectProducto(producto);
+                    }
+                }
+            } else if (event.key === 'Escape') {
+                event.preventDefault();
+                closeProductoDropdown();
+            }
+        });
+
+        productoSearchInput.addEventListener('blur', () => {
+            setTimeout(() => closeProductoDropdown(), 150);
+        });
+    }
+
+    if (productoSelectContainer) {
+        document.addEventListener('click', (event) => {
+            if (!productoSelectContainer.contains(event.target)) {
+                closeProductoDropdown();
+            }
+        });
+    }
+
     // Botones principales
     registrarProductoBtn.addEventListener('click', openRegistrarProductoModal);
 
@@ -1278,8 +1563,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = new FormData(registrarProductoForm);
         const productoId = Number(formData.get('producto'));
         const almacenId = Number(formData.get('almacen'));
-        const stockMinimo = Number(formData.get('stockMinimo'));
-        const cantidadInicial = Number(formData.get('stockInicial'));
+        const stockMinimo = 0;
+        const cantidadInicial = 0;
         const referencia = (formData.get('referencia') || '').trim();
         const observaciones = (formData.get('observaciones') || '').trim();
 
@@ -1290,16 +1575,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!Number.isFinite(almacenId) || almacenId <= 0) {
             showNotification('Selecciona un almacén válido', 'error');
-            return;
-        }
-
-        if (!Number.isFinite(stockMinimo) || stockMinimo < 0) {
-            showNotification('Ingresa un stock mínimo válido', 'error');
-            return;
-        }
-
-        if (!Number.isFinite(cantidadInicial) || cantidadInicial < 0) {
-            showNotification('Ingresa una cantidad inicial válida', 'error');
             return;
         }
 

@@ -69,6 +69,26 @@
                     <p id="totalAlmacenes">0</p>
                 </div>
             </div>
+            <div class="summary-card summary-card--toggle" id="calzadosSummaryCard" data-category="CALZADO">
+                <div class="card-icon categoria-calzado">
+                    <i class="fas fa-shoe-prints"></i>
+                </div>
+                <div class="card-content category-metrics">
+                    <h3>Calzados Registrados</h3>
+                    <p id="calzadosProductosCount">0</p>
+                    <span class="category-subinfo">Stock total: <strong id="calzadosStockTotal">0</strong></span>
+                </div>
+            </div>
+            <div class="summary-card summary-card--toggle" id="accesoriosSummaryCard" data-category="ACCESORIO">
+                <div class="card-icon categoria-accesorio">
+                    <i class="fas fa-glasses"></i>
+                </div>
+                <div class="card-content category-metrics">
+                    <h3>Accesorios Registrados</h3>
+                    <p id="accesoriosProductosCount">0</p>
+                    <span class="category-subinfo">Stock total: <strong id="accesoriosStockTotal">0</strong></span>
+                </div>
+            </div>
         </div>
 
         <div class="action-bar">
@@ -157,9 +177,13 @@
                         Selección de Producto
                     </h4>
                     <div class="form-row">
-                        <div class="form-group">
-                            <label for="productoSelect">Producto *</label>
-                            <select id="productoSelect" name="producto" required>
+                        <div class="form-group full-width">
+                            <label for="productoSearchInput">Producto *</label>
+                            <div class="searchable-select" id="productoSelectContainer">
+                                <input type="text" id="productoSearchInput" placeholder="Escribe para buscar por nombre, código, talla o color" autocomplete="off">
+                                <ul class="searchable-options" id="productoSearchResults"></ul>
+                            </div>
+                            <select id="productoSelect" name="producto" required hidden>
                                 <option value="">Seleccionar producto</option>
                             </select>
                         </div>
@@ -211,31 +235,42 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="stockMinimoRegistro">Stock Mínimo *</label>
-                            <input type="number" id="stockMinimoRegistro" name="stockMinimo" min="0" required placeholder="Ej: 5">
+                            <label for="ubicacionFisica">Ubicación interna</label>
+                            <input type="text" id="ubicacionFisica" name="ubicacion" placeholder="Ej: Pasillo 3 - Estante A">
                         </div>
                     </div>
                 </div>
 
                 <div class="form-section">
+                    <div class="info-banner">
+                        <i class="fas fa-info-circle"></i>
+                        <p>El stock inicial y el stock mínimo se administran desde los movimientos de inventario. Registra el producto y luego crea un movimiento de entrada para actualizar las cantidades.</p>
+                    </div>
+                </div>
+
+                <div class="form-section">
                     <h4 class="section-title">
-                        <i class="fas fa-plus"></i>
-                        Stock Inicial
+                        <i class="fas fa-file-alt"></i>
+                        Información adicional
                     </h4>
                     <div class="form-row">
-                        <div class="form-group">
-                            <label for="stockInicial">Cantidad Inicial *</label>
-                            <input type="number" id="stockInicial" name="stockInicial" min="0" required placeholder="Ej: 10">
-                        </div>
                         <div class="form-group">
                             <label for="referenciaInicial">Documento de Referencia</label>
                             <input type="text" id="referenciaInicial" name="referencia" placeholder="Ej: INV-001, FAC-123">
                         </div>
+                        <div class="form-group">
+                            <label for="fechaIngreso">Fecha de Ingreso</label>
+                            <input type="date" id="fechaIngreso" name="fechaIngreso">
+                        </div>
                     </div>
                     <div class="form-row">
+                        <div class="form-group">
+                            <label for="numeroLote">N° de Lote / Serie</label>
+                            <input type="text" id="numeroLote" name="numeroLote" placeholder="Opcional">
+                        </div>
                         <div class="form-group full-width">
                             <label for="observacionesInicial">Observaciones</label>
-                            <textarea id="observacionesInicial" name="observaciones" rows="3" placeholder="Notas sobre el registro inicial del producto..."></textarea>
+                            <textarea id="observacionesInicial" name="observaciones" rows="3" placeholder="Notas internas sobre el registro..."></textarea>
                         </div>
                     </div>
                 </div>
