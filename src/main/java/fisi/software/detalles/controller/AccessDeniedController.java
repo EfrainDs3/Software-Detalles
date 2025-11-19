@@ -15,7 +15,7 @@ import jakarta.servlet.http.HttpSession;
 @Controller
 public class AccessDeniedController {
 
-    private static final String DEFAULT_MESSAGE = "No cuentas con permisos suficientes para acceder a este módulo.";
+    private static final String DEFAULT_MESSAGE = "No cuentas con los permisos suficientes para acceder al sistema.";
 
     @GetMapping("/acceso-denegado")
     public String mostrarAccesoDenegado(HttpServletRequest request, Model model) {

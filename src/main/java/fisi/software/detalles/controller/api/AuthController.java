@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.core.AuthenticationException;
 
 import java.security.Principal;
 import java.util.Locale;
@@ -152,9 +153,20 @@ public class AuthController {
 
             return ResponseEntity.ok(loginResp);
         } catch (IllegalArgumentException ex) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", ex.getMessage()));
+            final String message = ex.getMessage();
+            final String responseMessage = (message != null && !message.isBlank())
+                ? message
+                : "Usuario o contraseña incorrectos";
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", responseMessage));
+        } catch (AuthenticationException ex) {
+            final String message = ex.getMessage();
+            final String responseMessage = (message != null && !message.isBlank())
+                ? message
+                : "Usuario o contraseña incorrectos";
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", responseMessage));
         } catch (Exception ex) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Error interno"));
+            log.error("Unexpected error during login", ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Ocurrió un problema al iniciar sesión"));
         }
     }
 

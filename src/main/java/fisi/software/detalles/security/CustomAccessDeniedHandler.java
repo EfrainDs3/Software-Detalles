@@ -42,7 +42,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         }
 
         request.getSession(true)
-            .setAttribute(ACCESS_DENIED_MESSAGE_KEY, "No cuentas con los permisos suficientes para acceder a este módulo.");
+            .setAttribute(ACCESS_DENIED_MESSAGE_KEY, "No cuentas con los permisos suficientes para acceder al sistema.");
         response.sendRedirect(request.getContextPath() + "/acceso-denegado");
     }
 
