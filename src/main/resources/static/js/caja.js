@@ -518,4 +518,46 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchCajaStatus();
     fetchCajaHistory();
     fetchAndPopulateCajas();
+
+    // Cerrar Caja (nuevo código)
+    document.addEventListener('click', async (e) => {
+        const btnClose = e.target.closest('.btn-close');
+
+        if (btnClose) {
+            const idMovimiento = btnClose.getAttribute('data-id');
+
+            if (!idMovimiento) {
+                alert('No se encontró el ID del movimiento para cerrar la caja.');
+                return;
+            }
+
+            try {
+                const requestBody = {
+                    idApertura: idMovimiento,
+                    montoFinal: 0 // Puedes ajustar el monto final según sea necesario
+                };
+
+                const response = await fetch(`${API_BASE_URL}/cerrar`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody),
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Error al cerrar caja:', errorText);
+                    alert(`Error al cerrar caja: ${errorText}`);
+                    return;
+                }
+
+                alert('Caja cerrada exitosamente.');
+                await fetchCajaStatus();
+                await fetchCajaHistory();
+            } catch (error) {
+                console.error('Error de conexión:', error);
+                alert('Hubo un error de conexión al intentar cerrar la caja.');
+            }
+        }
+    });
 });

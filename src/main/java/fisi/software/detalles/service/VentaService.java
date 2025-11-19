@@ -18,6 +18,7 @@ import fisi.software.detalles.entity.Cliente;
 import fisi.software.detalles.entity.TipoComprobantePago;
 import fisi.software.detalles.entity.Producto;
 import fisi.software.detalles.entity.TipoDocumento; 
+import fisi.software.detalles.entity.AperturaCaja; // Nueva importación
 
 // Importaciones de Repositorios
 import fisi.software.detalles.repository.VentaRepository; 
@@ -26,6 +27,7 @@ import fisi.software.detalles.repository.UsuarioRepository;
 import fisi.software.detalles.repository.TipoComprobantePagoRepository;
 import fisi.software.detalles.repository.ProductoRepository;
 import fisi.software.detalles.repository.CajaRepository; // Nueva importación
+import fisi.software.detalles.repository.AperturaCajaRepository; // Nueva importación
 
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfPCell;
@@ -64,6 +66,9 @@ public class VentaService {
 
     @Autowired
     private CajaRepository cajaRepository; // Nueva inyección
+
+    @Autowired
+    private AperturaCajaRepository aperturaCajaRepository; // Nueva inyección
 
     // --- Definición de Fuentes para PDF ---
     private static final Font FONT_TITULO = new Font(Font.FontFamily.HELVETICA, 16, Font.BOLD, BaseColor.RED);
@@ -249,6 +254,14 @@ public class VentaService {
         Optional<Cliente> clienteGenericoOpt = clienteRepository.findById(idClienteGenerico);
         clienteGenericoOpt.ifPresent(venta::setCliente);
     }
+
+    // id_apertura (OBLIGATORIO)
+    if (ventaDTO.getId_apertura() == null) {
+        throw new IllegalArgumentException("La apertura de caja es obligatoria para registrar una venta.");
+    }
+    AperturaCaja aperturaCaja = aperturaCajaRepository.findById(ventaDTO.getId_apertura())
+        .orElseThrow(() -> new RuntimeException("Error FK: Apertura de caja no encontrada con ID: " + ventaDTO.getId_apertura() + ". Verifique tabla 'aperturascaja'."));
+    venta.setApertura(aperturaCaja);
 
     // --- 3. Mapear Detalles y establecer la relación ---
     if (ventaDTO.getDetalles() == null || ventaDTO.getDetalles().isEmpty()) {

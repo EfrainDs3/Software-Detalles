@@ -1,4 +1,4 @@
-    // ID de la venta (para edición)
+// ID de la venta (para edición)
    
 package fisi.software.detalles.controller.dto;
 
@@ -26,6 +26,7 @@ public class VentaRequestDTO {
     private String ruc;                 // Para Factura
     private String razon_social;        // Para Factura
     private Long id_tipopago;           // FK a tipospago
+    private Long id_apertura;            // FK a aperturas
     
     // --- Campos del Cliente (Temporal o FK) ---
     private String nombre_cliente_temp; // Usado para el registro inicial o la búsqueda.
@@ -82,6 +83,14 @@ public class VentaRequestDTO {
 
     public void setId_tipopago(Long id_tipopago) {
         this.id_tipopago = id_tipopago;
+    }
+
+    public Long getId_apertura() {
+        return id_apertura;
+    }
+
+    public void setId_apertura(Long id_apertura) {
+        this.id_apertura = id_apertura;
     }
 
     public String getNombre_cliente_temp() {

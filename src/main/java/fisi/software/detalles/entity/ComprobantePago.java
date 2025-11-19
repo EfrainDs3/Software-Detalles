@@ -57,6 +57,11 @@ public class ComprobantePago {
     @JoinColumn(name = "id_tipo_comprobante", nullable = false)
     private TipoComprobantePago tipoComprobante;
 
+    // Relación con AperturaCaja
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_apertura", nullable = false)
+    private AperturaCaja apertura;
+
     // -----------------------------------------------------------
     // ATRIBUTOS DE LA TABLA
     // -----------------------------------------------------------

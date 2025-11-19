@@ -134,38 +134,36 @@ public class CajaService {
         if (apertura.getCierre() != null) {
             throw new IllegalStateException("Esta apertura ya fue cerrada.");
         }
-        
+
         usuarioRepository.findById(idUsuario)
             .orElseThrow(() -> new EntityNotFoundException("Usuario que cierra (ID: " + idUsuario + ") no encontrado."));
-        
-        // --- LÓGICA DE NEGOCIO SIMPLIFICADA ---
-        BigDecimal montoVentasSimuladas = BigDecimal.valueOf(500.00); 
-        BigDecimal montoEsperado = apertura.getMontoInicial().add(montoVentasSimuladas);
-        // ----------------------------------------
+
+        // --- LÓGICA DE NEGOCIO: Calcular ventas reales ---
+        BigDecimal montoVentasRealizadas = aperturaRepository.findVentasByAperturaId(idApertura);
+        BigDecimal montoEsperado = apertura.getMontoInicial().add(montoVentasRealizadas);
 
         BigDecimal diferencia = montoFinal.subtract(montoEsperado);
-        
-        // 🛑 CORRECCIÓN: Obtenemos la caja de la apertura, no la caja principal fija.
-        Caja caja = apertura.getCaja(); 
+
+        // 🛑 Obtenemos la caja de la apertura
+        Caja caja = apertura.getCaja();
 
         // 3. Crear Cierre
         CierreCaja cierre = new CierreCaja();
         cierre.setApertura(apertura);
-        // Usamos el ID de la caja de la apertura
-        cierre.setIdCaja(caja.getIdCaja()); 
-        cierre.setIdUsuario(idUsuario); 
-        
+        cierre.setIdCaja(caja.getIdCaja());
+        cierre.setIdUsuario(idUsuario);
+
         cierre.setFechaCierre(LocalDate.now());
         cierre.setHoraCierre(LocalTime.now());
         cierre.setMontoFinal(montoFinal);
         cierre.setMontoEsperado(montoEsperado);
         cierre.setDiferencia(diferencia);
-        cierre.setObservaciones("Cierre de turno manual."); 
+        cierre.setObservaciones("Cierre de turno manual.");
 
         cierreRepository.save(cierre);
 
         // 4. Actualizar estado de Caja
-        caja.setEstado("Cerrada"); // Vuelve al estado de disponible
+        caja.setEstado("Cerrada");
         cajaRepository.save(caja);
     }
 
