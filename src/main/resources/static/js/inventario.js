@@ -34,27 +34,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeGestionTallasModal = document.getElementById('closeGestionTallasModal');
     const cerrarGestionTallasBtn = document.getElementById('cerrarGestionTallasBtn');
     const tallasContainer = document.getElementById('tallasContainer');
-    const agregarTallaBtn = document.getElementById('agregarTallaBtn');
     const tallaActionsSection = document.getElementById('tallaActionsSection');
     const selectedTalla = document.getElementById('selectedTalla');
     const ajustarTallaBtn = document.getElementById('ajustarTallaBtn');
     const transferirTallaBtn = document.getElementById('transferirTallaBtn');
     const eliminarTallaBtn = document.getElementById('eliminarTallaBtn');
-
-    if (agregarTallaBtn) {
-        agregarTallaBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            const inventarioId = document.getElementById('gestionTallasInventarioId').value;
-            console.log('Agregar Talla clicked, inventarioId:', inventarioId);
-            if (inventarioId) {
-                openAgregarTallasModal(inventarioId);
-            } else {
-                console.error('No se encontró el ID de inventario');
-                showNotification('Error: No se pudo identificar el producto. Por favor, cierre y vuelva a abrir la gestión de tallas.', 'error');
-            }
-        });
-    }
 
     // Referencias del modal de ajuste de talla
     const ajusteTallaModal = document.getElementById('ajusteTallaModal');
@@ -694,6 +678,12 @@ document.addEventListener('DOMContentLoaded', () => {
         pageData.forEach(item => {
             const status = getStockStatus(item.cantidad_stock, item.stock_minimo);
             const hasTallas = item.tiene_tallas === true || item.tieneTallas === true;
+            const tallasCellHtml = hasTallas
+                ? `<button class="btn btn-sm btn-outline-primary" onclick="gestionarTallas(${item.id_inventario})" title="Gestionar Tallas">
+                        <i class="fas fa-tags"></i>
+                        Ver Tallas
+                   </button>`
+                : `<span class="talla-indicator" title="Este producto no gestiona tallas">Sin tallas</span>`;
             const ajusteButtonHtml = hasTallas
                 ? `<button class="btn-icon edit disabled" type="button" title="Gestiona el stock por tallas" disabled>
                         <i class="fas fa-edit"></i>
@@ -713,12 +703,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </td>
                 <td>${item.categoria}</td>
                 <td>${item.nombre_almacen}</td>
-                <td class="text-center">
-                    <button class="btn btn-sm btn-outline-primary" onclick="gestionarTallas(${item.id_inventario})" title="Gestionar Tallas">
-                        <i class="fas fa-tags"></i>
-                        Ver Tallas
-                    </button>
-                </td>
+                <td class="text-center">${tallasCellHtml}</td>
                 <td class="text-center">
                     <span class="stock-quantity ${status}">${item.cantidad_stock}</span>
                 </td>
@@ -1415,7 +1400,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="no-tallas-message">
                     <i class="fas fa-tags" style="font-size: 24px; color: #ccc;"></i>
                     <p style="color: #999; margin: 10px 0;">No hay tallas registradas para este producto</p>
-                    <p style="color: #666; font-size: 14px;">Haz clic en "Agregar Talla" para comenzar</p>
+                    <p style="color: #666; font-size: 14px;">Registra las tallas desde el catálogo del producto</p>
                 </div>
             `;
             return;

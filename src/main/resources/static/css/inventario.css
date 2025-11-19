@@ -291,6 +291,17 @@
     border: 1px solid #f5c6cb;
 }
 
+.talla-indicator {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background-color: #f1f3f5;
+    color: #6c757d;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+}
+
 /* Text alignment utilities */
 .text-center { text-align: center; }
 .text-right { text-align: right; }
