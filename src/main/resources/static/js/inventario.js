@@ -241,6 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 talla: rawInventario.talla
             });
         const almacen = rawInventario.almacen || {};
+        const manejaTallas = rawInventario.tiene_tallas ?? rawInventario.tieneTallas ?? false;
 
         const idInventario = rawInventario.id_inventario ?? rawInventario.id ?? rawInventario.idInventario ?? null;
         const idProducto = rawInventario.id_producto ?? productoNormalizado?.id ?? null;
@@ -263,6 +264,8 @@ document.addEventListener('DOMContentLoaded', () => {
             talla: productoNormalizado?.talla ?? rawInventario.talla ?? '-',
             color: productoNormalizado?.color ?? rawInventario.color ?? '-',
             marca: productoNormalizado?.marca ?? rawInventario.marca ?? 'Sin marca',
+            tiene_tallas: manejaTallas === true,
+            tieneTallas: manejaTallas === true,
             fecha_ultima_actualizacion: fechaActualizacion
         };
     }
@@ -690,6 +693,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         pageData.forEach(item => {
             const status = getStockStatus(item.cantidad_stock, item.stock_minimo);
+            const hasTallas = item.tiene_tallas === true || item.tieneTallas === true;
+            const ajusteButtonHtml = hasTallas
+                ? `<button class="btn-icon edit disabled" type="button" title="Gestiona el stock por tallas" disabled>
+                        <i class="fas fa-edit"></i>
+                   </button>`
+                : `<button class="btn-icon edit" type="button" onclick="openAjusteModal(${item.id_inventario})" title="Ajustar Stock Total">
+                        <i class="fas fa-edit"></i>
+                   </button>`;
 
             const row = document.createElement('tr');
             row.innerHTML = `
@@ -718,10 +729,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td class="text-center">${formatDateTime(item.fecha_ultima_actualizacion)}</td>
                 <td>
                     <div class="action-buttons-cell">
-                        <button class="btn-icon edit" onclick="openAjusteModal(${item.id_inventario})"
-                                title="Ajustar Stock Total">
-                            <i class="fas fa-edit"></i>
-                        </button>
+                        ${ajusteButtonHtml}
                         <button class="btn-icon history" onclick="viewProductHistory(${item.id_producto})"
                                 title="Historial">
                             <i class="fas fa-history"></i>
@@ -931,8 +939,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Funciones del Modal de Ajuste ---
 
     function openAjusteModal(inventarioId) {
-        const item = inventarioData.find(inv => inv.id_inventario === inventarioId);
+        const item = inventarioData.find(inv => String(inv.id_inventario) === String(inventarioId));
         if (!item) return;
+
+        if (item.tiene_tallas === true || item.tieneTallas === true) {
+            showNotification('Este producto gestiona su stock por tallas. Ajusta las cantidades desde "Ver Tallas".', 'warning');
+            return;
+        }
 
         currentProductoAjuste = item;
 

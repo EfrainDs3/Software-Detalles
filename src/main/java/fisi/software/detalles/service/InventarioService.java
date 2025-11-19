@@ -86,6 +86,10 @@ public class InventarioService {
         Inventario inventario = inventarioRepository.findById(inventarioId)
             .orElseThrow(() -> new RuntimeException("Inventario no encontrado"));
 
+        if (inventarioTallaRepository.existsByInventario(inventario)) {
+            throw new RuntimeException("Este producto gestiona su stock por tallas. Realiza el ajuste desde la gestión de tallas.");
+        }
+
         TipoMovimientoInventario tipoMovimiento = tipoMovimientoRepository.findById(tipoMovimientoId)
             .orElseThrow(() -> new RuntimeException("Tipo de movimiento no encontrado"));
 
@@ -452,6 +456,7 @@ public class InventarioService {
         String marca = productoDto != null ? productoDto.marca() : obtenerMarcaProducto(producto);
         String talla = productoDto != null ? productoDto.talla() : obtenerTallaProducto(producto);
         String color = productoDto != null ? productoDto.color() : obtenerColorProducto(producto);
+        boolean tieneTallas = inventario.getId() != null && inventarioTallaRepository.existsByInventario(inventario);
 
         return new InventarioDetalleDto(
             inventario.getId(),
@@ -466,6 +471,7 @@ public class InventarioService {
             talla,
             color,
             marca,
+            tieneTallas,
             Optional.ofNullable(inventario.getFechaUltimaActualizacion()).orElse(LocalDateTime.now())
         );
     }
@@ -616,6 +622,7 @@ public class InventarioService {
         String talla,
         String color,
         String marca,
+        @JsonProperty("tiene_tallas") boolean tieneTallas,
         @JsonProperty("fecha_ultima_actualizacion") LocalDateTime fechaUltimaActualizacion
     ) {}
 

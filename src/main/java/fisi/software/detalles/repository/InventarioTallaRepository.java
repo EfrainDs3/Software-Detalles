@@ -45,4 +45,9 @@ public interface InventarioTallaRepository extends JpaRepository<InventarioTalla
      */
     @Query("SELECT COUNT(it) > 0 FROM InventarioTalla it WHERE it.inventario = :inventario AND it.cantidadStock > 0")
     boolean existsStockDisponible(@Param("inventario") Inventario inventario);
+
+    /**
+     * Verifica si existe al menos una talla asociada al inventario
+     */
+    boolean existsByInventario(Inventario inventario);
 }

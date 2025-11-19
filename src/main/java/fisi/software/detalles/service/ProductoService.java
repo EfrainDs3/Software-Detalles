@@ -190,8 +190,14 @@ public class ProductoService {
         producto.setCostoCompra(costoCompra);
 
         // Validar tallas según categoría
-        if (CollectionUtils.isEmpty(request.tallas())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debe registrar al menos una talla con precio de venta");
+        boolean sinTallas = CollectionUtils.isEmpty(request.tallas());
+        if (sinTallas) {
+            if (categoriaCodigo == CategoriaCodigo.CALZADO) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Los calzados deben registrar al menos una talla con precio de venta");
+            }
+            if (precioVenta == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El precio de venta es obligatorio cuando no se registran tallas");
+            }
         }
 
         actualizarTallas(producto, request.tallas());
