@@ -96,27 +96,14 @@ function renderRolesList() {
         const hasDescription = descriptionRaw.length > 0;
         const description = hasDescription ? descriptionRaw : 'Sin descripción';
         const descriptionClass = hasDescription ? 'role-description' : 'role-description role-description--empty';
-        const userCount = Number.isFinite(Number(r.totalUsuarios)) ? Number(r.totalUsuarios) : 0;
-        const usuariosLabel = `${userCount} ${userCount === 1 ? 'usuario' : 'usuarios'}`;
-        const isActive = r.estado === undefined ? true : Boolean(r.estado);
-        const statusText = isActive ? 'Activo' : 'Inactivo';
-        const statusClass = isActive ? 'is-active' : 'is-inactive';
-        const iconClass = isActive ? 'fa-user-shield' : 'fa-user-lock';
 
         const item = document.createElement('div');
         item.className = 'role-item';
         item.dataset.roleId = id;
         item.innerHTML = `
-            <div class="role-item-inner">
-                <div class="role-avatar"><i class="fas ${iconClass}"></i></div>
-                <div class="role-info">
-                    <div class="role-name">${escapeHtml(name)}</div>
-                    <div class="${descriptionClass}">${escapeHtml(description)}</div>
-                    <div class="role-meta">
-                        <span class="role-tag"><i class="fas fa-users"></i> ${escapeHtml(usuariosLabel)}</span>
-                        <span class="role-status ${statusClass}">${statusText}</span>
-                    </div>
-                </div>
+            <div class="role-item-content">
+                <span class="role-name">${escapeHtml(name)}</span>
+                <span class="${descriptionClass}">${escapeHtml(description)}</span>
             </div>
         `;
         item.addEventListener('click', () => onRoleSelected(Number(id), name));
@@ -278,11 +265,13 @@ function buildCatalogFromPermissions(permisos) {
         if (!raw) return acc;
         const normalized = normalizePermission(raw);
         if (!normalized || normalized.id == null) return acc;
-        const moduleUpper = normalized.module.toUpperCase();
-        if (moduleUpper === 'AUDITORÍA' || moduleUpper === 'AUDITORIA') {
+        const resolvedModule = resolveCatalogModule(normalized);
+        const moduleUpper = normalizeForMatch(resolvedModule);
+        if (moduleUpper === 'AUDITORIA') {
             return acc;
         }
-        const module = normalized.module;
+        const module = resolvedModule;
+        normalized.module = module;
         if (!acc[module]) acc[module] = [];
         acc[module].push(normalized);
         return acc;
@@ -311,11 +300,63 @@ function normalizePermission(raw) {
     return {
         id,
         module,
+        originalModule: module,
         name,
         code,
         description,
         raw
     };
+}
+
+function resolveCatalogModule(permission) {
+    const original = permission?.originalModule ?? permission?.module ?? '';
+    const normalized = normalizeForMatch(original);
+
+    if (!normalized) {
+        return 'GENERAL';
+    }
+
+    if (normalized === 'PRODUCTOS') {
+        const hints = [
+            permission?.raw?.subModulo,
+            permission?.raw?.submodulo,
+            permission?.raw?.subModuloNombre,
+            permission?.raw?.categoria,
+            permission?.name,
+            permission?.code,
+            permission?.description
+        ];
+        const hintText = hints
+            .filter(Boolean)
+            .map(value => normalizeForMatch(value))
+            .join(' ');
+
+        if (/\bCALZAD/.test(hintText)) {
+            return 'Calzados';
+        }
+        if (/\bACCESOR/.test(hintText)) {
+            return 'Accesorios';
+        }
+        if (/\bCATALOG/.test(hintText)) {
+            return 'Catálogos';
+        }
+
+        return 'Productos';
+    }
+
+    if (normalized === 'CALZADO' || normalized === 'CALZADOS' || normalized === 'PRODUCTOS CALZADOS') {
+        return 'Calzados';
+    }
+
+    if (normalized === 'ACCESORIO' || normalized === 'ACCESORIOS' || normalized === 'PRODUCTOS ACCESORIOS') {
+        return 'Accesorios';
+    }
+
+    if (normalized === 'CATALOGO' || normalized === 'CATALOGOS' || normalized === 'CATALOGOS MAESTROS') {
+        return 'Catálogos';
+    }
+
+    return permission?.module ?? 'GENERAL';
 }
 
 function createModuleHeader(moduleName, count) {
@@ -337,24 +378,42 @@ function createGroupModules(modules) {
     wrapper.className = 'catalog-module-body catalog-module-body--matrix';
 
     modules.forEach(module => {
+        const moduleKey = module.normalizedKey || normalizeKey(module.name);
         const block = document.createElement('div');
         block.className = 'matrix-module-block';
+        block.dataset.moduleKey = moduleKey;
 
         const heading = document.createElement('div');
         heading.className = 'matrix-module-heading';
         const title = document.createElement('h5');
         title.className = 'matrix-module-title';
         title.textContent = module.name;
+        const headingActions = document.createElement('div');
+        headingActions.className = 'matrix-module-heading-actions';
         const counter = document.createElement('span');
         counter.className = 'matrix-module-count';
         counter.textContent = `${module.permissions.length} ${module.permissions.length === 1 ? 'permiso' : 'permisos'}`;
+
+        const toggleLabel = document.createElement('label');
+        toggleLabel.className = 'matrix-module-mass-toggle';
+        const toggleInput = document.createElement('input');
+        toggleInput.type = 'checkbox';
+        toggleInput.setAttribute('aria-label', `Seleccionar todos los permisos de ${module.name}`);
+        toggleInput.checked = module.permissions.every(permission => panelState.selectedIds.has(String(permission.id)));
+        toggleLabel.appendChild(toggleInput);
+        toggleInput.addEventListener('change', () => {
+            toggleModulePermissions(moduleKey, module.permissions, toggleInput.checked);
+        });
+
+        headingActions.appendChild(counter);
+        headingActions.appendChild(toggleLabel);
         heading.appendChild(title);
-        heading.appendChild(counter);
+        heading.appendChild(headingActions);
 
         block.appendChild(heading);
 
         module.permissions.forEach(permission => {
-            block.appendChild(createPermissionCard(permission));
+            block.appendChild(createPermissionCard(permission, moduleKey));
         });
 
         wrapper.appendChild(block);
@@ -363,11 +422,12 @@ function createGroupModules(modules) {
     return wrapper;
 }
 
-function createPermissionCard(permission) {
+function createPermissionCard(permission, moduleKey) {
     const isSelected = panelState.selectedIds.has(String(permission.id));
     const card = document.createElement('label');
     card.className = `catalog-permission catalog-permission--matrix ${isSelected ? 'is-selected' : ''}`;
     card.htmlFor = `perm_cb_${permission.id}`;
+    card.dataset.moduleKey = moduleKey || permission.groupKey || normalizeKey(permission.module);
 
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
@@ -384,6 +444,7 @@ function createPermissionCard(permission) {
             card.classList.remove('is-selected');
         }
         updateCounters();
+        syncModuleToggleState(card.dataset.moduleKey);
     });
 
     const info = document.createElement('div');
@@ -445,12 +506,19 @@ function buildPermissionGroups(search) {
 
         config.modules.forEach(key => {
             const normalizedKey = normalizeKey(key);
-            const entry = entries.find(item => item.normalized === normalizedKey && !used.has(item.name));
+            const entry = entries.find(item => moduleMatchesConfig(item.normalized, normalizedKey) && !used.has(item.name));
             if (!entry || seen.has(entry.normalized)) return;
 
             const filtered = filterPermissions(entry.permissions);
             if (filtered.length) {
-                modules.push({ name: entry.name, permissions: filtered });
+                modules.push({
+                    name: entry.name,
+                    permissions: filtered.map(permission => ({
+                        ...permission,
+                        groupKey: entry.normalized
+                    })),
+                    normalizedKey: entry.normalized
+                });
             }
             used.add(entry.name);
             seen.add(entry.normalized);
@@ -468,7 +536,11 @@ function buildPermissionGroups(search) {
         .filter(entry => !used.has(entry.name))
         .map(entry => ({
             name: entry.name,
-            permissions: filterPermissions(entry.permissions)
+            permissions: filterPermissions(entry.permissions).map(permission => ({
+                ...permission,
+                groupKey: entry.normalized
+            })),
+            normalizedKey: entry.normalized
         }))
         .filter(module => module.permissions.length);
 
@@ -486,6 +558,63 @@ function normalizeKey(value) {
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '')
         .toUpperCase();
+}
+
+function normalizeForMatch(value) {
+    if (value == null) return '';
+    return String(value)
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toUpperCase();
+}
+
+function moduleMatchesConfig(entryKey, configKey) {
+    if (entryKey === configKey) {
+        return true;
+    }
+    if (!entryKey || !configKey) {
+        return false;
+    }
+    if (entryKey.includes(configKey) || configKey.includes(entryKey)) {
+        return true;
+    }
+    return false;
+}
+
+function toggleModulePermissions(moduleKey, permissions, shouldSelect) {
+    permissions.forEach(permission => {
+        const id = String(permission.id);
+        const checkbox = document.getElementById(`perm_cb_${id}`);
+        if (!checkbox) return;
+        if (shouldSelect) {
+            if (!panelState.selectedIds.has(id)) {
+                panelState.selectedIds.add(id);
+            }
+            checkbox.checked = true;
+            checkbox.closest('label')?.classList.add('is-selected');
+        } else {
+            panelState.selectedIds.delete(id);
+            checkbox.checked = false;
+            checkbox.closest('label')?.classList.remove('is-selected');
+        }
+    });
+    updateCounters();
+    syncModuleToggleState(moduleKey);
+}
+
+function syncModuleToggleState(moduleKey) {
+    if (!moduleKey) return;
+    const block = document.querySelector(`.matrix-module-block[data-module-key="${moduleKey}"]`);
+    if (!block) return;
+    const checkboxes = Array.from(block.querySelectorAll('input[type="checkbox"]'))
+        .filter(element => element.id && element.id.startsWith('perm_cb_'));
+    const toggleInput = block.querySelector('.matrix-module-mass-toggle input[type="checkbox"]');
+    if (!toggleInput) return;
+    if (!checkboxes.length) {
+        toggleInput.checked = false;
+        return;
+    }
+    toggleInput.checked = checkboxes.every(input => input.checked);
 }
 
 })();

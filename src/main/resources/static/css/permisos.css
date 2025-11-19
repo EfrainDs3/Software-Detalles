@@ -158,12 +158,7 @@ a {
 }
 
 .roles-panel::after {
-  content: "";
-  position: absolute;
-  inset: 18px;
-  border-radius: var(--radius-md);
-  border: 1px dashed rgba(125, 0, 0, 0.08);
-  pointer-events: none;
+  display: none;
 }
 
 .roles-header {
@@ -240,65 +235,28 @@ a {
   border-radius: 999px;
 }
 
-.role-card,
+
 .role-item {
-  background: var(--surface-muted);
-  border: 1px solid transparent;
+  background: var(--surface);
+  border: 1px solid rgba(47, 50, 64, 0.08);
   border-radius: var(--radius-sm);
-  padding: 12px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  padding: 12px 16px;
   cursor: pointer;
   transition: border var(--transition), background var(--transition), transform var(--transition);
 }
 
-.role-card:hover,
 .role-item:hover {
-  border-color: rgba(179, 0, 0, 0.2);
+  border-color: rgba(179, 0, 0, 0.3);
   transform: translateY(-1px);
 }
 
-.role-card.is-active,
 .role-item.is-active {
+  border-color: rgba(179, 0, 0, 0.55);
   background: rgba(179, 0, 0, 0.08);
-  border-color: var(--primary);
-  box-shadow: 0 12px 24px rgba(179, 0, 0, 0.12);
+  transform: none;
 }
 
-.role-card span,
-.role-item span {
-  font-weight: 600;
-  font-size: 0.98rem;
-  color: var(--text);
-}
-
-.role-card small,
-.role-item small {
-  color: var(--text-muted);
-  font-size: 0.82rem;
-}
-
-.role-item-inner {
-  display: flex;
-  gap: 14px;
-  align-items: flex-start;
-}
-
-.role-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  background: rgba(179, 0, 0, 0.12);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--primary);
-  font-size: 1.1rem;
-  flex-shrink: 0;
-}
-
-.role-info {
+.role-item-content {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -306,13 +264,13 @@ a {
 
 .role-name {
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 0.98rem;
   color: var(--text);
 }
 
 .role-description {
+  font-size: 0.84rem;
   color: var(--text-muted);
-  font-size: 0.86rem;
 }
 
 .role-description--empty {
@@ -940,17 +898,17 @@ a {
 }
 
 .catalog-module-body--matrix {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
 }
 
 .matrix-module-block {
-  border: 1px solid rgba(47, 50, 64, 0.08);
+  border: 1px solid rgba(47, 50, 64, 0.1);
   border-radius: var(--radius-sm);
   padding: 18px 20px;
   background: var(--surface);
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -959,7 +917,7 @@ a {
 .matrix-module-heading {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
 }
 
@@ -979,6 +937,27 @@ a {
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+
+.matrix-module-heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.matrix-module-mass-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  cursor: pointer;
+  user-select: none;
+  padding: 2px;
+}
+
+.matrix-module-mass-toggle input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
 }
 
 .catalog-permission {
@@ -1001,16 +980,19 @@ a {
 
 .catalog-permission--matrix {
   position: relative;
-  padding: 18px 20px 18px 60px;
-  border: 1px solid rgba(47, 50, 64, 0.06);
-  background: #fbfcff;
-  align-items: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border: 1px solid rgba(179, 0, 0, 0.35);
+  background: rgba(179, 0, 0, 0.06);
+  border-radius: var(--radius-sm);
   cursor: pointer;
+  box-shadow: none;
 }
 
 .catalog-permission--matrix:hover {
-  border-color: rgba(179, 0, 0, 0.28);
-  box-shadow: 0 14px 26px rgba(179, 0, 0, 0.12);
+  border-color: rgba(179, 0, 0, 0.45);
 }
 
 .catalog-permission--matrix:focus-within {
@@ -1019,43 +1001,47 @@ a {
 }
 
 .catalog-permission--matrix input[type="checkbox"] {
-  position: absolute;
-  left: 24px;
-  top: 22px;
+  position: static;
+  margin: 0;
   width: 18px;
   height: 18px;
   accent-color: var(--primary);
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .catalog-permission--matrix .catalog-permission-info {
-  gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .catalog-permission--matrix .catalog-permission-heading {
-  justify-content: space-between;
+  display: block;
 }
 
 .catalog-permission--matrix .catalog-permission-heading h5 {
-  font-size: 1.02rem;
+  margin: 0;
+  font-size: 0.95rem;
   font-weight: 700;
 }
 
 .catalog-permission--matrix .catalog-permission-code {
-  background: rgba(47, 50, 64, 0.1);
-  color: var(--text-muted);
-  font-weight: 600;
+  display: none;
 }
 
 .catalog-permission--matrix .catalog-permission-description {
-  font-size: 0.88rem;
-  color: rgba(47, 50, 64, 0.7);
+  display: none;
 }
 
 .catalog-permission--matrix.is-selected {
-  border-color: var(--primary);
-  background: rgba(179, 0, 0, 0.08);
-  box-shadow: 0 18px 34px rgba(179, 0, 0, 0.18);
+  border-color: rgba(179, 0, 0, 0.6);
+  background: rgba(179, 0, 0, 0.12);
+}
+
+.catalog-permission--matrix .catalog-permission-badges,
+.catalog-permission--matrix .catalog-permission-actions {
+  display: none;
 }
 
 .catalog-permission-info {
