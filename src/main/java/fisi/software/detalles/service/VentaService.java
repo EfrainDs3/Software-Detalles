@@ -25,6 +25,7 @@ import fisi.software.detalles.repository.ClienteRepository;
 import fisi.software.detalles.repository.UsuarioRepository; 
 import fisi.software.detalles.repository.TipoComprobantePagoRepository;
 import fisi.software.detalles.repository.ProductoRepository;
+import fisi.software.detalles.repository.CajaRepository; // Nueva importación
 
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfPCell;
@@ -61,6 +62,9 @@ public class VentaService {
     @Autowired
     private ClienteRepository clienteRepository; 
 
+    @Autowired
+    private CajaRepository cajaRepository; // Nueva inyección
+
     // --- Definición de Fuentes para PDF ---
     private static final Font FONT_TITULO = new Font(Font.FontFamily.HELVETICA, 16, Font.BOLD, BaseColor.RED);
     private static final Font FONT_NORMAL_BOLD = new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD);
@@ -96,8 +100,18 @@ public class VentaService {
     // MÉTODO 1: REGISTRAR NUEVA VENTA
     // ======================================================================
 
+    // Método para verificar si la caja está abierta
+    private boolean isCajaAbierta() {
+        return !cajaRepository.findByEstado("Abierta").isEmpty();
+    }
+
+    @Transactional
     public Map<String, Object> registrarNuevaVenta(VentaRequestDTO ventaDTO) {
-        
+        // Verificar si la caja está abierta
+        if (!isCajaAbierta()) {
+            throw new IllegalStateException("No se pueden realizar ventas porque la caja está cerrada.");
+        }
+
         ComprobantePago nuevaVenta = convertDtoToEntity(ventaDTO);
         
         // 💾 GUARDAR EN BASE DE DATOS
