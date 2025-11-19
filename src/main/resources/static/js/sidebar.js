@@ -53,11 +53,17 @@ function getStoredAuthorities() {
     const rawModulos = localStorage.getItem('usuarioModulos');
     const permisos = parseAuthoritiesRaw(rawPermisos);
     const modulos = parseAuthoritiesRaw(rawModulos);
-    const combined = [...permisos, ...modulos]
-        .map(value => (value || '').toString().toUpperCase())
-        .filter(value => value.length > 0);
     return {
-        authorities: new Set(combined),
+        permissions: new Set(
+            permisos
+                .map(value => (value || '').toString().toUpperCase())
+                .filter(value => value.length > 0)
+        ),
+        modules: new Set(
+            modulos
+                .map(value => (value || '').toString().toUpperCase())
+                .filter(value => value.length > 0)
+        ),
         hasData: rawPermisos !== null || rawModulos !== null
     };
 }
@@ -74,27 +80,66 @@ function getElementAuthorities(element) {
 }
 
 function filterSidebarByAuthorities(root) {
-    const { authorities, hasData } = getStoredAuthorities();
+    const { permissions, modules, hasData } = getStoredAuthorities();
     if (!hasData) {
         return;
     }
 
+    const hasModuleData = modules.size > 0;
+    const hasPermissionData = permissions.size > 0;
+
     const items = Array.from(root.querySelectorAll('[data-authorities]'));
     items.forEach(element => {
+        const removeEntry = () => {
+            const listItem = element.closest('li');
+            if (listItem) {
+                listItem.remove();
+            } else {
+                element.remove();
+            }
+        };
+
+        if (hasModuleData) {
+            const moduleAttr = element.getAttribute('data-module');
+            if (moduleAttr) {
+                const moduleCode = moduleAttr.trim().toUpperCase();
+                if (!modules.has(moduleCode)) {
+                    removeEntry();
+                    return;
+                }
+            }
+
+            const moduleGroupAttr = element.getAttribute('data-module-group');
+            if (moduleGroupAttr) {
+                const groupCodes = moduleGroupAttr.split(',')
+                    .map(code => code.trim().toUpperCase())
+                    .filter(code => code.length > 0);
+                if (!groupCodes.some(code => modules.has(code))) {
+                    removeEntry();
+                    return;
+                }
+            }
+        }
+
         const required = getElementAuthorities(element);
         if (!required.length) {
             return;
         }
-        const hasAuthority = required.some(authority => authorities.has(authority));
-        if (hasAuthority) {
-            return;
-        }
 
-        const listItem = element.closest('li');
-        if (listItem) {
-            listItem.remove();
-        } else {
-            element.remove();
+        const moduleTokens = required.filter(token => token.startsWith('MODULO_'));
+        const permissionTokens = required.filter(token => !token.startsWith('MODULO_'));
+
+        const moduleAllowed = !moduleTokens.length || (
+            hasModuleData && moduleTokens.some(token => modules.has(token))
+        );
+
+        const permissionAllowed = !permissionTokens.length || (
+            hasPermissionData && permissionTokens.some(token => permissions.has(token))
+        );
+
+        const shouldKeep = moduleAllowed && permissionAllowed;
+        if (!shouldKeep) {
+            removeEntry();
         }
     });
 
@@ -270,111 +315,111 @@ function getFallbackSidebar() {
         <nav class="sidebar">
             <h1>DETALLES</h1>
             <ul class="nav-menu">
-                <li><a href="/dashboard" data-page="dashboard" data-authorities="ACCEDER_AL_DASHBOARD,MODULO_DASHBOARD">
+                <li><a href="/dashboard" data-page="dashboard" data-module="MODULO_DASHBOARD" data-authorities="ACCEDER_AL_DASHBOARD,MODULO_DASHBOARD">
                     <i class="fas fa-tachometer-alt"></i>
                     Dashboard
                 </a></li>
-                <li><a href="#" data-page="seguridad" class="has-submenu" data-authorities="MODULO_USUARIOS,MODULO_ROLES,MODULO_PERMISOS,GESTIONAR_USUARIOS,GESTIONAR_ROLES,GESTIONAR_PERMISOS,VER_USUARIOS,VER_ROLES,VER_PERMISOS">
+                <li><a href="#" data-page="seguridad" class="has-submenu" data-module-group="MODULO_USUARIOS,MODULO_ROLES,MODULO_PERMISOS" data-authorities="MODULO_USUARIOS,MODULO_ROLES,MODULO_PERMISOS,GESTIONAR_USUARIOS,GESTIONAR_ROLES,GESTIONAR_PERMISOS,VER_USUARIOS,VER_ROLES,VER_PERMISOS">
                     <i class="fas fa-lock"></i>
                     Seguridad
                     <i class="fas fa-chevron-down submenu-arrow"></i>
                 </a>
                     <ul class="submenu">
-                        <li><a href="/usuarios" data-page="usuarios" data-authorities="GESTIONAR_USUARIOS,VER_USUARIOS,MODULO_USUARIOS">
+                        <li><a href="/usuarios" data-page="usuarios" data-module="MODULO_USUARIOS" data-authorities="GESTIONAR_USUARIOS,VER_USUARIOS,MODULO_USUARIOS">
                             <i class="fas fa-users"></i>
                             Usuarios
                         </a></li>
-                        <li><a href="/roles" data-page="roles" data-authorities="GESTIONAR_ROLES,VER_ROLES,MODULO_ROLES">
+                        <li><a href="/roles" data-page="roles" data-module="MODULO_ROLES" data-authorities="GESTIONAR_ROLES,VER_ROLES,MODULO_ROLES">
                             <i class="fas fa-user-shield"></i>
                             Roles
                         </a></li>
-                        <li><a href="/permisos" data-page="permisos" data-authorities="GESTIONAR_PERMISOS,VER_PERMISOS,MODULO_PERMISOS">
+                        <li><a href="/permisos" data-page="permisos" data-module="MODULO_PERMISOS" data-authorities="GESTIONAR_PERMISOS,VER_PERMISOS,MODULO_PERMISOS">
                             <i class="fas fa-shield-alt"></i>
                             Permisos
                         </a></li>
                     </ul>
                 </li>
-                <li><a href="#" data-page="productos" class="has-submenu" data-authorities="GESTIONAR_INVENTARIO,VER_CALZADOS,VER_ACCESORIOS,VER_CATALOGOS_MAESTROS,MODULO_PRODUCTOS,MODULO_INVENTARIO,MODULO_CATALOGOS">
+                <li><a href="#" data-page="productos" class="has-submenu" data-module-group="MODULO_PRODUCTOS,MODULO_INVENTARIO,MODULO_CATALOGOS" data-authorities="GESTIONAR_INVENTARIO,VER_CALZADOS,VER_ACCESORIOS,VER_CATALOGOS_MAESTROS,MODULO_PRODUCTOS,MODULO_INVENTARIO,MODULO_CATALOGOS">
                     <i class="fas fa-box"></i>
                     Productos
                     <i class="fas fa-chevron-down submenu-arrow"></i>
                 </a>
                     <ul class="submenu">
-                        <li><a href="/productos/calzados" data-page="calzado" data-authorities="GESTIONAR_INVENTARIO,VER_CALZADOS,MODULO_PRODUCTOS,MODULO_INVENTARIO">
+                        <li><a href="/productos/calzados" data-page="calzado" data-module="MODULO_PRODUCTOS" data-authorities="GESTIONAR_INVENTARIO,VER_CALZADOS,MODULO_PRODUCTOS,MODULO_INVENTARIO">
                             <i class="fas fa-shoe-prints"></i>
                             Calzado
                         </a></li>
-                        <li><a href="/productos/accesorios" data-page="accesorios" data-authorities="GESTIONAR_INVENTARIO,VER_ACCESORIOS,MODULO_PRODUCTOS,MODULO_INVENTARIO">
+                        <li><a href="/productos/accesorios" data-page="accesorios" data-module="MODULO_PRODUCTOS" data-authorities="GESTIONAR_INVENTARIO,VER_ACCESORIOS,MODULO_PRODUCTOS,MODULO_INVENTARIO">
                             <i class="fas fa-glasses"></i>
                             Accesorios
                         </a></li>
-                        <li><a href="/productos/catalogos" data-page="catalogo" data-authorities="GESTIONAR_INVENTARIO,VER_CATALOGOS_MAESTROS,MODULO_CATALOGOS,MODULO_PRODUCTOS">
+                        <li><a href="/productos/catalogos" data-page="catalogo" data-module="MODULO_CATALOGOS" data-authorities="GESTIONAR_INVENTARIO,VER_CATALOGOS_MAESTROS,MODULO_CATALOGOS,MODULO_PRODUCTOS">
                             <i class="fas fa-glasses"></i>
                             Catalogo
                         </a></li>
                     </ul>
                 </li>
-                <li><a href="/clientes" data-page="clientes" data-authorities="GESTIONAR_CLIENTES,VER_CLIENTES,MODULO_CLIENTES">
+                <li><a href="/clientes" data-page="clientes" data-module="MODULO_CLIENTES" data-authorities="GESTIONAR_CLIENTES,VER_CLIENTES,MODULO_CLIENTES">
                     <i class="fas fa-user-friends"></i>
                     Clientes
                 </a></li>
-                <li><a href="#" data-page="ventas" class="has-submenu" data-authorities="REGISTRAR_VENTAS,VER_VENTAS,VER_ESTADO_DE_CAJA,MODULO_VENTAS,MODULO_CAJA">
+                <li><a href="#" data-page="ventas" class="has-submenu" data-module-group="MODULO_VENTAS,MODULO_CAJA" data-authorities="REGISTRAR_VENTAS,VER_VENTAS,VER_ESTADO_DE_CAJA,MODULO_VENTAS,MODULO_CAJA">
                     <i class="fas fa-shopping-cart"></i>
                     Ventas
                     <i class="fas fa-chevron-down submenu-arrow"></i>
                 </a>
                     <ul class="submenu">
                         <li>
-                            <a href="/ventas" data-page="gestion-ventas" data-authorities="REGISTRAR_VENTAS,VER_VENTAS,MODULO_VENTAS">
+                            <a href="/ventas" data-page="gestion-ventas" data-module="MODULO_VENTAS" data-authorities="REGISTRAR_VENTAS,VER_VENTAS,MODULO_VENTAS">
                                 <i class="fas fa-receipt"></i>
                                 Gestión de Ventas
                             </a>
                         </li>
                         <li>
-                            <a href="/ventas/caja" data-page="caja" data-authorities="REGISTRAR_VENTAS,VER_ESTADO_DE_CAJA,MODULO_CAJA,MODULO_VENTAS">
+                            <a href="/ventas/caja" data-page="caja" data-module="MODULO_CAJA" data-authorities="REGISTRAR_VENTAS,VER_ESTADO_DE_CAJA,MODULO_CAJA,MODULO_VENTAS">
                                 <i class="fas fa-cash-register"></i>
                                 Caja
                             </a>
                         </li>
                     </ul>
                 </li>
-                <li><a href="#" data-page="compras" class="has-submenu" data-authorities="GESTIONAR_COMPRAS,VER_COMPRAS,VER_PROVEEDORES,MODULO_COMPRAS,MODULO_PROVEEDORES">
+                <li><a href="#" data-page="compras" class="has-submenu" data-module-group="MODULO_COMPRAS,MODULO_PROVEEDORES" data-authorities="GESTIONAR_COMPRAS,VER_COMPRAS,VER_PROVEEDORES,MODULO_COMPRAS,MODULO_PROVEEDORES">
                     <i class="fas fa-truck"></i>
                     Compras
                     <i class="fas fa-chevron-down submenu-arrow"></i>
                 </a>
                     <ul class="submenu">
                         <li>
-                            <a href="/compras" data-page="gestion-compras" data-authorities="GESTIONAR_COMPRAS,VER_COMPRAS,MODULO_COMPRAS">
+                            <a href="/compras" data-page="gestion-compras" data-module="MODULO_COMPRAS" data-authorities="GESTIONAR_COMPRAS,VER_COMPRAS,MODULO_COMPRAS">
                                 <i class="fas fa-file-invoice-dollar"></i>
                                 Gestión de Compras
                             </a>
                         </li>
                         <li>
-                            <a href="/compras/proveedores" data-page="proveedores" data-authorities="GESTIONAR_COMPRAS,VER_PROVEEDORES,MODULO_PROVEEDORES,MODULO_COMPRAS">
+                            <a href="/compras/proveedores" data-page="proveedores" data-module="MODULO_PROVEEDORES" data-authorities="GESTIONAR_COMPRAS,VER_PROVEEDORES,MODULO_PROVEEDORES,MODULO_COMPRAS">
                                 <i class="fas fa-industry"></i>
                                 Proveedores
                             </a>
                         </li>
                     </ul>
                 </li>
-                <li><a href="#" data-page="inventario" class="has-submenu" data-authorities="GESTIONAR_INVENTARIO,VER_INVENTARIO,VER_ALMACENES,MODULO_INVENTARIO,MODULO_ALMACENES">
+                <li><a href="#" data-page="inventario" class="has-submenu" data-module-group="MODULO_INVENTARIO,MODULO_ALMACENES" data-authorities="GESTIONAR_INVENTARIO,VER_INVENTARIO,VER_ALMACENES,MODULO_INVENTARIO,MODULO_ALMACENES">
                     <i class="fas fa-warehouse"></i>
                     Inventario
                     <i class="fas fa-chevron-down submenu-arrow"></i>
                 </a>
                     <ul class="submenu">
-                        <li><a href="/inventario" data-page="gestion-inventario" data-authorities="GESTIONAR_INVENTARIO,VER_INVENTARIO,MODULO_INVENTARIO">
+                        <li><a href="/inventario" data-page="gestion-inventario" data-module="MODULO_INVENTARIO" data-authorities="GESTIONAR_INVENTARIO,VER_INVENTARIO,MODULO_INVENTARIO">
                             <i class="fas fa-boxes"></i>
                             Gestión Inventario
                         </a></li>
-                        <li><a href="/almacenes" data-page="almacenes" data-authorities="GESTIONAR_INVENTARIO,VER_ALMACENES,MODULO_ALMACENES,MODULO_INVENTARIO">
+                        <li><a href="/almacenes" data-page="almacenes" data-module="MODULO_ALMACENES" data-authorities="GESTIONAR_INVENTARIO,VER_ALMACENES,MODULO_ALMACENES,MODULO_INVENTARIO">
                             <i class="fas fa-warehouse"></i>
                             Almacenes
                         </a></li>
                     </ul>
                 </li>
-                <li><a href="#" data-page="reportes" data-authorities="VER_REPORTES,GENERAR_REPORTES,MODULO_REPORTES">
+                <li><a href="#" data-page="reportes" data-module="MODULO_REPORTES" data-authorities="VER_REPORTES,GENERAR_REPORTES,MODULO_REPORTES">
                     <i class="fas fa-chart-bar"></i>
                     Reportes
                 </a></li>

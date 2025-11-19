@@ -236,6 +236,25 @@ body {
     margin: 0;
 }
 
+.empty-modules-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 48px 24px;
+    border-radius: 18px;
+    background: #fef2f2;
+    border: 1px dashed rgba(217, 48, 37, 0.4);
+    color: #b91c1c;
+    font-weight: 600;
+    text-align: center;
+}
+
+.empty-modules-placeholder i {
+    font-size: 42px;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .sidebar {

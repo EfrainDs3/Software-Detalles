@@ -80,27 +80,37 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // normalize values to strings
         const modSet = new Set(modulos.map(m => String(m).toUpperCase()));
+        const treatEmptySetAsAll = modSet.size === 0; // fallback in case backend no envía módulos
+
+        const grid = document.querySelector('.cards-grid');
+        let visibleCount = 0;
 
         document.querySelectorAll('.card-link').forEach(link => {
             const modulo = (link.getAttribute('data-modulo') || '').toUpperCase();
             const card = link.querySelector('.card');
 
-            const allowed = modulo && modSet.has(modulo);
+            const allowed = treatEmptySetAsAll || (modulo && modSet.has(modulo));
 
             if (allowed) {
                 if (card) card.classList.add('allowed');
+                link.classList.remove('unauthorized');
+                visibleCount += 1;
             } else {
-                // mark unauthorized visually
-                if (card) card.classList.add('unauthorized');
-                link.classList.add('unauthorized');
-
-                // intercept clicks to show friendly message
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    showMessage('No tiene permisos disponibles para este módulo', 'error');
-                });
+                if (card) card.classList.remove('allowed');
+                link.remove();
             }
         });
+
+        if (grid && visibleCount === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'empty-modules-placeholder';
+            empty.innerHTML = `
+                <i class="fas fa-lock"></i>
+                <p>No tienes módulos habilitados para tu rol.</p>
+            `;
+            grid.appendChild(empty);
+            showMessage('No tienes módulos habilitados para tu rol.', 'error');
+        }
     })();
 
     // Add click functionality to logout button
