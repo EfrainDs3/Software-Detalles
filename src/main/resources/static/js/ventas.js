@@ -549,7 +549,7 @@ function resetClienteForm() {
             
             fecha_emision: ventaFechaInput.value,
             id_tipopago: ventaMetodoPagoSelect.value,
-            estado_comprobante: ventaEstadoSelect.value,
+            
             monto_total: parseFloat(ventaTotalSpan.textContent.replace('S/ ', '')),
             detalles: detalles
         };

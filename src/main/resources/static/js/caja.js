@@ -57,6 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
         history.forEach(movimiento => {
             const estadoTexto = movimiento.estado;
             const estadoClase = estadoTexto.toLowerCase();
+            const estaAbierta = estadoTexto.toLowerCase() === 'abierta';
 
             const row = document.createElement('tr');
             row.innerHTML = `
@@ -73,6 +74,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         <button class="btn-icon btn-view" data-id="${movimiento.id}" title="Ver detalles">
                             <i class="fas fa-eye"></i>
                         </button>
+                        ${estaAbierta ? `
+                            <button class="btn-icon btn-close-row" 
+                                    data-id="${movimiento.id}" 
+                                    style="background-color: #dc3545; color: white;"
+                                    title="Cerrar caja">
+                                <i class="fas fa-lock"></i>
+                            </button>
+                        ` : ''}
                     </div>
                 </td>
             `;
@@ -104,16 +113,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Lógica de Comunicación con el Backend ---
 
-    // 1. Obtener el estado actual de la caja
+    // 1. Obtener el estado actual de la caja (MEJORADO)
     async function fetchCajaStatus() {
         try {
-            const response = await fetch(`${API_BASE_URL}/estado`, { credentials: 'include' });
-            if (!response.ok) throw new Error('Error al obtener estado de caja');
+            const response = await fetch(`${API_BASE_URL}/estado`, { 
+                credentials: 'include' 
+            });
+            
+            if (!response.ok) {
+                console.error(`Error ${response.status}: No se pudo obtener el estado de la caja`);
+                // NO actualizar la UI si hay error - mantener el estado actual
+                return;
+            }
+            
             const estado = await response.json();
-            updateCajaStatusUI(estado);
+            
+            // Validar que el estado tenga la estructura esperada
+            if (estado && typeof estado.abierta === 'boolean') {
+                updateCajaStatusUI(estado);
+            } else {
+                console.warn('Estado inválido recibido del backend:', estado);
+            }
         } catch (error) {
             console.error('Error al cargar estado de caja:', error);
-            updateCajaStatusUI({ abierta: false, trabajador: 'Error de Conexión', montoInicial: 0 });
+            // NO actualizar la UI en caso de error de red
         }
     }
 
@@ -303,7 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cajas.forEach(caja => {
                 const option = document.createElement('option');
                 option.value = caja.idCaja;
-                option.textContent = `${caja.nombreCaja}`; // Mostramos el ID para debug
+                option.textContent = `${caja.nombreCaja}`;
                 cajaSelect.appendChild(option);
             });
             cajaSelect.disabled = false;
@@ -487,8 +510,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Delegación de eventos para los botones de "Ver"
+    // ======================================================
+    // DELEGACIÓN DE EVENTOS PARA BOTONES DE ACCIÓN
+    // ======================================================
+
+    // Delegación de eventos para los botones de "Ver" y "Cerrar desde tabla"
     document.addEventListener('click', async (e) => {
+        // ========== BOTÓN VER DETALLES ==========
         const btnView = e.target.closest('.btn-view');
         
         if (btnView) {
@@ -511,6 +539,116 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('Error al cargar detalles:', error);
                 alert('Error al cargar los detalles del movimiento');
             }
+            return; // Importante: salir después de manejar este evento
+        }
+
+        // ========== BOTÓN CERRAR CAJA DESDE TABLA ==========
+        const btnCloseRow = e.target.closest('.btn-close-row');
+        
+        if (btnCloseRow) {
+            const idApertura = btnCloseRow.getAttribute('data-id');
+            
+            // Buscar el movimiento para obtener el monto inicial
+            try {
+                const historyResponse = await fetch(`${API_BASE_URL}/historial`, { credentials: 'include' });
+                if (!historyResponse.ok) throw new Error('Error al obtener historial');
+                
+                const history = await historyResponse.json();
+                const movimiento = history.find(m => m.id == idApertura);
+                
+                if (!movimiento) {
+                    alert('❌ No se encontró el movimiento');
+                    return;
+                }
+                
+                // Verificar que esté abierta
+                if (movimiento.estado.toLowerCase() !== 'abierta') {
+                    alert('❌ Esta caja ya está cerrada');
+                    return;
+                }
+                
+                // Mostrar información de la caja a cerrar
+                const mensaje = `Cerrar Caja #${idApertura}\n\n` +
+                               `Trabajador: ${movimiento.trabajador}\n` +
+                               `Monto Inicial: ${formatCurrency(movimiento.montoInicial)}\n` +
+                               `Hora Apertura: ${movimiento.horaApertura}\n\n` +
+                               `Ingrese el monto final de cierre:`;
+                
+                const montoFinal = prompt(mensaje);
+                
+                if (montoFinal === null) return; // Usuario canceló
+                
+                const monto = parseFloat(montoFinal);
+                if (isNaN(monto) || monto < 0) {
+                    alert('❌ Monto inválido. Debe ser un número positivo.');
+                    return;
+                }
+                
+                // Confirmación adicional
+                const confirmar = confirm(
+                    `¿Confirmar cierre de caja?\n\n` +
+                    `Monto Inicial: ${formatCurrency(movimiento.montoInicial)}\n` +
+                    `Monto Final: ${formatCurrency(monto)}\n` +
+                    `Diferencia: ${formatCurrency(monto - movimiento.montoInicial)}`
+                );
+                
+                if (!confirmar) return;
+
+                console.log('🔍 DEBUG - Datos a enviar:', {
+                    idApertura: parseInt(idApertura, 10),
+                    montoFinal: parseFloat(monto.toFixed(2)),
+                    movimiento: movimiento
+                });
+                
+                const response = await fetch(`${API_BASE_URL}/cerrar`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        idApertura: parseInt(idApertura, 10),
+                        montoFinal: parseFloat(monto.toFixed(2))
+                    }),
+                    credentials: 'include'
+                });
+
+                console.log('📡 Response status:', response.status);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ Error del servidor:', errorText);
+                    console.error('📋 Response completo:', {
+                        status: response.status,
+                        statusText: response.statusText,
+                        headers: response.headers
+                    });
+                    
+                    if (response.status === 409) {
+                        alert('❌ Conflicto: Esta caja ya está cerrada o el ID no coincide.');
+                    } else if (response.status === 404) {
+                        alert('❌ No se encontró la apertura de caja con ID ' + idApertura);
+                    } else if (response.status === 500) {
+                        alert('❌ Error del servidor.\n\nPosibles causas:\n' +
+                              '- La caja no existe en la base de datos\n' +
+                              '- Error de validación en el backend\n' +
+                              '- Problema con el formato de datos\n\n' +
+                              'Revisa la consola del navegador (F12) para más detalles.');
+                    } else {
+                        alert(`❌ Error ${response.status} al cerrar la caja.\n\n${errorText.substring(0, 200)}`);
+                    }
+                    return;
+                }
+                
+                const resultado = await response.json();
+                console.log('✅ Cierre exitoso:', resultado);
+                
+                alert('✅ Caja cerrada exitosamente');
+                await fetchCajaStatus();
+                await fetchCajaHistory();
+            } catch (error) {
+                console.error('❌ Error completo:', error);
+                console.error('📋 Stack trace:', error.stack);
+                alert(`❌ Error de conexión: ${error.message}\n\nRevisa la consola del navegador para más detalles.`);
+            }
+            return;
         }
     });
 
@@ -519,45 +657,4 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchCajaHistory();
     fetchAndPopulateCajas();
 
-    // Cerrar Caja (nuevo código)
-    document.addEventListener('click', async (e) => {
-        const btnClose = e.target.closest('.btn-close');
-
-        if (btnClose) {
-            const idMovimiento = btnClose.getAttribute('data-id');
-
-            if (!idMovimiento) {
-                alert('No se encontró el ID del movimiento para cerrar la caja.');
-                return;
-            }
-
-            try {
-                const requestBody = {
-                    idApertura: idMovimiento,
-                    montoFinal: 0 // Puedes ajustar el monto final según sea necesario
-                };
-
-                const response = await fetch(`${API_BASE_URL}/cerrar`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(requestBody),
-                    credentials: 'include'
-                });
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Error al cerrar caja:', errorText);
-                    alert(`Error al cerrar caja: ${errorText}`);
-                    return;
-                }
-
-                alert('Caja cerrada exitosamente.');
-                await fetchCajaStatus();
-                await fetchCajaHistory();
-            } catch (error) {
-                console.error('Error de conexión:', error);
-                alert('Hubo un error de conexión al intentar cerrar la caja.');
-            }
-        }
-    });
 });
