@@ -134,7 +134,6 @@
                         <th>Almacén</th>
                         <th>Tallas</th>
                         <th>Stock Actual</th>
-                        <th>Stock Mínimo</th>
                         <th>Estado</th>
                         <th>Última Actualización</th>
                         <th>Acciones</th>
@@ -319,6 +318,10 @@
                             <span class="info-label">Stock Actual:</span>
                             <span id="ajusteStockActual" class="info-value stock-value"></span>
                         </div>
+                        <div class="info-row">
+                            <span class="info-label">Stock Mínimo Actual:</span>
+                            <span id="ajusteStockMinimoActual" class="info-value"></span>
+                        </div>
                     </div>
                 </div>
 
@@ -337,6 +340,18 @@
                         <div class="form-group">
                             <label for="cantidadAjuste">Cantidad *</label>
                             <input type="number" id="cantidadAjuste" name="cantidad" min="1" required placeholder="Ej: 10">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="stockMinimoAjuste">Stock Mínimo Objetivo</label>
+                            <div class="stock-minimo-control">
+                                <input type="number" id="stockMinimoAjuste" name="stockMinimo" min="0" step="1" placeholder="Ej: 5">
+                                <button type="button" class="btn btn-outline-danger stock-minimo-btn" id="guardarStockMinimoBtn">
+                                    <i class="fas fa-save"></i>
+                                    Guardar Stock Mínimo
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="form-row">
@@ -369,6 +384,10 @@
                             <span>Cantidad del Movimiento:</span>
                             <span id="previewCantidad" class="cantidad-value">0</span>
                         </div>
+                        <div class="preview-row">
+                            <span>Stock Mínimo Objetivo:</span>
+                            <span id="previewStockMinimo" class="stock-minimo-value">0</span>
+                        </div>
                         <div class="preview-row total-preview">
                             <strong>Nuevo Stock:</strong>
                             <strong id="previewNuevoStock" class="nuevo-stock-value">0</strong>
@@ -384,6 +403,131 @@
                 <button type="submit" form="ajusteStockForm" class="btn btn-primary" id="saveAjusteBtn">
                     <i class="fas fa-save"></i>
                     Aplicar Ajuste
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Detalles de Producto -->
+    <div id="detallesProductoModal" class="modal" style="display: none;">
+        <div class="modal-content detalles-modal-content">
+            <div class="modal-header">
+                <h3 id="detallesModalTitle">Detalles del Producto</h3>
+                <button class="modal-close" id="closeDetallesModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-box"></i>
+                        Información General
+                    </h4>
+                    <div class="detalles-info-wrapper">
+                        <table class="detalles-info-table">
+                            <tbody>
+                                <tr>
+                                    <th>Producto</th>
+                                    <td colspan="3" id="detallesProductoNombre">-</td>
+                                </tr>
+                                <tr>
+                                    <th>Código</th>
+                                    <td id="detallesProductoCodigo">-</td>
+                                    <th>Categoría</th>
+                                    <td id="detallesProductoCategoria">-</td>
+                                </tr>
+                                <tr>
+                                    <th>Marca</th>
+                                    <td id="detallesProductoMarca">-</td>
+                                    <th>Color</th>
+                                    <td id="detallesProductoColor">-</td>
+                                </tr>
+                                <tr>
+                                    <th>Talla</th>
+                                    <td id="detallesProductoTalla">-</td>
+                                    <th>Almacén</th>
+                                    <td id="detallesProductoAlmacen">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-chart-line"></i>
+                        Resumen de Stock
+                    </h4>
+                    <div class="detalles-stock-wrapper">
+                        <table class="detalles-stock-table">
+                            <thead>
+                                <tr>
+                                    <th>Indicador</th>
+                                    <th>Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Stock Actual</td>
+                                    <td id="detallesStockActual">0</td>
+                                </tr>
+                                <tr>
+                                    <td>Stock Mínimo</td>
+                                    <td id="detallesStockMinimo">0</td>
+                                </tr>
+                                <tr>
+                                    <td>Estado Actual</td>
+                                    <td>
+                                        <span id="detallesStockEstado" class="stock-badge disponible">Disponible</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Última Actualización</td>
+                                    <td id="detallesUltimaActualizacion">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="form-section" id="detallesSinTallasSection" style="display: none;">
+                    <h4 class="section-title">
+                        <i class="fas fa-clipboard-list"></i>
+                        Inventario General
+                    </h4>
+                    <p class="detalles-sin-tallas-message">
+                        Este producto no gestiona tallas. Los valores mostrados corresponden al stock total registrado en este almacén.
+                    </p>
+                </div>
+
+                <div class="form-section" id="detallesTallasSection" style="display: none;">
+                    <h4 class="section-title">
+                        <i class="fas fa-tags"></i>
+                        Stock por Talla
+                    </h4>
+                    <div class="detalles-tallas-wrapper">
+                        <table class="detalles-tallas-table">
+                            <thead>
+                                <tr>
+                                    <th>Talla</th>
+                                    <th class="text-center">Stock</th>
+                                    <th class="text-center">Stock Mínimo</th>
+                                    <th class="text-center">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="detallesTallasBody">
+                                <tr>
+                                    <td colspan="4" class="text-center detalles-loading">Cargando información de tallas...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cerrarDetallesBtn">
+                    <i class="fas fa-check"></i>
+                    Cerrar
                 </button>
             </div>
         </div>
@@ -575,6 +719,10 @@
                             <span class="info-label">Stock Actual:</span>
                             <span id="ajusteTallaStockActual" class="info-value stock-value"></span>
                         </div>
+                        <div class="info-row">
+                            <span class="info-label">Stock Mínimo Actual:</span>
+                            <span id="ajusteTallaMinimoActual" class="info-value"></span>
+                        </div>
                     </div>
                 </div>
 
@@ -602,6 +750,18 @@
                         </div>
                     </div>
                     <div class="form-row">
+                        <div class="form-group">
+                            <label for="stockMinimoTalla">Stock Mínimo Objetivo</label>
+                            <div class="stock-minimo-control">
+                                <input type="number" id="stockMinimoTalla" name="stockMinimo" min="0" step="1" placeholder="Ej: 3">
+                                <button type="button" class="btn btn-outline-danger stock-minimo-btn" id="guardarStockMinimoTallaBtn">
+                                    <i class="fas fa-save"></i>
+                                    Guardar Stock Mínimo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
                         <div class="form-group full-width">
                             <label for="observacionesTalla">Observaciones</label>
                             <textarea id="observacionesTalla" name="observaciones" rows="3" placeholder="Descripción del ajuste..."></textarea>
@@ -618,6 +778,10 @@
                         <div class="preview-row">
                             <span>Cantidad del Movimiento:</span>
                             <span id="previewTallaCantidad" class="cantidad-value">0</span>
+                        </div>
+                        <div class="preview-row">
+                            <span>Stock Mínimo Objetivo:</span>
+                            <span id="previewTallaStockMinimo" class="stock-minimo-value">0</span>
                         </div>
                         <div class="preview-row total-preview">
                             <strong>Nuevo Stock:</strong>

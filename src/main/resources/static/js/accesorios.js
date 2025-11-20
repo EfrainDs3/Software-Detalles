@@ -94,8 +94,8 @@
       try {
         await guardarProducto();
         cerrarModal();
-        await cargarProductos();
         showNotification('Accesorio guardado correctamente');
+        setTimeout(()=> window.location.reload(), 600);
       } catch (error) {
         console.error(error);
         showNotification(error.message || 'No se pudo guardar el accesorio', 'error');

@@ -1,5 +1,6 @@
 package fisi.software.detalles.controller;
 
+import fisi.software.detalles.controller.dto.StockMinimoRequest;
 import fisi.software.detalles.entity.Usuario;
 import fisi.software.detalles.service.InventarioService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -249,6 +250,60 @@ public class InventarioApiController {
             inventarioService.ajustarStockTalla(id, talla, tipoMovimientoId, cantidad, referencia, observaciones, usuarioId);
             Map<String, String> response = new HashMap<>();
             response.put("message", "Ajuste de stock aplicado correctamente");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+    /**
+     * PUT /inventario/api/{id}/stock-minimo - Actualiza el stock mínimo de un inventario sin tallas
+     */
+    @PutMapping("/{id}/stock-minimo")
+    public ResponseEntity<?> actualizarStockMinimo(@PathVariable Long id,
+                                                   @RequestBody StockMinimoRequest request,
+                                                   Authentication authentication) {
+        try {
+            Integer usuarioId = obtenerIdUsuario(authentication);
+
+            Integer stockMinimo = request != null ? request.getStockMinimo() : null;
+            inventarioService.actualizarStockMinimo(id, stockMinimo, usuarioId);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("idInventario", id);
+            response.put("stockMinimo", Math.max(0, stockMinimo != null ? stockMinimo : 0));
+            response.put("message", "Stock mínimo actualizado correctamente");
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+    /**
+     * PUT /inventario/api/{id}/tallas/{talla}/stock-minimo - Actualiza el stock mínimo de una talla específica
+     */
+    @PutMapping("/{id}/tallas/{talla}/stock-minimo")
+    public ResponseEntity<?> actualizarStockMinimoTalla(@PathVariable Long id,
+                                                        @PathVariable String talla,
+                                                        @RequestBody StockMinimoRequest request,
+                                                        Authentication authentication) {
+        try {
+            Integer usuarioId = obtenerIdUsuario(authentication);
+
+            Integer stockMinimo = request != null ? request.getStockMinimo() : null;
+            inventarioService.actualizarStockMinimoTalla(id, talla, stockMinimo, usuarioId);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("idInventario", id);
+            response.put("talla", talla);
+            response.put("stockMinimo", Math.max(0, stockMinimo != null ? stockMinimo : 0));
+            response.put("message", "Stock mínimo de la talla actualizado correctamente");
+
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();

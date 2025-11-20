@@ -18,6 +18,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const cantidadAjusteInput = document.getElementById('cantidadAjuste');
     const almacenDestinoGroup = document.getElementById('almacenDestinoGroup');
     const almacenDestinoSelect = document.getElementById('almacenDestino');
+    const guardarStockMinimoBtn = document.getElementById('guardarStockMinimoBtn');
+    const stockMinimoAjusteInput = document.getElementById('stockMinimoAjuste');
+    const ajusteStockMinimoActual = document.getElementById('ajusteStockMinimoActual');
+    const previewStockMinimo = document.getElementById('previewStockMinimo');
 
     // Referencias del modal de movimientos
     const movimientosModal = document.getElementById('movimientosModal');
@@ -47,6 +51,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const ajusteTallaForm = document.getElementById('ajusteTallaForm');
     const tipoMovimientoTallaSelect = document.getElementById('tipoMovimientoTalla');
     const cantidadAjusteTallaInput = document.getElementById('cantidadAjusteTalla');
+    const stockMinimoTallaInput = document.getElementById('stockMinimoTalla');
+    const ajusteTallaMinimoActual = document.getElementById('ajusteTallaMinimoActual');
+    const previewTallaStockMinimo = document.getElementById('previewTallaStockMinimo');
+    const guardarStockMinimoTallaBtn = document.getElementById('guardarStockMinimoTallaBtn');
 
     // Referencias del modal de agregar tallas
     const agregarTallasModal = document.getElementById('agregarTallasModal');
@@ -74,6 +82,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const productColorDisplay = document.getElementById('productColor');
     const productDescripcionDisplay = document.getElementById('productDescripcion');
     const productPrecioDisplay = document.getElementById('productPrecio');
+
+    // Referencias del modal de detalles de producto
+    const detallesProductoModal = document.getElementById('detallesProductoModal');
+    const closeDetallesModal = document.getElementById('closeDetallesModal');
+    const detallesModalTitle = document.getElementById('detallesModalTitle');
+    const cerrarDetallesBtn = document.getElementById('cerrarDetallesBtn');
+    const detallesProductoNombre = document.getElementById('detallesProductoNombre');
+    const detallesProductoCategoria = document.getElementById('detallesProductoCategoria');
+    const detallesProductoMarca = document.getElementById('detallesProductoMarca');
+    const detallesProductoColor = document.getElementById('detallesProductoColor');
+    const detallesProductoTalla = document.getElementById('detallesProductoTalla');
+    const detallesProductoAlmacen = document.getElementById('detallesProductoAlmacen');
+    const detallesProductoCodigo = document.getElementById('detallesProductoCodigo');
+    const detallesStockActual = document.getElementById('detallesStockActual');
+    const detallesStockMinimo = document.getElementById('detallesStockMinimo');
+    const detallesStockEstado = document.getElementById('detallesStockEstado');
+    const detallesUltimaActualizacion = document.getElementById('detallesUltimaActualizacion');
+    const detallesSinTallasSection = document.getElementById('detallesSinTallasSection');
+    const detallesTallasSection = document.getElementById('detallesTallasSection');
+    const detallesTallasBody = document.getElementById('detallesTallasBody');
 
     // Referencias para summary cards
     const totalProductos = document.getElementById('totalProductos');
@@ -103,6 +131,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentProductoAjuste = null;
     let isSubmittingRegistrar = false;
     let isSubmittingAjuste = false;
+    let isSavingStockMinimo = false;
+    let isSavingStockMinimoTalla = false;
     let tallasDisponiblesActuales = []; // Para almacenar las tallas del producto actual
     let selectedTallaData = null; // Para almacenar los datos de la talla seleccionada
     let productoDropdownItems = [];
@@ -206,6 +236,20 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    function parseBooleanFlag(value) {
+        if (typeof value === 'boolean') {
+            return value;
+        }
+        if (typeof value === 'number') {
+            return value === 1;
+        }
+        if (typeof value === 'string') {
+            const normalized = value.trim().toLowerCase();
+            return ['1', 'true', 'verdadero', 'si', 'sí', 'yes', 'y'].includes(normalized);
+        }
+        return false;
+    }
+
     function normalizeInventarioItem(rawInventario) {
         if (!rawInventario) {
             return null;
@@ -225,7 +269,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 talla: rawInventario.talla
             });
         const almacen = rawInventario.almacen || {};
-        const manejaTallas = rawInventario.tiene_tallas ?? rawInventario.tieneTallas ?? false;
+        const manejaTallas = parseBooleanFlag(
+            rawInventario.tiene_tallas ??
+            rawInventario.tieneTallas ??
+            rawInventario.maneja_tallas ??
+            rawInventario.manejaTallas ??
+            rawInventario.gestiona_tallas ??
+            rawInventario.gestionaTallas
+        );
 
         const idInventario = rawInventario.id_inventario ?? rawInventario.id ?? rawInventario.idInventario ?? null;
         const idProducto = rawInventario.id_producto ?? productoNormalizado?.id ?? null;
@@ -248,8 +299,10 @@ document.addEventListener('DOMContentLoaded', () => {
             talla: productoNormalizado?.talla ?? rawInventario.talla ?? '-',
             color: productoNormalizado?.color ?? rawInventario.color ?? '-',
             marca: productoNormalizado?.marca ?? rawInventario.marca ?? 'Sin marca',
-            tiene_tallas: manejaTallas === true,
-            tieneTallas: manejaTallas === true,
+            maneja_tallas: manejaTallas,
+            manejaTallas: manejaTallas,
+            tiene_tallas: manejaTallas,
+            tieneTallas: manejaTallas,
             fecha_ultima_actualizacion: fechaActualizacion
         };
     }
@@ -677,7 +730,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         pageData.forEach(item => {
             const status = getStockStatus(item.cantidad_stock, item.stock_minimo);
-            const hasTallas = item.tiene_tallas === true || item.tieneTallas === true;
+            const hasTallas = parseBooleanFlag(
+                item.tiene_tallas ??
+                item.tieneTallas ??
+                item.maneja_tallas ??
+                item.manejaTallas ??
+                item.gestiona_tallas ??
+                item.gestionaTallas
+            );
             const tallasCellHtml = hasTallas
                 ? `<button class="btn btn-sm btn-outline-primary" onclick="gestionarTallas(${item.id_inventario})" title="Gestionar Tallas">
                         <i class="fas fa-tags"></i>
@@ -707,7 +767,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td class="text-center">
                     <span class="stock-quantity ${status}">${item.cantidad_stock}</span>
                 </td>
-                <td class="text-center">${item.stock_minimo}</td>
                 <td class="text-center">
                     <span class="stock-badge ${status}">${getStockStatusText(status)}</span>
                 </td>
@@ -719,7 +778,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 title="Historial">
                             <i class="fas fa-history"></i>
                         </button>
-                        <button class="btn-icon info" onclick="viewProductDetails(${item.id_producto})"
+                        <button class="btn-icon info" onclick="viewProductDetails(${item.id_inventario})"
                                 title="Detalles">
                             <i class="fas fa-info"></i>
                         </button>
@@ -927,12 +986,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const item = inventarioData.find(inv => String(inv.id_inventario) === String(inventarioId));
         if (!item) return;
 
-        if (item.tiene_tallas === true || item.tieneTallas === true) {
+        if (parseBooleanFlag(
+            item.tiene_tallas ??
+            item.tieneTallas ??
+            item.maneja_tallas ??
+            item.manejaTallas ??
+            item.gestiona_tallas ??
+            item.gestionaTallas
+        )) {
             showNotification('Este producto gestiona su stock por tallas. Ajusta las cantidades desde "Ver Tallas".', 'warning');
             return;
         }
 
         currentProductoAjuste = item;
+        const rawStockMinimo = Number(item.stock_minimo ?? item.stockMinimo ?? 0);
+        const stockMinimoNormalizado = Number.isFinite(rawStockMinimo) ? Math.max(0, rawStockMinimo) : 0;
+        currentProductoAjuste.stock_minimo = stockMinimoNormalizado;
 
         // Llenar información del producto
         document.getElementById('ajusteProductoId').value = item.id_producto;
@@ -945,9 +1014,15 @@ document.addEventListener('DOMContentLoaded', () => {
         ajusteStockForm.reset();
         document.getElementById('ajusteProductoId').value = item.id_producto;
         document.getElementById('ajusteInventarioId').value = item.id_inventario;
-    almacenDestinoGroup.style.display = 'none';
-    almacenDestinoSelect.required = false;
-    almacenDestinoSelect.value = '';
+        if (ajusteStockMinimoActual) {
+            ajusteStockMinimoActual.textContent = stockMinimoNormalizado;
+        }
+        if (stockMinimoAjusteInput) {
+            stockMinimoAjusteInput.value = stockMinimoNormalizado;
+        }
+        almacenDestinoGroup.style.display = 'none';
+        almacenDestinoSelect.required = false;
+        almacenDestinoSelect.value = '';
 
         // Actualizar preview
         updateStockPreview();
@@ -961,6 +1036,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const cantidad = parseInt(cantidadAjusteInput.value) || 0;
         const tipoMovimiento = tipoMovimientoSelect.value;
         const stockActual = currentProductoAjuste.cantidad_stock;
+        const stockMinimoBase = Number(currentProductoAjuste.stock_minimo ?? currentProductoAjuste.stockMinimo ?? 0);
+
+        let stockMinimoObjetivo = Number.isFinite(stockMinimoBase) ? Math.max(0, stockMinimoBase) : 0;
+        if (stockMinimoAjusteInput) {
+            const rawValue = stockMinimoAjusteInput.value;
+            if (rawValue !== '') {
+                const parsedValue = Number(rawValue);
+                if (Number.isFinite(parsedValue)) {
+                    stockMinimoObjetivo = Math.max(0, parsedValue);
+                }
+            }
+        }
+
+        if (previewStockMinimo) {
+            previewStockMinimo.textContent = stockMinimoObjetivo;
+        }
 
         document.getElementById('previewStockActual').textContent = stockActual;
         document.getElementById('previewCantidad').textContent = cantidad;
@@ -984,7 +1075,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (nuevoStock <= 0) {
             nuevoStockElement.style.color = '#dc3545';
             nuevoStockElement.style.backgroundColor = '#f8d7da';
-        } else if (nuevoStock <= currentProductoAjuste.stock_minimo) {
+        } else if (nuevoStock <= stockMinimoObjetivo) {
             nuevoStockElement.style.color = '#856404';
             nuevoStockElement.style.backgroundColor = '#fff3cd';
         } else {
@@ -1029,6 +1120,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Reset form
         ajusteTallaForm.reset();
+        const rawStockMinimoTalla = tallaData ? Number(tallaData.stockMinimo ?? tallaData.stock_minimo ?? 0) : 0;
+        const stockMinimoTallaNormalizado = Number.isFinite(rawStockMinimoTalla) ? Math.max(0, rawStockMinimoTalla) : 0;
+        if (ajusteTallaMinimoActual) {
+            ajusteTallaMinimoActual.textContent = stockMinimoTallaNormalizado;
+        }
+        if (stockMinimoTallaInput) {
+            stockMinimoTallaInput.value = stockMinimoTallaNormalizado;
+        }
+        if (previewTallaStockMinimo) {
+            previewTallaStockMinimo.textContent = stockMinimoTallaNormalizado;
+        }
 
         // Cargar tipos de movimiento en el select de talla
         rebuildTipoMovimientoOptionsTalla();
@@ -1074,6 +1176,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const cantidad = parseInt(cantidadAjusteTallaInput.value) || 0;
         const tipoMovimiento = tipoMovimientoTallaSelect.value;
         const stockActual = parseInt(document.getElementById('ajusteTallaStockActual').textContent) || 0;
+        const stockMinimoBase = ajusteTallaMinimoActual
+            ? Number(ajusteTallaMinimoActual.textContent)
+            : 0;
+
+        let stockMinimoObjetivo = Number.isFinite(stockMinimoBase) ? Math.max(0, stockMinimoBase) : 0;
+        if (stockMinimoTallaInput) {
+            const rawValue = stockMinimoTallaInput.value;
+            if (rawValue !== '') {
+                const parsedValue = Number(rawValue);
+                if (Number.isFinite(parsedValue)) {
+                    stockMinimoObjetivo = Math.max(0, parsedValue);
+                }
+            }
+        }
+
+        if (previewTallaStockMinimo) {
+            previewTallaStockMinimo.textContent = stockMinimoObjetivo;
+        }
 
         document.getElementById('previewTallaStockActual').textContent = stockActual;
         document.getElementById('previewTallaCantidad').textContent = cantidad;
@@ -1097,6 +1217,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (nuevoStock <= 0) {
             nuevoStockElement.style.color = '#dc3545';
             nuevoStockElement.style.backgroundColor = '#f8d7da';
+        } else if (nuevoStock <= stockMinimoObjetivo) {
+            nuevoStockElement.style.color = '#856404';
+            nuevoStockElement.style.backgroundColor = '#fff3cd';
         } else {
             nuevoStockElement.style.color = '#155724';
             nuevoStockElement.style.backgroundColor = '#d4edda';
@@ -1159,10 +1282,126 @@ document.addEventListener('DOMContentLoaded', () => {
         movimientosModal.style.display = 'block';
     };
 
-    window.viewProductDetails = (productoId) => {
-        const producto = inventarioData.find(item => item.id_producto === productoId);
-        if (producto) {
-            alert(`Detalles del producto:\n\nNombre: ${producto.nombre_producto}\nCategoría: ${producto.categoria}\nMarca: ${producto.marca}\nTalla: ${producto.talla}\nColor: ${producto.color}\nStock actual: ${producto.cantidad_stock}\nStock mínimo: ${producto.stock_minimo}\nÚltima actualización: ${formatDateTime(producto.fecha_ultima_actualizacion)}`);
+    window.viewProductDetails = async (inventarioId) => {
+        const producto = inventarioData.find(item => String(item.id_inventario) === String(inventarioId));
+
+        if (!producto) {
+            showNotification('No se encontró el registro de inventario seleccionado', 'error');
+            return;
+        }
+
+        if (!detallesProductoModal) {
+            alert(`Detalles del producto:\n\nNombre: ${producto.nombre_producto}\nCategoría: ${producto.categoria}\nMarca: ${producto.marca}\nColor: ${producto.color}\nStock actual: ${producto.cantidad_stock}\nStock mínimo: ${producto.stock_minimo}\nÚltima actualización: ${formatDateTime(producto.fecha_ultima_actualizacion)}`);
+            return;
+        }
+
+        const stockActualValorRaw = Number(producto.cantidad_stock);
+        const stockActualValor = Number.isFinite(stockActualValorRaw) ? stockActualValorRaw : 0;
+        const stockMinimoValorRaw = Number(producto.stock_minimo);
+        const stockMinimoValor = Number.isFinite(stockMinimoValorRaw) ? stockMinimoValorRaw : 0;
+        const status = getStockStatus(stockActualValor, stockMinimoValor);
+        const statusText = getStockStatusText(status);
+
+        if (detallesModalTitle) {
+            detallesModalTitle.textContent = `Detalles de ${producto.nombre_producto}`;
+        }
+
+        if (detallesProductoNombre) detallesProductoNombre.textContent = producto.nombre_producto ?? '-';
+        if (detallesProductoCategoria) detallesProductoCategoria.textContent = producto.categoria ?? '-';
+        if (detallesProductoMarca) detallesProductoMarca.textContent = producto.marca ?? '-';
+        if (detallesProductoColor) detallesProductoColor.textContent = producto.color ?? '-';
+        if (detallesProductoTalla) detallesProductoTalla.textContent = producto.talla ?? '-';
+        if (detallesProductoAlmacen) detallesProductoAlmacen.textContent = producto.nombre_almacen ?? '-';
+        if (detallesProductoCodigo) detallesProductoCodigo.textContent = producto.codigo_barra || '-';
+        if (detallesStockActual) detallesStockActual.textContent = stockActualValor;
+        if (detallesStockMinimo) detallesStockMinimo.textContent = stockMinimoValor;
+        if (detallesStockEstado) {
+            detallesStockEstado.textContent = statusText;
+            detallesStockEstado.className = `stock-badge ${status}`;
+        }
+        if (detallesUltimaActualizacion) {
+            detallesUltimaActualizacion.textContent = producto.fecha_ultima_actualizacion
+                ? formatDateTime(producto.fecha_ultima_actualizacion)
+                : '-';
+        }
+
+        const manejaTallas = parseBooleanFlag(
+            producto.tiene_tallas ??
+            producto.tieneTallas ??
+            producto.maneja_tallas ??
+            producto.manejaTallas ??
+            producto.gestiona_tallas ??
+            producto.gestionaTallas
+        );
+
+        if (detallesSinTallasSection) {
+            detallesSinTallasSection.style.display = manejaTallas ? 'none' : 'block';
+        }
+        if (detallesTallasSection) {
+            detallesTallasSection.style.display = manejaTallas ? 'block' : 'none';
+        }
+        if (detallesTallasBody) {
+            detallesTallasBody.innerHTML = manejaTallas
+                ? `<tr><td colspan="4" class="text-center detalles-loading">Cargando información de tallas...</td></tr>`
+                : `<tr><td colspan="4" class="text-center sin-datos">Este producto no gestiona tallas.</td></tr>`;
+        }
+
+        detallesProductoModal.style.display = 'block';
+        detallesProductoModal.scrollTop = 0;
+        document.body.classList.add('modal-open');
+
+        if (manejaTallas && detallesTallasBody) {
+            try {
+                const response = await fetch(`/inventario/api/${inventarioId}/tallas`);
+                if (!response.ok) {
+                    throw new Error('No se pudo obtener el detalle por tallas');
+                }
+
+                const data = await response.json();
+                const tallas = Array.isArray(data?.tallas) ? data.tallas : [];
+
+                if (!tallas.length) {
+                    detallesTallasBody.innerHTML = `
+                        <tr>
+                            <td colspan="4" class="text-center sin-datos">
+                                No hay tallas registradas para este producto en el almacén seleccionado.
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                const rowsHtml = tallas.map(talla => {
+                    const totalStockRaw = Number(talla.cantidadStock);
+                    const minimoRaw = Number(talla.stockMinimo);
+                    const totalStock = Number.isFinite(totalStockRaw) ? totalStockRaw : 0;
+                    const minimo = Number.isFinite(minimoRaw) ? minimoRaw : 0;
+                    const tallaStatus = talla.agotado ? 'agotado' : talla.stockBajo ? 'bajo' : 'disponible';
+                    const tallaStatusText = talla.agotado ? 'Agotado' : talla.stockBajo ? 'Stock Bajo' : 'Disponible';
+
+                    return `
+                        <tr>
+                            <td>${talla.talla || '-'}</td>
+                            <td class="text-center">${totalStock}</td>
+                            <td class="text-center">${minimo}</td>
+                            <td class="text-center">
+                                <span class="stock-badge ${tallaStatus}">${tallaStatusText}</span>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                detallesTallasBody.innerHTML = rowsHtml;
+            } catch (error) {
+                console.error('Error cargando tallas para detalles:', error);
+                detallesTallasBody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="text-center sin-datos">
+                            No se pudo cargar el detalle de tallas. Intente nuevamente más tarde.
+                        </td>
+                    </tr>
+                `;
+            }
         }
     };
 
@@ -1681,6 +1920,82 @@ document.addEventListener('DOMContentLoaded', () => {
 
     cantidadAjusteInput.addEventListener('input', updateStockPreview);
 
+    if (stockMinimoAjusteInput) {
+        stockMinimoAjusteInput.addEventListener('input', updateStockPreview);
+    }
+
+    if (guardarStockMinimoBtn) {
+        guardarStockMinimoBtn.addEventListener('click', async () => {
+            if (!currentProductoAjuste || isSavingStockMinimo) {
+                return;
+            }
+
+            const rawValue = stockMinimoAjusteInput ? stockMinimoAjusteInput.value : '';
+            if (rawValue === '') {
+                showNotification('Ingresa un valor válido para el stock mínimo', 'warning');
+                return;
+            }
+
+            const parsedValue = Number(rawValue);
+            if (!Number.isFinite(parsedValue) || parsedValue < 0) {
+                showNotification('Ingresa un stock mínimo válido', 'error');
+                return;
+            }
+
+            try {
+                isSavingStockMinimo = true;
+                guardarStockMinimoBtn.disabled = true;
+                guardarStockMinimoBtn.classList.add('loading');
+
+                const payload = {
+                    stockMinimo: Math.max(0, Math.floor(parsedValue))
+                };
+
+                const response = await fetch(`/inventario/api/${currentProductoAjuste.id_inventario}/stock-minimo`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    let errorMessage = 'No se pudo actualizar el stock mínimo';
+                    try {
+                        const errorData = await response.json();
+                        if (errorData && errorData.error) {
+                            errorMessage = errorData.error;
+                        }
+                    } catch (ignored) {
+                        // Mantener mensaje por defecto
+                    }
+                    throw new Error(errorMessage);
+                }
+
+                showNotification('Stock mínimo actualizado correctamente');
+
+                await Promise.all([
+                    loadInventarioData(),
+                    updateSummaryCards()
+                ]);
+
+                const stockMinimoActualizado = Math.max(0, Math.floor(parsedValue));
+                currentProductoAjuste.stock_minimo = stockMinimoActualizado;
+                if (ajusteStockMinimoActual) {
+                    ajusteStockMinimoActual.textContent = stockMinimoActualizado;
+                }
+                updateStockPreview();
+            } catch (error) {
+                console.error('Error guardando stock mínimo:', error);
+                showNotification(error.message || 'Error al guardar el stock mínimo', 'error');
+            } finally {
+                isSavingStockMinimo = false;
+                guardarStockMinimoBtn.disabled = false;
+                guardarStockMinimoBtn.classList.remove('loading');
+            }
+        });
+    }
+
     // Envío del formulario de ajuste
     ajusteStockForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -1694,7 +2009,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const tipoMovimientoId = formData.get('tipoMovimiento');
         const referencia = (formData.get('referencia') || '').trim();
         const observaciones = (formData.get('observaciones') || '').trim();
-
         if (!Number.isFinite(cantidad) || cantidad <= 0) {
             showNotification('Ingresa una cantidad válida para el movimiento', 'error');
             return;
@@ -1708,6 +2022,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const tipoData = tiposMovimientoData[tipoMovimientoId];
         if (!tipoData) {
             showNotification('El tipo de movimiento seleccionado no es válido', 'error');
+            return;
+        }
+
+        const stockActualDisponible = Number(currentProductoAjuste.cantidad_stock ?? 0);
+        const esEntrada = tipoData.es_entrada === true || tipoData.es_entrada === 'true' || tipoData.es_entrada === 1 || tipoData.es_entrada === '1';
+        if (!esEntrada && cantidad > stockActualDisponible) {
+            showNotification(`La salida no puede superar el stock actual disponible (${stockActualDisponible})`, 'error');
             return;
         }
 
@@ -1778,6 +2099,25 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     filtrarMovimientos.addEventListener('click', filterMovimientos);
+
+    // Modal de detalles de producto
+    if (closeDetallesModal) {
+        closeDetallesModal.addEventListener('click', () => {
+            if (detallesProductoModal) {
+                detallesProductoModal.style.display = 'none';
+                document.body.classList.remove('modal-open');
+            }
+        });
+    }
+
+    if (cerrarDetallesBtn) {
+        cerrarDetallesBtn.addEventListener('click', () => {
+            if (detallesProductoModal) {
+                detallesProductoModal.style.display = 'none';
+                document.body.classList.remove('modal-open');
+            }
+        });
+    }
 
     // Paginación
     prevPage.addEventListener('click', () => {
@@ -1855,6 +2195,87 @@ document.addEventListener('DOMContentLoaded', () => {
 
     tipoMovimientoTallaSelect.addEventListener('change', updateTallaStockPreview);
     cantidadAjusteTallaInput.addEventListener('input', updateTallaStockPreview);
+    if (stockMinimoTallaInput) {
+        stockMinimoTallaInput.addEventListener('input', updateTallaStockPreview);
+    }
+
+    if (guardarStockMinimoTallaBtn) {
+        guardarStockMinimoTallaBtn.addEventListener('click', async () => {
+            const inventarioId = document.getElementById('ajusteTallaInventarioId').value;
+            const talla = document.getElementById('ajusteTallaTalla').value;
+
+            if (!inventarioId || !talla || isSavingStockMinimoTalla) {
+                return;
+            }
+
+            const rawValue = stockMinimoTallaInput ? stockMinimoTallaInput.value : '';
+            if (rawValue === '') {
+                showNotification('Ingresa un valor válido para el stock mínimo de la talla', 'warning');
+                return;
+            }
+
+            const parsedValue = Number(rawValue);
+            if (!Number.isFinite(parsedValue) || parsedValue < 0) {
+                showNotification('Ingresa un stock mínimo válido para la talla', 'error');
+                return;
+            }
+
+            try {
+                isSavingStockMinimoTalla = true;
+                guardarStockMinimoTallaBtn.disabled = true;
+                guardarStockMinimoTallaBtn.classList.add('loading');
+
+                const payload = {
+                    stockMinimo: Math.max(0, Math.floor(parsedValue))
+                };
+
+                const response = await fetch(`/inventario/api/${inventarioId}/tallas/${encodeURIComponent(talla)}/stock-minimo`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    let errorMessage = 'No se pudo actualizar el stock mínimo de la talla';
+                    try {
+                        const errorData = await response.json();
+                        if (errorData && errorData.error) {
+                            errorMessage = errorData.error;
+                        }
+                    } catch (ignored) {
+                        // Mantener mensaje por defecto
+                    }
+                    throw new Error(errorMessage);
+                }
+
+                showNotification('Stock mínimo de la talla actualizado correctamente');
+
+                await Promise.all([
+                    loadInventarioData(),
+                    updateSummaryCards(),
+                    cargarInventarioConTallas(inventarioId)
+                ]);
+
+                const stockMinimoActualizado = Math.max(0, Math.floor(parsedValue));
+                if (ajusteTallaMinimoActual) {
+                    ajusteTallaMinimoActual.textContent = stockMinimoActualizado;
+                }
+                if (previewTallaStockMinimo) {
+                    previewTallaStockMinimo.textContent = stockMinimoActualizado;
+                }
+                updateTallaStockPreview();
+            } catch (error) {
+                console.error('Error guardando stock mínimo de la talla:', error);
+                showNotification(error.message || 'Error al guardar el stock mínimo de la talla', 'error');
+            } finally {
+                isSavingStockMinimoTalla = false;
+                guardarStockMinimoTallaBtn.disabled = false;
+                guardarStockMinimoTallaBtn.classList.remove('loading');
+            }
+        });
+    }
 
     // Envío del formulario de ajuste de talla
     ajusteTallaForm.addEventListener('submit', async (e) => {
@@ -1869,6 +2290,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!inventarioId || !talla || !tipoMovimientoId || !cantidad || cantidad <= 0) {
             showNotification('Por favor complete todos los campos requeridos', 'error');
+            return;
+        }
+
+        const tipoData = tiposMovimientoData[tipoMovimientoId];
+        if (!tipoData) {
+            showNotification('El tipo de movimiento seleccionado no es válido', 'error');
+            return;
+        }
+
+        const esEntrada = tipoData.es_entrada === true || tipoData.es_entrada === 'true' || tipoData.es_entrada === 1 || tipoData.es_entrada === '1';
+        const stockActualTalla = parseInt(document.getElementById('ajusteTallaStockActual').textContent) || 0;
+        if (!esEntrada && cantidad > stockActualTalla) {
+            showNotification(`La salida no puede superar el stock disponible para la talla (${stockActualTalla})`, 'error');
             return;
         }
 
@@ -2051,6 +2485,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (e.target === movimientosModal) {
             movimientosModal.style.display = 'none';
+        }
+        if (e.target === detallesProductoModal) {
+            detallesProductoModal.style.display = 'none';
+            document.body.classList.remove('modal-open');
         }
         if (e.target === registrarProductoModal) {
             registrarProductoModal.style.display = 'none';
