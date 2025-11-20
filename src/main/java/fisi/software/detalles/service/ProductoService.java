@@ -9,6 +9,7 @@ import fisi.software.detalles.repository.CategoriaProductoRepository;
 import fisi.software.detalles.repository.CatalogoRepository;
 import fisi.software.detalles.repository.ProductoRepository;
 import fisi.software.detalles.repository.ProveedorRepository;
+import fisi.software.detalles.controller.dto.ProductoSearchRequest;
 import fisi.software.detalles.service.storage.ProductoImageStorageService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -44,6 +45,8 @@ public class ProductoService {
         this.productoImageStorageService = productoImageStorageService;
     }
 
+    // ========== MÉTODOS EXISTENTES (NO CAMBIAR) ==========
+
     public List<ProductoResponse> listarPorCategoria(CategoriaCodigo categoriaCodigo) {
         CategoriaProducto categoria = obtenerCategoria(categoriaCodigo);
         List<Producto> productos = productoRepository.findByCategoriaIdWithDetalles(categoria.getId());
@@ -70,6 +73,8 @@ public class ProductoService {
         CategoriaProducto categoria = obtenerCategoria(categoriaCodigo);
         Producto producto = new Producto();
         producto.setCategoria(categoria);
+        producto.setEstado(Boolean.TRUE);
+        aplicarDatosBasicos(producto, request);
     producto.setEstado(Boolean.TRUE);
         aplicarDatosBasicos(producto, request, categoriaCodigo);
         productoRepository.save(producto);
@@ -282,6 +287,82 @@ public class ProductoService {
         return valor.setScale(2, RoundingMode.HALF_UP);
     }
 
+    // ========== NUEVOS MÉTODOS PARA BÚSQUEDA Y FILTROS ==========
+
+    // Búsqueda con filtros avanzados
+    public List<Producto> searchProductos(ProductoSearchRequest searchRequest) {
+        return productoRepository.searchProductos(
+            searchRequest.getNombre(),
+            searchRequest.getIdCategoria(),
+            searchRequest.getTipo(),
+            searchRequest.getColor(),
+            searchRequest.getIdMaterial(),
+            searchRequest.getIdModelo(),
+            searchRequest.getMinPrecio(),
+            searchRequest.getMaxPrecio(),
+            searchRequest.getEstado() != null ? searchRequest.getEstado() : true // Por defecto activos
+        );
+    }
+    
+    // Búsqueda simple por nombre
+    public List<Producto> searchByNombre(String nombre) {
+        return productoRepository.findByNombreContainingIgnoreCaseAndEstadoTrue(nombre);
+    }
+    
+    // Obtener productos por categoría (versión simple)
+    public List<Producto> getProductosByCategoria(Long idCategoria) {
+        return productoRepository.findByCategoriaId(idCategoria);
+    }
+    
+    // Obtener productos por tipo
+    public List<Producto> getProductosByTipo(String tipo) {
+        return productoRepository.findByTipoAndEstadoTrue(tipo);
+    }
+    
+    // Obtener productos por color
+    public List<Producto> getProductosByColor(String color) {
+        return productoRepository.findByColorAndEstadoTrue(color);
+    }
+    
+    // Obtener productos por material
+    public List<Producto> getProductosByMaterial(Long idMaterial) {
+        return productoRepository.findByMaterialId(idMaterial);
+    }
+    
+    // Obtener productos por modelo
+    public List<Producto> getProductosByModelo(Long idModelo) {
+        return productoRepository.findByModeloId(idModelo);
+    }
+    
+    // Métodos para obtener opciones de filtros
+    public List<Long> getAllCategoriaIds() {
+        return productoRepository.findDistinctCategoriaIds();
+    }
+    
+    public List<String> getAllTipos() {
+        return productoRepository.findDistinctTipos();
+    }
+    
+    public List<String> getAllColores() {
+        return productoRepository.findDistinctColores();
+    }
+    
+    public List<Long> getAllMaterialIds() {
+        return productoRepository.findDistinctMaterialIds();
+    }
+    
+    public List<Long> getAllModeloIds() {
+        return productoRepository.findDistinctModeloIds();
+    }
+    
+    // Obtener todos los productos activos
+    public List<Producto> getAllProductosActivos() {
+        ProductoSearchRequest request = new ProductoSearchRequest();
+        request.setEstado(true);
+        return searchProductos(request);
+    }
+
+    // ========== RECORDS EXISTENTES (NO CAMBIAR) ==========
     private String resolverCarpetaCategoria(CategoriaCodigo categoriaCodigo) {
         return switch (categoriaCodigo) {
             case CALZADO -> "calzados";

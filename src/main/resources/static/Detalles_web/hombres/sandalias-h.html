@@ -96,7 +96,7 @@
                                 <div class="submenu-column">
                                     <h3>Accesorios</h3>
                                     <ul>
-                                        <li><a href="../niños-accesorios/calcetines.html">Calcetines</li>
+                                        <li><a href="../niños-accesorios/calcetines.html">Calcetines</a></li>
                                         <li><a href="../niños-accesorios/cinturones.html">Cinturones</a></li>
                                         <li><a href="../niños-accesorios/gorras.html">Gorras</a></li>
                                         <li><a href="../niños-accesorios/lentes-sol.html">Lentes</a></li>
@@ -108,7 +108,15 @@
                 </ul>
                 
                 <div class="nav-icons">
-                    <a href="#" class="nav-icon search-icon"><i class="fas fa-search"></i></a>
+                    <!-- BARRA DE BÚSQUEDA FUNCIONAL -->
+                    <div class="search-container">
+                        <div class="search-form">
+                            <input type="text" id="searchInput" placeholder="Buscar productos..." class="search-input">
+                            <button onclick="buscarProductos()" class="search-button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
                     <a href="../login/logueo.html" class="nav-icon"><i class="fas fa-user"></i></a>
                     <a href="../carrito/carritos.html" class="nav-icon cart-icon">
                         <i class="fas fa-shopping-bag"></i>
@@ -122,32 +130,6 @@
             </div>
         </nav>
     </header>
-
-    <!-- Search Overlay -->
-    <div id="searchOverlay" class="search-overlay">
-        <div class="search-container">
-            <span class="close-search">&times;</span>
-            <div class="search-content">
-                <h2>¿Qué estás buscando?</h2>
-                <form class="search-form">
-                    <input type="text" class="search-input" placeholder="Buscar productos...">
-                    <button type="submit" class="search-button">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </form>
-                <div class="search-suggestions">
-                    <h3>Sugerencias populares:</h3>
-                    <div class="suggestion-tags">
-                        <span class="tag">Sandalias Deportivas</span>
-                        <span class="tag">Chanclas</span>
-                        <span class="tag">Sandalias de Playa</span>
-                        <span class="tag">Birkenstock</span>
-                        <span class="tag">Sandalias con Soporte</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Breadcrumb -->
     <div class="breadcrumb">
@@ -163,6 +145,17 @@
         <div class="products-container">
             <!-- Filters Sidebar -->
             <aside class="filters-sidebar">
+                <div class="filter-section">
+                    <h3>Precio</h3>
+                    <div class="price-filter">
+                        <input type="range" class="price-range" min="20" max="200" value="100">
+                        <div class="price-inputs">
+                            <input type="number" placeholder="Mín" value="20">
+                            <input type="number" placeholder="Máx" value="200">
+                        </div>
+                    </div>
+                </div>
+
                 <div class="filter-section">
                     <h3>Talla</h3>
                     <div class="size-filter">
@@ -217,26 +210,6 @@
                     </div>
                 </div>
 
-                <div class="filter-section">
-                    <h3>Actividad</h3>
-                    <div class="brand-filter">
-                        <label class="brand-option">
-                            <input type="checkbox"> Playa
-                        </label>
-                        <label class="brand-option">
-                            <input type="checkbox"> Piscina
-                        </label>
-                        <label class="brand-option">
-                            <input type="checkbox"> Deportes Acuáticos
-                        </label>
-                        <label class="brand-option">
-                            <input type="checkbox"> Casual
-                        </label>
-                        <label class="brand-option">
-                            <input type="checkbox"> Senderismo Ligero
-                        </label>
-                    </div>
-                </div>
 
                 <div class="filter-section">
                     <h3>Material</h3>
@@ -259,11 +232,7 @@
                     </div>
                 </div>
 
-                <div class="filter-section" style="display: flex; justify-content: center; margin-top: 1rem;">
-                    <button class="btn-add-cart" style="width: 150px; padding: 8px;">
-                        Aplicar Filtros
-                    </button>
-                </div>
+                <button class="btn-add-cart" style="width: 100%; margin-top: 1rem;" onclick="aplicarFiltros()">Aplicar Filtros</button>
             </aside>
 
             <!-- Products Main Content -->
@@ -271,213 +240,24 @@
                 <div class="products-header">
                     <h1>Sandalias para Hombres</h1>
                     <div class="sort-options">
-                        <span class="products-count">9 productos</span>
-                        <select>
-                            <option>Ordenar por: Destacados</option>
-                            <option>Precio: Menor a Mayor</option>
-                            <option>Precio: Mayor a Menor</option>
-                            <option>Más Nuevos</option>
-                            <option>Mejor Valorados</option>
-                        </select>
+                        <span class="products-count" id="productsCount">Cargando...</span>
+                       
                     </div>
                 </div>
 
-                <div class="products-grid-detailed">
-                    <!-- Producto 1 -->
-                    <div class="product-card-detailed" data-product-id="sandalias-h-1">
-                        <div class="product-image-detailed">
-                            <img src="https://via.placeholder.com/300x300" alt="Birkenstock Arizona">
-                            <div class="product-badge">Clásico</div>
-                            <div class="product-overlay">
-                                <button class="quick-view">Vista Rápida</button>
-                            </div>
-                        </div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">BIRKENSTOCK</div>
-                            <h3 class="product-title-detailed">Arizona Soft Footbed</h3>
-                            <div class="product-price">
-                                <span class="current-price">$99.99</span>
-                            </div>
-                            <div class="product-actions">
-                                <button class="btn-add-cart">Añadir al Carrito</button>
-                                <button class="btn-wishlist">
-                                    <i class="far fa-heart"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Producto 2 -->
-                    <div class="product-card-detailed" data-product-id="sandalias-h-2">
-                        <div class="product-image-detailed">
-                            <img src="https://via.placeholder.com/300x300" alt="Teva Original Universal">
-                            <div class="product-badge">Deportivo</div>
-                        </div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">TEVA</div>
-                            <h3 class="product-title-detailed">Original Universal</h3>
-                            <div class="product-price">
-                                <span class="current-price">$59.99</span>
-                            </div>
-                            <div class="product-actions">
-                                <button class="btn-add-cart">Añadir al Carrito</button>
-                                <button class="btn-wishlist">
-                                    <i class="far fa-heart"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Producto 3 -->
-                    <div class="product-card-detailed" data-product-id="sandalias-h-3">
-                        <div class="product-image-detailed">
-                            <img src="https://via.placeholder.com/300x300" alt="Crocs Classic Clog">
-                            <div class="product-badge">Confort</div>
-                        </div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">CROCS</div>
-                            <h3 class="product-title-detailed">Classic Clog</h3>
-                            <div class="product-price">
-                                <span class="current-price">$49.99</span>
-                            </div>
-                            <div class="product-actions">
-                                <button class="btn-add-cart">Añadir al Carrito</button>
-                                <button class="btn-wishlist">
-                                    <i class="far fa-heart"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Producto 4 -->
-                    <div class="product-card-detailed" data-product-id="sandalias-h-4">
-                        <div class="product-image-detailed">
-                            <img src="https://via.placeholder.com/300x300" alt="Keen Newport H2">
-                            <div class="product-badge">Aventura</div>
-                        </div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">KEEN</div>
-                            <h3 class="product-title-detailed">Newport H2 Sandal</h3>
-                            <div class="product-price">
-                                <span class="current-price">$89.99</span>
-                            </div>
-                            <div class="product-actions">
-                                <button class="btn-add-cart">Añadir al Carrito</button>
-                                <button class="btn-wishlist">
-                                    <i class="far fa-heart"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Producto 5 -->
-                    <div class="product-card-detailed" data-product-id="sandalias-h-5">
-                        <div class="product-image-detailed">
-                            <img src="https://via.placeholder.com/300x300" alt="Reef Fanning">
-                        </div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">REEF</div>
-                            <h3 class="product-title-detailed">Fanning Flip Flops</h3>
-                            <div class="product-price">
-                                <span class="current-price">$39.99</span>
-                            </div>
-                            <div class="product-actions">
-                                <button class="btn-add-cart">Añadir al Carrito</button>
-                                <button class="btn-wishlist">
-                                    <i class="far fa-heart"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Producto 6 -->
-                    <div class="product-card-detailed" data-product-id="sandalias-h-6">
-                        <div class="product-image-detailed">
-                            <img src="https://via.placeholder.com/300x300" alt="Adidas Adilette">
-                            <div class="product-badge">Deporte</div>
-                        </div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">ADIDAS</div>
-                            <h3 class="product-title-detailed">Adilette Aqua Slides</h3>
-                            <div class="product-price">
-                                <span class="current-price">$34.99</span>
-                            </div>
-                            <div class="product-actions">
-                                <button class="btn-add-cart">Añadir al Carrito</button>
-                                <button class="btn-wishlist">
-                                    <i class="far fa-heart"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Producto 7 -->
-                    <div class="product-card-detailed" data-product-id="sandalias-h-7">
-                        <div class="product-image-detailed">
-                            <img src="https://via.placeholder.com/300x300" alt="Nike Benassi">
-                            <div class="product-badge">Casual</div>
-                        </div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">NIKE</div>
-                            <h3 class="product-title-detailed">Benassi Just Do It</h3>
-                            <div class="product-price">
-                                <span class="current-price">$29.99</span>
-                            </div>
-                            <div class="product-actions">
-                                <button class="btn-add-cart">Añadir al Carrito</button>
-                                <button class="btn-wishlist">
-                                    <i class="far fa-heart"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Producto 8 -->
-                    <div class="product-card-detailed" data-product-id="sandalias-h-8">
-                        <div class="product-image-detailed">
-                            <img src="https://via.placeholder.com/300x300" alt="Birkenstock Gizeh">
-                            <div class="product-badge">Elegante</div>
-                        </div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">BIRKENSTOCK</div>
-                            <h3 class="product-title-detailed">Gizeh Big Buckle</h3>
-                            <div class="product-price">
-                                <span class="current-price">$129.99</span>
-                            </div>
-                            <div class="product-actions">
-                                <button class="btn-add-cart">Añadir al Carrito</button>
-                                <button class="btn-wishlist">
-                                    <i class="far fa-heart"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Producto 9 -->
-                    <div class="product-card-detailed" data-product-id="sandalias-h-9">
-                        <div class="product-image-detailed">
-                            <img src="https://via.placeholder.com/300x300" alt="Teva Hurricane">
-                        </div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">TEVA</div>
-                            <h3 class="product-title-detailed">Hurricane XLT2</h3>
-                            <div class="product-price">
-                                <span class="current-price">$79.99</span>
-                            </div>
-                            <div class="product-actions">
-                                <button class="btn-add-cart">Añadir al Carrito</button>
-                                <button class="btn-wishlist">
-                                    <i class="far fa-heart"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                <div class="products-grid-detailed" id="productosContainer">
+                    <!-- Los productos se cargarán dinámicamente desde la API -->
+                    <div class="loading-message">Cargando sandalias...</div>
+                </div>
+                
+                <div class="pagination">
+                    <!-- Paginación si es necesaria -->
                 </div>
             </main>
         </div>
     </section>
 
-     <footer>
+    <footer>
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
@@ -510,14 +290,278 @@
             </div>
         </div>
     </footer>
+    
     <div id="quickViewModal" class="modal">
         <div class="modal-content">
             <span class="close-modal">&times;</span>
             <div class="modal-body">
-                </div>
+                <!-- Contenido del modal de vista rápida -->
+            </div>
         </div>
     </div>
-    <script src="js/script.js"></script>
-    <script src="js/carrito.js"></script>
+    
+    <script src="../js/script.js"></script>
+    <script src="../js/carrito.js"></script>
+
+    <!-- JavaScript para búsqueda y filtros dinámicos -->
+    <script>
+        // Variables globales
+        let todosLosProductos = [];
+        let productosFiltrados = [];
+
+        // Cargar productos al iniciar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarSandaliasHombres();
+            configurarFiltros();
+        });
+
+        // Función principal para cargar productos
+        async function cargarSandaliasHombres() {
+            try {
+                console.log('Cargando sandalias para hombres...');
+                
+                // Primero intentar con filtros específicos, si no funciona cargar todos de hombres
+                let response = await fetch('/api/productos/buscar?categoria=hombres&tipo=sandalias');
+                
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta de la API');
+                }
+                
+                let productos = await response.json();
+                
+                // Si no hay resultados, cargar todos los productos de hombres
+                if (!productos || productos.length === 0) {
+                    console.log('No se encontraron sandalias específicas, cargando todos los productos de hombres...');
+                    response = await fetch('/api/productos/buscar?categoria=hombres');
+                    productos = await response.json();
+                }
+                
+                console.log('Productos cargados:', productos);
+                
+                todosLosProductos = productos;
+                productosFiltrados = [...productos];
+                
+                mostrarProductos(productos);
+                actualizarContadorProductos(productos.length);
+                
+            } catch (error) {
+                console.error('Error cargando productos:', error);
+                document.getElementById('productosContainer').innerHTML = 
+                    '<p class="error-message">Error al cargar los productos. Intenta nuevamente.</p>';
+            }
+        }
+
+        // Función para mostrar productos en la página
+        function mostrarProductos(productos) {
+            const contenedor = document.getElementById('productosContainer');
+            
+            if (!productos || productos.length === 0) {
+                contenedor.innerHTML = `
+                    <div class="no-products">
+                        <i class="fas fa-search" style="font-size: 48px; color: #ccc; margin-bottom: 20px;"></i>
+                        <h3>No se encontraron sandalias</h3>
+                        <p>Intenta con otros filtros o términos de búsqueda.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Generar HTML para cada producto
+            contenedor.innerHTML = productos.map(function(producto){
+                return '' +
+                    '<div class="product-card-detailed" data-product-id="' + (producto.id || '') + '">' +
+                        '<div class="product-image-detailed">' +
+                            '<img src="' + (producto.imagenUrl || 'https://via.placeholder.com/300x300') + '" alt="' + (producto.nombre || producto.nombre_producto || '') + '" onerror="this.src=\'https://via.placeholder.com/300x300\'">' +
+                            '<div class="product-overlay"><button class="quick-view" onclick="vistaRapida(\'' + (producto.id || '') + '\')">Vista Rápida</button></div>' +
+                        '</div>' +
+                        '<div class="product-info-detailed">' +
+                            '<div class="product-brand">' + obtenerMarcaProducto(producto) + '</div>' +
+                            '<h3 class="product-title-detailed">' + (producto.nombre || producto.nombre_producto || 'Producto') + '</h3>' +
+                            '<div class="product-price"><span class="current-price">S/ ' + (producto.precio_venta || producto.precioVenta || producto.precio || '0.00') + '</span></div>' +
+                            '<div class="product-actions">' +
+                                '<button class="btn-add-cart" onclick="agregarAlCarrito(\'' + (producto.id || '') + '\')">Añadir al Carrito</button>' +
+                                '<button class="btn-wishlist" onclick="agregarFavoritos(\'' + (producto.id || '') + '\')"><i class="far fa-heart"></i></button>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>';
+            }).join('');
+        }
+
+        // Función para extraer marca del nombre del producto
+        function obtenerMarcaProducto(producto) {
+            const nombre = producto.nombre || producto.nombre_producto || '';
+            // Extraer primera palabra como marca
+            return nombre.split(' ')[0] || 'MARCA';
+        }
+
+        // Función para búsqueda desde el navbar
+        async function buscarProductos() {
+            const searchTerm = document.getElementById('searchInput').value.trim();
+            
+            if (!searchTerm) {
+                // Si no hay término de búsqueda, recargar productos originales
+                cargarSandaliasHombres();
+                return;
+            }
+            
+            try {
+                console.log('Buscando:', searchTerm);
+                const response = await fetch(`/api/productos/buscar?nombre=${encodeURIComponent(searchTerm)}&categoria=hombres`);
+                const productos = await response.json();
+                
+                productosFiltrados = productos;
+                mostrarProductos(productos);
+                actualizarContadorProductos(productos.length);
+                
+            } catch (error) {
+                console.error('Error en búsqueda:', error);
+            }
+        }
+
+        // Configurar eventos de filtros
+        function configurarFiltros() {
+            // Filtro de precio
+            const precioRange = document.querySelector('.price-range');
+            const precioMin = document.querySelector('.price-inputs input[placeholder="Mín"]');
+            const precioMax = document.querySelector('.price-inputs input[placeholder="Máx"]');
+            
+            if (precioRange && precioMin && precioMax) {
+                precioRange.addEventListener('input', function() {
+                    precioMax.value = this.value;
+                    aplicarFiltros();
+                });
+                
+                precioMin.addEventListener('change', aplicarFiltros);
+                precioMax.addEventListener('change', aplicarFiltros);
+            }
+            
+            // Filtro de tallas
+            const tallas = document.querySelectorAll('.size-option');
+            tallas.forEach(talla => {
+                talla.addEventListener('click', function() {
+                    this.classList.toggle('selected');
+                    aplicarFiltros();
+                });
+            });
+            
+            // Filtro de colores
+            const colores = document.querySelectorAll('.color-option');
+            colores.forEach(color => {
+                color.addEventListener('click', function() {
+                    this.classList.toggle('selected');
+                    aplicarFiltros();
+                });
+            });
+            
+            // Filtro de marcas
+            const marcas = document.querySelectorAll('.filter-section:nth-child(4) .brand-option input[type="checkbox"]');
+            marcas.forEach(marca => {
+                marca.addEventListener('change', aplicarFiltros);
+            });
+            
+            // Filtro de actividades
+            const actividades = document.querySelectorAll('.filter-section:nth-child(5) .brand-option input[type="checkbox"]');
+            actividades.forEach(actividad => {
+                actividad.addEventListener('change', aplicarFiltros);
+            });
+            
+            // Filtro de materiales
+            const materiales = document.querySelectorAll('.filter-section:nth-child(6) .brand-option input[type="checkbox"]');
+            materiales.forEach(material => {
+                material.addEventListener('change', aplicarFiltros);
+            });
+        }
+
+        // Función para aplicar todos los filtros
+        function aplicarFiltros() {
+            console.log('🎯 Aplicando filtros...');
+            
+            let productos = [...todosLosProductos];
+            
+            // 1. FILTRAR POR PRECIO
+            const precioMin = parseInt(document.querySelector('.price-inputs input[placeholder="Mín"]')?.value) || 0;
+            const precioMax = parseInt(document.querySelector('.price-inputs input[placeholder="Máx"]')?.value) || 9999;
+            
+            console.log('💰 Filtro precio:', { precioMin, precioMax });
+            
+            productos = productos.filter(producto => {
+                const precio = producto.precio_venta || producto.precioVenta || producto.precio || 0;
+                return precio >= precioMin && precio <= precioMax;
+            });
+            
+            // 2. FILTRAR POR COLORES SELECCIONADOS
+            const coloresSeleccionados = Array.from(document.querySelectorAll('.color-option.selected'))
+                .map(color => {
+                    const title = color.getAttribute('title');
+                    return title ? title.toLowerCase() : '';
+                })
+                .filter(color => color !== '');
+            
+            console.log('🎨 Colores seleccionados:', coloresSeleccionados);
+            
+            if (coloresSeleccionados.length > 0) {
+                productos = productos.filter(producto => 
+                    producto.color && coloresSeleccionados.includes(producto.color.toLowerCase())
+                );
+            }
+            
+            // 3. FILTRAR POR MARCAS SELECCIONADAS (extraer marca del nombre)
+            const marcasSeleccionadas = Array.from(document.querySelectorAll('.filter-section:nth-child(4) .brand-option input[type="checkbox"]:checked'))
+                .map(cb => {
+                    const label = cb.parentElement;
+                    return label.textContent.trim().toLowerCase();
+                });
+            
+            console.log('🏷️ Marcas seleccionadas:', marcasSeleccionadas);
+            
+            if (marcasSeleccionadas.length > 0) {
+                productos = productos.filter(producto => {
+                    // Extraer marca del nombre del producto (primera palabra)
+                    const marcaProducto = obtenerMarcaProducto(producto).toLowerCase();
+                    return marcaProducto && marcasSeleccionadas.includes(marcaProducto);
+                });
+            }
+            
+            console.log('✅ Productos después de filtros:', productos);
+            
+            productosFiltrados = productos;
+            mostrarProductos(productos);
+            actualizarContadorProductos(productos.length);
+        }
+
+        // Actualizar contador de productos
+        function actualizarContadorProductos(cantidad) {
+            const contador = document.getElementById('productsCount');
+            if (contador) {
+                contador.textContent = `${cantidad} producto${cantidad !== 1 ? 's' : ''}`;
+            }
+        }
+
+        // Funciones auxiliares (puedes implementarlas después)
+        function vistaRapida(productoId) {
+            alert(`Vista rápida del producto ${productoId}`);
+        }
+
+        function agregarAlCarrito(productoId) {
+            alert(`Producto ${productoId} agregado al carrito`);
+            // Aquí integrarás con tu lógica del carrito
+        }
+
+        function agregarFavoritos(productoId) {
+            alert(`Producto ${productoId} agregado a favoritos`);
+        }
+
+        // Permitir búsqueda con Enter
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        buscarProductos();
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>

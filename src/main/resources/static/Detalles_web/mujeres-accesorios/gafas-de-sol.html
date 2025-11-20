@@ -12,12 +12,13 @@
         <nav class="navbar">
             <div class="nav-container">
                 <div class="logo">
-                    <a href="../index.html" class="logo-link">
-                        <img src="../img/logo-detalles.jpg" alt="Detalles - Calzados y Accesorios">
+                    <a href="../../index.html" class="logo-link">
+                        <img src="../../img/detalles-logo.png" alt="Detalles - Calzados y Accesorios">
                     </a>
                 </div>
-                 <ul class="nav-menu">
-                    <li><a href="index.html">Inicio</a></li>
+                
+                <ul class="nav-menu">
+                    <li><a href="../../index.html">Inicio</a></li>
                     <li class="menu-item-has-children">
                         <a href="#mujeres">Mujeres <i class="fas fa-chevron-down"></i></a>
                         <div class="submenu">
@@ -35,16 +36,16 @@
                                 <div class="submenu-column">
                                     <h3>Accesorios</h3>
                                     <ul>
-                                        <li><a href="../mujeres-accesorios/bolsos.html">Bolsos</a></li>
-                                        <li><a href="../mujeres-accesorios/billeteras.html">Billeteras</a></li>
-                                        <li><a href="../mujeres-accesorios/gafas-de-sol.html">Gafas de Sol</a></li>
-                                        <li><a href="../mujeres-accesorios/cinturones.html">Cinturones</a></li>
+                                        <li><a href="bolsos.html">Bolsos</a></li>
+                                        <li><a href="billeteras.html">Billeteras</a></li>
+                                        <li><a href="gafas-de-sol.html">Gafas de Sol</a></li>
+                                        <li><a href="cinturones.html">Cinturones</a></li>
                                     </ul>
                                 </div>
                             </div>
                         </div>
                     </li>
-                     <li class="menu-item-has-children">
+                    <li class="menu-item-has-children">
                         <a href="#hombres">Hombres <i class="fas fa-chevron-down"></i></a>
                         <div class="submenu">
                             <div class="submenu-content">
@@ -89,7 +90,7 @@
                                 <div class="submenu-column">
                                     <h3>Accesorios</h3>
                                     <ul>
-                                        <li><a href="../niños-accesorios/calcetines.html">Calcetines</li>
+                                        <li><a href="../niños-accesorios/calcetines.html">Calcetines</a></li>
                                         <li><a href="../niños-accesorios/cinturones.html">Cinturones</a></li>
                                         <li><a href="../niños-accesorios/gorras.html">Gorras</a></li>
                                         <li><a href="../niños-accesorios/lentes-sol.html">Lentes</a></li>
@@ -99,8 +100,17 @@
                         </div>
                     </li>
                 </ul>
+                
                 <div class="nav-icons">
-                    <a href="#" class="nav-icon search-icon"><i class="fas fa-search"></i></a>
+                    <div class="search-container">
+                        <div class="search-form">
+                            <input type="text" id="searchInput" placeholder="Buscar productos..." class="search-input">
+                            <button onclick="buscarProductos()" class="search-button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
                     <a href="../login/logueo.html" class="nav-icon"><i class="fas fa-user"></i></a>
                     <a href="../carrito/carritos.html" class="nav-icon cart-icon">
                         <i class="fas fa-shopping-bag"></i>
@@ -108,7 +118,6 @@
                     </a>
                 </div>
 
-                    <!-- Search Overlay -->
                 <div id="searchOverlay" class="search-overlay">
                     <div class="search-container">
                         <span class="close-search">&times;</span>
@@ -123,14 +132,16 @@
                             <div class="search-suggestions">
                                 <h3>Sugerencias populares:</h3>
                                 <div class="suggestion-tags">
-                                    <span class="tag">Zapatillas Cuero</span>
-                                    <span class="tag">Zapatillas Adidas</span>
-
+                                    <span class="tag">Gafas Aviador</span>
+                                    <span class="tag">Gafas Cat Eye</span>
+                                    <span class="tag">Gafas Redondas</span>
+                                    <span class="tag">Gafas de Sol Ray-Ban</span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
                 <div class="hamburger">
                     <span></span><span></span><span></span>
                 </div>
@@ -140,9 +151,7 @@
 
     <div class="breadcrumb">
         <div class="breadcrumb-content">
-            <a href="../index.html">Inicio</a> / 
-            <a href="#">Mujer</a> / 
-            <span>Gafas de Sol</span>
+            <a href="../index.html">Inicio</a> / <a href="#">Mujer</a> / <span>Gafas de Sol</span>
         </div>
     </div>
 
@@ -159,25 +168,21 @@
                         </div>
                     </div>
                 </div>
-                <div class="filter-section">
-                    <h3>Tipo de Gafa</h3>
-                    <div class="brand-filter">
-                        <label class="brand-option"><input type="checkbox"> Aviador</label>
-                        <label class="brand-option"><input type="checkbox"> Cat Eye</label>
-                        <label class="brand-option"><input type="checkbox"> Redondas</label>
-                        <label class="brand-option"><input type="checkbox"> Cuadradas</label>
-                    </div>
-                </div>
+
+            
+
                 <div class="filter-section">
                     <h3>Color</h3>
                     <div class="color-filter">
                         <div class="color-option" style="background: #000;" title="Negro"></div>
                         <div class="color-option" style="background: #795548;" title="Marrón"></div>
                         <div class="color-option" style="background: #FFD700;" title="Dorado"></div>
-                        <div class="color-option" style="background: #e91e63;" title="Rosado"></div>
+                        <div class="color-option" style="background: #E91E63;" title="Rosado"></div>
                         <div class="color-option" style="background: #2196F3;" title="Azul"></div>
+                        <div class="color-option" style="background: #fff; border: 1px solid #ddd;" title="Blanco"></div>
                     </div>
                 </div>
+
                 <div class="filter-section">
                     <h3>Marca</h3>
                     <div class="brand-filter">
@@ -188,14 +193,16 @@
                         <label class="brand-option"><input type="checkbox"> Prada</label>
                     </div>
                 </div>
+
                 <div class="filter-section">
                     <h3>Material</h3>
                     <div class="brand-filter">
-                        <label class="brand-option"><input type="checkbox"> Acetato</label>
-                        <label class="brand-option"><input type="checkbox"> Metal</label>
-                        <label class="brand-option"><input type="checkbox"> Plástico</label>
+                        <div class="brand-option"><input type="checkbox" id="acetato"> <label for="acetato">Acetato</label></div>
+                        <div class="brand-option"><input type="checkbox" id="metal"> <label for="metal">Metal</label></div>
+                        <div class="brand-option"><input type="checkbox" id="plastico"> <label for="plastico">Plástico</label></div>
                     </div>
                 </div>
+
                 <button class="btn-add-cart" style="width: 100%; margin-top: 1rem;">Aplicar Filtros</button>
             </aside>
 
@@ -203,176 +210,24 @@
                 <div class="products-header">
                     <h1>Gafas de Sol</h1>
                     <div class="sort-options">
-                        <span class="products-count">16 productos</span>
-                        <select>
-                            <option>Ordenar por: Destacados</option>
-                            <option>Precio: Menor a Mayor</option>
-                            <option>Precio: Mayor a Menor</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="products-grid-detailed">
-                    <div class="product-card-detailed" data-product-id="gafas-1">
-                        <div class="product-image-detailed">
-                            <img src="https://via.placeholder.com/300x300/000/fff?text=Ray-Ban" alt="Gafas Aviador Ray-Ban">
-                        </div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">Ray-Ban</div>
-                            <h3 class="product-title-detailed">Aviador Clásico</h3>
-                            <div class="product-price"><span class="current-price">$249.99</span></div>
-                            <div class="product-actions"><button class="btn-add-cart">Añadir al Carrito</button></div>
-                        </div>
-                    </div>
-                    <div class="product-card-detailed" data-product-id="gafas-2">
-                        <div class="product-image-detailed">
-                            <img src="https://via.placeholder.com/300x300/e91e63/fff?text=Vogue" alt="Gafas Cat Eye Vogue">
-                        </div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">Vogue</div>
-                            <h3 class="product-title-detailed">Cat Eye Rosadas</h3>
-                            <div class="product-price"><span class="current-price">$179.99</span></div>
-                            <div class="product-actions"><button class="btn-add-cart">Añadir al Carrito</button></div>
-                        </div>
-                    </div>
-                    <div class="product-card-detailed" data-product-id="gafas-3">
-                        <div class="product-image-detailed">
-                            <img src="https://via.placeholder.com/300x300/795548/fff?text=Oakley" alt="Gafas Oakley Marrón">
-                        </div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">Oakley</div>
-                            <h3 class="product-title-detailed">Holbrook Redondas Marrón</h3>
-                            <div class="product-price"><span class="current-price">$199.99</span></div>
-                            <div class="product-actions"><button class="btn-add-cart">Añadir al Carrito</button></div>
-                        </div>
-                    </div>
-                    <div class="product-card-detailed" data-product-id="gafas-4">
-                        <div class="product-image-detailed">
-                            <img src="https://via.placeholder.com/300x300/2196F3/fff?text=Guess" alt="Gafas Guess Azules">
-                        </div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">Guess</div>
-                            <h3 class="product-title-detailed">Cuadradas Montura Azul</h3>
-                            <div class="product-price"><span class="current-price">$159.99</span></div>
-                            <div class="product-actions"><button class="btn-add-cart">Añadir al Carrito</button></div>
-                        </div>
-                    </div>
-                    <div class="product-card-detailed" data-product-id="gafas-5">
-                        <div class="product-image-detailed"><img src="https://via.placeholder.com/300x300/000/fff?text=Ray-Ban" alt="Gafas Wayfarer Ray-Ban"></div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">Ray-Ban</div>
-                            <h3 class="product-title-detailed">Wayfarer Original Negro</h3>
-                            <div class="product-price"><span class="current-price">$211.00</span></div>
-                            <div class="product-actions"><button class="btn-add-cart">Añadir al Carrito</button></div>
-                        </div>
-                    </div>
-                    <div class="product-card-detailed" data-product-id="gafas-6">
-                        <div class="product-image-detailed"><img src="https://via.placeholder.com/300x300/800080/fff?text=Prada" alt="Gafas Prada"></div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">Prada</div>
-                            <h3 class="product-title-detailed">Cat Eye Minimalist</h3>
-                            <div class="product-price"><span class="current-price">$350.00</span></div>
-                            <div class="product-actions"><button class="btn-add-cart">Añadir al Carrito</button></div>
-                        </div>
-                    </div>
-                    <div class="product-card-detailed" data-product-id="gafas-7">
-                        <div class="product-image-detailed"><img src="https://via.placeholder.com/300x300/C0C0C0/000?text=Oakley" alt="Gafas Oakley"></div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">Oakley</div>
-                            <h3 class="product-title-detailed">Sutro Lite Sweep</h3>
-                            <div class="product-price"><span class="current-price">$225.00</span></div>
-                            <div class="product-actions"><button class="btn-add-cart">Añadir al Carrito</button></div>
-                        </div>
-                    </div>
-                    <div class="product-card-detailed" data-product-id="gafas-8">
-                        <div class="product-image-detailed"><img src="https://via.placeholder.com/300x300/000/fff?text=Vogue" alt="Gafas Vogue"></div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">Vogue</div>
-                            <h3 class="product-title-detailed">Gafa Cuadrada Negra</h3>
-                            <div class="product-price"><span class="current-price">$165.50</span></div>
-                            <div class="product-actions"><button class="btn-add-cart">Añadir al Carrito</button></div>
-                        </div>
-                    </div>
-                    <div class="product-card-detailed" data-product-id="gafas-9">
-                        <div class="product-image-detailed"><img src="https://via.placeholder.com/300x300/FFD700/000?text=Ray-Ban" alt="Gafas Ray-Ban"></div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">Ray-Ban</div>
-                            <h3 class="product-title-detailed">Round Metal Dorado</h3>
-                            <div class="product-price"><span class="current-price">$255.00</span></div>
-                            <div class="product-actions"><button class="btn-add-cart">Añadir al Carrito</button></div>
-                        </div>
-                    </div>
-                    <div class="product-card-detailed" data-product-id="gafas-10">
-                        <div class="product-image-detailed"><img src="https://via.placeholder.com/300x300/8B4513/fff?text=Guess" alt="Gafas Guess"></div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">Guess</div>
-                            <h3 class="product-title-detailed">Aviador Montura Carey</h3>
-                            <div class="product-price"><span class="current-price">$140.00</span></div>
-                            <div class="product-actions"><button class="btn-add-cart">Añadir al Carrito</button></div>
-                        </div>
-                    </div>
-                    <div class="product-card-detailed" data-product-id="gafas-11">
-                        <div class="product-image-detailed"><img src="https://via.placeholder.com/300x300/000080/fff?text=Oakley" alt="Gafas Oakley"></div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">Oakley</div>
-                            <h3 class="product-title-detailed">Frogskins Lente Azul</h3>
-                            <div class="product-price"><span class="current-price">$180.00</span></div>
-                            <div class="product-actions"><button class="btn-add-cart">Añadir al Carrito</button></div>
-                        </div>
-                    </div>
-                    <div class="product-card-detailed" data-product-id="gafas-12">
-                        <div class="product-image-detailed"><img src="https://via.placeholder.com/300x300/FFFFFF/000?text=Prada" alt="Gafas Prada"></div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">Prada</div>
-                            <h3 class="product-title-detailed">Symbole Montura Blanca</h3>
-                            <div class="product-price"><span class="current-price">$390.00</span></div>
-                            <div class="product-actions"><button class="btn-add-cart">Añadir al Carrito</button></div>
-                        </div>
-                    </div>
-                    <div class="product-card-detailed" data-product-id="gafas-13">
-                        <div class="product-image-detailed"><img src="https://via.placeholder.com/300x300/808080/fff?text=Ray-Ban" alt="Gafas Ray-Ban"></div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">Ray-Ban</div>
-                            <h3 class="product-title-detailed">Clubmaster Clásico</h3>
-                            <div class="product-price"><span class="current-price">$260.00</span></div>
-                            <div class="product-actions"><button class="btn-add-cart">Añadir al Carrito</button></div>
-                        </div>
-                    </div>
-                    <div class="product-card-detailed" data-product-id="gafas-14">
-                        <div class="product-image-detailed"><img src="https://via.placeholder.com/300x300/CD7F32/fff?text=Vogue" alt="Gafas Vogue"></div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">Vogue</div>
-                            <h3 class="product-title-detailed">Montura Metálica Bronce</h3>
-                            <div class="product-price"><span class="current-price">$185.00</span></div>
-                            <div class="product-actions"><button class="btn-add-cart">Añadir al Carrito</button></div>
-                        </div>
-                    </div>
-                    <div class="product-card-detailed" data-product-id="gafas-15">
-                        <div class="product-image-detailed"><img src="https://via.placeholder.com/300x300/000/fff?text=Guess" alt="Gafas Guess"></div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">Guess</div>
-                            <h3 class="product-title-detailed">Cat Eye Negras con Dorado</h3>
-                            <div class="product-price"><span class="current-price">$165.00</span></div>
-                            <div class="product-actions"><button class="btn-add-cart">Añadir al Carrito</button></div>
-                        </div>
-                    </div>
-                    <div class="product-card-detailed" data-product-id="gafas-16">
-                        <div class="product-image-detailed"><img src="https://via.placeholder.com/300x300/2F4F4F/fff?text=Oakley" alt="Gafas Oakley"></div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">Oakley</div>
-                            <h3 class="product-title-detailed">Latch Panel Gris</h3>
-                            <div class="product-price"><span class="current-price">$215.00</span></div>
-                            <div class="product-actions"><button class="btn-add-cart">Añadir al Carrito</button></div>
-                        </div>
+                        <span class="products-count" id="productsCount">Cargando...</span>
+                        
                     </div>
                 </div>
 
+                <div class="products-grid-detailed" id="productosContainer">
+                    <!-- Los productos se cargarán dinámicamente desde la API -->
+                    <div class="loading-message">Cargando gafas de sol...</div>
+                </div>
+                
                 <div class="pagination">
-                    </div>
+                    <!-- Paginación si es necesaria -->
+                </div>
             </main>
         </div>
     </section>
-    
-     <footer>
+
+    <footer>
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
@@ -405,102 +260,269 @@
             </div>
         </div>
     </footer>
+
     <div id="quickViewModal" class="modal">
         <div class="modal-content">
             <span class="close-modal">&times;</span>
             <div class="modal-body">
-                </div>
+                <!-- Contenido del modal de vista rápida -->
+            </div>
         </div>
     </div>
-    <script src="js/script.js"></script>
-    <script src="js/carrito.js"></script>
-       <script>
-        document.addEventListener('DOMContentLoaded', function () {
-    const productsGrid = document.querySelector('.products-grid-detailed');
-    const allProducts = Array.from(productsGrid.querySelectorAll('.product-card-detailed'));
-    const paginationContainer = document.querySelector('.pagination');
-    
-    const productsPerPage = 9; // Define cuántos productos quieres por página
-    const totalProducts = allProducts.length;
-    const totalPages = Math.ceil(totalProducts / productsPerPage);
-    let currentPage = 1;
 
-    function showPage(page) {
-        // Calcula los índices de inicio y fin
-        const startIndex = (page - 1) * productsPerPage;
-        const endIndex = startIndex + productsPerPage;
+    <script src="../js/script.js"></script>
+    <script src="../js/carrito.js"></script>
 
-        // Oculta todos los productos
-        allProducts.forEach(product => product.style.display = 'none');
+    <!-- JavaScript para búsqueda y filtros dinámicos -->
+    <script>
+        // Variables globales
+        let todosLosProductos = [];
+        let productosFiltrados = [];
 
-        // Muestra solo los productos de la página actual
-        const productsToShow = allProducts.slice(startIndex, endIndex);
-        productsToShow.forEach(product => product.style.display = 'block'); // O 'grid', 'flex', etc., según tu layout
-        
-        // Desplaza la vista al inicio de la lista de productos
-        productsGrid.scrollIntoView({ behavior: 'smooth' });
-    }
-
-    function setupPagination() {
-        paginationContainer.innerHTML = ''; // Limpia los botones existentes
-
-        // Botón "Anterior"
-        const prevButton = document.createElement('a');
-        prevButton.href = '#';
-        prevButton.innerHTML = '&laquo;'; // Flecha izquierda
-        if (currentPage === 1) {
-            prevButton.classList.add('disabled');
-        }
-        prevButton.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (currentPage > 1) {
-                currentPage--;
-                showPage(currentPage);
-                setupPagination();
-            }
+        // Cargar productos al iniciar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarGafasMujeres();
+            configurarFiltros();
         });
-        paginationContainer.appendChild(prevButton);
 
-        // Botones de números de página
-        for (let i = 1; i <= totalPages; i++) {
-            const pageButton = document.createElement('a');
-            pageButton.href = '#';
-            pageButton.innerText = i;
-            if (i === currentPage) {
-                pageButton.classList.add('active');
+        // Función principal para cargar productos
+        async function cargarGafasMujeres() {
+            try {
+                console.log('Cargando gafas de sol para mujeres...');
+                
+                // Primero intentar con filtros específicos, si no funciona cargar todos de mujeres
+                let response = await fetch('/api/productos/buscar?categoria=mujeres-accesorios&tipo=gafas-de-sol');
+                
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta de la API');
+                }
+                
+                let productos = await response.json();
+                
+                // Si no hay resultados, cargar todos los productos de mujeres accesorios
+                if (!productos || productos.length === 0) {
+                    console.log('No se encontraron gafas de sol específicas, cargando todos los accesorios de mujeres...');
+                    response = await fetch('/api/productos/buscar?categoria=mujeres-accesorios');
+                    productos = await response.json();
+                }
+                
+                console.log('Productos cargados:', productos);
+                
+                todosLosProductos = productos;
+                productosFiltrados = [...productos];
+                
+                mostrarProductos(productos);
+                actualizarContadorProductos(productos.length);
+                
+            } catch (error) {
+                console.error('Error cargando productos:', error);
+                document.getElementById('productosContainer').innerHTML = 
+                    '<p class="error-message">Error al cargar los productos. Intenta nuevamente.</p>';
+            }
+        }
+
+        // Función para mostrar productos en la página
+        function mostrarProductos(productos) {
+            const contenedor = document.getElementById('productosContainer');
+            
+            if (!productos || productos.length === 0) {
+                contenedor.innerHTML = `
+                    <div class="no-products">
+                        <i class="fas fa-search" style="font-size: 48px; color: #ccc; margin-bottom: 20px;"></i>
+                        <h3>No se encontraron gafas de sol</h3>
+                        <p>Intenta con otros filtros o términos de búsqueda.</p>
+                    </div>
+                `;
+                return;
             }
 
-            pageButton.addEventListener('click', (e) => {
-                e.preventDefault();
-                currentPage = i;
-                showPage(currentPage);
-                setupPagination(); // Vuelve a dibujar para actualizar el estado 'active'
+            // Generar HTML para cada producto
+            contenedor.innerHTML = productos.map(function(producto){
+                return '' +
+                    '<div class="product-card-detailed" data-product-id="' + (producto.id || '') + '">' +
+                        '<div class="product-image-detailed">' +
+                            '<img src="' + (producto.imagenUrl || 'https://via.placeholder.com/300x300') + '" alt="' + (producto.nombre || producto.nombre_producto || '') + '" onerror="this.src=\'https://via.placeholder.com/300x300\'">' +
+                            '<div class="product-overlay"><button class="quick-view" onclick="vistaRapida(\'' + (producto.id || '') + '\')">Vista Rápida</button></div>' +
+                        '</div>' +
+                        '<div class="product-info-detailed">' +
+                            '<div class="product-brand">' + obtenerMarcaProducto(producto) + '</div>' +
+                            '<h3 class="product-title-detailed">' + (producto.nombre || producto.nombre_producto || 'Producto') + '</h3>' +
+                            '<div class="product-price"><span class="current-price">S/ ' + (producto.precio_venta || producto.precioVenta || producto.precio || '0.00') + '</span></div>' +
+                            '<div class="product-actions">' +
+                                '<button class="btn-add-cart" onclick="agregarAlCarrito(\'' + (producto.id || '') + '\')">Añadir al Carrito</button>' +
+                                '<button class="btn-wishlist" onclick="agregarFavoritos(\'' + (producto.id || '') + '\')"><i class="far fa-heart"></i></button>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>';
+            }).join('');
+        }
+
+        // Función para extraer marca del nombre del producto
+        function obtenerMarcaProducto(producto) {
+            const nombre = producto.nombre || producto.nombre_producto || '';
+            // Extraer primera palabra como marca
+            return nombre.split(' ')[0] || 'MARCA';
+        }
+
+        // Función para búsqueda desde el navbar
+        async function buscarProductos() {
+            const searchTerm = document.getElementById('searchInput').value.trim();
+            
+            if (!searchTerm) {
+                // Si no hay término de búsqueda, recargar productos originales
+                cargarGafasMujeres();
+                return;
+            }
+            
+            try {
+                console.log('Buscando:', searchTerm);
+                const response = await fetch(`/api/productos/buscar?nombre=${encodeURIComponent(searchTerm)}&categoria=mujeres-accesorios`);
+                const productos = await response.json();
+                
+                productosFiltrados = productos;
+                mostrarProductos(productos);
+                actualizarContadorProductos(productos.length);
+                
+            } catch (error) {
+                console.error('Error en búsqueda:', error);
+            }
+        }
+
+        // Configurar eventos de filtros
+        function configurarFiltros() {
+            // Filtro de precio
+            const precioRange = document.querySelector('.price-range');
+            const precioMin = document.querySelector('.price-inputs input[placeholder="Mín"]');
+            const precioMax = document.querySelector('.price-inputs input[placeholder="Máx"]');
+            
+            if (precioRange && precioMin && precioMax) {
+                precioRange.addEventListener('input', function() {
+                    precioMax.value = this.value;
+                    aplicarFiltros();
+                });
+                
+                precioMin.addEventListener('change', aplicarFiltros);
+                precioMax.addEventListener('change', aplicarFiltros);
+            }
+            
+            // Filtro de colores
+            const colores = document.querySelectorAll('.color-option');
+            colores.forEach(color => {
+                color.addEventListener('click', function() {
+                    this.classList.toggle('selected');
+                    aplicarFiltros();
+                });
             });
-            paginationContainer.appendChild(pageButton);
+            
+            // Filtro de marcas
+            const marcas = document.querySelectorAll('.brand-option input[type="checkbox"]');
+            marcas.forEach(marca => {
+                marca.addEventListener('change', aplicarFiltros);
+            });
+            
+            // Filtro de materiales
+            const materiales = document.querySelectorAll('.brand-option input[type="checkbox"]');
+            materiales.forEach(material => {
+                material.addEventListener('change', aplicarFiltros);
+            });
+            
+            // Botón aplicar filtros
+            const btnAplicar = document.querySelector('.btn-add-cart[style*="width: 100%"]');
+            if (btnAplicar) {
+                btnAplicar.addEventListener('click', aplicarFiltros);
+            }
         }
 
-        // Botón "Siguiente"
-        const nextButton = document.createElement('a');
-        nextButton.href = '#';
-        nextButton.innerHTML = '&raquo;'; // Flecha derecha
-        if (currentPage === totalPages) {
-            nextButton.classList.add('disabled');
+        // Función para aplicar todos los filtros
+        function aplicarFiltros() {
+            console.log('🎯 Aplicando filtros...');
+            
+            let productos = [...todosLosProductos];
+            
+            // 1. FILTRAR POR PRECIO
+            const precioMin = parseInt(document.querySelector('.price-inputs input[placeholder="Mín"]')?.value) || 0;
+            const precioMax = parseInt(document.querySelector('.price-inputs input[placeholder="Máx"]')?.value) || 9999;
+            
+            console.log('💰 Filtro precio:', { precioMin, precioMax });
+            
+            productos = productos.filter(producto => {
+                const precio = producto.precio_venta || producto.precioVenta || producto.precio || 0;
+                return precio >= precioMin && precio <= precioMax;
+            });
+            
+            // 2. FILTRAR POR COLORES SELECCIONADOS
+            const coloresSeleccionados = Array.from(document.querySelectorAll('.color-option.selected'))
+                .map(color => {
+                    const title = color.getAttribute('title');
+                    return title ? title.toLowerCase() : '';
+                })
+                .filter(color => color !== '');
+            
+            console.log('🎨 Colores seleccionados:', coloresSeleccionados);
+            
+            if (coloresSeleccionados.length > 0) {
+                productos = productos.filter(producto => 
+                    producto.color && coloresSeleccionados.includes(producto.color.toLowerCase())
+                );
+            }
+            
+            // 3. FILTRAR POR MARCAS SELECCIONADAS (extraer marca del nombre)
+            const marcasSeleccionadas = Array.from(document.querySelectorAll('.brand-option input[type="checkbox"]:checked'))
+                .map(cb => {
+                    const label = cb.parentElement.querySelector('label') || cb.parentElement;
+                    return label.textContent.trim().toLowerCase();
+                });
+            
+            console.log('🏷️ Marcas seleccionadas:', marcasSeleccionadas);
+            
+            if (marcasSeleccionadas.length > 0) {
+                productos = productos.filter(producto => {
+                    // Extraer marca del nombre del producto (primera palabra)
+                    const marcaProducto = obtenerMarcaProducto(producto).toLowerCase();
+                    return marcaProducto && marcasSeleccionadas.includes(marcaProducto);
+                });
+            }
+            
+            console.log('✅ Productos después de filtros:', productos);
+            
+            productosFiltrados = productos;
+            mostrarProductos(productos);
+            actualizarContadorProductos(productos.length);
         }
-        nextButton.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (currentPage < totalPages) {
-                currentPage++;
-                showPage(currentPage);
-                setupPagination();
+
+        // Actualizar contador de productos
+        function actualizarContadorProductos(cantidad) {
+            const contador = document.getElementById('productsCount');
+            if (contador) {
+                contador.textContent = `${cantidad} producto${cantidad !== 1 ? 's' : ''}`;
+            }
+        }
+
+        // Funciones auxiliares (puedes implementarlas después)
+        function vistaRapida(productoId) {
+            alert(`Vista rápida del producto ${productoId}`);
+        }
+
+        function agregarAlCarrito(productoId) {
+            alert(`Producto ${productoId} agregado al carrito`);
+            // Aquí integrarás con tu lógica del carrito
+        }
+
+        function agregarFavoritos(productoId) {
+            alert(`Producto ${productoId} agregado a favoritos`);
+        }
+
+        // Permitir búsqueda con Enter
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        buscarProductos();
+                    }
+                });
             }
         });
-        paginationContainer.appendChild(nextButton);
-    }
-
-    // Inicializa la vista con la primera página
-    showPage(currentPage);
-    setupPagination();
-});
     </script>
 </body>
 </html>
