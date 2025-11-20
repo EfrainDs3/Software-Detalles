@@ -17,6 +17,9 @@ public interface AperturaCajaRepository extends JpaRepository<AperturaCaja, Long
     // Buscar apertura activa (sin cierre) de una caja específica
     @Query("SELECT a FROM AperturaCaja a WHERE a.caja.idCaja = :idCaja AND a.cierre IS NULL")
     Optional<AperturaCaja> findActiveAperturaByCajaId(@Param("idCaja") Integer idCaja);
+
+    @Query("SELECT a FROM AperturaCaja a WHERE a.cierre IS NULL ORDER BY a.idApertura DESC")
+    Optional<AperturaCaja> findAnyActiveApertura();
     
     // Listar todas las aperturas con sus cierres y usuarios
     @Query("SELECT a FROM AperturaCaja a LEFT JOIN FETCH a.cierre LEFT JOIN FETCH a.usuario ORDER BY a.idApertura DESC")
