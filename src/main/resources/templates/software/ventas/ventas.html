@@ -101,7 +101,45 @@
                         <i class="fas fa-file-invoice"></i>
                         Detalles de la Venta
                     </h4>
-                    <div class="form-row">
+                    
+                    <div class="">
+                        <div class="form-section full-width" >
+                            <h4 class="section-title"><i class="fas fa-user"></i> Datos del Cliente</h4>
+
+                            <div class="form-group mb-3">
+                                <label for="clienteTipoDoc">Tipo y Número de Documento</label>
+                                <div class="input-group">
+                                    <select id="clienteTipoDoc" name="clienteTipoDoc" class="form-control" style="max-width: 190px;" required>
+                                        
+                                        <option value="1">DNI</option> 
+                                        <option value="2">RUC</option>
+                                    </select>
+                                    <input type="text" id="clienteNumDoc" name="clienteNumDoc" class="form-control" placeholder="Ingrese DNI/RUC" maxlength="11">
+                                    <button type="button" id="buscarClienteBtn" class="btn btn-primary" title="Buscar Cliente">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div id="clienteInfo" class="alert mt-2" style="display: none;">
+                                <p class="mb-0">
+                                    <strong>Cliente:</strong> 
+                                    <span id="nombreClienteResultado" class="font-weight-bold">Público General</span>
+                                </p>
+                                <button type="button" id="registrarClienteBtn" class="btn btn-sm btn-success mt-2" style="display: none;">
+                                    <i class="fas fa-user-plus"></i> Registrar Nuevo Cliente
+                                </button>
+                            </div>
+
+                            <!-- Campo oculto para guardar el ID del cliente seleccionado -->
+                            <input type="hidden" id="idClienteVenta" name="idClienteVenta" value="1"> 
+                        </div>
+                    </div>
+                    <div  class="form-row">
+                        <div class="form-group">
+                            <label for="ventaCliente">Cliente *</label>
+                            <input type="text" id="ventaCliente" name="cliente" required placeholder="Ej: Juan Pérez / RUC: 1045...">
+                        </div>
                         <div class="form-group">
                             <label for="ventaTipoComprobante">Tipo de Comprobante *</label>
                             <select id="ventaTipoComprobante" name="tipoComprobante" required>
@@ -111,42 +149,10 @@
                                 <option value="3">Ticket / Venta Rápida</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label for="ventaCliente">Cliente *</label>
-                            <input type="text" id="ventaCliente" name="cliente" required placeholder="Ej: Juan Pérez / RUC: 1045...">
-                        </div>
-                    </div>
+                    </div>   
+                    
 
-                    <div class="form-section">
-                        <h4 class="section-title"><i class="fas fa-user"></i> Datos del Cliente</h4>
-
-                        <div class="form-group mb-3">
-                            <label for="clienteTipoDoc">Tipo y Número de Documento</label>
-                            <div class="input-group">
-                                <select id="clienteTipoDoc" name="clienteTipoDoc" class="form-control" style="max-width: 120px;">
-                                    <option value="1">DNI</option> 
-                                    <option value="2">RUC</option>
-                                </select>
-                                <input type="text" id="clienteNumDoc" name="clienteNumDoc" class="form-control" placeholder="Ingrese DNI/RUC" maxlength="11">
-                                <button type="button" id="buscarClienteBtn" class="btn btn-primary" title="Buscar Cliente">
-                                    <i class="fas fa-search"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div id="clienteInfo" class="alert mt-2" style="display: none;">
-                            <p class="mb-0">
-                                <strong>Cliente:</strong> 
-                                <span id="nombreClienteResultado" class="font-weight-bold">Público General</span>
-                            </p>
-                            <button type="button" id="registrarClienteBtn" class="btn btn-sm btn-success mt-2" style="display: none;">
-                                <i class="fas fa-user-plus"></i> Registrar Nuevo Cliente
-                            </button>
-                        </div>
-
-                        <!-- Campo oculto para guardar el ID del cliente seleccionado -->
-                        <input type="hidden" id="idClienteVenta" name="idClienteVenta" value="1"> 
-                    </div>
+                    
 
 
                     <div id="clienteModal" class="modal" style="display: none;">
@@ -211,20 +217,7 @@
                             </select>
                         </div>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="ventaEstado">Estado *</label>
-                            <select id="ventaEstado" name="estado" required>
-                                <option value="Completada">Completada</option>
-                                <option value="Pendiente">Pendiente</option>
-                                <option value="Cancelada">Cancelada</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="ventaSerie">Serie/Correlativo</label>
-                            <input type="text" id="ventaSerie" name="serie" disabled value="Pendiente">
-                        </div>
-                    </div>
+                    
                 </div>
 
                 <div class="form-section">

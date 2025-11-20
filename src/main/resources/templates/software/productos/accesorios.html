@@ -117,17 +117,19 @@
                             <input type="text" id="accesorioName" name="name" required placeholder="Ej: Cinturón de Cuero">
                         </div>
                         <div class="form-group">
+                            <label for="accesorioBrand">Marca</label>
+                            <select id="accesorioBrand">
+                                <option value="">Cargando marcas...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
                             <label for="accesorioModel">Modelo</label>
-                            <select id="accesorioModel">
-                                <option value="">Cargando modelos...</option>
+                            <select id="accesorioModel" disabled>
+                                <option value="">Selecciona una marca primero</option>
                             </select>
                         </div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group">
-                            <label for="accesorioBrandName">Marca</label>
-                            <input type="text" id="accesorioBrandName" placeholder="Selecciona un modelo" readonly>
-                        </div>
                         <div class="form-group">
                             <label for="accesorioColor">Color *</label>
                             <input type="text" id="accesorioColor" required placeholder="Ej: Dorado / Negro">
@@ -201,12 +203,33 @@
                         <i class="fas fa-ruler"></i>
                         Tallas y Precios
                     </h4>
-                    <div id="tallasContainer"></div>
-                    <button type="button" class="btn btn-secondary mt-3" id="addTallaBtn">
-                        <i class="fas fa-plus"></i>
-                        Agregar Talla
-                    </button>
-                    <p class="talla-hint">Escribe manualmente la medida o talla que necesitas (ej. Única, 55 cm, Talla M). Puedes registrar varias variaciones.</p>
+                    <div class="form-group toggle-group">
+                        <label class="toggle-label">
+                            <input type="checkbox" id="manejaTallasToggle" checked>
+                            Gestionar variaciones por talla
+                        </label>
+                        <small class="input-hint">Desactiva esta opción para registrar un accesorio que no maneja tallas.</small>
+                    </div>
+
+                    <div class="form-row" id="preciosGeneralesRow" style="display: none;">
+                        <div class="form-group">
+                            <label for="accesorioPrecioVenta">Precio Venta (S/)*</label>
+                            <input type="number" id="accesorioPrecioVenta" step="0.01" min="0" placeholder="Ej: 89.90">
+                        </div>
+                        <div class="form-group">
+                            <label for="accesorioCostoCompra">Precio Compra (S/)</label>
+                            <input type="number" id="accesorioCostoCompra" step="0.01" min="0" placeholder="Opcional">
+                        </div>
+                    </div>
+
+                    <div id="tallasConfigWrapper">
+                        <div id="tallasContainer"></div>
+                        <button type="button" class="btn btn-secondary mt-3" id="addTallaBtn">
+                            <i class="fas fa-plus"></i>
+                            Agregar Talla
+                        </button>
+                        <p class="talla-hint">Escribe manualmente la medida o talla que necesitas (ej. Única, 55 cm, Talla M). Puedes registrar varias variaciones.</p>
+                    </div>
                 </div>
 
                 <!-- Imagen del Producto -->
@@ -219,7 +242,16 @@
                         <div class="image-preview" id="imagePreview">
                             <i class="fas fa-camera"></i>
                         </div>
+                        <button type="button" class="btn btn-secondary mt-2" id="selectImageBtn">
+                            <i class="fas fa-upload"></i>
+                            <span class="btn-text">Seleccionar imagen</span>
+                        </button>
                         <input type="file" id="accesorioImage" name="image" accept="image/*" style="display: none;">
+                        <p class="image-hint">
+                            Formatos admitidos: JPG, PNG o WEBP (hasta 5&nbsp;MB).
+                            <br>
+                            <span class="image-file-name"></span>
+                        </p>
                     </div>
                 </div>
 

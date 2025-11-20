@@ -10,6 +10,7 @@ import fisi.software.detalles.repository.CatalogoRepository;
 import fisi.software.detalles.repository.ProductoRepository;
 import fisi.software.detalles.repository.ProveedorRepository;
 import fisi.software.detalles.controller.dto.ProductoSearchRequest;
+import fisi.software.detalles.service.storage.ProductoImageStorageService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,14 +32,17 @@ public class ProductoService {
     private final CategoriaProductoRepository categoriaProductoRepository;
     private final ProveedorRepository proveedorRepository;
     private final CatalogoRepository catalogoRepository;
+    private final ProductoImageStorageService productoImageStorageService;
     public ProductoService(ProductoRepository productoRepository,
                            CategoriaProductoRepository categoriaProductoRepository,
                            ProveedorRepository proveedorRepository,
-                           CatalogoRepository catalogoRepository) {
+                           CatalogoRepository catalogoRepository,
+                           ProductoImageStorageService productoImageStorageService) {
         this.productoRepository = productoRepository;
         this.categoriaProductoRepository = categoriaProductoRepository;
         this.proveedorRepository = proveedorRepository;
         this.catalogoRepository = catalogoRepository;
+        this.productoImageStorageService = productoImageStorageService;
     }
 
     // ========== MÉTODOS EXISTENTES (NO CAMBIAR) ==========
@@ -71,6 +75,8 @@ public class ProductoService {
         producto.setCategoria(categoria);
         producto.setEstado(Boolean.TRUE);
         aplicarDatosBasicos(producto, request);
+    producto.setEstado(Boolean.TRUE);
+        aplicarDatosBasicos(producto, request, categoriaCodigo);
         productoRepository.save(producto);
         productoRepository.flush();
         Producto guardado = productoRepository.findByIdWithDetalles(producto.getId())
@@ -88,7 +94,7 @@ public class ProductoService {
         if (!Objects.equals(producto.getCategoria().getId(), categoria.getId())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El producto no pertenece a la categoría solicitada");
         }
-        aplicarDatosBasicos(producto, request);
+        aplicarDatosBasicos(producto, request, categoriaCodigo);
         productoRepository.save(producto);
         return mapear(producto);
     }
@@ -103,7 +109,7 @@ public class ProductoService {
         productoRepository.save(producto);
     }
 
-    private void aplicarDatosBasicos(Producto producto, ProductoRequest request) {
+    private void aplicarDatosBasicos(Producto producto, ProductoRequest request, CategoriaCodigo categoriaCodigo) {
         if (request == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Los datos del producto son obligatorios");
         }
@@ -154,6 +160,15 @@ public class ProductoService {
             producto.getTiposProducto().add(tipoProducto);
         }
 
+        String categoriaCarpeta = resolverCarpetaCategoria(categoriaCodigo);
+        String imagenProcesada = productoImageStorageService.handleImage(
+            request.imagen(),
+            categoriaCarpeta,
+            producto.getImagen(),
+            producto.getNombre()
+        );
+        producto.setImagen(imagenProcesada);
+
         BigDecimal precioVenta = normalizarBigDecimal(request.precioVenta());
         BigDecimal costoCompra = normalizarBigDecimal(request.costoCompra());
 
@@ -180,8 +195,14 @@ public class ProductoService {
         producto.setCostoCompra(costoCompra);
 
         // Validar tallas según categoría
-        if (CollectionUtils.isEmpty(request.tallas())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debe registrar al menos una talla con precio de venta");
+        boolean sinTallas = CollectionUtils.isEmpty(request.tallas());
+        if (sinTallas) {
+            if (categoriaCodigo == CategoriaCodigo.CALZADO) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Los calzados deben registrar al menos una talla con precio de venta");
+            }
+            if (precioVenta == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El precio de venta es obligatorio cuando no se registran tallas");
+            }
         }
 
         actualizarTallas(producto, request.tallas());
@@ -232,7 +253,7 @@ public class ProductoService {
                 producto.getCodigoBarra(),
                 producto.getCategoria() != null ? new CategoriaDto(producto.getCategoria().getId(), producto.getCategoria().getNombre()) : null,
                 marca != null ? new MarcaDto(marca.getId(), marca.getNombre()) : null,
-                modelo != null ? new ModeloDto(modelo.getId(), modelo.getNombre(), modelo.getImagen()) : null,
+                modelo != null ? new ModeloDto(modelo.getId(), modelo.getNombre()) : null,
                 producto.getMaterial() != null ? new MaterialDto(producto.getMaterial().getId(), producto.getMaterial().getNombre()) : null,
                 producto.getUnidad() != null ? new UnidadDto(producto.getUnidad().getId(), producto.getUnidad().getNombre(), producto.getUnidad().getAbreviatura()) : null,
                 producto.getProveedor() != null ? new ProveedorDto(producto.getProveedor().getIdProveedor(), producto.getProveedor().getRazonSocial(), producto.getProveedor().getNombreComercial()) : null,
@@ -242,6 +263,7 @@ public class ProductoService {
                 producto.getTipo(),
                 producto.getDimensiones(),
                 producto.getPesoGramos(),
+                producto.getImagen(),
                 tallas,
                 tipoPrincipal != null ? List.of(new TipoDto(tipoPrincipal.getId(), tipoPrincipal.getNombre())) : List.of(),
                 !Boolean.FALSE.equals(producto.getEstado())
@@ -341,6 +363,12 @@ public class ProductoService {
     }
 
     // ========== RECORDS EXISTENTES (NO CAMBIAR) ==========
+    private String resolverCarpetaCategoria(CategoriaCodigo categoriaCodigo) {
+        return switch (categoriaCodigo) {
+            case CALZADO -> "calzados";
+            case ACCESORIO -> "accesorios";
+        };
+    }
 
     public enum CategoriaCodigo {
         CALZADO("Calzado"),
@@ -372,7 +400,8 @@ public class ProductoService {
             String tipo,
             String dimensiones,
             Integer pesoGramos,
-            List<TallaRequest> tallas
+            List<TallaRequest> tallas,
+            String imagen
     ) {
     }
 
@@ -396,9 +425,10 @@ public class ProductoService {
             String tipo,
             String dimensiones,
             Integer pesoGramos,
-        List<TallaResponse> tallas,
-        List<TipoDto> tiposProducto,
-        Boolean activo
+            String imagen,
+            List<TallaResponse> tallas,
+            List<TipoDto> tiposProducto,
+            Boolean activo
     ) {
     }
 
@@ -411,7 +441,7 @@ public class ProductoService {
     public record MarcaDto(Long id, String nombre) {
     }
 
-    public record ModeloDto(Long id, String nombre, String imagen) {
+    public record ModeloDto(Long id, String nombre) {
     }
 
     public record MaterialDto(Long id, String nombre) {

@@ -421,6 +421,33 @@
     color: #757575;
 }
 
+.toggle-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: #333;
+    cursor: pointer;
+}
+
+.toggle-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #b30000;
+}
+
+.input-hint {
+    font-size: 12px;
+    color: #757575;
+}
+
 /* Detalle modal legacy layout */
 .detalle-producto {
     display: flex;

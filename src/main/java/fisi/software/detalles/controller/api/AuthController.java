@@ -10,6 +10,7 @@ import fisi.software.detalles.entity.Usuario;
 import fisi.software.detalles.security.UsuarioPrincipal;
 import fisi.software.detalles.service.UsuarioService;
 import jakarta.validation.Valid;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,11 +21,20 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.core.AuthenticationException;
+
 import java.security.Principal;
+import java.util.Locale;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -33,8 +43,16 @@ public class AuthController {
 
     private final UsuarioService usuarioService;
 
-    @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
+
+    // Método existente para login autenticado (con Spring Security)
+    @PostMapping("/login-spring")
+    public ResponseEntity<LoginResponse> loginSpring(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
         Usuario usuarioAutenticado = usuarioService.autenticar(request.usernameOrEmail(), request.password());
 
         UsuarioPrincipal principal = UsuarioPrincipal.fromUsuario(usuarioAutenticado);
@@ -91,5 +109,113 @@ public class AuthController {
             request.newPassword()
         );
         return ResponseEntity.ok(SimpleMessageResponse.of("Contraseña actualizada correctamente"));
+    }
+
+    // Método simple para login desde frontend web (sin Spring Security)
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody Map<String, String> body, HttpServletRequest request) {
+        String identifier = body.getOrDefault("usernameOrEmail", "").trim();
+        if (identifier.isEmpty()) {
+            identifier = body.getOrDefault("identifier", "").trim();
+        }
+        String password = body.getOrDefault("password", "");
+
+        if (identifier.isEmpty() || password.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Faltan credenciales"));
+        }
+
+        try {
+            LoginRequest loginRequest = new LoginRequest(identifier, password);
+            Usuario usuarioAutenticado = usuarioService.autenticar(
+                loginRequest.usernameOrEmail(),
+                loginRequest.password()
+            );
+
+            // Build response object and log modules for debugging
+            var loginResp = LoginResponse.fromEntity(usuarioAutenticado);
+            try {
+                log.info("User '{}' logged in. modulos={}", usuarioAutenticado.getUsername(), loginResp.modulos());
+            } catch (Exception e) {
+                log.info("User '{}' logged in. (could not log modulos)", usuarioAutenticado.getUsername());
+            }
+
+            UsuarioPrincipal principal = UsuarioPrincipal.fromUsuario(usuarioAutenticado);
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                principal,
+                null,
+                principal.getAuthorities()
+            );
+
+            SecurityContext context = SecurityContextHolder.createEmptyContext();
+            context.setAuthentication(authentication);
+            SecurityContextHolder.setContext(context);
+            request.getSession(true).setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
+
+            return ResponseEntity.ok(loginResp);
+        } catch (IllegalArgumentException ex) {
+            final String message = ex.getMessage();
+            final String responseMessage = (message != null && !message.isBlank())
+                ? message
+                : "Usuario o contraseña incorrectos";
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", responseMessage));
+        } catch (AuthenticationException ex) {
+            final String message = ex.getMessage();
+            final String responseMessage = (message != null && !message.isBlank())
+                ? message
+                : "Usuario o contraseña incorrectos";
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", responseMessage));
+        } catch (Exception ex) {
+            log.error("Unexpected error during login", ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Ocurrió un problema al iniciar sesión"));
+        }
+    }
+
+    // Método simple para registro desde frontend web
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody Map<String, String> body, HttpSession session) {
+        String nombres = body.getOrDefault("nombres", "").trim();
+        String apellidos = body.getOrDefault("apellidos", "").trim();
+        String username = body.getOrDefault("username", "").trim();
+        String email = body.getOrDefault("email", "").trim().toLowerCase(Locale.ROOT);
+        String password = body.getOrDefault("password", "");
+
+        if (nombres.isEmpty() || email.isEmpty() || password.isEmpty() || username.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Faltan campos requeridos"));
+        }
+
+        // comprobar existencia
+        Integer count = jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM usuarios WHERE LOWER(email)=? OR LOWER(username)=?",
+            Integer.class, email, username.toLowerCase(Locale.ROOT)
+        );
+        if (count != null && count > 0) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "Email o username ya registrado"));
+        }
+
+        String hash = encoder.encode(password);
+        // Insertar nuevo usuario
+        jdbcTemplate.update(
+            "INSERT INTO usuarios (nombres, apellidos, username, email, `contraseña_hash`, fecha_creacion) VALUES (?, ?, ?, ?, ?, NOW())",
+            nombres, apellidos, username, email, hash
+        );
+        // obtener id generado
+        Integer newId = jdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Integer.class);
+
+        // iniciar sesión automáticamente
+        session.setAttribute("USER_ID", newId);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
+            "id_usuario", newId,
+            "nombres", nombres,
+            "apellidos", apellidos,
+            "username", username,
+            "email", email
+        ));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpSession session) {
+        session.invalidate();
+        return ResponseEntity.ok(Map.of("ok", true));
     }
 }

@@ -13,6 +13,8 @@ public interface PermisoRepository extends JpaRepository<Permiso, Long> {
 
     Optional<Permiso> findByNombrePermisoIgnoreCase(String nombre);
 
+    Optional<Permiso> findByModuloIgnoreCaseAndNombrePermisoIgnoreCase(String modulo, String nombre);
+
     @EntityGraph(attributePaths = {"roles"})
     List<Permiso> findAllByOrderByNombrePermisoAsc();
 

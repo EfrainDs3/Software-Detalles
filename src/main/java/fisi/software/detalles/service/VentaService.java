@@ -18,6 +18,7 @@ import fisi.software.detalles.entity.Cliente;
 import fisi.software.detalles.entity.TipoComprobantePago;
 import fisi.software.detalles.entity.Producto;
 import fisi.software.detalles.entity.TipoDocumento; 
+import fisi.software.detalles.entity.AperturaCaja; // Nueva importación
 
 // Importaciones de Repositorios
 import fisi.software.detalles.repository.VentaRepository; 
@@ -25,6 +26,8 @@ import fisi.software.detalles.repository.ClienteRepository;
 import fisi.software.detalles.repository.UsuarioRepository; 
 import fisi.software.detalles.repository.TipoComprobantePagoRepository;
 import fisi.software.detalles.repository.ProductoRepository;
+import fisi.software.detalles.repository.CajaRepository; // Nueva importación
+import fisi.software.detalles.repository.AperturaCajaRepository; // Nueva importación
 
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfPCell;
@@ -61,6 +64,12 @@ public class VentaService {
     @Autowired
     private ClienteRepository clienteRepository; 
 
+    @Autowired
+    private CajaRepository cajaRepository; // Nueva inyección
+
+    @Autowired
+    private AperturaCajaRepository aperturaCajaRepository; // Nueva inyección
+
     // --- Definición de Fuentes para PDF ---
     private static final Font FONT_TITULO = new Font(Font.FontFamily.HELVETICA, 16, Font.BOLD, BaseColor.RED);
     private static final Font FONT_NORMAL_BOLD = new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD);
@@ -96,8 +105,18 @@ public class VentaService {
     // MÉTODO 1: REGISTRAR NUEVA VENTA
     // ======================================================================
 
+    // Método para verificar si la caja está abierta
+    private boolean isCajaAbierta() {
+        return !cajaRepository.findByEstado("Abierta").isEmpty();
+    }
+
+    @Transactional
     public Map<String, Object> registrarNuevaVenta(VentaRequestDTO ventaDTO) {
-        
+        // Verificar si la caja está abierta
+        if (!isCajaAbierta()) {
+            throw new IllegalStateException("No se pueden realizar ventas porque la caja está cerrada.");
+        }
+
         ComprobantePago nuevaVenta = convertDtoToEntity(ventaDTO);
         
         // 💾 GUARDAR EN BASE DE DATOS
@@ -235,6 +254,14 @@ public class VentaService {
         Optional<Cliente> clienteGenericoOpt = clienteRepository.findById(idClienteGenerico);
         clienteGenericoOpt.ifPresent(venta::setCliente);
     }
+
+    // id_apertura (OBLIGATORIO)
+    if (ventaDTO.getId_apertura() == null) {
+        throw new IllegalArgumentException("La apertura de caja es obligatoria para registrar una venta.");
+    }
+    AperturaCaja aperturaCaja = aperturaCajaRepository.findById(ventaDTO.getId_apertura())
+        .orElseThrow(() -> new RuntimeException("Error FK: Apertura de caja no encontrada con ID: " + ventaDTO.getId_apertura() + ". Verifique tabla 'aperturascaja'."));
+    venta.setApertura(aperturaCaja);
 
     // --- 3. Mapear Detalles y establecer la relación ---
     if (ventaDTO.getDetalles() == null || ventaDTO.getDetalles().isEmpty()) {

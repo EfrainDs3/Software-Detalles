@@ -6,6 +6,7 @@ import fisi.software.detalles.service.ProveedorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -24,6 +25,7 @@ public class ProveedorController {
 
     // GET: Cargar vista de proveedores
     @GetMapping("/compras/proveedores")
+    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_COMPRAS, T(fisi.software.detalles.security.Permisos).VER_COMPRAS, T(fisi.software.detalles.security.Permisos).VER_PROVEEDORES, T(fisi.software.detalles.security.Permisos).MODULO_COMPRAS, T(fisi.software.detalles.security.Permisos).MODULO_PROVEEDORES)")
     public String showProveedoresView(Model model, Authentication authentication) {
         boolean puedeGestionarCompras = authentication != null && authentication.getAuthorities().stream()
             .anyMatch(authority -> Permisos.GESTIONAR_COMPRAS.equals(authority.getAuthority()));
@@ -34,6 +36,7 @@ public class ProveedorController {
     // GET: Obtener todos los proveedores
     @GetMapping("/api/proveedores")
     @ResponseBody
+    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_COMPRAS, T(fisi.software.detalles.security.Permisos).VER_COMPRAS, T(fisi.software.detalles.security.Permisos).VER_PROVEEDORES, T(fisi.software.detalles.security.Permisos).MODULO_COMPRAS, T(fisi.software.detalles.security.Permisos).MODULO_PROVEEDORES)")
     public ResponseEntity<List<Proveedor>> getAllProveedores() {
         try {
             List<Proveedor> proveedores = proveedorService.getAllProveedores();
@@ -46,6 +49,7 @@ public class ProveedorController {
     // GET: Obtener proveedor por ID
     @GetMapping("/api/proveedores/{id}")
     @ResponseBody
+    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_COMPRAS, T(fisi.software.detalles.security.Permisos).VER_COMPRAS, T(fisi.software.detalles.security.Permisos).VER_PROVEEDORES, T(fisi.software.detalles.security.Permisos).MODULO_COMPRAS, T(fisi.software.detalles.security.Permisos).MODULO_PROVEEDORES)")
     public ResponseEntity<Proveedor> getProveedorById(@PathVariable Integer id) {
         try {
             return proveedorService.getProveedorById(id)
@@ -59,6 +63,7 @@ public class ProveedorController {
     // GET: Buscar proveedores (por razón social, nombre comercial o RUC)
     @GetMapping("/api/proveedores/buscar")
     @ResponseBody
+    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_COMPRAS, T(fisi.software.detalles.security.Permisos).VER_COMPRAS, T(fisi.software.detalles.security.Permisos).VER_PROVEEDORES, T(fisi.software.detalles.security.Permisos).MODULO_COMPRAS, T(fisi.software.detalles.security.Permisos).MODULO_PROVEEDORES)")
     public ResponseEntity<List<Proveedor>> buscarProveedores(@RequestParam String query) {
         try {
             // Intentar buscar por diferentes criterios
@@ -77,6 +82,7 @@ public class ProveedorController {
     // GET: Buscar por rubro
     @GetMapping("/api/proveedores/rubro/{rubro}")
     @ResponseBody
+    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_COMPRAS, T(fisi.software.detalles.security.Permisos).VER_COMPRAS, T(fisi.software.detalles.security.Permisos).VER_PROVEEDORES, T(fisi.software.detalles.security.Permisos).MODULO_COMPRAS, T(fisi.software.detalles.security.Permisos).MODULO_PROVEEDORES)")
     public ResponseEntity<List<Proveedor>> getProveedoresByRubro(@PathVariable String rubro) {
         try {
             List<Proveedor> proveedores = proveedorService.getProveedoresByRubro(rubro);
@@ -89,6 +95,7 @@ public class ProveedorController {
     // POST: Crear nuevo proveedor
     @PostMapping("/api/proveedores")
     @ResponseBody
+    @PreAuthorize("hasAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_COMPRAS)")
     public ResponseEntity<Map<String, Object>> createProveedor(@RequestBody Proveedor proveedor) {
         Map<String, Object> response = new HashMap<>();
         try {
@@ -128,6 +135,7 @@ public class ProveedorController {
     // PUT: Actualizar proveedor existente
     @PutMapping("/api/proveedores/{id}")
     @ResponseBody
+    @PreAuthorize("hasAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_COMPRAS)")
     public ResponseEntity<Map<String, Object>> updateProveedor(
             @PathVariable Integer id, 
             @RequestBody Proveedor proveedor) {
@@ -166,6 +174,7 @@ public class ProveedorController {
     // DELETE: Eliminar proveedor
     @DeleteMapping("/api/proveedores/{id}")
     @ResponseBody
+    @PreAuthorize("hasAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_COMPRAS)")
     public ResponseEntity<Map<String, Object>> deleteProveedor(@PathVariable Integer id) {
         Map<String, Object> response = new HashMap<>();
         try {
@@ -187,6 +196,7 @@ public class ProveedorController {
     // GET: Verificar si existe un RUC
     @GetMapping("/api/proveedores/verificar-ruc/{ruc}")
     @ResponseBody
+    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_COMPRAS, T(fisi.software.detalles.security.Permisos).VER_COMPRAS, T(fisi.software.detalles.security.Permisos).VER_PROVEEDORES, T(fisi.software.detalles.security.Permisos).MODULO_COMPRAS, T(fisi.software.detalles.security.Permisos).MODULO_PROVEEDORES)")
     public ResponseEntity<Map<String, Boolean>> verificarRuc(@PathVariable String ruc) {
         Map<String, Boolean> response = new HashMap<>();
         try {

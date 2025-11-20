@@ -1,5 +1,6 @@
 package fisi.software.detalles.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +21,7 @@ public class ComprasController {
      * @return Vista de compras
      */
     @GetMapping
+    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_COMPRAS, T(fisi.software.detalles.security.Permisos).VER_COMPRAS, T(fisi.software.detalles.security.Permisos).MODULO_COMPRAS)")
     public String showCompras() {
         return "software/compras/compras";
     }

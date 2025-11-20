@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -22,6 +23,7 @@ public class ReniecApiController {
     private final Logger log = LoggerFactory.getLogger(ReniecApiController.class);
 
     @GetMapping
+    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_CLIENTES, T(fisi.software.detalles.security.Permisos).MODULO_CLIENTES, T(fisi.software.detalles.security.Permisos).GESTIONAR_USUARIOS, T(fisi.software.detalles.security.Permisos).MODULO_USUARIOS, T(fisi.software.detalles.security.Permisos).REGISTRAR_VENTAS, T(fisi.software.detalles.security.Permisos).MODULO_VENTAS)")
     public ResponseEntity<?> lookup(@RequestParam String tipo, @RequestParam String numero) {
         try {
             Map<String, Object> data = reniecService.lookup(tipo, numero);
@@ -48,6 +50,7 @@ public class ReniecApiController {
      * Accesible vía: GET /api/reniec/test?tipo=DNI&numero=12345678
      */
     @GetMapping("/test")
+    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_CLIENTES, T(fisi.software.detalles.security.Permisos).MODULO_CLIENTES, T(fisi.software.detalles.security.Permisos).GESTIONAR_USUARIOS, T(fisi.software.detalles.security.Permisos).MODULO_USUARIOS, T(fisi.software.detalles.security.Permisos).REGISTRAR_VENTAS, T(fisi.software.detalles.security.Permisos).MODULO_VENTAS)")
     public ResponseEntity<?> testLookup(@RequestParam String tipo, @RequestParam String numero) {
         try {
             Map<String, Object> data = reniecService.lookup(tipo, numero);

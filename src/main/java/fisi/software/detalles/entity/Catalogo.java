@@ -65,16 +65,12 @@ public class Catalogo {
         @JoinColumn(name = "id_marca", nullable = false)
         private Marca marca;
 
-        @Column(name = "imagen_principal", length = 2555)
-        private String imagen;
-
         public Modelo() {
         }
 
-        public Modelo(String nombre, Marca marca, String imagen) {
+        public Modelo(String nombre, Marca marca) {
             this.nombre = nombre;
             this.marca = marca;
-            this.imagen = imagen;
         }
 
         public Long getId() {
@@ -99,14 +95,6 @@ public class Catalogo {
 
         public void setMarca(Marca marca) {
             this.marca = marca;
-        }
-
-        public String getImagen() {
-            return imagen;
-        }
-
-        public void setImagen(String imagen) {
-            this.imagen = imagen;
         }
     }
 

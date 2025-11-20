@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 06-11-2025 a las 13:22:02
+-- Tiempo de generación: 17-11-2025 a las 22:52:57
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.0.30
 
@@ -52,7 +52,7 @@ CREATE TABLE `aperturascaja` (
   `id_usuario` int(11) NOT NULL,
   `fecha_apertura` date NOT NULL,
   `hora_apertura` time NOT NULL,
-  `monto_inicial` decimal(10,2) NOT NULL
+  `monto_inicial` decimal(38,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -78,9 +78,9 @@ CREATE TABLE `bitacora` (
 
 CREATE TABLE `cajas` (
   `id_caja` int(11) NOT NULL,
-  `nombre_caja` varchar(50) NOT NULL,
+  `nombre_caja` varchar(255) NOT NULL,
   `ubicacion` varchar(255) DEFAULT NULL,
-  `estado` varchar(20) NOT NULL DEFAULT 'Cerrada'
+  `estado` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -115,9 +115,9 @@ CREATE TABLE `cierrescaja` (
   `id_usuario` int(11) NOT NULL,
   `fecha_cierre` date NOT NULL,
   `hora_cierre` time NOT NULL,
-  `monto_final` decimal(10,2) NOT NULL,
-  `monto_esperado` decimal(10,2) NOT NULL,
-  `diferencia` decimal(10,2) NOT NULL,
+  `monto_final` decimal(38,2) NOT NULL,
+  `monto_esperado` decimal(38,2) NOT NULL,
+  `diferencia` decimal(38,2) NOT NULL,
   `observaciones` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -145,7 +145,8 @@ CREATE TABLE `clientes` (
 --
 
 INSERT INTO `clientes` (`id_cliente`, `nombre`, `apellido`, `id_tipodocumento`, `numero_documento`, `direccion`, `telefono`, `email`, `fecha_registro`, `estado`) VALUES
-(1, 'Santiago Efrain', 'Torres Murrieta ', 1, '75859114', 'Jr Tnaga Mandapio', '964983465', 'santiagotorresmurrieta@gmail.com', '2025-10-08 03:30:17', 1);
+(1, 'Santiago Efrain', 'Torres Murrieta ', 1, '75859114', 'Jr Tnaga Mandapio', '964983465', 'santiagotorresmurrieta@gmail.com', '2025-10-08 03:30:17', 1),
+(2, 'ANGGELO LUCCIANO', 'URBINA ESPINOZA', 2, '20154544667', 'JR. RICARDO PALMA 444', '-', NULL, '2025-11-11 17:39:19', 0);
 
 -- --------------------------------------------------------
 
@@ -233,7 +234,7 @@ CREATE TABLE `historial_recomendaciones` (
 --
 
 CREATE TABLE `inventario` (
-  `id_inventario` int(11) NOT NULL,
+  `id_inventario` bigint(20) NOT NULL,
   `id_producto` int(11) NOT NULL,
   `id_almacen` int(11) NOT NULL,
   `cantidad_stock` int(11) NOT NULL DEFAULT 0,
@@ -256,12 +257,12 @@ INSERT INTO `inventario` (`id_inventario`, `id_producto`, `id_almacen`, `cantida
 --
 
 CREATE TABLE `inventario_talla` (
-  `id_inventario_talla` int(11) NOT NULL,
-  `id_inventario` int(11) NOT NULL,
+  `id_inventario_talla` bigint(20) NOT NULL,
+  `cantidad_stock` int(11) NOT NULL,
+  `fecha_ultima_actualizacion` datetime(6) NOT NULL,
+  `stock_minimo` int(11) NOT NULL,
   `talla` varchar(64) DEFAULT NULL,
-  `cantidad_stock` int(11) NOT NULL DEFAULT 0,
-  `stock_minimo` int(11) NOT NULL DEFAULT 0,
-  `fecha_ultima_actualizacion` datetime NOT NULL DEFAULT current_timestamp()
+  `id_inventario` bigint(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -309,18 +310,18 @@ INSERT INTO `materialesproducto` (`id_material`, `nombre_material`) VALUES
 CREATE TABLE `modelos` (
   `id_modelo` int(11) NOT NULL,
   `nombre_modelo` varchar(100) NOT NULL,
-  `id_marca` int(11) NOT NULL,
-  `imagen_principal` varchar(2555) DEFAULT NULL
+  `id_marca` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `modelos`
 --
 
-INSERT INTO `modelos` (`id_modelo`, `nombre_modelo`, `id_marca`, `imagen_principal`) VALUES
-(1, 'Air Max720', 1, NULL),
-(2, 'Air Max710', 1, '/img/upload/modelos/nike-air-max710.webp'),
-(3, 'Modelo123', 1, NULL);
+INSERT INTO `modelos` (`id_modelo`, `nombre_modelo`, `id_marca`) VALUES
+(1, 'Air Max720', 1),
+(2, 'Air Max710', 1),
+(3, 'Modelo123', 1),
+(4, 'Modelo2', 1);
 
 -- --------------------------------------------------------
 
@@ -353,7 +354,7 @@ CREATE TABLE `movimientosinventario` (
   `cantidad` int(11) NOT NULL,
   `fecha_movimiento` datetime NOT NULL DEFAULT current_timestamp(),
   `id_usuario` int(11) NOT NULL,
-  `observaciones` text DEFAULT NULL,
+  `observaciones` varchar(500) DEFAULT NULL,
   `referencia_doc` varchar(50) DEFAULT NULL,
   `talla` varchar(64) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -421,12 +422,12 @@ CREATE TABLE `perfiles_estilo_cliente` (
 
 CREATE TABLE `permisos` (
   `id_permiso` int(11) NOT NULL,
-  `nombre_permiso` varchar(100) NOT NULL,
+  `nombre_permiso` varchar(150) NOT NULL,
   `descripcion` varchar(255) NOT NULL,
-  `estado` varchar(255) DEFAULT NULL,
+  `estado` varchar(20) NOT NULL,
   `fecha_creacion` datetime NOT NULL DEFAULT current_timestamp(),
   `fecha_actualizacion` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `modulo` varchar(255) DEFAULT NULL
+  `modulo` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -511,10 +512,11 @@ INSERT INTO `permisos` (`id_permiso`, `nombre_permiso`, `descripcion`, `estado`,
 (76, 'Editar almacenes', 'Actualizar datos de almacenes', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Almacenes'),
 (77, 'Eliminar almacenes', 'Eliminar almacenes existentes', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Almacenes'),
 (78, 'Verificar nombre de almacén', 'Comprobar disponibilidad de nombres de almacén', 'ACTIVO', '2025-11-06 00:05:53', '2025-11-06 00:05:53', 'Almacenes'),
-(79, 'Gestionar usuarios', 'Permite crear, editar y eliminar usuarios', 'ACTIVO', '2025-11-06 05:06:44', '2025-11-06 05:06:44', 'GENERAL'),
-(80, 'Gestionar roles', 'Permite crear, editar y eliminar roles', 'ACTIVO', '2025-11-06 05:06:44', '2025-11-06 05:06:44', 'GENERAL'),
-(81, 'Gestionar permisos', 'Permite asignar y revocar permisos', 'ACTIVO', '2025-11-06 05:06:44', '2025-11-06 05:06:44', 'GENERAL'),
-(82, 'Gestionar inventario', 'Permite gestionar stock y movimientos', 'ACTIVO', '2025-11-06 05:06:44', '2025-11-06 05:06:44', 'GENERAL');
+(79, 'Gestionar usuarios', 'Permite crear, editar y eliminar usuarios', 'ACTIVO', '2025-11-06 05:06:44', '2025-11-11 17:30:48', 'Usuarios'),
+(80, 'Gestionar roles', 'Permite crear, editar y eliminar roles', 'ACTIVO', '2025-11-06 05:06:44', '2025-11-11 17:30:48', 'Roles'),
+(81, 'Gestionar permisos', 'Permite asignar y revocar permisos', 'ACTIVO', '2025-11-06 05:06:44', '2025-11-11 17:30:48', 'Permisos'),
+(82, 'Gestionar inventario', 'Permite gestionar stock y movimientos', 'ACTIVO', '2025-11-06 05:06:44', '2025-11-11 17:30:48', 'Inventario'),
+(83, 'Gestionar clientes', 'Permite crear, editar y eliminar clientes', 'ACTIVO', '2025-11-11 17:30:48', '2025-11-11 17:30:48', 'Clientes');
 
 -- --------------------------------------------------------
 
@@ -667,20 +669,23 @@ CREATE TABLE `productos` (
   `tipo` varchar(20) DEFAULT NULL,
   `dimensiones` varchar(50) DEFAULT NULL,
   `peso_gramos` int(11) DEFAULT NULL,
-  `estado` int(11) NOT NULL DEFAULT 1,
+  `estado` bit(1) NOT NULL,
   `id_modelo` int(11) DEFAULT NULL,
-  `id_material` int(11) DEFAULT NULL
+  `id_material` int(11) DEFAULT NULL,
+  `imagen` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `productos`
 --
 
-INSERT INTO `productos` (`id_producto`, `nombre_producto`, `descripcion`, `precio_venta`, `costo_compra`, `codigo_barra`, `id_categoria`, `id_proveedor`, `id_unidad_medida`, `color`, `tipo`, `dimensiones`, `peso_gramos`, `estado`, `id_modelo`, `id_material`) VALUES
-(1, 'Zapatillas Deportivas Nike', 'ZapatillaNiker', 200.00, 205.00, NULL, 1, 2, 1, 'Blanco', 'Hombre', '30 x 20 x 12 cm', 1000, 1, 2, 1),
-(2, 'Cinturón de Cuero Premium', 'Cinturon de cuero', 200.00, 2000.00, NULL, 2, 2, 2, 'Blanco', 'Accesorio', '120 x 4 x 0.5 cm', 11, 1, 2, 1),
-(4, 'Zapatillas Deportivas Nike', 'Zapato123', 200.00, 200.00, NULL, 1, 2, 1, 'Blanco', 'Hombre', '30 x 20 x 12 cm', 2000, 1, 3, 1),
-(5, 'Alexander123', NULL, 122.00, NULL, NULL, 2, 2, 2, 'Blanco', 'Hombre', '120 x 4 x 0.5 cm', 11, 1, 3, 1);
+INSERT INTO `productos` (`id_producto`, `nombre_producto`, `descripcion`, `precio_venta`, `costo_compra`, `codigo_barra`, `id_categoria`, `id_proveedor`, `id_unidad_medida`, `color`, `tipo`, `dimensiones`, `peso_gramos`, `estado`, `id_modelo`, `id_material`, `imagen`) VALUES
+(1, 'Zapatillas Deportivas Nike', 'ZapatillaNiker', 200.00, 205.00, NULL, 1, 2, 1, 'Blanco', 'Hombre', '30 x 20 x 12 cm', 1000, b'1', 2, 1, NULL),
+(2, 'Cinturón de Cuero', 'Cinturon de cuero', 200.00, 2000.00, NULL, 2, 2, 2, 'Blanco', 'Hombre', '120 x 4 x 0.5 cm', 11, b'1', 2, 1, NULL),
+(4, 'Zapatillas Deportivas Nike', 'Zapato123', 200.00, 200.00, NULL, 1, 2, 1, 'Blanco', 'Hombre', '30 x 20 x 12 cm', 2000, b'1', 3, 1, NULL),
+(5, 'Alexander123', NULL, 122.00, NULL, NULL, 2, 2, 2, 'Blanco', 'Hombre', '120 x 4 x 0.5 cm', 11, b'1', 3, 1, NULL),
+(6, 'Zapatilla Nike123', 'Zapatilla deportiva Nike', 250.00, 210.00, NULL, 1, 2, 1, 'Blanco y Rojo', 'Niños', '30x20', 1000, b'1', 3, 1, NULL),
+(9, 'Zapatillas1', NULL, 311.00, 313.00, NULL, 1, 2, 1, 'Blanco', 'Hombre', NULL, NULL, b'1', 4, 1, '/img/upload/productos/calzados/zapatillas1.jpg');
 
 -- --------------------------------------------------------
 
@@ -701,7 +706,9 @@ INSERT INTO `producto_tipos` (`id_producto`, `id_tipo`) VALUES
 (1, 1),
 (2, 1),
 (4, 1),
-(5, 1);
+(5, 1),
+(6, 1),
+(9, 1);
 
 -- --------------------------------------------------------
 
@@ -866,13 +873,16 @@ INSERT INTO `rol_permisos` (`id_rol`, `nombre_rol`, `id_permiso`, `nombre_permis
 (1, NULL, 80, NULL),
 (1, NULL, 81, NULL),
 (1, NULL, 82, NULL),
+(1, NULL, 83, NULL),
 (6, NULL, 1, NULL),
 (6, NULL, 6, NULL),
 (6, NULL, 15, NULL),
 (6, NULL, 79, NULL),
+(6, NULL, 83, NULL),
 (7, NULL, 6, NULL),
 (8, NULL, 1, NULL),
 (9, NULL, 52, NULL),
+(9, NULL, 83, NULL),
 (10, NULL, 52, NULL),
 (11, NULL, 82, NULL),
 (12, NULL, 62, NULL);
@@ -898,7 +908,9 @@ INSERT INTO `tallas` (`id_producto`, `talla`, `precio_venta`, `costo_compra`) VA
 (1, '35', 200.00, 205.00),
 (2, 'M', 200.00, 2000.00),
 (4, '12', 200.00, 200.00),
-(5, '12', 122.00, NULL);
+(5, '12', 122.00, NULL),
+(6, '42', 250.00, 210.00),
+(9, '31', 311.00, 313.00);
 
 -- --------------------------------------------------------
 
@@ -1028,8 +1040,8 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id_usuario`, `nombres`, `apellidos`, `id_tipodocumento`, `numero_documento`, `celular`, `direccion`, `username`, `email`, `contraseña_hash`, `estado`, `fecha_creacion`, `fecha_ultima_sesion`) VALUES
-(4, 'Santiago Efrain', 'Torres Murrieta', 1, '75859114', '964983465', 'juan pablo de la cruz', 'EfrainDs3', 'santiagotorresmurrieta@gmail.com', '$2a$10$6587YGgYKDWyAywi61/cB.TFF.U6LrTWacPvzWaBZ9xoVsuGGy.4.', 1, '2025-10-08 15:17:29', '2025-11-06 05:07:02'),
-(5, 'Anggelo Lucciano', 'Urbina Espinoza', 1, '72863068', '903 171 836', 'juan pablo de la cruz', 'Ubuntu', 'anggelolucciano21@gmail.com', '$2a$10$VwIkH6380fJV0oPcQXNKiO1oU8zqQ1vKsc0uWSkm.vtCWoTPHzzMG', 1, '2025-10-08 15:46:19', '2025-11-06 03:54:02'),
+(4, 'Santiago Efrain', 'Torres Murrieta', 1, '75859114', '964983465', 'juan pablo de la cruz', 'EfrainDs3', 'santiagotorresmurrieta@gmail.com', '$2a$10$6587YGgYKDWyAywi61/cB.TFF.U6LrTWacPvzWaBZ9xoVsuGGy.4.', 1, '2025-10-08 15:17:29', '2025-11-17 21:46:45'),
+(5, 'Anggelo Lucciano', 'Urbina Espinoza', 1, '72863068', '903 171 836', 'juan pablo de la cruz', 'Ubuntu', 'anggelolucciano21@gmail.com', '$2a$10$VwIkH6380fJV0oPcQXNKiO1oU8zqQ1vKsc0uWSkm.vtCWoTPHzzMG', 1, '2025-10-08 15:46:19', '2025-11-06 07:03:55'),
 (6, 'Anlly Luz', 'Riva Yomona', 1, '72010812', '999888777', 'Calle Nueva 456', 'Anlly', 'al.rivayo@unsm.edu.pe', '$2a$10$E.7vIdGVqCYy5eoYIBjF/uYDym2.b6B6U6.TlT9uKd0tFUl4DMfJW', 1, '2025-10-08 15:57:57', '2025-11-06 01:16:25'),
 (12, 'Danny Alexander', 'Garcia Salas', 1, '98765432', '999888777', 'juan pablo de la cruz', 'Dingui', 'ia.jadrixgr26@gmail.com', '$2a$10$xKxtzv1ECV/74oi69b9hPubeUZgmSnrAUoxmjmSaz0NyeVOYE9BHW', 1, '2025-10-08 16:27:52', '2025-10-15 22:05:53'),
 (17, 'Alex', 'Pezo', 1, '73325101', '999999999', 'Jr. Trapoto', 'arxse', 'da.pezoin@unsm.edu.pe', '$2a$10$u6dftyj8BINK8/zY5GG.TO36M86byX5s8aWraTFHw4Zit3AiA2YSi', 1, '2025-10-15 22:08:21', '2025-10-15 22:12:18');
@@ -1165,7 +1177,7 @@ ALTER TABLE `inventario`
 --
 ALTER TABLE `inventario_talla`
   ADD PRIMARY KEY (`id_inventario_talla`),
-  ADD KEY `fk_inventario_talla_inventario` (`id_inventario`);
+  ADD KEY `FKa1pg9fk706b0rk23nqj2n7rsy` (`id_inventario`);
 
 --
 -- Indices de la tabla `marcasproducto`
@@ -1398,7 +1410,7 @@ ALTER TABLE `cierrescaja`
 -- AUTO_INCREMENT de la tabla `clientes`
 --
 ALTER TABLE `clientes`
-  MODIFY `id_cliente` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_cliente` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `comprobantespago`
@@ -1434,13 +1446,13 @@ ALTER TABLE `historial_recomendaciones`
 -- AUTO_INCREMENT de la tabla `inventario`
 --
 ALTER TABLE `inventario`
-  MODIFY `id_inventario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_inventario` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de la tabla `inventario_talla`
 --
 ALTER TABLE `inventario_talla`
-  MODIFY `id_inventario_talla` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_inventario_talla` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `marcasproducto`
@@ -1458,7 +1470,7 @@ ALTER TABLE `materialesproducto`
 -- AUTO_INCREMENT de la tabla `modelos`
 --
 ALTER TABLE `modelos`
-  MODIFY `id_modelo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_modelo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `movimientoscaja`
@@ -1488,7 +1500,7 @@ ALTER TABLE `pedidoscompra`
 -- AUTO_INCREMENT de la tabla `permisos`
 --
 ALTER TABLE `permisos`
-  MODIFY `id_permiso` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=83;
+  MODIFY `id_permiso` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=84;
 
 --
 -- AUTO_INCREMENT de la tabla `permisos_auditoria`
@@ -1500,7 +1512,7 @@ ALTER TABLE `permisos_auditoria`
 -- AUTO_INCREMENT de la tabla `productos`
 --
 ALTER TABLE `productos`
-  MODIFY `id_producto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_producto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT de la tabla `proveedores`
@@ -1633,7 +1645,7 @@ ALTER TABLE `inventario`
 -- Filtros para la tabla `inventario_talla`
 --
 ALTER TABLE `inventario_talla`
-  ADD CONSTRAINT `fk_inventario_talla_inventario` FOREIGN KEY (`id_inventario`) REFERENCES `inventario` (`id_inventario`) ON DELETE CASCADE;
+  ADD CONSTRAINT `FKa1pg9fk706b0rk23nqj2n7rsy` FOREIGN KEY (`id_inventario`) REFERENCES `inventario` (`id_inventario`);
 
 --
 -- Filtros para la tabla `modelos`

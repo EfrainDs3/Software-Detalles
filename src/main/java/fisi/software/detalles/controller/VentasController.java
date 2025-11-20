@@ -7,6 +7,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 
 // 💡 IMPORTS NECESARIOS PARA LA VALIDACIÓN Y MANEJO DE ERRORES
@@ -34,11 +35,13 @@ public class VentasController {
     // ======================================================================
     
     @GetMapping
+    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).REGISTRAR_VENTAS, T(fisi.software.detalles.security.Permisos).VER_VENTAS, T(fisi.software.detalles.security.Permisos).MODULO_VENTAS)")
     public String showVentas() {
         return "software/ventas/ventas";
     }
 
     @GetMapping("/caja")
+    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).REGISTRAR_VENTAS, T(fisi.software.detalles.security.Permisos).VER_ESTADO_DE_CAJA, T(fisi.software.detalles.security.Permisos).MODULO_CAJA, T(fisi.software.detalles.security.Permisos).MODULO_VENTAS)")
     public String showCaja() {
         return "software/ventas/caja";
     }
@@ -48,6 +51,7 @@ public class VentasController {
      */
     @PutMapping("/api")
     @ResponseBody
+    @PreAuthorize("hasAuthority(T(fisi.software.detalles.security.Permisos).REGISTRAR_VENTAS)")
     public ResponseEntity<Map<String, Object>> updateVenta(@Valid @RequestBody VentaRequestDTO ventaDTO) {
         try {
             Map<String, Object> response = ventaService.updateVenta(ventaDTO);
@@ -64,6 +68,7 @@ public class VentasController {
     
     @GetMapping("/api/lista") 
     @ResponseBody
+    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).REGISTRAR_VENTAS, T(fisi.software.detalles.security.Permisos).VER_VENTAS, T(fisi.software.detalles.security.Permisos).MODULO_VENTAS)")
     public ResponseEntity<List<?>> listarVentasAPI() {
         try {
             List<fisi.software.detalles.controller.dto.VentaListDTO> ventas = ventaService.listarTodasLasVentas();
@@ -80,10 +85,13 @@ public class VentasController {
      */
     @PostMapping("/api") 
     @ResponseBody
+    @PreAuthorize("hasAuthority(T(fisi.software.detalles.security.Permisos).REGISTRAR_VENTAS)")
     public ResponseEntity<Map<String, Object>> createVenta(@Valid @RequestBody VentaRequestDTO ventaDTO) {
         try {
             Map<String, Object> response = ventaService.registrarNuevaVenta(ventaDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             System.err.println("Error al registrar la venta: " + e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -109,6 +117,7 @@ public class VentasController {
     }
     
     @GetMapping("/{id}/pdf") 
+    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).REGISTRAR_VENTAS, T(fisi.software.detalles.security.Permisos).VER_VENTAS, T(fisi.software.detalles.security.Permisos).MODULO_VENTAS)")
     public ResponseEntity<ByteArrayResource> exportarPDF(@PathVariable Long id) {
         try {
             byte[] pdfBytes = ventaService.generarComprobantePDF(id); 

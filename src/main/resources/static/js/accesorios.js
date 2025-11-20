@@ -9,6 +9,7 @@
   const state = {
     items: [],
     combos: {
+      marcas: [],
       modelos: [],
       materiales: [],
       unidades: [],
@@ -54,6 +55,7 @@
     const selectAll = document.getElementById('selectAll');
     const form = document.getElementById('accesorioForm');
     const modal = document.getElementById('accesorioModal');
+    const brandSelect = document.getElementById('accesorioBrand');
 
     searchInput?.addEventListener('input', (event)=>{
       state.filtros.busqueda = event.target.value.toLowerCase();
@@ -79,20 +81,46 @@
     document.getElementById('closeModal')?.addEventListener('click', cerrarModal);
     document.getElementById('cancelBtn')?.addEventListener('click', cerrarModal);
 
+    const tallasToggle = document.getElementById('manejaTallasToggle');
+    if (tallasToggle){
+      tallasToggle.addEventListener('change', ()=>{
+        sincronizarModoTallas();
+        actualizarPreview();
+      });
+    }
+
     form?.addEventListener('submit', async (event)=>{
       event.preventDefault();
       try {
         await guardarProducto();
         cerrarModal();
-        await cargarProductos();
         showNotification('Accesorio guardado correctamente');
+        setTimeout(()=> window.location.reload(), 600);
       } catch (error) {
         console.error(error);
         showNotification(error.message || 'No se pudo guardar el accesorio', 'error');
       }
     });
 
-    document.getElementById('selectImageBtn')?.addEventListener('click', ()=> document.getElementById('accesorioImage')?.click());
+    const selectImageBtn = document.getElementById('selectImageBtn');
+    if (selectImageBtn){
+      selectImageBtn.addEventListener('click', abrirSelectorImagen);
+    }
+    const imagePreview = document.getElementById('imagePreview');
+    if (imagePreview){
+      imagePreview.addEventListener('click', abrirSelectorImagen);
+      imagePreview.style.cursor = 'pointer';
+      imagePreview.setAttribute('title', 'Seleccionar imagen');
+      if (imagePreview.tabIndex < 0){
+        imagePreview.tabIndex = 0;
+      }
+      imagePreview.addEventListener('keydown', (event)=>{
+        if (event.key === 'Enter' || event.key === ' '){
+          event.preventDefault();
+          abrirSelectorImagen();
+        }
+      });
+    }
     document.getElementById('accesorioImage')?.addEventListener('change', manejarImagenSeleccionada);
 
     document.getElementById('addTallaBtn')?.addEventListener('click', ()=>{
@@ -103,13 +131,25 @@
     const modelSelect = document.getElementById('accesorioModel');
     if (modelSelect){
       modelSelect.addEventListener('change', ()=>{
-        actualizarMarcaDesdeModelo();
         actualizarImagenDesdeModelo();
         actualizarPreview();
       });
     }
 
-  ['accesorioName','accesorioModel','accesorioBrandName','accesorioColor','accesorioType','accesorioMaterial','accesorioCategory','accesorioProveedor','accesorioUnidad','accesorioDimensions','accesorioWeight','accesorioDescription','accesorioCodigoBarra'].forEach(id=>{
+    if (brandSelect){
+      brandSelect.addEventListener('change', ()=>{
+        manejarCambioMarca();
+      });
+    }
+
+  ['accesorioName','accesorioModel','accesorioBrand','accesorioColor','accesorioType','accesorioMaterial','accesorioCategory','accesorioProveedor','accesorioUnidad','accesorioDimensions','accesorioWeight','accesorioDescription','accesorioCodigoBarra'].forEach(id=>{
+      const element = document.getElementById(id);
+      if (element){
+        element.addEventListener('input', actualizarPreview);
+        element.addEventListener('change', actualizarPreview);
+      }
+    });
+    ['accesorioPrecioVenta','accesorioCostoCompra'].forEach(id => {
       const element = document.getElementById(id);
       if (element){
         element.addEventListener('input', actualizarPreview);
@@ -118,17 +158,105 @@
     });
 
     document.getElementById('accesoriosTableBody')?.addEventListener('click', manejarAccionesTabla);
+    actualizarEstadoSelectorImagen();
+    sincronizarModoTallas();
+  }
+
+  function sincronizarModoTallas(forcedChecked){
+    const toggle = document.getElementById('manejaTallasToggle');
+    if (!toggle){
+      return;
+    }
+    if (typeof forcedChecked === 'boolean'){
+      toggle.checked = forcedChecked;
+    }
+    const usaTallas = toggle.checked !== false;
+    const tallasWrapper = document.getElementById('tallasConfigWrapper');
+    const preciosRow = document.getElementById('preciosGeneralesRow');
+    if (tallasWrapper){
+      tallasWrapper.style.display = usaTallas ? '' : 'none';
+    }
+    if (preciosRow){
+      preciosRow.style.display = usaTallas ? 'none' : '';
+    }
+  }
+
+  function usaModoTallas(){
+    const toggle = document.getElementById('manejaTallasToggle');
+    return !toggle || toggle.checked;
+  }
+
+  function abrirSelectorImagen(){
+    document.getElementById('accesorioImage')?.click();
+  }
+
+  function limpiarPreviewImagen(){
+    const preview = document.getElementById('imagePreview');
+    if (!preview) return;
+    preview.innerHTML = '<i class="fas fa-camera"></i>';
+    preview.style.backgroundImage = '';
+    delete preview.dataset.source;
+    delete preview.dataset.modelImage;
+    delete preview.dataset.userImage;
+    delete preview.dataset.productImage;
+  }
+
+  function actualizarEstadoSelectorImagen({ texto, archivo } = {}){
+    const button = document.getElementById('selectImageBtn');
+    const label = button?.querySelector('.btn-text');
+    if (label){
+      label.textContent = texto || 'Seleccionar imagen';
+    }
+    const fileNameLabel = document.querySelector('#accesorioModal .image-file-name');
+    if (fileNameLabel){
+      fileNameLabel.textContent = archivo ? `Archivo seleccionado: ${archivo}` : '';
+    }
+  }
+
+  function extraerNombreArchivo(ruta){
+    if (!ruta) return '';
+    const partes = ruta.split('/');
+    if (!partes.length){
+      return '';
+    }
+    return partes[partes.length - 1] || '';
+  }
+
+  function establecerImagenProducto(ruta, nombreProducto){
+    const preview = document.getElementById('imagePreview');
+    if (!preview || !ruta) return;
+    preview.innerHTML = `<img src="${ruta}" alt="${nombreProducto || 'Imagen del accesorio'}">`;
+    preview.style.backgroundImage = '';
+    preview.dataset.source = ruta;
+    preview.dataset.productImage = 'true';
+    delete preview.dataset.userImage;
+    delete preview.dataset.modelImage;
+    actualizarEstadoSelectorImagen({ texto: 'Cambiar imagen', archivo: extraerNombreArchivo(ruta) });
+  }
+
+  function obtenerImagenParaEnvio(){
+    const preview = document.getElementById('imagePreview');
+    if (!preview) return null;
+    const source = preview.dataset.source;
+    const esUsuario = preview.dataset.userImage === 'true';
+    const esProducto = preview.dataset.productImage === 'true';
+    if (!source || (!esUsuario && !esProducto)){
+      return null;
+    }
+    return source;
   }
 
   async function cargarCatalogos(){
     try {
-      const [modelos, materiales, unidades, tipos, proveedores] = await Promise.all([
+      const [marcas, modelos, materiales, unidades, tipos, proveedores] = await Promise.all([
+        apiGet(`${CATALOG_BASE}/marcas`),
         apiGet(`${CATALOG_BASE}/modelos`),
         apiGet(`${CATALOG_BASE}/materiales`),
         apiGet(`${CATALOG_BASE}/unidades`),
         apiGet(`${CATALOG_BASE}/tipos`),
         apiGet(PROVIDER_API)
       ]);
+      state.combos.marcas = Array.isArray(marcas) ? marcas : [];
       state.combos.modelos = Array.isArray(modelos) ? modelos : [];
       state.combos.materiales = Array.isArray(materiales) ? materiales : [];
       state.combos.unidades = Array.isArray(unidades) ? unidades : [];
@@ -141,12 +269,17 @@
   }
 
   function poblarSelects(){
-    poblarSelect('accesorioModel', state.combos.modelos, { value: 'id', label: 'nombre', extra: 'marca' }, 'Sin modelos registrados');
+    poblarSelect('accesorioBrand', state.combos.marcas, { value: 'id', label: 'nombre' }, 'Sin marcas registradas');
+    const brandSelectEl = document.getElementById('accesorioBrand');
+    if (brandSelectEl){
+      brandSelectEl.options[0].textContent = state.combos.marcas.length ? 'Seleccionar marca' : 'Sin marcas registradas';
+    }
+    const marcaSeleccionada = convertirEntero(obtenerValor('accesorioBrand'));
+    poblarModelosPorMarca(marcaSeleccionada, { preserveSelection: true });
     poblarSelect('accesorioMaterial', state.combos.materiales, { value: 'id', label: 'nombre' }, 'Sin materiales');
     poblarSelect('accesorioUnidad', state.combos.unidades, { value: 'id', label: 'nombre', extra: 'abreviatura' }, 'Sin unidades');
     poblarSelect('accesorioCategory', state.combos.tipos, { value: 'id', label: 'nombre' }, 'Sin tipos');
     poblarSelect('accesorioProveedor', state.combos.proveedores, { value: 'idProveedor', label: 'razonSocial', extra: 'nombreComercial' }, 'Sin proveedores');
-    actualizarMarcaDesdeModelo();
     actualizarImagenDesdeModelo();
     actualizarPreview();
   }
@@ -167,6 +300,62 @@
     }
   }
 
+  function poblarModelosPorMarca(marcaId, options = {}){
+    const select = document.getElementById('accesorioModel');
+    if (!select) return;
+    const { forcedValue = null, preserveSelection = false } = options;
+    const previous = select.value;
+
+    const marcaParsed = marcaId == null ? null : Number(marcaId);
+    if (marcaParsed == null || Number.isNaN(marcaParsed)){
+      select.innerHTML = '<option value="">Selecciona una marca primero</option>';
+      select.disabled = true;
+      select.value = '';
+      return;
+    }
+
+    const modelosDisponibles = state.combos.modelos.filter(modelo => Number(modelo.marcaId) === marcaParsed);
+
+    if (!modelosDisponibles.length){
+      select.innerHTML = '<option value="">Sin modelos disponibles para la marca</option>';
+      select.disabled = true;
+      select.value = '';
+      return;
+    }
+
+    select.disabled = false;
+    select.innerHTML = '<option value="">Seleccionar modelo</option>';
+    modelosDisponibles.forEach(modelo => {
+      const option = document.createElement('option');
+      option.value = modelo.id;
+      option.textContent = modelo.nombre;
+      select.appendChild(option);
+    });
+
+    let valueToRestore = null;
+    if (forcedValue != null){
+      valueToRestore = String(forcedValue);
+    } else if (preserveSelection && modelosDisponibles.some(modelo => String(modelo.id) === previous)){
+      valueToRestore = previous;
+    }
+
+    if (valueToRestore){
+      select.value = valueToRestore;
+    } else {
+      select.value = '';
+    }
+  }
+
+  function obtenerMarcaSeleccionada(){
+    const select = document.getElementById('accesorioBrand');
+    if (!select) return null;
+    const value = parseInt(select.value, 10);
+    if (Number.isNaN(value)){
+      return null;
+    }
+    return state.combos.marcas.find(marca => Number(marca.id) === value) || null;
+  }
+
   function obtenerModeloSeleccionado(){
     const select = document.getElementById('accesorioModel');
     if (!select) return null;
@@ -177,17 +366,17 @@
     return state.combos.modelos.find(modelo => Number(modelo.id) === value) || null;
   }
 
-  function actualizarMarcaDesdeModelo(){
-    const marcaInput = document.getElementById('accesorioBrandName');
-    if (!marcaInput) return;
-    const modeloSeleccionado = obtenerModeloSeleccionado();
-    marcaInput.value = modeloSeleccionado?.marca || '';
+  function manejarCambioMarca(){
+    const marcaSeleccionada = convertirEntero(obtenerValor('accesorioBrand'));
+    poblarModelosPorMarca(marcaSeleccionada);
+    actualizarImagenDesdeModelo();
+    actualizarPreview();
   }
 
   function actualizarImagenDesdeModelo(){
     const preview = document.getElementById('imagePreview');
     if (!preview) return;
-    if (preview.dataset.userImage === 'true'){
+    if (preview.dataset.userImage === 'true' || preview.dataset.productImage === 'true'){
       return;
     }
     const modeloSeleccionado = obtenerModeloSeleccionado();
@@ -196,10 +385,10 @@
       preview.style.backgroundImage = '';
       preview.dataset.source = modeloSeleccionado.imagen;
       preview.dataset.modelImage = 'true';
+      actualizarEstadoSelectorImagen({ texto: 'Cambiar imagen' });
     } else {
-      preview.style.backgroundImage = '';
-      delete preview.dataset.source;
-      delete preview.dataset.modelImage;
+      limpiarPreviewImagen();
+      actualizarEstadoSelectorImagen();
     }
   }
 
@@ -214,7 +403,7 @@
       id: item.id,
       nombre: item.nombre,
       descripcion: item.descripcion,
-  categoria: item.categoria,
+      categoria: item.categoria,
       marca: item.marca,
       modelo: item.modelo,
       material: item.material,
@@ -223,13 +412,13 @@
       precioVenta: item.precioVenta,
       costoCompra: item.costoCompra,
       color: item.color,
-  tipo: item.tipo,
+      tipo: item.tipo,
       dimensiones: item.dimensiones,
       pesoGramos: item.pesoGramos,
       codigoBarra: item.codigoBarra,
       tallas: Array.isArray(item.tallas) ? item.tallas : [],
       tiposProducto: Array.isArray(item.tiposProducto) ? item.tiposProducto : [],
-      imagenModelo: item.modelo?.imagen || null,
+      imagen: item.imagen || null,
       activo: item.activo !== false
     };
   }
@@ -324,8 +513,11 @@
   }
 
   function obtenerImagenProducto(item){
-    if (item?.imagenModelo){
-      return item.imagenModelo;
+    if (item?.imagen){
+      return item.imagen;
+    }
+    if (item?.modelo?.imagen){
+      return item.modelo.imagen;
     }
     return PLACEHOLDER_IMG;
   }
@@ -353,7 +545,9 @@
     } else {
       state.editandoId = null;
       document.getElementById('modalTitle').textContent = 'Nuevo Accesorio';
-      agregarTalla();
+      if (usaModoTallas()){
+        agregarTalla();
+      }
       actualizarPreview();
     }
   }
@@ -369,37 +563,56 @@
 
   function resetFormulario(){
     document.getElementById('accesorioForm')?.reset();
-    const marcaInput = document.getElementById('accesorioBrandName');
-    if (marcaInput){
-      marcaInput.value = '';
+    const brandSelect = document.getElementById('accesorioBrand');
+    if (brandSelect){
+      brandSelect.value = '';
     }
+    poblarModelosPorMarca(null);
+    const imageInput = document.getElementById('accesorioImage');
+    if (imageInput){
+      imageInput.value = '';
+    }
+    limpiarPreviewImagen();
+    actualizarEstadoSelectorImagen();
     const tallasContainer = document.getElementById('tallasContainer');
     if (tallasContainer){
       tallasContainer.innerHTML = '';
     }
-    const preview = document.getElementById('imagePreview');
-    if (preview){
-    
-      preview.style.backgroundImage = '';
-      delete preview.dataset.source;
-      delete preview.dataset.modelImage;
-      delete preview.dataset.userImage;
+    const precioVentaGeneral = document.getElementById('accesorioPrecioVenta');
+    if (precioVentaGeneral){
+      precioVentaGeneral.value = '';
     }
+    const costoCompraGeneral = document.getElementById('accesorioCostoCompra');
+    if (costoCompraGeneral){
+      costoCompraGeneral.value = '';
+    }
+    const tallasToggle = document.getElementById('manejaTallasToggle');
+    if (tallasToggle){
+      tallasToggle.checked = true;
+    }
+    sincronizarModoTallas();
     actualizarPreview();
   }
 
   function cargarEnFormulario(item){
     const nombreInput = document.getElementById('accesorioName');
     if (nombreInput) nombreInput.value = item.nombre || '';
-  const modeloSelect = document.getElementById('accesorioModel');
-  if (modeloSelect) modeloSelect.value = item.modelo?.id || '';
-  actualizarMarcaDesdeModelo();
-  const marcaInput = document.getElementById('accesorioBrandName');
-  if (marcaInput) marcaInput.value = item.marca?.nombre || '';
-  const colorSelect = document.getElementById('accesorioColor');
-  if (colorSelect) colorSelect.value = item.color || '';
-  const tipoSelect = document.getElementById('accesorioType');
-  if (tipoSelect) tipoSelect.value = item.tipo || '';
+    limpiarPreviewImagen();
+    if (item.imagen){
+      establecerImagenProducto(item.imagen, item.nombre);
+    } else {
+      actualizarEstadoSelectorImagen();
+    }
+    const marcaId = item.marca?.id ?? item.modelo?.marca?.id ?? item.modelo?.marcaId ?? null;
+    const brandSelect = document.getElementById('accesorioBrand');
+    if (brandSelect){
+      brandSelect.value = marcaId != null ? String(marcaId) : '';
+    }
+    poblarModelosPorMarca(marcaId, { forcedValue: item.modelo?.id ?? null });
+    const colorSelect = document.getElementById('accesorioColor');
+    if (colorSelect) colorSelect.value = item.color || '';
+    const tipoSelect = document.getElementById('accesorioType');
+    if (tipoSelect) tipoSelect.value = item.tipo || '';
     const materialSelect = document.getElementById('accesorioMaterial');
     if (materialSelect) materialSelect.value = item.material?.id || '';
     const categoriaSelect = document.getElementById('accesorioCategory');
@@ -418,20 +631,36 @@
     if (codigoInput) codigoInput.value = item.codigoBarra || '';
 
     const tallasContainer = document.getElementById('tallasContainer');
+    const manejaTallas = Array.isArray(item.tallas) && item.tallas.length > 0;
+    sincronizarModoTallas(manejaTallas);
     if (tallasContainer){
       tallasContainer.innerHTML = '';
-      (item.tallas || []).forEach(talla => {
-        agregarTalla({
-          talla: talla.talla,
-          precioVenta: talla.precioVenta,
-          precioCompra: talla.costoCompra
+      if (manejaTallas){
+        (item.tallas || []).forEach(talla => {
+          agregarTalla({
+            talla: talla.talla,
+            precioVenta: talla.precioVenta,
+            precioCompra: talla.costoCompra
+          });
         });
-      });
-      if (!item.tallas || !item.tallas.length){
-        agregarTalla();
+        if (!item.tallas || !item.tallas.length){
+          agregarTalla();
+        }
       }
     }
-    actualizarImagenDesdeModelo();
+    const precioVentaGeneral = document.getElementById('accesorioPrecioVenta');
+    if (precioVentaGeneral){
+      const precioBase = item.precioVenta != null ? Number(item.precioVenta).toFixed(2) : '';
+      precioVentaGeneral.value = manejaTallas ? '' : precioBase;
+    }
+    const costoCompraGeneral = document.getElementById('accesorioCostoCompra');
+    if (costoCompraGeneral){
+      const costoBase = item.costoCompra != null ? Number(item.costoCompra).toFixed(2) : '';
+      costoCompraGeneral.value = manejaTallas ? '' : costoBase;
+    }
+    if (!item.imagen){
+      actualizarImagenDesdeModelo();
+    }
     actualizarPreview();
   }
 
@@ -506,13 +735,26 @@
     const dimensiones = obtenerValor('accesorioDimensions');
     const descripcion = obtenerValor('accesorioDescription');
     const codigoBarra = obtenerValor('accesorioCodigoBarra');
+    const imagen = obtenerImagenParaEnvio();
 
     const pesoEntrada = obtenerValor('accesorioWeight');
     const pesoGramos = convertirPesoAGramos(pesoEntrada);
 
-    const tallas = recolectarTallas();
-    if (!tallas.length){
-      throw new Error('Debe registrar al menos una talla con precio de venta');
+    const manejaTallas = usaModoTallas();
+    const tallas = manejaTallas ? recolectarTallas() : [];
+    let precioVentaGeneral = null;
+    let costoCompraGeneral = null;
+
+    if (manejaTallas){
+      if (!tallas.length){
+        throw new Error('Debe registrar al menos una talla con precio de venta');
+      }
+    } else {
+      precioVentaGeneral = convertirDecimal(obtenerValor('accesorioPrecioVenta'));
+      costoCompraGeneral = convertirDecimal(obtenerValor('accesorioCostoCompra'));
+      if (precioVentaGeneral === null){
+        throw new Error('El precio de venta es obligatorio cuando no se registran tallas');
+      }
     }
 
     return {
@@ -524,13 +766,14 @@
       materialId,
       unidadId,
       tipoProductoId,
-      precioVenta: null,
-      costoCompra: null,
+      precioVenta: manejaTallas ? null : precioVentaGeneral,
+      costoCompra: manejaTallas ? null : costoCompraGeneral,
   color,
   tipo: tipoSeleccionado || 'Accesorio',
       dimensiones,
       pesoGramos,
-      tallas
+      tallas,
+      imagen
     };
   }
 
@@ -604,7 +847,8 @@
   function actualizarPreview(){
     const nombre = obtenerValor('accesorioName') || 'Nombre del Accesorio';
     const modeloSeleccionado = obtenerModeloSeleccionado();
-    const marca = obtenerValor('accesorioBrandName') || (modeloSeleccionado?.marca ?? 'Marca del accesorio');
+    const marcaSeleccionada = obtenerMarcaSeleccionada();
+    const marca = marcaSeleccionada?.nombre || modeloSeleccionado?.marca || 'Marca del accesorio';
     const modeloNombre = modeloSeleccionado?.nombre || 'Modelo';
     const color = obtenerValor('accesorioColor') || '--';
   const tipo = obtenerValor('accesorioType') || '--';
@@ -612,7 +856,8 @@
     const dimensiones = obtenerValor('accesorioDimensions') || '--';
     const peso = obtenerValor('accesorioWeight') || '--';
 
-    const tallas = recolectarTallas();
+    const manejaTallas = usaModoTallas();
+    const tallas = manejaTallas ? recolectarTallas() : [];
 
     const previewName = document.getElementById('previewAccesorioName');
     if (previewName) previewName.textContent = nombre;
@@ -629,7 +874,7 @@
     const weightLabel = document.querySelector('.preview-weight');
     if (weightLabel) weightLabel.textContent = `Peso: ${peso}`;
     const sizeLabel = document.querySelector('.preview-size');
-    if (sizeLabel) sizeLabel.textContent = `Tallas: ${tallas.length} registradas`;
+    if (sizeLabel) sizeLabel.textContent = manejaTallas ? `Tallas: ${tallas.length} registradas` : 'Tallas: no aplican';
   }
 
   function mostrarDetalle(item){
@@ -693,6 +938,8 @@
                 <div class="detalle-item"><span>Código de barras</span><strong>${item.codigoBarra || '--'}</strong></div>
                 <div class="detalle-item"><span>Proveedor</span><strong>${item.proveedor?.razonSocial || '--'}</strong></div>
                 <div class="detalle-item"><span>Unidad</span><strong>${item.unidad?.nombre || '--'}</strong></div>
+                <div class="detalle-item"><span>Precio base</span><strong>${formatPrecio(item.precioVenta)}</strong></div>
+                <div class="detalle-item"><span>Costo base</span><strong>${item.costoCompra != null ? formatPrecio(item.costoCompra) : '--'}</strong></div>
                 <div class="detalle-item"><span>Dimensiones</span><strong>${item.dimensiones || '--'}</strong></div>
                 <div class="detalle-item"><span>Peso</span><strong>${peso}</strong></div>
               </div>
@@ -736,8 +983,10 @@
         preview.dataset.source = e.target?.result;
         preview.dataset.userImage = 'true';
         delete preview.dataset.modelImage;
+        delete preview.dataset.productImage;
         preview.style.backgroundImage = '';
       }
+      actualizarEstadoSelectorImagen({ texto: 'Cambiar imagen', archivo: file.name });
     };
     reader.readAsDataURL(file);
   }
@@ -745,6 +994,21 @@
   function obtenerValor(id){
     const element = document.getElementById(id);
     return element ? element.value.trim() : '';
+  }
+
+  function convertirDecimal(valor){
+    if (valor === undefined || valor === null){
+      return null;
+    }
+    const texto = String(valor).trim();
+    if (!texto){
+      return null;
+    }
+    const numero = parseFloat(texto.replace(',', '.'));
+    if (Number.isNaN(numero)){
+      return null;
+    }
+    return Number(numero.toFixed(2));
   }
 
   function convertirEntero(valor){

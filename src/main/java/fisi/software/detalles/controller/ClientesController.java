@@ -37,6 +37,7 @@ public class ClientesController {
      * @return Vista de clientes
      */
     @GetMapping
+    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_CLIENTES, T(fisi.software.detalles.security.Permisos).VER_CLIENTES, T(fisi.software.detalles.security.Permisos).MODULO_CLIENTES)")
     public String showClientes(Model model, Authentication authentication) {
         boolean puedeGestionarClientes = authentication != null && authentication.getAuthorities().stream()
             .anyMatch(authority -> Permisos.GESTIONAR_CLIENTES.equals(authority.getAuthority()));
@@ -51,6 +52,7 @@ public class ClientesController {
      */
     @GetMapping("/api")
     @ResponseBody
+    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_CLIENTES, T(fisi.software.detalles.security.Permisos).VER_CLIENTES, T(fisi.software.detalles.security.Permisos).MODULO_CLIENTES)")
     public ResponseEntity<List<Cliente>> listarClientes() {
         try {
             List<Cliente> clientes = clienteService.obtenerActivos();
@@ -68,6 +70,7 @@ public class ClientesController {
      */
     @GetMapping("/api/buscar-documento")
     @ResponseBody
+    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_CLIENTES, T(fisi.software.detalles.security.Permisos).VER_CLIENTES, T(fisi.software.detalles.security.Permisos).MODULO_CLIENTES)")
     public ResponseEntity<Cliente> buscarClientePorDocumento(@RequestParam Integer idTipoDoc, @RequestParam String numDoc) {
         try {
             // Se crea una entidad TipoDocumento de referencia solo con el ID
@@ -94,6 +97,7 @@ public class ClientesController {
      */
     @GetMapping("/api/{id}")
     @ResponseBody
+    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_CLIENTES, T(fisi.software.detalles.security.Permisos).VER_CLIENTES, T(fisi.software.detalles.security.Permisos).MODULO_CLIENTES)")
     public ResponseEntity<?> obtenerCliente(@PathVariable Integer id) {
         try {
             return clienteService.obtenerPorId(id)
@@ -221,6 +225,7 @@ public class ClientesController {
      */
     @GetMapping("/api/search")
     @ResponseBody
+    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_CLIENTES, T(fisi.software.detalles.security.Permisos).VER_CLIENTES, T(fisi.software.detalles.security.Permisos).MODULO_CLIENTES)")
     public ResponseEntity<List<Cliente>> buscarClientes(@RequestParam(required = false) String q) {
         try {
             List<Cliente> clientes = clienteService.buscarClientes(q);
@@ -237,6 +242,7 @@ public class ClientesController {
      */
     @GetMapping("/api/tipos-documento")
     @ResponseBody
+    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_CLIENTES, T(fisi.software.detalles.security.Permisos).VER_CLIENTES, T(fisi.software.detalles.security.Permisos).MODULO_CLIENTES)")
     public ResponseEntity<List<TipoDocumento>> obtenerTiposDocumento() {
         try {
             List<TipoDocumento> tipos = clienteService.obtenerTiposDocumento();

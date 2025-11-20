@@ -2,7 +2,6 @@ package fisi.software.detalles.service;
 
 import fisi.software.detalles.entity.Catalogo;
 import fisi.software.detalles.repository.CatalogoRepository;
-import fisi.software.detalles.service.storage.ImageStorageService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,11 +16,8 @@ import java.util.Map;
 public class CatalogoService {
 
     private final CatalogoRepository catalogoRepository;
-    private final ImageStorageService imageStorageService;
-
-    public CatalogoService(CatalogoRepository catalogoRepository, ImageStorageService imageStorageService) {
+    public CatalogoService(CatalogoRepository catalogoRepository) {
         this.catalogoRepository = catalogoRepository;
-        this.imageStorageService = imageStorageService;
     }
 
     // ========================
@@ -83,8 +79,7 @@ public class CatalogoService {
         if (catalogoRepository.existsModeloByNombreAndMarca(nombre, marcaId, null)) {
             throw conflict("Ya existe un modelo con el mismo nombre para la marca seleccionada");
         }
-        String imagen = imageStorageService.handleNewImage(request.imagen(), marca.getNombre(), nombre);
-    Catalogo.Modelo entity = new Catalogo.Modelo(nombre, marca, imagen);
+        Catalogo.Modelo entity = new Catalogo.Modelo(nombre, marca);
         return ModeloResponse.fromEntity(catalogoRepository.saveModelo(entity));
     }
 
@@ -100,15 +95,12 @@ public class CatalogoService {
         }
         entity.setNombre(nombre);
         entity.setMarca(marca);
-        String imagen = imageStorageService.handleExistingImage(request.imagen(), entity.getImagen(), marca.getNombre(), nombre);
-        entity.setImagen(imagen);
         return ModeloResponse.fromEntity(catalogoRepository.saveModelo(entity));
     }
 
     public void eliminarModelo(Long id) {
         Catalogo.Modelo entity = catalogoRepository.findModeloById(id)
                 .orElseThrow(() -> notFound("Modelo no encontrado"));
-        imageStorageService.deleteImage(entity.getImagen());
         catalogoRepository.deleteModelo(entity);
     }
 
@@ -250,17 +242,16 @@ public class CatalogoService {
         }
     }
 
-    public record ModeloRequest(String nombre, Long marcaId, String imagen) {
+    public record ModeloRequest(String nombre, Long marcaId) {
     }
 
-    public record ModeloResponse(Long id, String nombre, Long marcaId, String marca, String imagen) {
+    public record ModeloResponse(Long id, String nombre, Long marcaId, String marca) {
         static ModeloResponse fromEntity(Catalogo.Modelo entity) {
             return new ModeloResponse(
                     entity.getId(),
                     entity.getNombre(),
                     entity.getMarca() != null ? entity.getMarca().getId() : null,
-                    entity.getMarca() != null ? entity.getMarca().getNombre() : null,
-                    entity.getImagen()
+                    entity.getMarca() != null ? entity.getMarca().getNombre() : null
             );
         }
     }

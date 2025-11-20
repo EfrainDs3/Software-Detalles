@@ -10,7 +10,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -32,6 +35,7 @@ public class InventarioService {
 
     private final InventarioRepository inventarioRepository;
     private final InventarioTallaRepository inventarioTallaRepository;
+    private final ProductoTallaRepository productoTallaRepository;
     private final MovimientoInventarioRepository movimientoRepository;
     private final AlmacenRepository almacenRepository;
     private final TipoMovimientoInventarioRepository tipoMovimientoRepository;
@@ -78,8 +82,17 @@ public class InventarioService {
      * Ajusta el stock de un producto en un almacén
      */
     public void ajustarStock(Long inventarioId, Long tipoMovimientoId, Integer cantidad, String referencia, String observaciones, Integer usuarioId) {
+        ajustarStock(inventarioId, tipoMovimientoId, cantidad, null, referencia, observaciones, usuarioId);
+    }
+
+    public void ajustarStock(Long inventarioId, Long tipoMovimientoId, Integer cantidad, Integer stockMinimo,
+                             String referencia, String observaciones, Integer usuarioId) {
         Inventario inventario = inventarioRepository.findById(inventarioId)
             .orElseThrow(() -> new RuntimeException("Inventario no encontrado"));
+
+        if (inventarioTallaRepository.existsByInventario(inventario)) {
+            throw new RuntimeException("Este producto gestiona su stock por tallas. Realiza el ajuste desde la gestión de tallas.");
+        }
 
         TipoMovimientoInventario tipoMovimiento = tipoMovimientoRepository.findById(tipoMovimientoId)
             .orElseThrow(() -> new RuntimeException("Tipo de movimiento no encontrado"));
@@ -93,6 +106,9 @@ public class InventarioService {
 
         // Actualizar inventario
         inventario.setCantidadStock(nuevaCantidad);
+        if (stockMinimo != null) {
+            inventario.setStockMinimo(Math.max(0, stockMinimo));
+        }
         inventarioRepository.save(inventario);
 
         // Registrar movimiento
@@ -100,6 +116,24 @@ public class InventarioService {
             inventario.getProducto(), inventario.getAlmacen(), tipoMovimiento, cantidad, usuario, observaciones, referencia
         );
         movimientoRepository.save(movimiento);
+    }
+
+    public void actualizarStockMinimo(Long inventarioId, Integer stockMinimo, Integer usuarioId) {
+        Inventario inventario = inventarioRepository.findById(inventarioId)
+            .orElseThrow(() -> new RuntimeException("Inventario no encontrado"));
+
+        if (inventarioTallaRepository.existsByInventario(inventario)) {
+            throw new RuntimeException("Este producto gestiona su stock por tallas. Actualiza el stock mínimo desde la gestión de tallas.");
+        }
+
+        if (usuarioId != null) {
+            usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        }
+
+        int stockMinimoNormalizado = stockMinimo != null ? Math.max(0, stockMinimo) : 0;
+        inventario.setStockMinimo(stockMinimoNormalizado);
+        inventarioRepository.save(inventario);
     }
 
     /**
@@ -333,18 +367,10 @@ public class InventarioService {
      */
     public MovimientoInventario aplicarAjusteStock(Long idInventario, Long idTipoMovimiento, Integer cantidad,
                                                   String referencia, String observaciones) {
-        // Usar usuario por defecto
         Usuario usuario = usuarioRepository.findAll().stream().findFirst()
             .orElseThrow(() -> new RuntimeException("No hay usuarios registrados en el sistema"));
 
-        ajustarStock(idInventario, idTipoMovimiento, cantidad, referencia, observaciones, usuario.getId().intValue());
-
-        // Retornar el último movimiento registrado
-        return movimientoRepository.findAll().stream()
-            .filter(m -> m.getProducto().getId().equals(
-                inventarioRepository.findById(idInventario).get().getProducto().getId()))
-            .reduce((first, second) -> second)
-            .orElseThrow(() -> new RuntimeException("No se pudo obtener el movimiento registrado"));
+        return aplicarAjusteStock(idInventario, idTipoMovimiento, cantidad, null, referencia, observaciones, usuario.getId().intValue());
     }
 
     /**
@@ -352,7 +378,20 @@ public class InventarioService {
      */
     public MovimientoInventario aplicarAjusteStock(Long idInventario, Long idTipoMovimiento, Integer cantidad,
                                                   String referencia, String observaciones, Integer usuarioId) {
-        ajustarStock(idInventario, idTipoMovimiento, cantidad, referencia, observaciones, usuarioId);
+        return aplicarAjusteStock(idInventario, idTipoMovimiento, cantidad, null, referencia, observaciones, usuarioId);
+    }
+
+    public MovimientoInventario aplicarAjusteStock(Long idInventario, Long idTipoMovimiento, Integer cantidad,
+                                                  Integer stockMinimo, String referencia, String observaciones) {
+        Usuario usuario = usuarioRepository.findAll().stream().findFirst()
+            .orElseThrow(() -> new RuntimeException("No hay usuarios registrados en el sistema"));
+
+        return aplicarAjusteStock(idInventario, idTipoMovimiento, cantidad, stockMinimo, referencia, observaciones, usuario.getId().intValue());
+    }
+
+    public MovimientoInventario aplicarAjusteStock(Long idInventario, Long idTipoMovimiento, Integer cantidad,
+                                                  Integer stockMinimo, String referencia, String observaciones, Integer usuarioId) {
+        ajustarStock(idInventario, idTipoMovimiento, cantidad, stockMinimo, referencia, observaciones, usuarioId);
 
         // Retornar el último movimiento registrado
         return movimientoRepository.findAll().stream()
@@ -406,9 +445,7 @@ public class InventarioService {
     public MovimientoInventarioDto aplicarAjusteStockDetallado(Long idInventario, Long idTipoMovimiento,
                                                                Integer cantidad, String referencia,
                                                                String observaciones) {
-        MovimientoInventario movimiento = aplicarAjusteStock(idInventario, idTipoMovimiento, cantidad,
-            referencia, observaciones);
-        return mapearMovimientoDetallado(movimiento);
+        return aplicarAjusteStockDetallado(idInventario, idTipoMovimiento, cantidad, null, referencia, observaciones);
     }
 
     /**
@@ -417,8 +454,22 @@ public class InventarioService {
     public MovimientoInventarioDto aplicarAjusteStockDetallado(Long idInventario, Long idTipoMovimiento,
                                                                Integer cantidad, String referencia,
                                                                String observaciones, Integer usuarioId) {
+        return aplicarAjusteStockDetallado(idInventario, idTipoMovimiento, cantidad, null, referencia, observaciones, usuarioId);
+    }
+
+    public MovimientoInventarioDto aplicarAjusteStockDetallado(Long idInventario, Long idTipoMovimiento,
+                                                               Integer cantidad, Integer stockMinimo,
+                                                               String referencia, String observaciones) {
         MovimientoInventario movimiento = aplicarAjusteStock(idInventario, idTipoMovimiento, cantidad,
-            referencia, observaciones, usuarioId);
+            stockMinimo, referencia, observaciones);
+        return mapearMovimientoDetallado(movimiento);
+    }
+
+    public MovimientoInventarioDto aplicarAjusteStockDetallado(Long idInventario, Long idTipoMovimiento,
+                                                               Integer cantidad, Integer stockMinimo,
+                                                               String referencia, String observaciones, Integer usuarioId) {
+        MovimientoInventario movimiento = aplicarAjusteStock(idInventario, idTipoMovimiento, cantidad,
+            stockMinimo, referencia, observaciones, usuarioId);
         return mapearMovimientoDetallado(movimiento);
     }
 
@@ -447,6 +498,9 @@ public class InventarioService {
         String marca = productoDto != null ? productoDto.marca() : obtenerMarcaProducto(producto);
         String talla = productoDto != null ? productoDto.talla() : obtenerTallaProducto(producto);
         String color = productoDto != null ? productoDto.color() : obtenerColorProducto(producto);
+        boolean tieneTallasInventario = inventario.getId() != null && inventarioTallaRepository.existsByInventario(inventario);
+        boolean productoConTallas = productoTieneTallas(producto);
+        boolean manejaTallas = tieneTallasInventario || productoConTallas;
 
         return new InventarioDetalleDto(
             inventario.getId(),
@@ -461,8 +515,23 @@ public class InventarioService {
             talla,
             color,
             marca,
+            manejaTallas,
             Optional.ofNullable(inventario.getFechaUltimaActualizacion()).orElse(LocalDateTime.now())
         );
+    }
+
+    private boolean productoTieneTallas(Producto producto) {
+        if (producto == null) {
+            return false;
+        }
+
+        Set<ProductoTalla> tallasProducto = producto.getTallas();
+        if (tallasProducto != null && !tallasProducto.isEmpty()) {
+            return true;
+        }
+
+        Long productoId = producto.getId();
+        return productoId != null && productoTallaRepository.existsByProductoId(productoId);
     }
 
     private MovimientoInventarioDto mapearMovimientoDetallado(MovimientoInventario movimiento) {
@@ -611,6 +680,7 @@ public class InventarioService {
         String talla,
         String color,
         String marca,
+        @JsonProperty("tiene_tallas") boolean tieneTallas,
         @JsonProperty("fecha_ultima_actualizacion") LocalDateTime fechaUltimaActualizacion
     ) {}
 
@@ -696,6 +766,11 @@ public class InventarioService {
      */
     public void ajustarStockTalla(Long inventarioId, String talla, Long tipoMovimientoId, Integer cantidad,
                                  String referencia, String observaciones, Integer usuarioId) {
+        ajustarStockTalla(inventarioId, talla, tipoMovimientoId, cantidad, null, referencia, observaciones, usuarioId);
+    }
+
+    public void ajustarStockTalla(Long inventarioId, String talla, Long tipoMovimientoId, Integer cantidad,
+                                 Integer stockMinimo, String referencia, String observaciones, Integer usuarioId) {
         Inventario inventario = inventarioRepository.findById(inventarioId)
             .orElseThrow(() -> new RuntimeException("Inventario no encontrado"));
 
@@ -714,7 +789,8 @@ public class InventarioService {
             inventarioTalla = inventarioTallaOpt.get();
         } else {
             // Crear registro de talla si no existe
-            inventarioTalla = new InventarioTalla(inventario, talla, 0, 0);
+            int stockMinimoNormalizado = stockMinimo != null ? Math.max(0, stockMinimo) : 0;
+            inventarioTalla = new InventarioTalla(inventario, talla, 0, stockMinimoNormalizado);
             inventarioTalla = inventarioTallaRepository.save(inventarioTalla);
         }
 
@@ -724,6 +800,9 @@ public class InventarioService {
 
         // Actualizar stock de la talla
         inventarioTalla.setCantidadStock(nuevaCantidadTalla);
+        if (stockMinimo != null) {
+            inventarioTalla.setStockMinimo(Math.max(0, stockMinimo));
+        }
         inventarioTallaRepository.save(inventarioTalla);
 
         // Actualizar stock total del inventario
@@ -735,6 +814,43 @@ public class InventarioService {
             usuario, observaciones, referencia, talla
         );
         movimientoRepository.save(movimiento);
+    }
+
+    public void actualizarStockMinimoTalla(Long inventarioId, String talla, Integer stockMinimo, Integer usuarioId) {
+        Inventario inventario = inventarioRepository.findById(inventarioId)
+            .orElseThrow(() -> new RuntimeException("Inventario no encontrado"));
+
+        if (usuarioId != null) {
+            usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        }
+
+        String tallaLimpia = Optional.ofNullable(talla)
+            .map(String::trim)
+            .filter(valor -> !valor.isEmpty())
+            .orElseThrow(() -> new RuntimeException("La talla es requerida"));
+
+        String tallaClave = tallaLimpia;
+        Optional<InventarioTalla> inventarioTallaOpt = inventarioTallaRepository.findByInventarioAndTalla(inventario, tallaClave);
+
+        if (inventarioTallaOpt.isEmpty()) {
+            String tallaNormalizada = normalizarNombreTalla(tallaClave);
+            if (tallaNormalizada != null && !tallaNormalizada.equals(tallaClave)) {
+                inventarioTallaOpt = inventarioTallaRepository.findByInventarioAndTalla(inventario, tallaNormalizada);
+                if (inventarioTallaOpt.isPresent()) {
+                    tallaClave = tallaNormalizada;
+                }
+            }
+        }
+
+        final String tallaClaveFinal = tallaClave;
+        InventarioTalla inventarioTalla = inventarioTallaOpt.orElseGet(() -> inventarioTallaRepository.save(
+            new InventarioTalla(inventario, tallaClaveFinal, 0, 0)
+        ));
+
+        int stockMinimoNormalizado = stockMinimo != null ? Math.max(0, stockMinimo) : 0;
+        inventarioTalla.setStockMinimo(stockMinimoNormalizado);
+        inventarioTallaRepository.save(inventarioTalla);
     }
 
     /**
@@ -754,18 +870,55 @@ public class InventarioService {
         Inventario inventario = inventarioRepository.findById(inventarioId)
             .orElseThrow(() -> new RuntimeException("Inventario no encontrado"));
 
-        List<InventarioTalla> tallas = inventarioTallaRepository.findByInventario(inventario);
+        Map<String, InventarioTalla> tallasInventario = new LinkedHashMap<>();
+        List<InventarioTalla> tallasInventarioSinNombre = new ArrayList<>();
+        for (InventarioTalla inventarioTalla : inventarioTallaRepository.findByInventario(inventario)) {
+            String clave = normalizarNombreTalla(inventarioTalla.getTalla());
+            if (clave == null) {
+                tallasInventarioSinNombre.add(inventarioTalla);
+                continue;
+            }
+            tallasInventario.putIfAbsent(clave, inventarioTalla);
+        }
 
-        List<TallaStockDetalleDto> tallasDetalle = tallas.stream()
-            .map(t -> new TallaStockDetalleDto(
-                t.getTalla(),
-                t.getCantidadStock(),
-                t.getStockMinimo(),
-                t.getFechaUltimaActualizacion(),
-                t.isStockBajo(),
-                t.isAgotado()
-            ))
-            .collect(Collectors.toList());
+        Producto producto = inventario.getProducto();
+        Long productoId = producto != null ? producto.getId() : null;
+        Map<String, ProductoTalla> tallasCatalogo = new LinkedHashMap<>();
+        if (productoId != null) {
+            for (ProductoTalla productoTalla : productoTallaRepository.findByProductoIdOrderByNombre(productoId)) {
+                String clave = normalizarNombreTalla(productoTalla.getTalla());
+                if (clave != null && !tallasCatalogo.containsKey(clave)) {
+                    tallasCatalogo.put(clave, productoTalla);
+                }
+            }
+        }
+
+        List<TallaStockDetalleDto> tallasDetalle = new ArrayList<>();
+
+        // Primero, recorrer todas las tallas conocidas del catálogo del producto
+        for (Map.Entry<String, ProductoTalla> entry : tallasCatalogo.entrySet()) {
+            String clave = entry.getKey();
+            ProductoTalla productoTalla = entry.getValue();
+            InventarioTalla inventarioTalla = tallasInventario.remove(clave);
+
+            if (inventarioTalla != null) {
+                tallasDetalle.add(crearDetalleDesdeInventario(inventarioTalla));
+            } else {
+                tallasDetalle.add(crearDetalleSinMovimientos(productoTalla.getTalla()));
+            }
+        }
+
+        // Incluir cualquier talla que exista en el inventario pero no en el catálogo
+        for (InventarioTalla restante : tallasInventario.values()) {
+            tallasDetalle.add(crearDetalleDesdeInventario(restante));
+        }
+
+        // Incluir tallas sin nombre normalizado para no perder información
+        for (InventarioTalla restanteSinNombre : tallasInventarioSinNombre) {
+            tallasDetalle.add(crearDetalleDesdeInventario(restanteSinNombre));
+        }
+
+        tallasDetalle.sort(Comparator.comparing(dto -> Optional.ofNullable(dto.talla()).orElse(""), String.CASE_INSENSITIVE_ORDER));
 
         return new InventarioConTallasDto(
             inventario.getId(),
@@ -777,6 +930,36 @@ public class InventarioService {
             inventario.getStockMinimo(),
             tallasDetalle
         );
+    }
+
+    private static TallaStockDetalleDto crearDetalleDesdeInventario(InventarioTalla inventarioTalla) {
+        return new TallaStockDetalleDto(
+            inventarioTalla.getTalla(),
+            Optional.ofNullable(inventarioTalla.getCantidadStock()).orElse(0),
+            Optional.ofNullable(inventarioTalla.getStockMinimo()).orElse(0),
+            inventarioTalla.getFechaUltimaActualizacion(),
+            inventarioTalla.isStockBajo(),
+            inventarioTalla.isAgotado()
+        );
+    }
+
+    private static TallaStockDetalleDto crearDetalleSinMovimientos(String talla) {
+        return new TallaStockDetalleDto(
+            talla,
+            0,
+            0,
+            null,
+            true,
+            true
+        );
+    }
+
+    private static String normalizarNombreTalla(String talla) {
+        return Optional.ofNullable(talla)
+            .map(String::trim)
+            .filter(nombre -> !nombre.isEmpty())
+            .map(String::toUpperCase)
+            .orElse(null);
     }
 
     /**
