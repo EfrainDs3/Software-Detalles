@@ -31,7 +31,6 @@ public class CajaService {
     private final AperturaCajaRepository aperturaRepository;
     private final CierreCajaRepository cierreRepository;
     private final UsuarioRepository usuarioRepository; 
-    // private final ComprobantePagoRepository comprobanteRepository; // Necesario para calcular ventas reales
 
     // Asumimos el ID 1 para la caja principal
     private static final Integer CAJA_PRINCIPAL_ID = 1; 
@@ -49,21 +48,18 @@ public class CajaService {
         Caja nuevaCaja = new Caja();
         
         nuevaCaja.setNombreCaja(nombre_caja); 
-        nuevaCaja.setUbicacion(ubicacion); // AHORA SÍ ESTABLECE LA UBICACIÓN
+        nuevaCaja.setUbicacion(ubicacion);
         nuevaCaja.setEstado("Cerrada"); 
         
         return cajaRepository.save(nuevaCaja);
     }
 
-
     // ======================================================
-    // 1. OBTENER ESTADO ACTUAL (Si estás usando la lógica de ID Fijo, sino deberías usar el ID de la caja en uso)
+    // 1. OBTENER ESTADO ACTUAL
     // ======================================================
     @Transactional(readOnly = true)
     public CajaEstadoDTO getEstadoCaja() {
         Caja caja = getCajaPrincipal();
-        // NOTA: Para múltiples cajas, esta lógica debe mejorarse para buscar
-        // la apertura activa del usuario logueado, no solo la caja principal.
         Optional<AperturaCaja> aperturaActiva = aperturaRepository.findActiveAperturaByCajaId(caja.getIdCaja());
 
         if (aperturaActiva.isPresent()) {
@@ -84,7 +80,7 @@ public class CajaService {
     }
     
     // ======================================================
-    // 2. ABRIR CAJA (MEJORADO)
+    // 2. ABRIR CAJA
     // ======================================================
     @Transactional
     public CajaEstadoDTO abrirCaja(BigDecimal montoInicial, Integer idUsuario, Integer idCajaSeleccionada) { 
@@ -123,14 +119,20 @@ public class CajaService {
     }
 
     // ======================================================
-    // 3. CERRAR CAJA (Corregido)
+    // 3. CERRAR CAJA (✅ CORREGIDO)
     // ======================================================
     @Transactional
     public void cerrarCaja(Long idApertura, BigDecimal montoFinal, Integer idUsuario) {
+        System.out.println("🔍 DEBUG - Cerrando caja con ID Apertura: " + idApertura);
+        System.out.println("💰 Monto Final recibido: " + montoFinal);
+        System.out.println("👤 Usuario ID: " + idUsuario);
+        
         // 1. Verificar Apertura
         AperturaCaja apertura = aperturaRepository.findById(idApertura)
             .orElseThrow(() -> new EntityNotFoundException("Apertura de caja no encontrada con ID: " + idApertura));
 
+        System.out.println("✅ Apertura encontrada: " + apertura.getIdApertura());
+        
         if (apertura.getCierre() != null) {
             throw new IllegalStateException("Esta apertura ya fue cerrada.");
         }
@@ -140,11 +142,22 @@ public class CajaService {
 
         // --- LÓGICA DE NEGOCIO: Calcular ventas reales ---
         BigDecimal montoVentasRealizadas = aperturaRepository.findVentasByAperturaId(idApertura);
+        
+        // ✅ CORRECCIÓN CRÍTICA: Manejar el caso donde no hay ventas (null)
+        if (montoVentasRealizadas == null) {
+            System.out.println("⚠️ No se encontraron ventas, usando 0.00");
+            montoVentasRealizadas = BigDecimal.ZERO;
+        } else {
+            System.out.println("💵 Ventas realizadas: " + montoVentasRealizadas);
+        }
+        
         BigDecimal montoEsperado = apertura.getMontoInicial().add(montoVentasRealizadas);
-
+        System.out.println("📊 Monto esperado: " + montoEsperado);
+        
         BigDecimal diferencia = montoFinal.subtract(montoEsperado);
+        System.out.println("📉 Diferencia: " + diferencia);
 
-        // 🛑 Obtenemos la caja de la apertura
+        // Obtenemos la caja de la apertura
         Caja caja = apertura.getCaja();
 
         // 3. Crear Cierre
@@ -161,12 +174,13 @@ public class CajaService {
         cierre.setObservaciones("Cierre de turno manual.");
 
         cierreRepository.save(cierre);
+        System.out.println("💾 Cierre guardado correctamente");
 
         // 4. Actualizar estado de Caja
         caja.setEstado("Cerrada");
         cajaRepository.save(caja);
+        System.out.println("🔒 Estado de caja actualizado a Cerrada");
     }
-
 
     // ======================================================
     // 4. LISTAR HISTORIAL
@@ -194,20 +208,18 @@ public class CajaService {
                 c != null ? c.getHoraCierre() : null,
                 c != null ? c.getMontoFinal() : null,
                 estado,
-                observaciones // ✅ NUEVO
+                observaciones
             );
         }).collect(Collectors.toList());
     }
 
     // ======================================================
-    // 5. LISTAR CAJAS ACTIVAS (¡CORRECCIÓN CLAVE!)
+    // 5. LISTAR CAJAS ACTIVAS
     // ======================================================
     @Transactional(readOnly = true)
     public List<CajaListaDTO> listarCajasActivas() {
-
         List<Caja> cajas = cajaRepository.findByEstado("Cerrada");
         
-        // Mapeamos al DTO ligero
         return cajas.stream()
             .map(caja -> {
                 CajaListaDTO dto = new CajaListaDTO();
