@@ -110,20 +110,30 @@
                     </li>
                 </ul>
 
-                <!-- Iconos derecha -->
-                <div class="nav-icons">
-                    <a href="#" class="nav-icon search-icon"><i class="fas fa-search"></i></a>
-                    <a th:href="@{/login}" class="nav-icon"><i class="fas fa-user"></i></a>
-                    <a th:href="@{/carrito}" class="nav-icon cart-icon">
-                        <i class="fas fa-shopping-bag"></i>
-                        <span class="cart-count">0</span>
-                    </a>
-                </div>
+               
 
                 <!-- Hamburger menu mobile -->
                 <div class="hamburger">
                     <span></span><span></span><span></span>
                 </div>
+            </div>
+
+            <div class="nav-icons">
+                <!-- BARRA DE BÚSQUEDA FUNCIONAL -->
+                <div class="search-container">
+                    <div class="search-form">
+                        <input type="text" id="searchInput" placeholder="Buscar productos..." class="search-input">
+                        <button onclick="buscarProductos()" class="search-button">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <a th:href="@{/login}" class="nav-icon"><i class="fas fa-user"></i></a>
+                <a th:href="@{/carrito}" class="nav-icon cart-icon">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span class="cart-count">0</span>
+                </a>
             </div>
         </nav>
     </header>
@@ -228,5 +238,78 @@
     <!-- ✅ JS desde static/Detalles_web -->
     <script th:src="@{/Detalles_web/js/script.js}" src="/Detalles_web/js/script.js"></script>
     <script th:src="@{/Detalles_web/js/carrito.js}" src="/Detalles_web/js/carrito.js"></script>
+
+<script>
+// Función para buscar productos
+async function buscarProductos() {
+    const searchTerm = document.getElementById('searchInput').value;
+    const resultadosContainer = document.getElementById('productos');
+    
+    try {
+        // Llamar a tu API REST
+        const response = await fetch(`/api/productos/buscar?nombre=${encodeURIComponent(searchTerm)}`);
+        const productos = await response.json();
+        
+        // Mostrar resultados
+        mostrarProductos(productos);
+    } catch (error) {
+        console.error('Error buscando productos:', error);
+        resultadosContainer.innerHTML = '<p>Error al buscar productos</p>';
+    }
+}
+
+// Función para mostrar productos
+function mostrarProductos(productos) {
+    const contenedor = document.querySelector('.products-grid');
+    
+    if (!productos || productos.length === 0) {
+        contenedor.innerHTML = '<p>No se encontraron productos</p>';
+        return;
+    }
+
+    // Generar HTML para cada producto
+    contenedor.innerHTML = productos.map(producto => `
+        <div class="product-card">
+            <div class="product-image">
+                <img th:src="@{/img/calzado-default.jpg}" alt="${producto.nombre}">
+                <div class="product-overlay">
+                    <button class="quick-view">Vista Rápida</button>
+                </div>
+            </div>
+            <div class="product-info">
+                <h3>${producto.nombre}</h3>
+                <p>${producto.descripcion || 'Descripción no disponible'}</p>
+                <p class="price">S/ ${producto.precioVenta || producto.precio || '0.00'}</p>
+                <button class="add-to-cart" onclick="agregarAlCarrito(${producto.id})">
+                    Añadir al Carrito
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Función para agregar al carrito (temporal)
+function agregarAlCarrito(productoId) {
+    alert(`Producto ${productoId} agregado al carrito`);
+    // Aquí integrarás con tu lógica del carrito después
+}
+
+// Cargar productos al iniciar la página
+document.addEventListener('DOMContentLoaded', function() {
+    cargarProductosIniciales();
+});
+
+// Función para cargar productos al inicio
+async function cargarProductosIniciales() {
+    try {
+        const response = await fetch('/api/productos');
+        const productos = await response.json();
+        mostrarProductos(productos);
+    } catch (error) {
+        console.error('Error cargando productos:', error);
+    }
+}
+</script>
+
 </body>
 </html>
