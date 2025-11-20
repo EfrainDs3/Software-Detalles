@@ -124,7 +124,7 @@ async function buscarClientePorDocumento() {
             nombreClienteResultado.textContent = nombreCompleto || `Cliente #ID ${cliente.idCliente}`;
             
             // ✅ AUTO-RELLENAR EL CAMPO "CLIENTE" DEL FORMULARIO
-            ventaClienteInput.value = nombreCompleto || `Doc: ${cliente.numeroDocumento}`;
+            ventaClienteInput.value = nombreCompleto || `Doc: ${cliente.nombre}`;
 
             clienteInfoDiv.className = 'alert mt-2 alert-success';
             registrarClienteBtn.style.display = 'none';
