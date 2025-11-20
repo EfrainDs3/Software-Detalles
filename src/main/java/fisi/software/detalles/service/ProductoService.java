@@ -74,8 +74,6 @@ public class ProductoService {
         Producto producto = new Producto();
         producto.setCategoria(categoria);
         producto.setEstado(Boolean.TRUE);
-        aplicarDatosBasicos(producto, request);
-    producto.setEstado(Boolean.TRUE);
         aplicarDatosBasicos(producto, request, categoriaCodigo);
         productoRepository.save(producto);
         productoRepository.flush();
