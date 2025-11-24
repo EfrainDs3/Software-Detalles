@@ -104,10 +104,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const detallesTallasBody = document.getElementById('detallesTallasBody');
 
     // Referencias para summary cards
-    const totalProductos = document.getElementById('totalProductos');
-    const stockTotal = document.getElementById('stockTotal');
     const productosStockMinimo = document.getElementById('productosStockMinimo');
-    const totalAlmacenes = document.getElementById('totalAlmacenes');
+    const productosAgotados = document.getElementById('productosAgotados');
 
     // Referencias para paginación
     const showingStart = document.getElementById('showingStart');
@@ -706,16 +704,12 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const stats = await fetchJson('/inventario/api/estadisticas') || {};
 
-            totalProductos.textContent = stats.totalProductos || 0;
-            stockTotal.textContent = (stats.totalStock || 0).toLocaleString();
             productosStockMinimo.textContent = stats.productosStockBajo || 0;
-            totalAlmacenes.textContent = stats.totalAlmacenes || 0;
+            productosAgotados.textContent = stats.productosAgotados || 0;
         } catch (error) {
             console.error('Error cargando estadísticas:', error);
-            totalProductos.textContent = '0';
-            stockTotal.textContent = '0';
             productosStockMinimo.textContent = '0';
-            totalAlmacenes.textContent = '0';
+            productosAgotados.textContent = '0';
         }
     }
 
@@ -1631,6 +1625,47 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function normalizarCantidad(valor) {
+        const parsed = Number(valor ?? 0);
+        return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    function obtenerEstadoTalla(cantidad, minimo) {
+        if (cantidad <= 0) {
+            return 'agotado';
+        }
+
+        if (minimo > 0 && cantidad < minimo) {
+            return 'bajo';
+        }
+
+        return 'disponible';
+    }
+
+    function obtenerTextoEstadoTalla(estado) {
+        switch (estado) {
+            case 'agotado':
+                return 'Agotado';
+            case 'bajo':
+                return 'Stock Bajo';
+            default:
+                return 'Disponible';
+        }
+    }
+
+    function calcularPorcentajeBarra(cantidad, minimo) {
+        if (cantidad <= 0) {
+            return 0;
+        }
+
+        if (minimo <= 0) {
+            return 100;
+        }
+
+        const ratio = (cantidad / minimo) * 100;
+        return Math.max(0, Math.min(ratio, 100));
+    }
+
     function renderizarTallas(tallas) {
         tallasContainer.innerHTML = '';
 
@@ -1646,25 +1681,45 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         tallas.forEach(talla => {
+            const cantidadStock = normalizarCantidad(talla.cantidadStock);
+            const stockMinimo = Math.max(0, normalizarCantidad(talla.stockMinimo));
+            const estado = obtenerEstadoTalla(cantidadStock, stockMinimo);
+            const estadoTexto = obtenerTextoEstadoTalla(estado);
+            const porcentajeBarra = calcularPorcentajeBarra(cantidadStock, stockMinimo);
+
             const tallaElement = document.createElement('div');
-            tallaElement.className = `talla-item ${talla.agotado ? 'agotado' : ''} ${talla.stockBajo ? 'stock-bajo' : ''}`;
-            tallaElement.onclick = () => seleccionarTalla(talla.talla, talla);
+            tallaElement.classList.add('talla-item');
+
+            if (estado === 'agotado') {
+                tallaElement.classList.add('agotado');
+            } else if (estado === 'bajo') {
+                tallaElement.classList.add('stock-bajo');
+            } else {
+                tallaElement.classList.add('disponible');
+            }
+
+            tallaElement.onclick = () => seleccionarTalla(talla.talla, {
+                ...talla,
+                cantidadStock,
+                stockMinimo,
+                estado
+            });
 
             tallaElement.innerHTML = `
                 <div class="talla-header">
                     <span class="talla-nombre">${talla.talla}</span>
-                    <span class="talla-status ${talla.agotado ? 'agotado' : talla.stockBajo ? 'bajo' : 'disponible'}">
-                        ${talla.agotado ? 'Agotado' : talla.stockBajo ? 'Stock Bajo' : 'Disponible'}
+                    <span class="talla-status ${estado === 'bajo' ? 'bajo' : estado}">
+                        ${estadoTexto}
                     </span>
                 </div>
                 <div class="talla-stock">
                     <div class="stock-info">
-                        <span class="stock-actual">${talla.cantidadStock}</span>
+                        <span class="stock-actual">${cantidadStock}</span>
                         <span class="stock-separator">/</span>
-                        <span class="stock-minimo">${talla.stockMinimo}</span>
+                        <span class="stock-minimo">${stockMinimo}</span>
                     </div>
                     <div class="stock-bar">
-                        <div class="stock-bar-fill" style="width: ${Math.min((talla.cantidadStock / Math.max(talla.stockMinimo * 2, 1)) * 100, 100)}%"></div>
+                        <div class="stock-bar-fill" style="width: ${porcentajeBarra}%"></div>
                     </div>
                 </div>
             `;
