@@ -33,12 +33,12 @@ public class CajaService {
     private final UsuarioRepository usuarioRepository; 
 
     // Asumimos el ID 1 para la caja principal
-    private static final Integer CAJA_PRINCIPAL_ID = 1; 
+    //private static final Integer CAJA_PRINCIPAL_ID = 1; 
 
-    private Caja getCajaPrincipal() {
-        return cajaRepository.findById(CAJA_PRINCIPAL_ID)
-                .orElseThrow(() -> new EntityNotFoundException("Caja principal no encontrada."));
-    }
+    //private Caja getCajaPrincipal() {
+    //    return cajaRepository.findById(CAJA_PRINCIPAL_ID)
+    //            .orElseThrow(() -> new EntityNotFoundException("Caja principal no encontrada."));
+    //}
 
     // ======================================================
     // NUEVO: AGREGAR NUEVA CAJA
@@ -55,18 +55,24 @@ public class CajaService {
     }
 
     // ======================================================
-    // 1. OBTENER ESTADO ACTUAL
+    // 1. OBTENER ESTADO ACTUAL (✅ MEJORADO)
     // ======================================================
     @Transactional(readOnly = true)
     public CajaEstadoDTO getEstadoCaja() {
-        Caja caja = getCajaPrincipal();
-        Optional<AperturaCaja> aperturaActiva = aperturaRepository.findActiveAperturaByCajaId(caja.getIdCaja());
+        System.out.println("🔍 Buscando cualquier caja abierta...");
+        
+        // ✅ BUSCAR CUALQUIER APERTURA ACTIVA (sin importar qué caja sea)
+        Optional<AperturaCaja> aperturaActiva = aperturaRepository.findAnyActiveApertura();
 
         if (aperturaActiva.isPresent()) {
             AperturaCaja activa = aperturaActiva.get();
             String nombreCompleto = activa.getUsuario() != null 
-                                     ? activa.getUsuario().getNombres() + " " + activa.getUsuario().getApellidos()
-                                     : "Trabajador Desconocido";
+                                    ? activa.getUsuario().getNombres() + " " + activa.getUsuario().getApellidos()
+                                    : "Trabajador Desconocido";
+
+            System.out.println("✅ Caja abierta encontrada: ID Apertura = " + activa.getIdApertura());
+            System.out.println("📦 Caja: " + activa.getCaja().getNombreCaja());
+            System.out.println("👤 Trabajador: " + nombreCompleto);
 
             return new CajaEstadoDTO(
                 true,
@@ -76,7 +82,17 @@ public class CajaService {
             );
         }
 
+        System.out.println("⚠️ No hay ninguna caja abierta");
         return new CajaEstadoDTO(false, null, null, null);
+    }
+    
+    // ======================================================
+    // NUEVO: OBTENER APERTURA ACTIVA (para vincular con ventas)
+    // ======================================================
+    @Transactional(readOnly = true)
+    public AperturaCaja getAperturaActiva() {
+        return aperturaRepository.findAnyActiveApertura()
+            .orElseThrow(() -> new EntityNotFoundException("No hay ninguna caja abierta. Debes abrir una caja primero."));
     }
     
     // ======================================================

@@ -177,6 +177,53 @@ body {
     display: flex;
     align-items: center;
     gap: 1.5rem;
+    margin-left: auto;
+    order: 3;
+}
+
+/* Barra de búsqueda mejorada */
+.search-container {
+    display: flex;
+    align-items: center;
+    order: 2;
+    margin-left: 2rem;
+}
+
+.search-form {
+    display: flex;
+    align-items: center;
+    gap: 0;
+}
+
+.search-input {
+    padding: 10px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 25px 0 0 25px;
+    font-size: 0.9rem;
+    outline: none;
+    transition: all 0.3s;
+    width: 200px;
+    background: #f8f9fa;
+}
+
+.search-input:focus {
+    border-color: #e91e63;
+    background: white;
+}
+
+.search-button {
+    background: #e91e63;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 0 25px 25px 0;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.3s;
+}
+
+.search-button:hover {
+    background: #c2185b;
 }
 
 .nav-icon {
@@ -185,6 +232,9 @@ body {
     text-decoration: none;
     transition: color 0.3s;
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .nav-icon:hover {
@@ -1772,4 +1822,407 @@ footer {
     .cart-content {
         grid-template-columns: 1fr;
     }
+}
+
+.search-container {
+    position: relative;
+    margin-right: 20px;
+}
+
+.search-form {
+    display: flex;
+    align-items: center;
+}
+
+.search-input {
+    padding: 8px 15px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    width: 200px;
+    font-family: 'Montserrat', sans-serif;
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #8B4513;
+    width: 250px;
+}
+
+.search-button {
+    background: none;
+    border: none;
+    margin-left: -35px;
+    cursor: pointer;
+    color: #666;
+    padding: 8px;
+}
+
+.search-button:hover {
+    color: #8B4513;
+}
+
+/* Estilos para la barra de búsqueda */
+.search-container {
+    position: relative;
+    margin-right: 20px;
+}
+
+.search-form {
+    display: flex;
+    align-items: center;
+}
+
+.search-input {
+    padding: 8px 15px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    width: 200px;
+    font-family: 'Montserrat', sans-serif;
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #8B4513;
+    width: 250px;
+}
+
+.search-button {
+    background: none;
+    border: none;
+    margin-left: -35px;
+    cursor: pointer;
+    color: #666;
+    padding: 8px;
+}
+
+.search-button:hover {
+    color: #8B4513;
+}
+
+/* Estados de filtros seleccionados */
+.size-option.selected,
+.color-option.selected {
+    border: 2px solid #8B4513;
+    transform: scale(1.1);
+}
+
+/* Mensajes de carga y error */
+.loading-message,
+.no-products,
+.error-message {
+    text-align: center;
+    padding: 40px;
+    grid-column: 1 / -1;
+}
+
+.no-products i {
+    font-size: 48px;
+    color: #ccc;
+    margin-bottom: 20px;
+}
+
+.error-message {
+    color: #d32f2f;
+    background: #ffebee;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+/* === HEADER MEJORADO === */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 5%;
+    background-color: #fff;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    position: relative;
+}
+
+.nav-container {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.logo-link {
+    margin-right: 30px;
+}
+
+.logo-link img {
+    height: 50px;
+    width: auto;
+    transition: transform 0.3s ease;
+}
+
+.logo-link img:hover {
+    transform: scale(1.05);
+}
+
+.nav-menu {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex-grow: 1;
+    justify-content: center;
+}
+
+.nav-menu > li {
+    position: relative;
+    margin: 0 15px;
+}
+
+.nav-menu > li > a {
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+    font-size: 16px;
+    padding: 10px 0;
+    display: flex;
+    align-items: center;
+    transition: color 0.3s;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.nav-menu > li > a:hover {
+    color: #d4af37;
+}
+
+.nav-menu > li > a i {
+    margin-left: 5px;
+    font-size: 12px;
+    transition: transform 0.3s;
+}
+
+.menu-item-has-children:hover > a i {
+    transform: rotate(180deg);
+}
+
+/* === ACCIONES DE USUARIO (derecha) === */
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.search-container {
+    position: relative;
+}
+
+.search-form {
+    display: flex;
+    align-items: center;
+    background: #f5f5f5;
+    border-radius: 25px;
+    padding: 5px 15px;
+    transition: all 0.3s;
+    border: 2px solid transparent;
+}
+
+.search-form:focus-within {
+    background: #fff;
+    border-color: #d4af37;
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
+}
+
+.search-input {
+    border: none;
+    background: transparent;
+    padding: 8px 0;
+    width: 180px;
+    outline: none;
+    font-size: 14px;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.search-input::placeholder {
+    color: #999;
+}
+
+.search-button {
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    padding: 5px;
+    transition: color 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.search-button:hover {
+    color: #d4af37;
+    transform: scale(1.1);
+}
+
+.nav-icons {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.nav-icon {
+    color: #333;
+    font-size: 18px;
+    text-decoration: none;
+    position: relative;
+    transition: all 0.3s;
+    padding: 8px;
+    border-radius: 50%;
+}
+
+.nav-icon:hover {
+    color: #d4af37;
+    background-color: #f9f9f9;
+    transform: translateY(-2px);
+}
+
+.cart-icon {
+    position: relative;
+}
+
+.cart-count {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #d4af37;
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+/* === MENÚ HAMBURGUESA === */
+.hamburger {
+    display: none;
+    flex-direction: column;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.hamburger span {
+    width: 25px;
+    height: 3px;
+    background: #333;
+    margin: 3px 0;
+    transition: 0.3s;
+    border-radius: 2px;
+}
+
+.hamburger:hover span {
+    background: #d4af37;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 992px) {
+    .nav-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: white;
+        flex-direction: column;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        z-index: 1000;
+    }
+    
+    .nav-menu.active {
+        display: flex;
+    }
+    
+    .nav-menu > li {
+        margin: 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .nav-menu > li > a {
+        padding: 15px 20px;
+        width: 100%;
+    }
+    
+    .hamburger {
+        display: flex;
+    }
+    
+    .nav-actions {
+        gap: 10px;
+    }
+    
+    .search-input {
+        width: 150px;
+    }
+}
+
+@media (max-width: 768px) {
+    .navbar {
+        padding: 12px 3%;
+    }
+    
+    .search-input {
+        width: 120px;
+    }
+    
+    .nav-icons {
+        gap: 10px;
+    }
+    
+    .logo-link img {
+        height: 40px;
+    }
+}
+
+@media (max-width: 576px) {
+    .search-input {
+        width: 100px;
+    }
+    
+    .nav-actions {
+        gap: 8px;
+    }
+    
+    .nav-icon {
+        font-size: 16px;
+        padding: 6px;
+    }
+}
+
+
+/* === ELIMINAR BREADCRUMB / RUTA DE NAVEGACIÓN === */
+.breadcrumb, 
+.breadcrumbs,
+.breadcrumb-nav,
+.breadcrumb-container,
+.breadcrumb-trail,
+[class*="breadcrumb"],
+nav[aria-label="breadcrumb"] {
+    display: none !important;
+}
+
+/* Eliminar cualquier elemento que contenga "Inicio / Mujer / Zapatillas Deportivas" */
+body > :not(header):not(.hero-slider):not(.featured-products):not(footer) {
+    /* Esto asegura que no haya contenido extra entre header y hero-slider */
+}
+
+/* Estilos específicos para asegurar que no haya breadcrumbs */
+.container .row .col:first-child:empty,
+.breadcrumb-section,
+.page-path {
+    display: none !important;
+}
+
+/* Si el breadcrumb está dentro de un contenedor específico */
+.content-header .breadcrumb,
+.page-header .breadcrumb,
+.main-content > .breadcrumb {
+    display: none !important;
 }

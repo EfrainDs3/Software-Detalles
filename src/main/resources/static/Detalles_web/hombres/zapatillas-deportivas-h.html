@@ -12,13 +12,13 @@
         <nav class="navbar">
             <div class="nav-container">
                 <div class="logo">
-                    <a href="../index.html" class="logo-link">
-                        <img src="../img/logo-detalles.jpg" alt="Detalles - Calzados y Accesorios">
+                    <a href="../../index.html" class="logo-link">
+                        <img src="../../img/detalles-logo.png" alt="Detalles - Calzados y Accesorios">
                     </a>
                 </div>
                 
                 <ul class="nav-menu">
-                    <li><a href="../index.html">Inicio</a></li>
+                    <li><a href="../../index.html">Inicio</a></li>
                     
                     <!-- Submenú Mujeres -->
                     <li class="menu-item-has-children">
@@ -96,7 +96,7 @@
                                 <div class="submenu-column">
                                     <h3>Accesorios</h3>
                                     <ul>
-                                        <li><a href="../niños-accesorios/calcetines.html">Calcetines</li>
+                                        <li><a href="../niños-accesorios/calcetines.html">Calcetines</a></li>
                                         <li><a href="../niños-accesorios/cinturones.html">Cinturones</a></li>
                                         <li><a href="../niños-accesorios/gorras.html">Gorras</a></li>
                                         <li><a href="../niños-accesorios/lentes-sol.html">Lentes</a></li>
@@ -108,14 +108,46 @@
                 </ul>
                 
                 <div class="nav-icons">
-                    <a href="#" class="nav-icon search-icon"><i class="fas fa-search"></i></a>
+                    <div class="search-container">
+                        <div class="search-form">
+                            <input type="text" id="searchInput" placeholder="Buscar productos..." class="search-input">
+                            <button onclick="buscarProductos()" class="search-button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
                     <a href="../login/logueo.html" class="nav-icon"><i class="fas fa-user"></i></a>
                     <a href="../carrito/carritos.html" class="nav-icon cart-icon">
                         <i class="fas fa-shopping-bag"></i>
                         <span class="cart-count">0</span>
                     </a>
                 </div>
-                
+
+                <div id="searchOverlay" class="search-overlay">
+                    <div class="search-container">
+                        <span class="close-search">&times;</span>
+                        <div class="search-content">
+                            <h2>¿Qué estás buscando?</h2>
+                            <form class="search-form">
+                                <input type="text" class="search-input" placeholder="Buscar productos...">
+                                <button type="submit" class="search-button">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </form>
+                            <div class="search-suggestions">
+                                <h3>Sugerencias populares:</h3>
+                                <div class="suggestion-tags">
+                                    <span class="tag">Zapatillas Running</span>
+                                    <span class="tag">Nike Air Max</span>
+                                    <span class="tag">Adidas Ultraboost</span>
+                                    <span class="tag">Zapatillas Gym</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="hamburger">
                     <span></span><span></span><span></span>
                 </div>
@@ -123,46 +155,26 @@
         </nav>
     </header>
 
-    <!-- Search Overlay -->
-    <div id="searchOverlay" class="search-overlay">
-        <div class="search-container">
-            <span class="close-search">&times;</span>
-            <div class="search-content">
-                <h2>¿Qué estás buscando?</h2>
-                <form class="search-form">
-                    <input type="text" class="search-input" placeholder="Buscar productos...">
-                    <button type="submit" class="search-button">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </form>
-                <div class="search-suggestions">
-                    <h3>Sugerencias populares:</h3>
-                    <div class="suggestion-tags">
-                        <span class="tag">Zapatillas Running</span>
-                        <span class="tag">Nike Air Max</span>
-                        <span class="tag">Adidas Ultraboost</span>
-                        <span class="tag">Zapatillas Gym</span>
-                        <span class="tag">Zapatillas Basketball</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Breadcrumb -->
     <div class="breadcrumb">
         <div class="breadcrumb-content">
-            <a href="../index.html">Inicio</a> / 
-            <a href="#hombres">Hombre</a> / 
-            <span>Zapatillas Deportivas</span>
+            <a href="../index.html">Inicio</a> / <a href="#">Hombre</a> / <span>Zapatillas Deportivas</span>
         </div>
     </div>
 
-    <!-- Products Page -->
     <section class="products-page">
         <div class="products-container">
-            <!-- Filters Sidebar -->
             <aside class="filters-sidebar">
+                <div class="filter-section">
+                    <h3>Precio</h3>
+                    <div class="price-filter">
+                        <input type="range" class="price-range" min="80" max="300" value="180">
+                        <div class="price-inputs">
+                            <input type="number" placeholder="Mín" value="80">
+                            <input type="number" placeholder="Máx" value="300">
+                        </div>
+                    </div>
+                </div>
+
                 <div class="filter-section">
                     <h3>Talla</h3>
                     <div class="size-filter">
@@ -193,153 +205,52 @@
                 <div class="filter-section">
                     <h3>Marca</h3>
                     <div class="brand-filter">
-                        <label class="brand-option">
-                            <input type="checkbox"> Nike
-                        </label>
-                        <label class="brand-option">
-                            <input type="checkbox"> Adidas
-                        </label>
-                        <label class="brand-option">
-                            <input type="checkbox"> Puma
-                        </label>
-                        <label class="brand-option">
-                            <input type="checkbox"> New Balance
-                        </label>
-                        <label class="brand-option">
-                            <input type="checkbox"> Reebok
-                        </label>
-                        <label class="brand-option">
-                            <input type="checkbox"> Under Armour
-                        </label>
+                        <label class="brand-option"><input type="checkbox"> Nike</label>
+                        <label class="brand-option"><input type="checkbox"> Adidas</label>
+                        <label class="brand-option"><input type="checkbox"> Puma</label>
+                        <label class="brand-option"><input type="checkbox"> New Balance</label>
+                        <label class="brand-option"><input type="checkbox"> Reebok</label>
+                        <label class="brand-option"><input type="checkbox"> Under Armour</label>
                     </div>
                 </div>
 
-                <div class="filter-section">
-                    <h3>Actividad</h3>
-                    <div class="brand-filter">
-                        <label class="brand-option">
-                            <input type="checkbox"> Running
-                        </label>
-                        <label class="brand-option">
-                            <input type="checkbox"> Gym
-                        </label>
-                        <label class="brand-option">
-                            <input type="checkbox"> Basketball
-                        </label>
-                        <label class="brand-option">
-                            <input type="checkbox"> Fútbol
-                        </label>
-                        <label class="brand-option">
-                            <input type="checkbox"> Casual
-                        </label>
-                    </div>
-                </div>
+                
 
                 <div class="filter-section">
                     <h3>Material</h3>
                     <div class="brand-filter">
-                        <label class="brand-option">
-                            <input type="checkbox"> Malla
-                        </label>
-                        <label class="brand-option">
-                            <input type="checkbox"> Cuero Sintético
-                        </label>
-                        <label class="brand-option">
-                            <input type="checkbox"> Cuero Natural
-                        </label>
-                        <label class="brand-option">
-                            <input type="checkbox"> Lona
-                        </label>
+                        <div class="brand-option"><input type="checkbox" id="malla"> <label for="malla">Malla</label></div>
+                        <div class="brand-option"><input type="checkbox" id="sintetico"> <label for="sintetico">Cuero Sintético</label></div>
+                        <div class="brand-option"><input type="checkbox" id="natural"> <label for="natural">Cuero Natural</label></div>
+                        <div class="brand-option"><input type="checkbox" id="lona"> <label for="lona">Lona</label></div>
                     </div>
                 </div>
-                <div class="filter-section" style="display: flex; justify-content: center; margin-top: 1rem;">
-                    <button class="btn-add-cart" style="width: 150px; padding: 8px;">
-                        Aplicar Filtros
-                    </button>
-                </div>
+
+                <button class="btn-add-cart" style="width: 100%; margin-top: 1rem;">Aplicar Filtros</button>
             </aside>
 
-            <!-- Products Main Content -->
             <main class="products-main">
                 <div class="products-header">
-                    <h1>Zapatillas Deportivas para Hombres</h1>
+                    <h1>Zapatillas Deportivas</h1>
                     <div class="sort-options">
-                        <span class="products-count">9 productos</span>
-                        <select>
-                            <option>Ordenar por: Destacados</option>
-                            <option>Precio: Menor a Mayor</option>
-                            <option>Precio: Mayor a Menor</option>
-                            <option>Más Nuevos</option>
-                            <option>Mejor Valorados</option>
-                        </select>
+                        <span class="products-count" id="productsCount">Cargando...</span>
+                      
                     </div>
                 </div>
 
-                <div class="products-grid-detailed" id="productsGrid">
-                    <!-- Los productos se cargan dinámicamente desde la API pública -->
+                <div class="products-grid-detailed" id="productosContainer">
+                    <!-- Los productos se cargarán dinámicamente desde la API -->
+                    <div class="loading-message">Cargando zapatillas deportivas...</div>
                 </div>
-
-                <script>
-                    (function(){
-                        const API = '/api/productos/calzados';
-                        const DEFAULT_IMG = '/img/calzado-default.jpg';
-                        const GENDER = 'Hombre';
-                        const TIPO = 'Deportivo';
-
-                        function createCard(p){
-                            const img = p.imagen || DEFAULT_IMG;
-                            const brand = p.marca?.nombre || '';
-                            const title = p.nombre || 'Sin nombre';
-                            const price = p.precioVenta != null ? `S/ ${Number(p.precioVenta).toFixed(2)}` : '';
-                            const div = document.createElement('div');
-                            div.className = 'product-card-detailed';
-                            div.dataset.productId = p.id || '';
-                            div.innerHTML = `
-                                <div class="product-image-detailed">
-                                    <img src="${img}" alt="${title}" loading="lazy">
-                                    <div class="product-overlay"><button class="quick-view">Vista Rápida</button></div>
-                                </div>
-                                <div class="product-info-detailed">
-                                    <div class="product-brand">${brand}</div>
-                                    <h3 class="product-title-detailed">${title}</h3>
-                                    <div class="product-price"><span class="current-price">${price}</span></div>
-                                    <div class="product-actions">
-                                        <button class="btn-add-cart">Añadir al Carrito</button>
-                                        <button class="btn-wishlist"><i class="far fa-heart"></i></button>
-                                    </div>
-                                </div>`;
-                            return div;
-                        }
-
-                        async function load(){
-                            try{
-                                const url = `${API}?sexo=${encodeURIComponent(GENDER)}&tipo=${encodeURIComponent(TIPO)}`;
-                                const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-                                if (!res.ok) throw new Error('No se pudo obtener productos');
-                                const data = await res.json();
-                                const grid = document.getElementById('productsGrid');
-                                const countSpan = document.querySelector('.products-count');
-                                const items = Array.isArray(data) ? data : [];
-                                grid.innerHTML = '';
-                                if (countSpan) countSpan.textContent = `${items.length} productos`;
-                                if (!items.length){
-                                    grid.innerHTML = '<div class="empty-state">No hay productos disponibles en esta categoría.</div>';
-                                    return;
-                                }
-                                items.forEach(p => grid.appendChild(createCard(p)));
-                            }catch(err){
-                                console.error(err);
-                            }
-                        }
-
-                        document.addEventListener('DOMContentLoaded', load);
-                    })();
-                </script>
+                
+                <div class="pagination">
+                    <!-- Paginación si es necesaria -->
+                </div>
             </main>
         </div>
     </section>
 
-     <footer>
+    <footer>
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
@@ -372,14 +283,284 @@
             </div>
         </div>
     </footer>
+
     <div id="quickViewModal" class="modal">
         <div class="modal-content">
             <span class="close-modal">&times;</span>
             <div class="modal-body">
-                </div>
+                <!-- Contenido del modal de vista rápida -->
+            </div>
         </div>
     </div>
-    <script src="js/script.js"></script>
-    <script src="js/carrito.js"></script>
+
+    <script src="../js/script.js"></script>
+    <script src="../js/carrito.js"></script>
+
+    <!-- JavaScript para búsqueda y filtros dinámicos -->
+    <script>
+        // Variables globales
+        let todosLosProductos = [];
+        let productosFiltrados = [];
+
+        // Cargar productos al iniciar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarZapatillasHombres();
+            configurarFiltros();
+        });
+
+        // Función principal para cargar productos
+        async function cargarZapatillasHombres() {
+            try {
+                console.log('Cargando zapatillas deportivas para hombres...');
+                
+                // Primero intentar con filtros específicos, si no funciona cargar todos de hombres
+                let response = await fetch('/api/productos/buscar?categoria=hombres&tipo=zapatillas-deportivas');
+                
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta de la API');
+                }
+                
+                let productos = await response.json();
+                
+                // Si no hay resultados, cargar todos los productos de hombres
+                if (!productos || productos.length === 0) {
+                    console.log('No se encontraron zapatillas deportivas específicas, cargando todos los productos de hombres...');
+                    response = await fetch('/api/productos/buscar?categoria=hombres');
+                    productos = await response.json();
+                }
+                
+                console.log('Productos cargados:', productos);
+                
+                todosLosProductos = productos;
+                productosFiltrados = [...productos];
+                
+                mostrarProductos(productos);
+                actualizarContadorProductos(productos.length);
+                
+            } catch (error) {
+                console.error('Error cargando productos:', error);
+                document.getElementById('productosContainer').innerHTML = 
+                    '<p class="error-message">Error al cargar los productos. Intenta nuevamente.</p>';
+            }
+        }
+
+        // Función para mostrar productos en la página
+        function mostrarProductos(productos) {
+            const contenedor = document.getElementById('productosContainer');
+            
+            if (!productos || productos.length === 0) {
+                contenedor.innerHTML = `
+                    <div class="no-products">
+                        <i class="fas fa-search" style="font-size: 48px; color: #ccc; margin-bottom: 20px;"></i>
+                        <h3>No se encontraron zapatillas deportivas</h3>
+                        <p>Intenta con otros filtros o términos de búsqueda.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Generar HTML para cada producto
+            contenedor.innerHTML = productos.map(function(producto){
+                return '' +
+                    '<div class="product-card-detailed" data-product-id="' + (producto.id || '') + '">' +
+                        '<div class="product-image-detailed">' +
+                            '<img src="' + (producto.imagenUrl || 'https://via.placeholder.com/300x300') + '" alt="' + (producto.nombre || producto.nombre_producto || '') + '" onerror="this.src=\'https://via.placeholder.com/300x300\'">' +
+                            '<div class="product-overlay"><button class="quick-view" onclick="vistaRapida(\'' + (producto.id || '') + '\')">Vista Rápida</button></div>' +
+                        '</div>' +
+                        '<div class="product-info-detailed">' +
+                            '<div class="product-brand">' + obtenerMarcaProducto(producto) + '</div>' +
+                            '<h3 class="product-title-detailed">' + (producto.nombre || producto.nombre_producto || 'Producto') + '</h3>' +
+                            '<div class="product-price"><span class="current-price">S/ ' + (producto.precio_venta || producto.precioVenta || producto.precio || '0.00') + '</span></div>' +
+                            '<div class="product-actions">' +
+                                '<button class="btn-add-cart" onclick="agregarAlCarrito(\'' + (producto.id || '') + '\')">Añadir al Carrito</button>' +
+                                '<button class="btn-wishlist" onclick="agregarFavoritos(\'' + (producto.id || '') + '\')"><i class="far fa-heart"></i></button>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>';
+            }).join('');
+        }
+
+        // Función para extraer marca del nombre del producto
+        function obtenerMarcaProducto(producto) {
+            const nombre = producto.nombre || producto.nombre_producto || '';
+            // Extraer primera palabra como marca
+            return nombre.split(' ')[0] || 'MARCA';
+        }
+
+        // Función para búsqueda desde el navbar
+        async function buscarProductos() {
+            const searchTerm = document.getElementById('searchInput').value.trim();
+            
+            if (!searchTerm) {
+                // Si no hay término de búsqueda, recargar productos originales
+                cargarZapatillasHombres();
+                return;
+            }
+            
+            try {
+                console.log('Buscando:', searchTerm);
+                const response = await fetch(`/api/productos/buscar?nombre=${encodeURIComponent(searchTerm)}&categoria=hombres`);
+                const productos = await response.json();
+                
+                productosFiltrados = productos;
+                mostrarProductos(productos);
+                actualizarContadorProductos(productos.length);
+                
+            } catch (error) {
+                console.error('Error en búsqueda:', error);
+            }
+        }
+
+        // Configurar eventos de filtros
+        function configurarFiltros() {
+            // Filtro de precio
+            const precioRange = document.querySelector('.price-range');
+            const precioMin = document.querySelector('.price-inputs input[placeholder="Mín"]');
+            const precioMax = document.querySelector('.price-inputs input[placeholder="Máx"]');
+            
+            if (precioRange && precioMin && precioMax) {
+                precioRange.addEventListener('input', function() {
+                    precioMax.value = this.value;
+                    aplicarFiltros();
+                });
+                
+                precioMin.addEventListener('change', aplicarFiltros);
+                precioMax.addEventListener('change', aplicarFiltros);
+            }
+            
+            // Filtro de tallas
+            const tallas = document.querySelectorAll('.size-option');
+            tallas.forEach(talla => {
+                talla.addEventListener('click', function() {
+                    this.classList.toggle('selected');
+                    aplicarFiltros();
+                });
+            });
+            
+            // Filtro de colores
+            const colores = document.querySelectorAll('.color-option');
+            colores.forEach(color => {
+                color.addEventListener('click', function() {
+                    this.classList.toggle('selected');
+                    aplicarFiltros();
+                });
+            });
+            
+            // Filtro de marcas
+            const marcas = document.querySelectorAll('.brand-option input[type="checkbox"]');
+            marcas.forEach(marca => {
+                marca.addEventListener('change', aplicarFiltros);
+            });
+            
+            // Filtro de actividades
+            const actividades = document.querySelectorAll('.brand-option input[type="checkbox"]');
+            actividades.forEach(actividad => {
+                actividad.addEventListener('change', aplicarFiltros);
+            });
+            
+            // Filtro de materiales
+            const materiales = document.querySelectorAll('.brand-option input[type="checkbox"]');
+            materiales.forEach(material => {
+                material.addEventListener('change', aplicarFiltros);
+            });
+            
+            // Botón aplicar filtros
+            const btnAplicar = document.querySelector('.btn-add-cart[style*="width: 100%"]');
+            if (btnAplicar) {
+                btnAplicar.addEventListener('click', aplicarFiltros);
+            }
+        }
+
+        // Función para aplicar todos los filtros
+        function aplicarFiltros() {
+            console.log('🎯 Aplicando filtros...');
+            
+            let productos = [...todosLosProductos];
+            
+            // 1. FILTRAR POR PRECIO
+            const precioMin = parseInt(document.querySelector('.price-inputs input[placeholder="Mín"]')?.value) || 0;
+            const precioMax = parseInt(document.querySelector('.price-inputs input[placeholder="Máx"]')?.value) || 9999;
+            
+            console.log('💰 Filtro precio:', { precioMin, precioMax });
+            
+            productos = productos.filter(producto => {
+                const precio = producto.precio_venta || producto.precioVenta || producto.precio || 0;
+                return precio >= precioMin && precio <= precioMax;
+            });
+            
+            // 2. FILTRAR POR COLORES SELECCIONADOS
+            const coloresSeleccionados = Array.from(document.querySelectorAll('.color-option.selected'))
+                .map(color => {
+                    const title = color.getAttribute('title');
+                    return title ? title.toLowerCase() : '';
+                })
+                .filter(color => color !== '');
+            
+            console.log('🎨 Colores seleccionados:', coloresSeleccionados);
+            
+            if (coloresSeleccionados.length > 0) {
+                productos = productos.filter(producto => 
+                    producto.color && coloresSeleccionados.includes(producto.color.toLowerCase())
+                );
+            }
+            
+            // 3. FILTRAR POR MARCAS SELECCIONADAS (extraer marca del nombre)
+            const marcasSeleccionadas = Array.from(document.querySelectorAll('.brand-option input[type="checkbox"]:checked'))
+                .map(cb => {
+                    const label = cb.parentElement.querySelector('label') || cb.parentElement;
+                    return label.textContent.trim().toLowerCase();
+                });
+            
+            console.log('🏷️ Marcas seleccionadas:', marcasSeleccionadas);
+            
+            if (marcasSeleccionadas.length > 0) {
+                productos = productos.filter(producto => {
+                    // Extraer marca del nombre del producto (primera palabra)
+                    const marcaProducto = obtenerMarcaProducto(producto).toLowerCase();
+                    return marcaProducto && marcasSeleccionadas.includes(marcaProducto);
+                });
+            }
+            
+            console.log('✅ Productos después de filtros:', productos);
+            
+            productosFiltrados = productos;
+            mostrarProductos(productos);
+            actualizarContadorProductos(productos.length);
+        }
+
+        // Actualizar contador de productos
+        function actualizarContadorProductos(cantidad) {
+            const contador = document.getElementById('productsCount');
+            if (contador) {
+                contador.textContent = `${cantidad} producto${cantidad !== 1 ? 's' : ''}`;
+            }
+        }
+
+        // Funciones auxiliares (puedes implementarlas después)
+        function vistaRapida(productoId) {
+            alert(`Vista rápida del producto ${productoId}`);
+        }
+
+        function agregarAlCarrito(productoId) {
+            alert(`Producto ${productoId} agregado al carrito`);
+            // Aquí integrarás con tu lógica del carrito
+        }
+
+        function agregarFavoritos(productoId) {
+            alert(`Producto ${productoId} agregado a favoritos`);
+        }
+
+        // Permitir búsqueda con Enter
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        buscarProductos();
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>

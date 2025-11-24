@@ -33,24 +33,6 @@
 
         <!-- Resumen de Inventario -->
         <div class="inventory-summary">
-            <div class="summary-card">
-                <div class="card-icon productos-icon">
-                    <i class="fas fa-box"></i>
-                </div>
-                <div class="card-content">
-                    <h3>Total Productos</h3>
-                    <p id="totalProductos">0</p>
-                </div>
-            </div>
-            <div class="summary-card">
-                <div class="card-icon stock-icon">
-                    <i class="fas fa-cubes"></i>
-                </div>
-                <div class="card-content">
-                    <h3>Stock Total</h3>
-                    <p id="stockTotal">0</p>
-                </div>
-            </div>
             <div class="summary-card alert">
                 <div class="card-icon alerta-icon">
                     <i class="fas fa-exclamation-triangle"></i>
@@ -60,33 +42,13 @@
                     <p id="productosStockMinimo">0</p>
                 </div>
             </div>
-            <div class="summary-card">
-                <div class="card-icon almacenes-icon">
-                    <i class="fas fa-warehouse"></i>
+            <div class="summary-card alert">
+                <div class="card-icon agotados-icon">
+                    <i class="fas fa-times-circle"></i>
                 </div>
                 <div class="card-content">
-                    <h3>Almacenes</h3>
-                    <p id="totalAlmacenes">0</p>
-                </div>
-            </div>
-            <div class="summary-card summary-card--toggle" id="calzadosSummaryCard" data-category="CALZADO">
-                <div class="card-icon categoria-calzado">
-                    <i class="fas fa-shoe-prints"></i>
-                </div>
-                <div class="card-content category-metrics">
-                    <h3>Calzados Registrados</h3>
-                    <p id="calzadosProductosCount">0</p>
-                    <span class="category-subinfo">Stock total: <strong id="calzadosStockTotal">0</strong></span>
-                </div>
-            </div>
-            <div class="summary-card summary-card--toggle" id="accesoriosSummaryCard" data-category="ACCESORIO">
-                <div class="card-icon categoria-accesorio">
-                    <i class="fas fa-glasses"></i>
-                </div>
-                <div class="card-content category-metrics">
-                    <h3>Accesorios Registrados</h3>
-                    <p id="accesoriosProductosCount">0</p>
-                    <span class="category-subinfo">Stock total: <strong id="accesoriosStockTotal">0</strong></span>
+                    <h3>Productos Agotados</h3>
+                    <p id="productosAgotados">0</p>
                 </div>
             </div>
         </div>
@@ -117,6 +79,10 @@
                     <i class="fas fa-exchange-alt"></i>
                     Movimientos
                 </button>
+                <button class="btn btn-warning" id="ajustarStockBtn">
+                    <i class="fas fa-edit"></i>
+                    Ajustar Stock
+                </button>
                 <button class="btn btn-success" id="registrarProductoBtn">
                     <i class="fas fa-plus-circle"></i>
                     Registrar Producto
@@ -134,7 +100,6 @@
                         <th>Almacén</th>
                         <th>Tallas</th>
                         <th>Stock Actual</th>
-                        <th>Stock Mínimo</th>
                         <th>Estado</th>
                         <th>Última Actualización</th>
                         <th>Acciones</th>
@@ -319,6 +284,10 @@
                             <span class="info-label">Stock Actual:</span>
                             <span id="ajusteStockActual" class="info-value stock-value"></span>
                         </div>
+                        <div class="info-row">
+                            <span class="info-label">Stock Mínimo Actual:</span>
+                            <span id="ajusteStockMinimoActual" class="info-value"></span>
+                        </div>
                     </div>
                 </div>
 
@@ -337,6 +306,18 @@
                         <div class="form-group">
                             <label for="cantidadAjuste">Cantidad *</label>
                             <input type="number" id="cantidadAjuste" name="cantidad" min="1" required placeholder="Ej: 10">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="stockMinimoAjuste">Stock Mínimo Objetivo</label>
+                            <div class="stock-minimo-control">
+                                <input type="number" id="stockMinimoAjuste" name="stockMinimo" min="0" step="1" placeholder="Ej: 5">
+                                <button type="button" class="btn btn-outline-danger stock-minimo-btn" id="guardarStockMinimoBtn">
+                                    <i class="fas fa-save"></i>
+                                    Guardar Stock Mínimo
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="form-row">
@@ -369,6 +350,10 @@
                             <span>Cantidad del Movimiento:</span>
                             <span id="previewCantidad" class="cantidad-value">0</span>
                         </div>
+                        <div class="preview-row">
+                            <span>Stock Mínimo Objetivo:</span>
+                            <span id="previewStockMinimo" class="stock-minimo-value">0</span>
+                        </div>
                         <div class="preview-row total-preview">
                             <strong>Nuevo Stock:</strong>
                             <strong id="previewNuevoStock" class="nuevo-stock-value">0</strong>
@@ -384,6 +369,131 @@
                 <button type="submit" form="ajusteStockForm" class="btn btn-primary" id="saveAjusteBtn">
                     <i class="fas fa-save"></i>
                     Aplicar Ajuste
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Detalles de Producto -->
+    <div id="detallesProductoModal" class="modal" style="display: none;">
+        <div class="modal-content detalles-modal-content">
+            <div class="modal-header">
+                <h3 id="detallesModalTitle">Detalles del Producto</h3>
+                <button class="modal-close" id="closeDetallesModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-box"></i>
+                        Información General
+                    </h4>
+                    <div class="detalles-info-wrapper">
+                        <table class="detalles-info-table">
+                            <tbody>
+                                <tr>
+                                    <th>Producto</th>
+                                    <td colspan="3" id="detallesProductoNombre">-</td>
+                                </tr>
+                                <tr>
+                                    <th>Código</th>
+                                    <td id="detallesProductoCodigo">-</td>
+                                    <th>Categoría</th>
+                                    <td id="detallesProductoCategoria">-</td>
+                                </tr>
+                                <tr>
+                                    <th>Marca</th>
+                                    <td id="detallesProductoMarca">-</td>
+                                    <th>Color</th>
+                                    <td id="detallesProductoColor">-</td>
+                                </tr>
+                                <tr>
+                                    <th>Talla</th>
+                                    <td id="detallesProductoTalla">-</td>
+                                    <th>Almacén</th>
+                                    <td id="detallesProductoAlmacen">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-chart-line"></i>
+                        Resumen de Stock
+                    </h4>
+                    <div class="detalles-stock-wrapper">
+                        <table class="detalles-stock-table">
+                            <thead>
+                                <tr>
+                                    <th>Indicador</th>
+                                    <th>Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Stock Actual</td>
+                                    <td id="detallesStockActual">0</td>
+                                </tr>
+                                <tr>
+                                    <td>Stock Mínimo</td>
+                                    <td id="detallesStockMinimo">0</td>
+                                </tr>
+                                <tr>
+                                    <td>Estado Actual</td>
+                                    <td>
+                                        <span id="detallesStockEstado" class="stock-badge disponible">Disponible</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Última Actualización</td>
+                                    <td id="detallesUltimaActualizacion">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="form-section" id="detallesSinTallasSection" style="display: none;">
+                    <h4 class="section-title">
+                        <i class="fas fa-clipboard-list"></i>
+                        Inventario General
+                    </h4>
+                    <p class="detalles-sin-tallas-message">
+                        Este producto no gestiona tallas. Los valores mostrados corresponden al stock total registrado en este almacén.
+                    </p>
+                </div>
+
+                <div class="form-section" id="detallesTallasSection" style="display: none;">
+                    <h4 class="section-title">
+                        <i class="fas fa-tags"></i>
+                        Stock por Talla
+                    </h4>
+                    <div class="detalles-tallas-wrapper">
+                        <table class="detalles-tallas-table">
+                            <thead>
+                                <tr>
+                                    <th>Talla</th>
+                                    <th class="text-center">Stock</th>
+                                    <th class="text-center">Stock Mínimo</th>
+                                    <th class="text-center">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="detallesTallasBody">
+                                <tr>
+                                    <td colspan="4" class="text-center detalles-loading">Cargando información de tallas...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cerrarDetallesBtn">
+                    <i class="fas fa-check"></i>
+                    Cerrar
                 </button>
             </div>
         </div>
@@ -575,6 +685,10 @@
                             <span class="info-label">Stock Actual:</span>
                             <span id="ajusteTallaStockActual" class="info-value stock-value"></span>
                         </div>
+                        <div class="info-row">
+                            <span class="info-label">Stock Mínimo Actual:</span>
+                            <span id="ajusteTallaMinimoActual" class="info-value"></span>
+                        </div>
                     </div>
                 </div>
 
@@ -602,6 +716,18 @@
                         </div>
                     </div>
                     <div class="form-row">
+                        <div class="form-group">
+                            <label for="stockMinimoTalla">Stock Mínimo Objetivo</label>
+                            <div class="stock-minimo-control">
+                                <input type="number" id="stockMinimoTalla" name="stockMinimo" min="0" step="1" placeholder="Ej: 3">
+                                <button type="button" class="btn btn-outline-danger stock-minimo-btn" id="guardarStockMinimoTallaBtn">
+                                    <i class="fas fa-save"></i>
+                                    Guardar Stock Mínimo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
                         <div class="form-group full-width">
                             <label for="observacionesTalla">Observaciones</label>
                             <textarea id="observacionesTalla" name="observaciones" rows="3" placeholder="Descripción del ajuste..."></textarea>
@@ -618,6 +744,10 @@
                         <div class="preview-row">
                             <span>Cantidad del Movimiento:</span>
                             <span id="previewTallaCantidad" class="cantidad-value">0</span>
+                        </div>
+                        <div class="preview-row">
+                            <span>Stock Mínimo Objetivo:</span>
+                            <span id="previewTallaStockMinimo" class="stock-minimo-value">0</span>
                         </div>
                         <div class="preview-row total-preview">
                             <strong>Nuevo Stock:</strong>
@@ -709,6 +839,81 @@
                 <button type="submit" form="agregarTallasForm" class="btn btn-success" id="saveAgregarTallasBtn">
                     <i class="fas fa-save"></i>
                     Agregar Tallas
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Ajuste Masivo de Stock -->
+    <div id="ajusteMasivoModal" class="modal" style="display: none;">
+        <div class="modal-content ajuste-masivo-modal-content">
+            <div class="modal-header">
+                <h3 id="ajusteMasivoModalTitle">Ajuste Masivo de Stock</h3>
+                <button class="modal-close" id="closeAjusteMasivoModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-plus-circle"></i>
+                        Agregar Productos
+                    </h4>
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <label for="productoMasivoSearchInput">Buscar Producto</label>
+                            <div class="searchable-select" id="productoMasivoSelectContainer">
+                                <input type="text" id="productoMasivoSearchInput" placeholder="Escribe para buscar por nombre, código o talla" autocomplete="off">
+                                <ul class="searchable-options" id="productoMasivoSearchResults"></ul>
+                            </div>
+                            <select id="productoMasivoSelect" style="display: none;">
+                                <option value="">Seleccionar producto</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-outline-primary" id="agregarProductoMasivoBtn">
+                        <i class="fas fa-plus"></i>
+                        Agregar Producto
+                    </button>
+                </div>
+
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-list"></i>
+                        Productos a Ajustar
+                    </h4>
+                    <div id="productosMasivosList" class="productos-masivos-list">
+                        <!-- Los productos se agregarán dinámicamente aquí -->
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-file-alt"></i>
+                        Información General
+                    </h4>
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <label for="referenciaMasiva">Documento de Referencia</label>
+                            <input type="text" id="referenciaMasiva" placeholder="Ej: AJ-MAS-001">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <label for="observacionesMasivas">Observaciones</label>
+                            <textarea id="observacionesMasivas" rows="3" placeholder="Descripción general del ajuste masivo..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelAjusteMasivoBtn">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </button>
+                <button type="button" class="btn btn-primary" id="saveAjusteMasivoBtn">
+                    <i class="fas fa-save"></i>
+                    Aplicar Ajustes
                 </button>
             </div>
         </div>

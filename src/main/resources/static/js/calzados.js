@@ -101,8 +101,8 @@
         try {
           await guardarProducto();
           cerrarModal();
-          await cargarProductos();
           showNotification('Producto guardado correctamente');
+          setTimeout(()=> window.location.reload(), 600);
         } catch (error) {
           console.error(error);
           showNotification(error.message || 'No se pudo guardar el producto', 'error');
@@ -154,7 +154,7 @@
       });
     }
 
-    ['calzadoName','calzadoModel','calzadoCategory','calzadoColor','calzadoType','calzadoMaterial','calzadoUnidad','calzadoDimensiones','calzadoPeso'].forEach(id=>{
+    ['calzadoName','calzadoModel','calzadoCategory','calzadoColor','calzadoType','calzadoMaterial','calzadoUnidad'].forEach(id=>{
       const el = document.getElementById(id);
       if (el){
         el.addEventListener('input', actualizarPreview);
@@ -618,10 +618,6 @@
     if (tipoProductoSelect) tipoProductoSelect.value = item.tiposProducto?.[0]?.id || '';
     const unidadSelect = document.getElementById('calzadoUnidad');
     if (unidadSelect) unidadSelect.value = item.unidad?.id || '';
-    const dimensionesInput = document.getElementById('calzadoDimensiones');
-    if (dimensionesInput) dimensionesInput.value = item.dimensiones || '';
-    const pesoInput = document.getElementById('calzadoPeso');
-    if (pesoInput) pesoInput.value = item.pesoGramos ? (item.pesoGramos / 1000) : '';
     const descripcionInput = document.getElementById('calzadoDescription');
     if (descripcionInput) descripcionInput.value = item.descripcion || '';
     const codigoBarraInput = document.getElementById('calzadoCodigoBarra');
@@ -714,13 +710,9 @@
     const tipoProductoId = convertirEntero(obtenerValor('calzadoCategory'));
     const color = obtenerValor('calzadoColor');
     const tipo = obtenerValor('calzadoType');
-    const dimensiones = obtenerValor('calzadoDimensiones');
     const descripcion = obtenerValor('calzadoDescription');
     const codigoBarra = obtenerValor('calzadoCodigoBarra');
     const imagen = obtenerImagenParaEnvio();
-
-    const pesoEntrada = obtenerValor('calzadoPeso');
-    const pesoGramos = convertirPesoAGramos(pesoEntrada);
 
     const tallas = recolectarTallas();
     if (!tallas.length){
@@ -740,21 +732,9 @@
       costoCompra: null,
       color,
       tipo,
-      dimensiones,
-      pesoGramos,
       tallas,
       imagen
     };
-  }
-
-  function convertirPesoAGramos(valor){
-    if (!valor) return null;
-    const numero = parseFloat(String(valor).replace(',', '.'));
-    if (Number.isNaN(numero)) return null;
-    if (numero < 10){
-      return Math.round(numero * 1000);
-    }
-    return Math.round(numero);
   }
 
   function recolectarTallas(){
@@ -866,7 +846,6 @@
     if (body){
   const imagenUrl = obtenerImagenProducto(item);
   const formatPrecio = (valor) => (valor !== undefined && valor !== null) ? `S/ ${Number(valor).toFixed(2)}` : '--';
-      const peso = item.pesoGramos ? `${(item.pesoGramos / 1000).toFixed(2)} kg` : '--';
       const tallasRows = (item.tallas || []).map(t => `
         <tr>
           <td>${t.talla}</td>
@@ -897,8 +876,6 @@
                 <div class="detalle-item"><span>Proveedor</span><strong>${item.proveedor?.razonSocial || '--'}</strong></div>
                 <div class="detalle-item"><span>Material</span><strong>${item.material?.nombre || '--'}</strong></div>
                 <div class="detalle-item"><span>Unidad</span><strong>${item.unidad?.nombre || '--'}</strong></div>
-                <div class="detalle-item"><span>Dimensiones</span><strong>${item.dimensiones || '--'}</strong></div>
-                <div class="detalle-item"><span>Peso</span><strong>${peso}</strong></div>
               </div>
             </div>
           </div>
