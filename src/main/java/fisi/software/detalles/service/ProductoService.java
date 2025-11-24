@@ -1,16 +1,14 @@
 package fisi.software.detalles.service;
 
-import fisi.software.detalles.entity.*;
-import fisi.software.detalles.entity.Catalogo.Material;
-import fisi.software.detalles.entity.Catalogo.Modelo;
-import fisi.software.detalles.entity.Catalogo.Tipo;
-import fisi.software.detalles.entity.Catalogo.Unidad;
-import fisi.software.detalles.repository.CategoriaProductoRepository;
-import fisi.software.detalles.repository.CatalogoRepository;
-import fisi.software.detalles.repository.ProductoRepository;
-import fisi.software.detalles.repository.ProveedorRepository;
-import fisi.software.detalles.controller.dto.ProductoSearchRequest;
-import fisi.software.detalles.service.storage.ProductoImageStorageService;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.Set;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,9 +16,21 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.*;
+import fisi.software.detalles.entity.Catalogo;
+import fisi.software.detalles.entity.Catalogo.Material;
+import fisi.software.detalles.entity.Catalogo.Modelo;
+import fisi.software.detalles.entity.Catalogo.Tipo;
+import fisi.software.detalles.entity.Catalogo.Unidad;
+import fisi.software.detalles.entity.CategoriaProducto;
+import fisi.software.detalles.entity.Producto;
+import fisi.software.detalles.entity.ProductoTalla;
+import fisi.software.detalles.entity.Proveedor;
+import fisi.software.detalles.repository.CatalogoRepository;
+import fisi.software.detalles.repository.CategoriaProductoRepository;
+import fisi.software.detalles.repository.ProductoRepository;
+import fisi.software.detalles.repository.ProveedorRepository;
+import fisi.software.detalles.controller.dto.ProductoSearchRequest;
+import fisi.software.detalles.service.storage.ProductoImageStorageService;
 
 @Service
 @Transactional
@@ -48,8 +58,14 @@ public class ProductoService {
     // ========== MÉTODOS EXISTENTES (NO CAMBIAR) ==========
 
     public List<ProductoResponse> listarPorCategoria(CategoriaCodigo categoriaCodigo) {
+        return listarPorCategoria(categoriaCodigo, null, null);
+    }
+
+    public List<ProductoResponse> listarPorCategoria(CategoriaCodigo categoriaCodigo, String sexo, String tipoNombre) {
         CategoriaProducto categoria = obtenerCategoria(categoriaCodigo);
-        List<Producto> productos = productoRepository.findByCategoriaIdWithDetalles(categoria.getId());
+        List<Producto> productos = productoRepository.findByCategoriaIdWithDetallesAndFilters(categoria.getId(),
+                StringUtils.hasText(sexo) ? sexo.trim() : null,
+                StringUtils.hasText(tipoNombre) ? tipoNombre.trim() : null);
         if (productos.isEmpty()) {
             return List.of();
         }
