@@ -1,5 +1,6 @@
 package fisi.software.detalles.controller;
 
+import fisi.software.detalles.controller.dto.AjusteMasivoRequest;
 import fisi.software.detalles.controller.dto.StockMinimoRequest;
 import fisi.software.detalles.entity.Usuario;
 import fisi.software.detalles.service.InventarioService;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Controlador REST para la API de inventario
@@ -69,6 +71,54 @@ public class InventarioApiController {
             Map<String, String> error = new HashMap<>();
             error.put("error", e.getMessage());
             return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+    /**
+     * POST /inventario/api/ajustes-masivos - Aplicar ajustes masivos de inventario
+     */
+    @PostMapping("/ajustes-masivos")
+    public ResponseEntity<?> aplicarAjustesMasivos(@RequestBody AjusteMasivoRequest request,
+                                                   Authentication authentication) {
+        if (request == null || request.getAjustes() == null || request.getAjustes().isEmpty()) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "No se recibieron ajustes para procesar");
+            return ResponseEntity.badRequest().body(error);
+        }
+
+        try {
+            Integer usuarioId = obtenerIdUsuario(authentication);
+
+            List<InventarioService.AjusteMasivoItem> ajustes = request.getAjustes().stream()
+                .map(item -> new InventarioService.AjusteMasivoItem(
+                    item.getIdInventario(),
+                    item.getIdProducto(),
+                    item.getTipoMovimientoId(),
+                    item.getCantidad(),
+                    item.getStockMinimo(),
+                    item.getTalla(),
+                    item.getReferencia(),
+                    item.getObservaciones()
+                ))
+                .collect(Collectors.toList());
+
+            InventarioService.AjusteMasivoResultado resultado = inventarioService.aplicarAjustesMasivos(ajustes, usuarioId);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("totalAjustes", resultado.getMovimientosRegistrados());
+            response.put("totalActualizacionesStockMinimo", resultado.getStockMinimosActualizados());
+            response.put("ajustesProcesados", resultado.getAjustesProcesados());
+            response.put("movimientos", resultado.getMovimientos());
+
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.internalServerError().body(error);
         }
     }
 

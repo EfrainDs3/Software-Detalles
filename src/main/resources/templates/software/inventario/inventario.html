@@ -79,6 +79,10 @@
                     <i class="fas fa-exchange-alt"></i>
                     Movimientos
                 </button>
+                <button class="btn btn-warning" id="ajustarStockBtn">
+                    <i class="fas fa-edit"></i>
+                    Ajustar Stock
+                </button>
                 <button class="btn btn-success" id="registrarProductoBtn">
                     <i class="fas fa-plus-circle"></i>
                     Registrar Producto
@@ -835,6 +839,81 @@
                 <button type="submit" form="agregarTallasForm" class="btn btn-success" id="saveAgregarTallasBtn">
                     <i class="fas fa-save"></i>
                     Agregar Tallas
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Ajuste Masivo de Stock -->
+    <div id="ajusteMasivoModal" class="modal" style="display: none;">
+        <div class="modal-content ajuste-masivo-modal-content">
+            <div class="modal-header">
+                <h3 id="ajusteMasivoModalTitle">Ajuste Masivo de Stock</h3>
+                <button class="modal-close" id="closeAjusteMasivoModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-plus-circle"></i>
+                        Agregar Productos
+                    </h4>
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <label for="productoMasivoSearchInput">Buscar Producto</label>
+                            <div class="searchable-select" id="productoMasivoSelectContainer">
+                                <input type="text" id="productoMasivoSearchInput" placeholder="Escribe para buscar por nombre, código o talla" autocomplete="off">
+                                <ul class="searchable-options" id="productoMasivoSearchResults"></ul>
+                            </div>
+                            <select id="productoMasivoSelect" style="display: none;">
+                                <option value="">Seleccionar producto</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-outline-primary" id="agregarProductoMasivoBtn">
+                        <i class="fas fa-plus"></i>
+                        Agregar Producto
+                    </button>
+                </div>
+
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-list"></i>
+                        Productos a Ajustar
+                    </h4>
+                    <div id="productosMasivosList" class="productos-masivos-list">
+                        <!-- Los productos se agregarán dinámicamente aquí -->
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-file-alt"></i>
+                        Información General
+                    </h4>
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <label for="referenciaMasiva">Documento de Referencia</label>
+                            <input type="text" id="referenciaMasiva" placeholder="Ej: AJ-MAS-001">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <label for="observacionesMasivas">Observaciones</label>
+                            <textarea id="observacionesMasivas" rows="3" placeholder="Descripción general del ajuste masivo..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelAjusteMasivoBtn">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </button>
+                <button type="button" class="btn btn-primary" id="saveAjusteMasivoBtn">
+                    <i class="fas fa-save"></i>
+                    Aplicar Ajustes
                 </button>
             </div>
         </div>

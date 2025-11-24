@@ -473,6 +473,103 @@ public class InventarioService {
         return mapearMovimientoDetallado(movimiento);
     }
 
+    public AjusteMasivoResultado aplicarAjustesMasivos(List<AjusteMasivoItem> ajustes, Integer usuarioId) {
+        if (ajustes == null || ajustes.isEmpty()) {
+            throw new IllegalArgumentException("No se proporcionaron ajustes para procesar");
+        }
+
+        Integer usuarioProcesamiento = usuarioId;
+        if (usuarioProcesamiento == null) {
+            Usuario usuario = usuarioRepository.findAll().stream()
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("No hay usuarios registrados en el sistema"));
+            usuarioProcesamiento = usuario.getId();
+        } else if (usuarioRepository.findById(usuarioProcesamiento).isEmpty()) {
+            throw new RuntimeException("Usuario no encontrado");
+        }
+
+        int movimientosRegistrados = 0;
+        int stockMinimosActualizados = 0;
+        int ajustesProcesados = 0;
+        List<MovimientoInventarioDto> movimientos = new ArrayList<>();
+
+        for (AjusteMasivoItem ajuste : ajustes) {
+            if (ajuste == null) {
+                continue;
+            }
+
+            Long inventarioId = ajuste.getIdInventario();
+            if (inventarioId == null) {
+                throw new IllegalArgumentException("Cada ajuste debe incluir un idInventario válido");
+            }
+
+            int cantidadSolicitada = Optional.ofNullable(ajuste.getCantidad()).orElse(0);
+            int cantidadNormalizada = Math.abs(cantidadSolicitada);
+            Integer stockMinimoSolicitado = ajuste.getStockMinimo();
+            String referencia = ajuste.getReferencia();
+            String observaciones = ajuste.getObservaciones();
+
+            String talla = ajuste.getTalla();
+            String tallaNormalizada = talla != null ? talla.trim() : null;
+            boolean tieneTalla = tallaNormalizada != null && !tallaNormalizada.isEmpty();
+
+            boolean realizoAccion = false;
+            boolean actualizoStockMinimo = false;
+
+            if (cantidadNormalizada > 0) {
+                Long tipoMovimientoId = ajuste.getTipoMovimientoId();
+                if (tipoMovimientoId == null) {
+                    throw new IllegalArgumentException("Debes seleccionar un tipo de movimiento para los ajustes con cantidad");
+                }
+
+                if (tieneTalla) {
+                    ajustarStockTalla(inventarioId, tallaNormalizada, tipoMovimientoId, cantidadNormalizada,
+                        stockMinimoSolicitado, referencia, observaciones, usuarioProcesamiento);
+                    realizoAccion = true;
+                    movimientosRegistrados++;
+                    if (stockMinimoSolicitado != null) {
+                        actualizoStockMinimo = true;
+                    }
+                } else {
+                    MovimientoInventarioDto movimiento = aplicarAjusteStockDetallado(
+                        inventarioId,
+                        tipoMovimientoId,
+                        cantidadNormalizada,
+                        stockMinimoSolicitado,
+                        referencia,
+                        observaciones,
+                        usuarioProcesamiento
+                    );
+                    realizoAccion = true;
+                    movimientosRegistrados++;
+                    if (movimiento != null) {
+                        movimientos.add(movimiento);
+                    }
+                    if (stockMinimoSolicitado != null) {
+                        actualizoStockMinimo = true;
+                    }
+                }
+            } else if (stockMinimoSolicitado != null) {
+                if (tieneTalla) {
+                    actualizarStockMinimoTalla(inventarioId, tallaNormalizada, stockMinimoSolicitado, usuarioProcesamiento);
+                } else {
+                    actualizarStockMinimo(inventarioId, stockMinimoSolicitado, usuarioProcesamiento);
+                }
+                realizoAccion = true;
+                actualizoStockMinimo = true;
+            }
+
+            if (realizoAccion) {
+                ajustesProcesados++;
+                if (actualizoStockMinimo) {
+                    stockMinimosActualizados++;
+                }
+            }
+        }
+
+        return new AjusteMasivoResultado(movimientosRegistrados, stockMinimosActualizados, ajustesProcesados, movimientos);
+    }
+
     public List<AlmacenDto> obtenerAlmacenesDto() {
         return almacenRepository.findAll().stream()
             .map(almacen -> new AlmacenDto(almacen.getId(), almacen.getNombre(), almacen.getUbicacion()))
@@ -502,6 +599,20 @@ public class InventarioService {
         boolean productoConTallas = productoTieneTallas(producto);
         boolean manejaTallas = tieneTallasInventario || productoConTallas;
 
+        List<InventarioTalla> tallasInventario = manejaTallas
+            ? inventarioTallaRepository.findByInventario(inventario)
+            : List.of();
+
+        int tallasTotales = manejaTallas ? tallasInventario.size() : 0;
+        int tallasAgotadas = manejaTallas
+            ? (int) tallasInventario.stream().filter(this::tallaAgotada).count()
+            : 0;
+        int tallasEnAlerta = manejaTallas
+            ? (int) tallasInventario.stream().filter(this::tallaEnAlerta).count()
+            : 0;
+
+        String estadoStock = determinarEstadoStock(inventario, manejaTallas, tallasInventario);
+
         return new InventarioDetalleDto(
             inventario.getId(),
             producto != null ? producto.getId() : null,
@@ -516,7 +627,11 @@ public class InventarioService {
             color,
             marca,
             manejaTallas,
-            Optional.ofNullable(inventario.getFechaUltimaActualizacion()).orElse(LocalDateTime.now())
+            Optional.ofNullable(inventario.getFechaUltimaActualizacion()).orElse(LocalDateTime.now()),
+            estadoStock,
+            manejaTallas ? tallasEnAlerta : null,
+            manejaTallas ? tallasTotales : null,
+            manejaTallas ? tallasAgotadas : null
         );
     }
 
@@ -532,6 +647,62 @@ public class InventarioService {
 
         Long productoId = producto.getId();
         return productoId != null && productoTallaRepository.existsByProductoId(productoId);
+    }
+
+    private boolean tallaAgotada(InventarioTalla inventarioTalla) {
+        if (inventarioTalla == null) {
+            return false;
+        }
+        int cantidad = Optional.ofNullable(inventarioTalla.getCantidadStock()).orElse(0);
+        return cantidad <= 0;
+    }
+
+    private boolean tallaEnAlerta(InventarioTalla inventarioTalla) {
+        if (inventarioTalla == null) {
+            return false;
+        }
+        int cantidad = Optional.ofNullable(inventarioTalla.getCantidadStock()).orElse(0);
+        if (cantidad <= 0) {
+            return true;
+        }
+        int minimo = Optional.ofNullable(inventarioTalla.getStockMinimo()).orElse(0);
+        return minimo > 0 && cantidad < minimo;
+    }
+
+    private String determinarEstadoStock(Inventario inventario, boolean manejaTallas, List<InventarioTalla> tallasInventario) {
+        int stockActual = Optional.ofNullable(inventario.getCantidadStock()).orElse(0);
+        int stockMinimo = Optional.ofNullable(inventario.getStockMinimo()).orElse(0);
+
+        if (!manejaTallas) {
+            if (stockActual <= 0) {
+                return "agotado";
+            }
+            if (stockMinimo > 0 && stockActual <= stockMinimo) {
+                return "bajo";
+            }
+            return "disponible";
+        }
+
+        List<InventarioTalla> tallas = tallasInventario != null ? tallasInventario : inventarioTallaRepository.findByInventario(inventario);
+        if (tallas.isEmpty()) {
+            if (stockActual <= 0) {
+                return "agotado";
+            }
+            if (stockMinimo > 0 && stockActual <= stockMinimo) {
+                return "bajo";
+            }
+            return "disponible";
+        }
+
+        if (tallas.stream().allMatch(this::tallaAgotada)) {
+            return "agotado";
+        }
+
+        if (tallas.stream().anyMatch(this::tallaEnAlerta)) {
+            return "bajo";
+        }
+
+        return "disponible";
     }
 
     private MovimientoInventarioDto mapearMovimientoDetallado(MovimientoInventario movimiento) {
@@ -633,6 +804,59 @@ public class InventarioService {
             .orElse(false);
     }
 
+    public static class AjusteMasivoItem {
+        private final Long idInventario;
+        private final Long idProducto;
+        private final Long tipoMovimientoId;
+        private final Integer cantidad;
+        private final Integer stockMinimo;
+        private final String talla;
+        private final String referencia;
+        private final String observaciones;
+
+        public AjusteMasivoItem(Long idInventario, Long idProducto, Long tipoMovimientoId,
+                                Integer cantidad, Integer stockMinimo, String talla,
+                                String referencia, String observaciones) {
+            this.idInventario = idInventario;
+            this.idProducto = idProducto;
+            this.tipoMovimientoId = tipoMovimientoId;
+            this.cantidad = cantidad;
+            this.stockMinimo = stockMinimo;
+            this.talla = talla;
+            this.referencia = referencia;
+            this.observaciones = observaciones;
+        }
+
+        public Long getIdInventario() { return idInventario; }
+        public Long getIdProducto() { return idProducto; }
+        public Long getTipoMovimientoId() { return tipoMovimientoId; }
+        public Integer getCantidad() { return cantidad; }
+        public Integer getStockMinimo() { return stockMinimo; }
+        public String getTalla() { return talla; }
+        public String getReferencia() { return referencia; }
+        public String getObservaciones() { return observaciones; }
+    }
+
+    public static class AjusteMasivoResultado {
+        private final int movimientosRegistrados;
+        private final int stockMinimosActualizados;
+        private final int ajustesProcesados;
+        private final List<MovimientoInventarioDto> movimientos;
+
+        public AjusteMasivoResultado(int movimientosRegistrados, int stockMinimosActualizados,
+                                     int ajustesProcesados, List<MovimientoInventarioDto> movimientos) {
+            this.movimientosRegistrados = movimientosRegistrados;
+            this.stockMinimosActualizados = stockMinimosActualizados;
+            this.ajustesProcesados = ajustesProcesados;
+            this.movimientos = movimientos != null ? List.copyOf(movimientos) : List.of();
+        }
+
+        public int getMovimientosRegistrados() { return movimientosRegistrados; }
+        public int getStockMinimosActualizados() { return stockMinimosActualizados; }
+        public int getAjustesProcesados() { return ajustesProcesados; }
+        public List<MovimientoInventarioDto> getMovimientos() { return movimientos; }
+    }
+
     /**
      * Clase interna para estadísticas
      */
@@ -681,7 +905,11 @@ public class InventarioService {
         String color,
         String marca,
         @JsonProperty("tiene_tallas") boolean tieneTallas,
-        @JsonProperty("fecha_ultima_actualizacion") LocalDateTime fechaUltimaActualizacion
+        @JsonProperty("fecha_ultima_actualizacion") LocalDateTime fechaUltimaActualizacion,
+        @JsonProperty("estado_stock") String estadoStock,
+        @JsonProperty("tallas_en_alerta") Integer tallasEnAlerta,
+        @JsonProperty("tallas_totales") Integer tallasTotales,
+        @JsonProperty("tallas_agotadas") Integer tallasAgotadas
     ) {}
 
     public record MovimientoInventarioDto(
