@@ -1,5 +1,6 @@
 package fisi.software.detalles.repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -8,16 +9,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
+import fisi.software.detalles.entity.Producto;
 
 @Repository
 public interface ProductoRepository extends JpaRepository<Producto, Long> {
-    
+
     // MÉTODOS EXISTENTES (NO CAMBIAR)
     Optional<Producto> findByNombreIgnoreCase(String nombre);
-    
+
     @Query("SELECT DISTINCT p FROM Producto p " +
             "LEFT JOIN FETCH p.categoria " +
             "LEFT JOIN FETCH p.proveedor " +
@@ -58,34 +57,26 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
             "LEFT JOIN FETCH p.tallas " +
             "WHERE p.id = :id")
     Optional<Producto> findByIdWithDetalles(@Param("id") Long id);
-    
-    // --- NUEVOS MÉTODOS PARA BÚSQUEDA Y FILTROS ---
-    
-    // Búsqueda básica por nombre
+
+    // --- MÉTODOS PARA BÚSQUEDA Y FILTROS ---
+
     List<Producto> findByNombreContainingIgnoreCaseAndEstadoTrue(String nombre);
-    
-    // Búsqueda por categoría (versión simple)
+
     @Query("SELECT p FROM Producto p WHERE p.categoria.id = :idCategoria AND p.estado = true")
     List<Producto> findByCategoriaId(@Param("idCategoria") Long idCategoria);
-    
-    // Búsqueda por tipo
+
     List<Producto> findByTipoAndEstadoTrue(String tipo);
-    
-    // Búsqueda por color
+
     List<Producto> findByColorAndEstadoTrue(String color);
-    
-    // Búsqueda por rango de precios
+
     List<Producto> findByPrecioVentaBetweenAndEstadoTrue(BigDecimal minPrecio, BigDecimal maxPrecio);
-    
-    // Búsqueda por material
+
     @Query("SELECT p FROM Producto p WHERE p.material.id = :idMaterial AND p.estado = true")
     List<Producto> findByMaterialId(@Param("idMaterial") Long idMaterial);
-    
-    // Búsqueda por modelo
+
     @Query("SELECT p FROM Producto p WHERE p.modelo.id = :idModelo AND p.estado = true")
     List<Producto> findByModeloId(@Param("idModelo") Long idModelo);
-    
-    // BÚSQUEDA AVANZADA CON MÚLTIPLES FILTROS
+
     @Query("SELECT p FROM Producto p WHERE " +
            "(:nombre IS NULL OR LOWER(p.nombre) LIKE LOWER(CONCAT('%', :nombre, '%'))) AND " +
            "(:idCategoria IS NULL OR p.categoria.id = :idCategoria) AND " +
@@ -107,24 +98,19 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
         @Param("maxPrecio") BigDecimal maxPrecio,
         @Param("estado") Boolean estado
     );
-    
-    // Obtener categorías únicas para filtros
+
     @Query("SELECT DISTINCT p.categoria.id FROM Producto p WHERE p.categoria.id IS NOT NULL AND p.estado = true")
     List<Long> findDistinctCategoriaIds();
-    
-    // Obtener tipos únicos para filtros
+
     @Query("SELECT DISTINCT p.tipo FROM Producto p WHERE p.tipo IS NOT NULL AND p.estado = true")
     List<String> findDistinctTipos();
-    
-    // Obtener colores únicos para filtros
+
     @Query("SELECT DISTINCT p.color FROM Producto p WHERE p.color IS NOT NULL AND p.estado = true")
     List<String> findDistinctColores();
-    
-    // Obtener materiales únicos para filtros
+
     @Query("SELECT DISTINCT p.material.id FROM Producto p WHERE p.material.id IS NOT NULL AND p.estado = true")
     List<Long> findDistinctMaterialIds();
-    
-    // Obtener modelos únicos para filtros
+
     @Query("SELECT DISTINCT p.modelo.id FROM Producto p WHERE p.modelo.id IS NOT NULL AND p.estado = true")
     List<Long> findDistinctModeloIds();
 }
