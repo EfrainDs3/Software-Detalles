@@ -275,118 +275,64 @@
                     </div>
                 </div>
 
-                <div class="products-grid-detailed">
-                    <!-- Producto 1 -->
-                    <div class="product-card-detailed" data-product-id="101">
-                        <div class="product-image-detailed">
-                            <img src="https://via.placeholder.com/300x300" alt="Nike Revolution">
-                            <div class="product-badge">Nuevo</div>
-                        </div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">Nike</div>
-                            <h3 class="product-title-detailed">Revolution 7 Niño</h3>
-                            <div class="product-price">
-                                <span class="current-price">$64.99</span>
-                                <span class="original-price">$79.99</span>
-                                <span class="discount">-19%</span>
-                            </div>
-                            <div class="product-actions">
-                                <button class="btn-add-cart">Añadir al Carrito</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Producto 2 -->
-                    <div class="product-card-detailed" data-product-id="102">
-                        <div class="product-image-detailed">
-                            <img src="https://via.placeholder.com/300x300" alt="Adidas Tensaur">
-                        </div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">Adidas</div>
-                            <h3 class="product-title-detailed">Tensaur Run Luces LED</h3>
-                            <div class="product-price">
-                                <span class="current-price">$69.99</span>
-                            </div>
-                            <div class="product-actions">
-                                <button class="btn-add-cart">Añadir al Carrito</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Producto 3 -->
-                    <div class="product-card-detailed" data-product-id="103">
-                        <div class="product-image-detailed">
-                            <img src="https://via.placeholder.com/300x300" alt="Puma Carina">
-                            <div class="product-badge">Oferta</div>
-                        </div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">Puma</div>
-                            <h3 class="product-title-detailed">Carina Street Niña Rosado</h3>
-                            <div class="product-price">
-                                <span class="current-price">$59.99</span>
-                                <span class="original-price">$74.99</span>
-                                <span class="discount">-20%</span>
-                            </div>
-                            <div class="product-actions">
-                                <button class="btn-add-cart">Añadir al Carrito</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Producto 4 -->
-                    <div class="product-card-detailed" data-product-id="104">
-                        <div class="product-image-detailed">
-                            <img src="https://via.placeholder.com/300x300" alt="Skechers Dynamight">
-                        </div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">Skechers</div>
-                            <h3 class="product-title-detailed">Dynamight Memory Foam</h3>
-                            <div class="product-price">
-                                <span class="current-price">$54.99</span>
-                            </div>
-                            <div class="product-actions">
-                                <button class="btn-add-cart">Añadir al Carrito</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Producto 5 -->
-                    <div class="product-card-detailed" data-product-id="105">
-                        <div class="product-image-detailed">
-                            <img src="https://via.placeholder.com/300x300" alt="New Balance 574">
-                        </div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">New Balance</div>
-                            <h3 class="product-title-detailed">574 Kids Velcro Azul</h3>
-                            <div class="product-price">
-                                <span class="current-price">$69.99</span>
-                            </div>
-                            <div class="product-actions">
-                                <button class="btn-add-cart">Añadir al Carrito</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Producto 6 -->
-                    <div class="product-card-detailed" data-product-id="106">
-                        <div class="product-image-detailed">
-                            <img src="https://via.placeholder.com/300x300" alt="Nike Star Runner">
-                            <div class="product-badge">Oferta</div>
-                        </div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">Nike</div>
-                            <h3 class="product-title-detailed">Star Runner 4 Negro/Blanco</h3>
-                            <div class="product-price">
-                                <span class="current-price">$49.99</span>
-                                <span class="original-price">$69.99</span>
-                                <span class="discount">-29%</span>
-                            </div>
-                            <div class="product-actions">
-                                <button class="btn-add-cart">Añadir al Carrito</button>
-                            </div>
-                        </div>
-                    </div>
+                <div class="products-grid-detailed" id="productsGrid">
+                    <!-- Los productos se cargan dinámicamente desde la API pública -->
                 </div>
+
+                <script>
+                    (function(){
+                        const API = '/api/productos/calzados';
+                        const DEFAULT_IMG = '/img/calzado-default.jpg';
+                        const GENDER = 'Niños';
+                        const TIPO = 'Deportivo';
+
+                        function createCard(p){
+                            const img = p.imagen || DEFAULT_IMG;
+                            const brand = p.marca?.nombre || '';
+                            const title = p.nombre || 'Sin nombre';
+                            const price = p.precioVenta != null ? `S/ ${Number(p.precioVenta).toFixed(2)}` : '';
+                            const div = document.createElement('div');
+                            div.className = 'product-card-detailed';
+                            div.dataset.productId = p.id || '';
+                            div.innerHTML = `
+                                <div class="product-image-detailed">
+                                    <img src="${img}" alt="${title}" loading="lazy">
+                                </div>
+                                <div class="product-info-detailed">
+                                    <div class="product-brand">${brand}</div>
+                                    <h3 class="product-title-detailed">${title}</h3>
+                                    <div class="product-price"><span class="current-price">${price}</span></div>
+                                    <div class="product-actions">
+                                        <button class="btn-add-cart">Añadir al Carrito</button>
+                                    </div>
+                                </div>`;
+                            return div;
+                        }
+
+                        async function load(){
+                            try{
+                                const url = `${API}?sexo=${encodeURIComponent(GENDER)}&tipo=${encodeURIComponent(TIPO)}`;
+                                const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                                if (!res.ok) throw new Error('No se pudo obtener productos');
+                                const data = await res.json();
+                                const grid = document.getElementById('productsGrid');
+                                const countSpan = document.querySelector('.products-count');
+                                const items = Array.isArray(data) ? data : [];
+                                grid.innerHTML = '';
+                                if (countSpan) countSpan.textContent = `${items.length} productos`;
+                                if (!items.length){
+                                    grid.innerHTML = '<div class="empty-state">No hay productos disponibles en esta categoría.</div>';
+                                    return;
+                                }
+                                items.forEach(p => grid.appendChild(createCard(p)));
+                            }catch(err){
+                                console.error(err);
+                            }
+                        }
+
+                        document.addEventListener('DOMContentLoaded', load);
+                    })();
+                </script>
             </main>
         </div>
     </section>
