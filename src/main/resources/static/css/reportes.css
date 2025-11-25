@@ -158,6 +158,54 @@
     justify-content: flex-end;
 }
 
+.filters-actions button {
+    padding: 12px 28px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.filters-actions button i {
+    font-size: 16px;
+}
+
+.filters-actions button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.filters-actions button:active {
+    transform: translateY(0);
+}
+
+/* Limpiar Button */
+.filters-actions button[onclick*="limpiarFiltros"] {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+.filters-actions button[onclick*="limpiarFiltros"]:hover {
+    background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+}
+
+/* Generar Reporte Button */
+.filters-actions button[onclick*="generarReporte"] {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+}
+
+.filters-actions button[onclick*="generarReporte"]:hover {
+    background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+}
+
+
 /* Report Visualization */
 .report-visualization {
     display: none;
