@@ -640,6 +640,201 @@
     padding: 12px 15px;
     margin-bottom: 10px;
     display: flex;
+    margin-right: 5px;
+}
+
+/* Product list inside modal */
+.product-item {
+    display: grid;
+    grid-template-columns: 2fr 100px 100px 100px 40px;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: white;
+}
+
+.product-item input,
+.product-item select {
+    margin: 0;
+}
+
+.product-item .form-group {
+    margin-bottom: 0;
+}
+
+.product-name-input {
+    width: 100%;
+}
+
+.product-price-input,
+.product-qty-input,
+.product-received-input {
+    text-align: right;
+}
+
+.total-summary {
+    text-align: right;
+    font-size: 1.1rem;
+    padding: 20px;
+    border-top: 2px solid #e0e0e0;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    padding: 5px 0;
+}
+
+.total-row {
+    border-top: 2px solid #b30000;
+    padding-top: 10px;
+    margin-top: 10px;
+    font-size: 1.3rem;
+}
+
+/* Form textarea styles */
+.form-group textarea {
+    resize: vertical;
+    min-height: 60px;
+    font-family: inherit;
+}
+
+/* Info grid for detail modal */
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 20px;
+}
+
+.info-section h5 {
+    color: #b30000;
+    font-size: 16px;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.info-section p {
+    margin: 10px 0;
+    font-size: 14px;
+    color: #555;
+}
+
+.info-section p strong {
+    color: #333;
+    font-weight: 600;
+    display: inline-block;
+    min-width: 120px;
+}
+
+/* Detail products table */
+.productos-table-container {
+    overflow-x: auto;
+    margin: 15px 0;
+}
+
+.detalle-productos-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.detalle-productos-table th {
+    background-color: #f8f9fa;
+    padding: 12px 8px;
+    text-align: left;
+    font-weight: 600;
+    color: #333;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.detalle-productos-table td {
+    padding: 12px 8px;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+}
+
+.detalle-productos-table tr:hover {
+    background-color: #f8f9fa;
+}
+
+.totales-detalle {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+}
+
+.totales-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.total-final {
+    border-top: 2px solid #b30000;
+    padding-top: 10px;
+    margin-top: 10px;
+    font-size: 16px;
+}
+
+/* Estilos para el nuevo modal de detalles de la compra */
+.detalle-compra-modal-content {
+    max-width: 600px;
+}
+
+.detalle-compra-info p {
+    margin: 8px 0;
+    font-size: 16px;
+    color: #555;
+}
+
+.detalle-compra-info p strong {
+    color: #333;
+    font-weight: 600;
+}
+
+.detalle-divider {
+    border: 0;
+    height: 1px;
+    background-color: #ddd;
+    margin: 20px 0;
+}
+
+.detalle-productos-container h4 {
+    margin-bottom: 15px;
+    font-size: 18px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.detalle-productos-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.detalle-productos-list li {
+    background-color: #f8f9fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    display: flex;
     justify-content: space-between;
     align-items: center;
     font-size: 15px;
@@ -651,4 +846,152 @@
 
 .detalle-productos-list li span {
     color: #666;
+}
+
+/* Estilos para la sección de tallas */
+.tallas-container {
+    margin-top: 15px;
+}
+
+.tallas-alert {
+    background-color: #e7f3ff;
+    border: 1px solid #b3d9ff;
+    border-radius: 8px;
+    padding: 15px;
+}
+
+.tallas-alert strong {
+    color: #004085;
+    font-size: 15px;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.tallas-alert strong i {
+    margin-right: 8px;
+    color: #0056b3;
+}
+
+.tallas-alert p {
+    color: #004085;
+    font-size: 14px;
+    margin: 0 0 12px 0;
+}
+
+.tallas-list {
+    min-height: 40px;
+    margin-bottom: 15px;
+}
+
+.talla-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    transition: all 0.2s ease;
+}
+
+.talla-item:hover {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+}
+
+.talla-item span {
+    color: #333;
+    font-size: 14px;
+}
+
+.talla-item strong {
+    color: #b30000;
+    font-weight: 600;
+}
+
+.btn-remove-talla {
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+}
+
+.btn-add-talla {
+    white-space: nowrap;
+}
+
+/* Producto row styles */
+.producto-row {
+    background-color: white;
+    transition: box-shadow 0.3s ease;
+}
+
+.producto-row:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-remove-producto {
+    padding: 8px 12px;
+}
+
+/* Badge styles */
+.badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    display: inline-block;
+}
+
+.bg-warning {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.bg-success {
+    background-color: #28a745;
+    color: #fff;
+}
+
+.bg-danger {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+.bg-secondary {
+    background-color: #6c757d;
+    color: #fff;
+}
+
+/* Button size variants */
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 13px;
+}
+
+.btn-info {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.btn-info:hover {
+    background-color: #138496;
+}
+
+.btn-success {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
 }

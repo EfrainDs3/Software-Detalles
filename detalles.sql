@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 17-11-2025 a las 22:52:57
+-- Tiempo de generación: 25-11-2025 a las 17:49:34
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.0.30
 
@@ -38,7 +38,8 @@ CREATE TABLE `almacenes` (
 --
 
 INSERT INTO `almacenes` (`id_almacen`, `nombre_almacen`, `ubicacion`) VALUES
-(1, 'Almacen 2', 'Av Principal 123');
+(1, 'Almacen 2', 'Av Principal 123'),
+(2, 'Almacen 3', 'Av Principal 123');
 
 -- --------------------------------------------------------
 
@@ -165,7 +166,8 @@ CREATE TABLE `comprobantespago` (
   `igv` decimal(10,2) NOT NULL,
   `subtotal` decimal(10,2) NOT NULL,
   `estado` varchar(20) NOT NULL DEFAULT 'Emitido',
-  `motivo_anulacion` text DEFAULT NULL
+  `motivo_anulacion` text DEFAULT NULL,
+  `id_apertura` bigint(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -247,8 +249,15 @@ CREATE TABLE `inventario` (
 --
 
 INSERT INTO `inventario` (`id_inventario`, `id_producto`, `id_almacen`, `cantidad_stock`, `stock_minimo`, `fecha_ultima_actualizacion`) VALUES
-(4, 1, 1, 2, 1, '2025-10-30 06:42:02'),
-(5, 2, 1, 2, 1, '2025-10-30 06:28:14');
+(4, 1, 1, 5, 1, '2025-11-24 16:47:29'),
+(5, 2, 1, 2, 1, '2025-10-30 06:28:14'),
+(6, 5, 1, 3, 0, '2025-11-24 16:49:15'),
+(7, 9, 1, 0, 0, '2025-11-20 03:13:53'),
+(8, 10, 1, 4, 3, '2025-11-20 05:01:54'),
+(9, 4, 1, 0, 0, '2025-11-20 05:02:37'),
+(10, 12, 1, 0, 0, '2025-11-20 15:33:19'),
+(11, 6, 2, 5, 0, '2025-11-24 14:32:45'),
+(12, 11, 1, 0, 0, '2025-11-24 15:53:53');
 
 -- --------------------------------------------------------
 
@@ -264,6 +273,15 @@ CREATE TABLE `inventario_talla` (
   `talla` varchar(64) DEFAULT NULL,
   `id_inventario` bigint(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `inventario_talla`
+--
+
+INSERT INTO `inventario_talla` (`id_inventario_talla`, `cantidad_stock`, `fecha_ultima_actualizacion`, `stock_minimo`, `talla`, `id_inventario`) VALUES
+(1, 5, '2025-11-24 16:47:29.000000', 2, '35', 4),
+(2, 5, '2025-11-24 14:32:45.000000', 3, '42', 11),
+(3, 3, '2025-11-24 16:49:15.000000', 5, '12', 6);
 
 -- --------------------------------------------------------
 
@@ -368,7 +386,24 @@ INSERT INTO `movimientosinventario` (`id_movimiento_inv`, `id_producto`, `id_alm
 (2, 2, 1, 3, 2, '2025-10-30 06:28:14', 4, NULL, NULL, NULL),
 (3, 1, 1, 1, 1, '2025-10-30 06:36:34', 4, NULL, NULL, NULL),
 (4, 1, 1, 2, 1, '2025-10-30 06:40:20', 4, NULL, NULL, NULL),
-(5, 1, 1, 2, 1, '2025-10-30 06:42:02', 4, NULL, NULL, NULL);
+(5, 1, 1, 2, 1, '2025-10-30 06:42:02', 4, NULL, NULL, NULL),
+(6, 1, 1, 3, 1, '2025-11-17 22:17:17', 4, NULL, NULL, '35'),
+(7, 1, 1, 2, 1, '2025-11-17 22:17:37', 4, NULL, NULL, '35'),
+(8, 5, 1, 2, 1, '2025-11-19 13:09:36', 4, NULL, NULL, NULL),
+(9, 10, 1, 2, 5, '2025-11-20 03:32:14', 4, NULL, NULL, NULL),
+(10, 10, 1, 1, 6, '2025-11-20 04:27:48', 4, NULL, NULL, NULL),
+(11, 10, 1, 2, 1, '2025-11-20 04:36:25', 4, NULL, NULL, NULL),
+(12, 10, 1, 2, 1, '2025-11-20 05:01:29', 4, NULL, NULL, NULL),
+(13, 10, 1, 2, 1, '2025-11-20 05:01:44', 4, NULL, NULL, NULL),
+(14, 10, 1, 2, 1, '2025-11-20 05:01:54', 4, NULL, NULL, NULL),
+(15, 6, 2, 2, 1, '2025-11-20 15:59:53', 4, NULL, NULL, '42'),
+(16, 6, 2, 2, 4, '2025-11-20 16:00:23', 4, NULL, NULL, '42'),
+(17, 6, 2, 1, 4, '2025-11-24 14:32:21', 4, NULL, NULL, '42'),
+(18, 6, 2, 2, 4, '2025-11-24 14:32:45', 4, NULL, NULL, '42'),
+(19, 1, 1, 2, 3, '2025-11-24 16:47:29', 4, '', '', '35'),
+(20, 5, 1, 1, 5, '2025-11-24 16:48:15', 4, '', '', '12'),
+(21, 5, 1, 2, 10, '2025-11-24 16:48:52', 4, '', '', '12'),
+(22, 5, 1, 1, 7, '2025-11-24 16:49:15', 4, NULL, NULL, '12');
 
 -- --------------------------------------------------------
 
@@ -685,7 +720,10 @@ INSERT INTO `productos` (`id_producto`, `nombre_producto`, `descripcion`, `preci
 (4, 'Zapatillas Deportivas Nike', 'Zapato123', 200.00, 200.00, NULL, 1, 2, 1, 'Blanco', 'Hombre', '30 x 20 x 12 cm', 2000, b'1', 3, 1, NULL),
 (5, 'Alexander123', NULL, 122.00, NULL, NULL, 2, 2, 2, 'Blanco', 'Hombre', '120 x 4 x 0.5 cm', 11, b'1', 3, 1, NULL),
 (6, 'Zapatilla Nike123', 'Zapatilla deportiva Nike', 250.00, 210.00, NULL, 1, 2, 1, 'Blanco y Rojo', 'Niños', '30x20', 1000, b'1', 3, 1, NULL),
-(9, 'Zapatillas1', NULL, 311.00, 313.00, NULL, 1, 2, 1, 'Blanco', 'Hombre', NULL, NULL, b'1', 4, 1, '/img/upload/productos/calzados/zapatillas1.jpg');
+(9, 'Zapatillas1', NULL, 311.00, 313.00, NULL, 1, 2, 1, 'Blanco', 'Hombre', NULL, NULL, b'1', 4, 1, '/img/upload/productos/calzados/zapatillas1.jpg'),
+(10, 'Acc1', NULL, 200.00, 300.00, NULL, 2, 2, 1, 'Blanco', 'Hombre', '120 x 4 x 0.5 cm', 11, b'1', 2, 1, NULL),
+(11, 'Zapato1', NULL, 100.00, 200.00, NULL, 1, 2, 1, 'Negro', 'Hombre', NULL, NULL, b'1', 2, 1, '/img/upload/productos/calzados/zapato1.jpg'),
+(12, 'Zapatillas3', NULL, 200.00, 100.00, NULL, 1, 2, 1, 'Blanco', 'Hombre', NULL, NULL, b'1', 2, 1, NULL);
 
 -- --------------------------------------------------------
 
@@ -708,7 +746,10 @@ INSERT INTO `producto_tipos` (`id_producto`, `id_tipo`) VALUES
 (4, 1),
 (5, 1),
 (6, 1),
-(9, 1);
+(9, 1),
+(10, 1),
+(11, 1),
+(12, 1);
 
 -- --------------------------------------------------------
 
@@ -883,6 +924,21 @@ INSERT INTO `rol_permisos` (`id_rol`, `nombre_rol`, `id_permiso`, `nombre_permis
 (8, NULL, 1, NULL),
 (9, NULL, 52, NULL),
 (9, NULL, 83, NULL),
+(10, NULL, 1, NULL),
+(10, NULL, 22, NULL),
+(10, NULL, 23, NULL),
+(10, NULL, 24, NULL),
+(10, NULL, 25, NULL),
+(10, NULL, 26, NULL),
+(10, NULL, 27, NULL),
+(10, NULL, 28, NULL),
+(10, NULL, 29, NULL),
+(10, NULL, 30, NULL),
+(10, NULL, 31, NULL),
+(10, NULL, 32, NULL),
+(10, NULL, 33, NULL),
+(10, NULL, 34, NULL),
+(10, NULL, 35, NULL),
 (10, NULL, 52, NULL),
 (11, NULL, 82, NULL),
 (12, NULL, 62, NULL);
@@ -910,7 +966,10 @@ INSERT INTO `tallas` (`id_producto`, `talla`, `precio_venta`, `costo_compra`) VA
 (4, '12', 200.00, 200.00),
 (5, '12', 122.00, NULL),
 (6, '42', 250.00, 210.00),
-(9, '31', 311.00, 313.00);
+(9, '31', 311.00, 313.00),
+(11, '20', 100.00, 200.00),
+(12, '30', 200.00, 100.00),
+(12, '31', 200.00, 100.00);
 
 -- --------------------------------------------------------
 
@@ -1040,8 +1099,8 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id_usuario`, `nombres`, `apellidos`, `id_tipodocumento`, `numero_documento`, `celular`, `direccion`, `username`, `email`, `contraseña_hash`, `estado`, `fecha_creacion`, `fecha_ultima_sesion`) VALUES
-(4, 'Santiago Efrain', 'Torres Murrieta', 1, '75859114', '964983465', 'juan pablo de la cruz', 'EfrainDs3', 'santiagotorresmurrieta@gmail.com', '$2a$10$6587YGgYKDWyAywi61/cB.TFF.U6LrTWacPvzWaBZ9xoVsuGGy.4.', 1, '2025-10-08 15:17:29', '2025-11-17 21:46:45'),
-(5, 'Anggelo Lucciano', 'Urbina Espinoza', 1, '72863068', '903 171 836', 'juan pablo de la cruz', 'Ubuntu', 'anggelolucciano21@gmail.com', '$2a$10$VwIkH6380fJV0oPcQXNKiO1oU8zqQ1vKsc0uWSkm.vtCWoTPHzzMG', 1, '2025-10-08 15:46:19', '2025-11-06 07:03:55'),
+(4, 'Santiago Efrain', 'Torres Murrieta', 1, '75859114', '964983465', 'juan pablo de la cruz', 'EfrainDs3', 'santiagotorresmurrieta@gmail.com', '$2a$10$6587YGgYKDWyAywi61/cB.TFF.U6LrTWacPvzWaBZ9xoVsuGGy.4.', 1, '2025-10-08 15:17:29', '2025-11-25 01:38:02'),
+(5, 'Anggelo Lucciano', 'Urbina Espinoza', 1, '72863068', '903 171 836', 'juan pablo de la cruz', 'Ubuntu', 'anggelolucciano21@gmail.com', '$2a$10$VwIkH6380fJV0oPcQXNKiO1oU8zqQ1vKsc0uWSkm.vtCWoTPHzzMG', 1, '2025-10-08 15:46:19', '2025-11-25 01:38:39'),
 (6, 'Anlly Luz', 'Riva Yomona', 1, '72010812', '999888777', 'Calle Nueva 456', 'Anlly', 'al.rivayo@unsm.edu.pe', '$2a$10$E.7vIdGVqCYy5eoYIBjF/uYDym2.b6B6U6.TlT9uKd0tFUl4DMfJW', 1, '2025-10-08 15:57:57', '2025-11-06 01:16:25'),
 (12, 'Danny Alexander', 'Garcia Salas', 1, '98765432', '999888777', 'juan pablo de la cruz', 'Dingui', 'ia.jadrixgr26@gmail.com', '$2a$10$xKxtzv1ECV/74oi69b9hPubeUZgmSnrAUoxmjmSaz0NyeVOYE9BHW', 1, '2025-10-08 16:27:52', '2025-10-15 22:05:53'),
 (17, 'Alex', 'Pezo', 1, '73325101', '999999999', 'Jr. Trapoto', 'arxse', 'da.pezoin@unsm.edu.pe', '$2a$10$u6dftyj8BINK8/zY5GG.TO36M86byX5s8aWraTFHw4Zit3AiA2YSi', 1, '2025-10-15 22:08:21', '2025-10-15 22:12:18');
@@ -1131,7 +1190,8 @@ ALTER TABLE `comprobantespago`
   ADD PRIMARY KEY (`id_comprobante`),
   ADD UNIQUE KEY `id_tipo_comprobante` (`id_tipo_comprobante`,`numero_comprobante`),
   ADD KEY `id_cliente` (`id_cliente`),
-  ADD KEY `id_usuario` (`id_usuario`);
+  ADD KEY `id_usuario` (`id_usuario`),
+  ADD KEY `FKi9x21nkc57r4an9bqagc3lh9u` (`id_apertura`);
 
 --
 -- Indices de la tabla `detallescomprobantepago`
@@ -1374,7 +1434,7 @@ ALTER TABLE `usuario_roles`
 -- AUTO_INCREMENT de la tabla `almacenes`
 --
 ALTER TABLE `almacenes`
-  MODIFY `id_almacen` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_almacen` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `aperturascaja`
@@ -1446,13 +1506,13 @@ ALTER TABLE `historial_recomendaciones`
 -- AUTO_INCREMENT de la tabla `inventario`
 --
 ALTER TABLE `inventario`
-  MODIFY `id_inventario` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_inventario` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT de la tabla `inventario_talla`
 --
 ALTER TABLE `inventario_talla`
-  MODIFY `id_inventario_talla` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_inventario_talla` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `marcasproducto`
@@ -1482,7 +1542,7 @@ ALTER TABLE `movimientoscaja`
 -- AUTO_INCREMENT de la tabla `movimientosinventario`
 --
 ALTER TABLE `movimientosinventario`
-  MODIFY `id_movimiento_inv` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_movimiento_inv` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT de la tabla `pagoscomprobante`
@@ -1512,7 +1572,7 @@ ALTER TABLE `permisos_auditoria`
 -- AUTO_INCREMENT de la tabla `productos`
 --
 ALTER TABLE `productos`
-  MODIFY `id_producto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id_producto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT de la tabla `proveedores`
@@ -1603,6 +1663,7 @@ ALTER TABLE `clientes`
 -- Filtros para la tabla `comprobantespago`
 --
 ALTER TABLE `comprobantespago`
+  ADD CONSTRAINT `FKi9x21nkc57r4an9bqagc3lh9u` FOREIGN KEY (`id_apertura`) REFERENCES `aperturascaja` (`id_apertura`),
   ADD CONSTRAINT `comprobantespago_ibfk_1` FOREIGN KEY (`id_cliente`) REFERENCES `clientes` (`id_cliente`),
   ADD CONSTRAINT `comprobantespago_ibfk_2` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`),
   ADD CONSTRAINT `comprobantespago_ibfk_3` FOREIGN KEY (`id_tipo_comprobante`) REFERENCES `tiposcomprobantepago` (`id_tipo_comprobante`);

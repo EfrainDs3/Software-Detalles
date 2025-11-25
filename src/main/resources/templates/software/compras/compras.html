@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,10 +9,11 @@
     <link rel="stylesheet" href="/css/dashboard.css">
     <link rel="stylesheet" href="/css/compras.css">
 </head>
+
 <body>
 
     <div id="sidebar-container"></div>
- 
+
     <main class="main-content">
 
         <div class="top-bar">
@@ -60,14 +62,13 @@
                         <th>RUC</th>
                         <th>Fecha Pedido</th>
                         <th>Fecha Entrega</th>
-                        <th>Método de Pago</th>
                         <th>Estado</th>
                         <th>Total</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody id="comprasTableBody">
-                    </tbody>
+                </tbody>
             </table>
         </div>
 
@@ -97,7 +98,7 @@
             </div>
             <form id="compraForm" class="modal-body">
                 <input type="hidden" id="compraId" name="id">
-                
+
                 <div class="form-section">
                     <h4 class="section-title">
                         <i class="fas fa-file-invoice"></i>
@@ -131,36 +132,24 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="compraMetodoPago">Método de Pago *</label>
-                            <select id="compraMetodoPago" name="metodoPago" required>
+                            <label for="compraTipoPago">Método de Pago</label>
+                            <select id="compraTipoPago" name="tipoPago">
                                 <option value="">Seleccionar método</option>
-                                <option value="Transferencia">Transferencia Bancaria</option>
-                                <option value="Cheque">Cheque</option>
-                                <option value="Efectivo">Efectivo</option>
-                                <option value="Crédito">Crédito 30 días</option>
-                                <option value="Crédito60">Crédito 60 días</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label for="compraEstado">Estado del Pedido *</label>
-                            <select id="compraEstado" name="estado" required>
-                                <option value="">Seleccionar estado</option>
-                                <option value="Pendiente">Pendiente</option>
-                                <option value="Completado">Completado</option>
-                                <option value="Cancelado">Cancelado</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-row">
                         <div class="form-group">
                             <label for="compraReferencia">Referencia/Nº Cotización</label>
                             <input type="text" id="compraReferencia" name="referencia" placeholder="Ej: COT-2025-001">
                         </div>
+                    </div>
+                    <div class="form-row">
                         <div class="form-group">
                             <label for="compraObservaciones">Observaciones</label>
-                            <textarea id="compraObservaciones" name="observaciones" rows="2" placeholder="Notas adicionales..."></textarea>
+                            <textarea id="compraObservaciones" name="observaciones" rows="2"
+                                placeholder="Notas adicionales..."></textarea>
                         </div>
                     </div>
+
                 </div>
 
                 <div class="form-section">
@@ -169,7 +158,7 @@
                         Productos del Pedido
                     </h4>
                     <div id="productosContainer">
-                        </div>
+                    </div>
                     <button type="button" class="btn btn-secondary mt-3" id="addProductBtn">
                         <i class="fas fa-plus"></i>
                         Agregar Producto
@@ -231,7 +220,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <hr class="detalle-divider">
 
                 <div class="detalle-productos-container">
@@ -251,7 +240,7 @@
                             </tbody>
                         </table>
                     </div>
-                    
+
                     <div class="totales-detalle">
                         <div class="totales-row">
                             <span>Subtotal:</span>
@@ -282,4 +271,5 @@
     <script src="/js/compras.js"></script>
     <script src="/js/caja.js"></script>
 </body>
+
 </html>
