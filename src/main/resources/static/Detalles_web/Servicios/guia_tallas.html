@@ -6,14 +6,14 @@
 	<title>Guía de Tallas - Detalles</title>
 	<link rel="stylesheet" href="../styles.css">
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-	<base href="/src/main/resources/templates/Detalles_web/">
+	
 
 
 	<!-- Nuevo: estilos locales para mejorar presentación -->
 	<style>
 		:root{
-			--accent:#e91e63;
-			--accent-dark:#d81b60;
+			--accent:#921212;
+			--accent-dark:#921212;
 			--muted:#6b6f76;
 			--bg:#f6f8fb;
 			--card:#ffffff;
@@ -91,116 +91,128 @@
 			.unit-toggle{width:100%;display:flex;justify-content:flex-end}
 		}
 	</style>
-</head>
-<body>
-   <header>
-        <nav class="navbar">
-            <div class="nav-container">
-                <div class="logo">
-                    <h1>Detalles</h1>
-                </div>
-                <ul class="nav-menu">
-                    <li><a href="index.html">Inicio</a></li>
-                    
-                    <!-- Submenú Mujeres -->
-                    <li class="menu-item-has-children">
-                        <a href="#mujeres">Mujeres <i class="fas fa-chevron-down"></i></a>
-                        <div class="submenu">
-                            <div class="submenu-content">
-                                <div class="submenu-column">
-                                    <h3>Calzado</h3>
-                                    <ul>
-                                        <li><a href="mujeres/zapatillas-deportivas.html">Zapatillas Deportivas</a></li>
-                                        <li><a href="mujeres/zapatos-casuales.html">Zapatos Casuales</a></li>
-                                        <li><a href="mujeres/tacones.html">Tacones</a></li>
-                                        <li><a href="mujeres/sandalias.html">Sandalias</a></li>
-                                        <li><a href="mujeres/botas.html">Botas</a></li>
-                                    </ul>
-                                </div>
-                                <div class="submenu-column">
-                                    <h3>Accesorios</h3>
-                                    <ul>
-                                        <li><a href="mujeres-accesorios/bolsos.html">Bolsos</a></li>
-                                        <li><a href="mujeres-accesorios/billeteras.html">Billeteras</a></li>
-                                        <li><a href="mujeres-accesorios/gafas-de-sol.html">Gafas de Sol</a></li>
-                                        <li><a href="mujeres-accesorios/cinturones.html">Cinturones</a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </li>
-                    
-                    <!-- Submenú Hombres -->
-                    <li class="menu-item-has-children">
-                        <a href="#hombres">Hombres <i class="fas fa-chevron-down"></i></a>
-                        <div class="submenu">
-                            <div class="submenu-content">
-                                <div class="submenu-column">
-                                    <h3>Calzado</h3>
-                                    <ul>
-                                        <li><a href="hombres/zapatillas-deportivas-h.html">Zapatillas Deportivas</a></li>
-                                        <li><a href="hombres/zapatos-casuales-h.html">Zapatos Casuales</a></li>
-                                        <li><a href="hombres/zapatos-formales-h.html">Zapatos Formales</a></li>
-                                        <li><a href="hombres/botas-h.html">Botas</a></li>
-                                        <li><a href="hombres/sandalias-h.html">Sandalias</a></li>
-                                    </ul>
-                                </div>
-                                <div class="submenu-column">
-                                    <h3>Accesorios</h3>
-                                    <ul>
-                                        <li><a href="hombres-accesorios/cinturones-h.html">Cinturones</a></li>
-                                        <li><a href="hombres-accesorios/relojes-h.html">Relojes</a></li>
-                                        <li><a href="hombres-accesorios/gafas-de-sol-h.html">Gafas de Sol</a></li>
-                                        <li><a href="hombres-accesorios/billeteras-h.html">Billeteras</a></li>
-                                        <li><a href="hombres-accesorios/gorros-h.html">Gorros</a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </li>             
-                    <li class="menu-item-has-children">
-                        <a href="#ninos">Niños <i class="fas fa-chevron-down"></i></a>
-                        <div class="submenu">
-                            <div class="submenu-content">
-                                <div class="submenu-column">
-                                    <h3>Calzado</h3>
-                                    <ul>
-                                        <li><a href="niños/zapatillas-deportivas.html">Zapatillas Deportivas</a></li>
-                                        <li><a href="niños/zapatos-casuales.html">Zapatos Casuales</a></li>
-                                        <li><a href="niños/zapatos-escolares.html">Zapatos Escolares</a></li>
-                                        <li><a href="niños/pantuflas.html">Pantuflas</a></li>
-                                        <li><a href="niños/sandalias.html">Sandalias</a></li>
-                                        <li><a href="niños/botas.html">Botas</a></li>
-                                    </ul>
-                                </div>
-                                <div class="submenu-column">
-                                    <h3>Accesorios</h3>
-                                    <ul>
-                                        <li><a href="niños-accesorios/calcetines.html">Calcetines</li>
-                                        <li><a href="niños-accesorios/cinturones.html">Cinturones</a></li>
-                                        <li><a href="niños-accesorios/gorras.html">Gorras</a></li>
-                                        <li><a href="niños-accesorios/lentes-sol.html">Lentes</a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </li>
-                </ul>
-                <div class="nav-icons">
-                    <a href="#" class="nav-icon search-icon"><i class="fas fa-search"></i></a>
-                    <a href="login/logueo.html" class="nav-icon"><i class="fas fa-user"></i></a>
-                    <a href="carrito/carritos.html" class="nav-icon cart-icon">
-                        <i class="fas fa-shopping-bag"></i>
-                        <span class="cart-count">0</span>
-                    </a>
-                </div>
-                
-                <div class="hamburger">
-                    <span></span><span></span><span></span>
-                </div>
+				</head>
+				<body>
+<header>
+    <nav class="navbar">
+        <div class="nav-container">
+
+            <div class="logo">
+                <a href="/index" class="logo-link">
+                    <img src="/Detalles_web/img/logo-detalles.jpg"
+                         alt="Detalles - Calzados y Accesorios"
+                         style="height: 65px; width: auto;">
+                </a>
             </div>
-        </nav>
-    </header>
+            <ul class="nav-menu">
+                <li><a href="/index">Inicio</a></li>
+
+                <!-- Submenú Mujeres -->
+                <li class="menu-item-has-children">
+                    <a href="#">Mujeres <i class="fas fa-chevron-down"></i></a>
+                    <div class="submenu">
+                        <div class="submenu-content">
+                            <div class="submenu-column">
+                                <h3>Calzado</h3>
+                                <ul>
+                                    <li><a href="/Detalles_web/mujeres/zapatillas-deportivas.html">Zapatillas Deportivas</a></li>
+                                    <li><a href="/Detalles_web/mujeres/zapatos-casuales.html">Zapatos Casuales</a></li>
+                                    <li><a href="/Detalles_web/mujeres/tacones.html">Tacones</a></li>
+                                    <li><a href="/Detalles_web/mujeres/sandalias.html">Sandalias</a></li>
+                                    <li><a href="/Detalles_web/mujeres/botas.html">Botas</a></li>
+                                </ul>
+                            </div>
+
+                            <div class="submenu-column">
+                                <h3>Accesorios</h3>
+                                <ul>
+                                    <li><a href="/Detalles_web/mujeres-accesorios/bolsos.html">Bolsos</a></li>
+                                    <li><a href="/Detalles_web/mujeres-accesorios/billeteras.html">Billeteras</a></li>
+                                    <li><a href="/Detalles_web/mujeres-accesorios/gafas-de-sol.html">Gafas de Sol</a></li>
+                                    <li><a href="/Detalles_web/mujeres-accesorios/cinturones.html">Cinturones</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+
+                <!-- Submenú Hombres -->
+                <li class="menu-item-has-children">
+                    <a href="#">Hombres <i class="fas fa-chevron-down"></i></a>
+                    <div class="submenu">
+                        <div class="submenu-content">
+                            <div class="submenu-column">
+                                <h3>Calzado</h3>
+                                <ul>
+                                    <li><a href="/Detalles_web/hombres/zapatillas-deportivas-h.html">Zapatillas Deportivas</a></li>
+                                    <li><a href="/Detalles_web/hombres/zapatos-casuales-h.html">Zapatos Casuales</a></li>
+                                    <li><a href="/Detalles_web/hombres/zapatos-formales-h.html">Zapatos Formales</a></li>
+                                    <li><a href="/Detalles_web/hombres/botas-h.html">Botas</a></li>
+                                    <li><a href="/Detalles_web/hombres/sandalias-h.html">Sandalias</a></li>
+                                </ul>
+                            </div>
+
+                            <div class="submenu-column">
+                                <h3>Accesorios</h3>
+                                <ul>
+                                    <li><a href="/Detalles_web/hombres-accesorios/cinturones-h.html">Cinturones</a></li>
+                                    <li><a href="/Detalles_web/hombres-accesorios/relojes-h.html">Relojes</a></li>
+                                    <li><a href="/Detalles_web/hombres-accesorios/gafas-de-sol-h.html">Gafas de Sol</a></li>
+                                    <li><a href="/Detalles_web/hombres-accesorios/billeteras-h.html">Billeteras</a></li>
+                                    <li><a href="/Detalles_web/hombres-accesorios/gorros-h.html">Gorros</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+
+                <!-- Submenú niños -->
+                <li class="menu-item-has-children">
+                    <a href="#">Niños <i class="fas fa-chevron-down"></i></a>
+                    <div class="submenu">
+                        <div class="submenu-content">
+                            <div class="submenu-column">
+                                <h3>Calzado</h3>
+                                <ul>
+                                    <li><a href="/Detalles_web/niños/zapatillas-deportivas.html">Zapatillas Deportivas</a></li>
+                                    <li><a href="/Detalles_web/niños/zapatos-casuales.html">Zapatos Casuales</a></li>
+                                    <li><a href="/Detalles_web/niños/zapatos-escolares.html">Zapatos Escolares</a></li>
+                                    <li><a href="/Detalles_web/niños/pantuflas.html">Pantuflas</a></li>
+                                    <li><a href="/Detalles_web/niños/sandalias.html">Sandalias</a></li>
+                                    <li><a href="/Detalles_web/niños/botas.html">Botas</a></li>
+                                </ul>
+                            </div>
+
+                            <div class="submenu-column">
+                                <h3>Accesorios</h3>
+                                <ul>
+                                    <li><a href="/Detalles_web/niños-accesorios/calcetines.html">Calcetines</a></li>
+                                    <li><a href="/Detalles_web/niños-accesorios/cinturones.html">Cinturones</a></li>
+                                    <li><a href="/Detalles_web/niños-accesorios/gorras.html">Gorras</a></li>
+                                    <li><a href="/Detalles_web/niños-accesorios/lentes-sol.html">Lentes</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+
+            <div class="nav-icons">
+                <a href="#" class="nav-icon search-icon"><i class="fas fa-search"></i></a>
+                <a href="/Detalles_web/login/logueo.html" class="nav-icon"><i class="fas fa-user"></i></a>
+                <a href="/Detalles_web/carrito/carritos.html" class="nav-icon cart-icon">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span class="cart-count">0</span>
+                </a>
+            </div>
+
+            <div class="hamburger">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+    </nav>
+</header>
+
 	<!-- Breadcrumb -->
 	<div class="breadcrumb">
 		<div class="breadcrumb-content">
@@ -411,8 +423,8 @@
                 <div class="footer-section">
                     <h3>Servicios</h3>
                     <ul>
-                        <li><a href="Servicios/guia_tallas.html">Guía de Tallas</a></li>
-                        <li><a href="Servicios/preguntas.html">Preguntas Frecuentes</a></li>
+                        <li><a href="/detalles_web/Servicios/guia_tallas.html">Guía de Tallas</a></li>
+                        <li><a href="/Detalles_web/Servicios/preguntas.html">Preguntas Frecuentes</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">

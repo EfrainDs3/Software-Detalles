@@ -35,6 +35,8 @@ import org.springframework.security.core.AuthenticationException;
 import java.security.Principal;
 import java.util.Locale;
 import java.util.Map;
+import org.springframework.security.core.Authentication;
+
 
 @RestController
 @RequestMapping("/api/auth")
@@ -168,6 +170,24 @@ public class AuthController {
             log.error("Unexpected error during login", ex);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Ocurrió un problema al iniciar sesión"));
         }
+    }
+
+        @GetMapping("/status")
+    public Map<String, Object> authStatus(Authentication auth) {
+
+        // No autenticado
+        if (auth == null || !auth.isAuthenticated() || auth.getPrincipal().equals("anonymousUser")) {
+            return Map.of("authenticated", false);
+        }
+
+        // Sí autenticado
+        UsuarioPrincipal usuario = (UsuarioPrincipal) auth.getPrincipal();
+
+        return Map.of(
+                "authenticated", true,
+                "userId", usuario.getId(),
+                "username", usuario.getUsername()
+        );
     }
 
     // Método simple para registro desde frontend web

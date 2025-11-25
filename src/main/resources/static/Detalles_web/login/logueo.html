@@ -63,12 +63,12 @@
         }
 
         .tab-link.active {
-            color: #e83e8c;
-            border-bottom-color: #e83e8c;
+            color: #921212;
+            border-bottom-color: #921212;
         }
 
         .tab-link:focus {
-            outline: 2px solid #e83e8c;
+            outline: 2px solid #921212;
             outline-offset: 2px;
         }
 
@@ -104,7 +104,7 @@
 
         .input-group input:focus {
             outline: none;
-            border-color: #e83e8c;
+            border-color: #921212;
             box-shadow: 0 0 0 2px rgba(232, 62, 140, 0.2);
         }
 
@@ -135,13 +135,13 @@
         }
 
         .btn-primary {
-            background-color: #e83e8c;
+            background-color: #921212;
             color: white;
         }
 
         .btn-primary:hover,
         .btn-primary:focus {
-            background-color: #d1327c;
+            background-color: #921212;
             transform: translateY(-2px);
         }
 
@@ -182,8 +182,8 @@
             gap: 8px;
             padding: 12px 24px;
             background-color: transparent;
-            color: #e83e8c;
-            border: 1px solid #e83e8c;
+            color: #921212;
+            border: 1px solid #921212;
             border-radius: 8px;
             text-decoration: none;
             font-weight: 500;
@@ -192,7 +192,7 @@
 
         .back-btn:hover,
         .back-btn:focus {
-            background-color: #e83e8c;
+            background-color: #921212;
             color: white;
             transform: translateY(-2px);
         }
@@ -332,9 +332,12 @@
                         
                         if (response.ok) {
                             const data = await response.json();
+                            window.USER_ID = data.id_usuario;
+                            sessionStorage.setItem("USER_ID", data.id_usuario);
+
                             alert("¡Bienvenido " + data.nombres + "!");
-                            // Redirigir al index o dashboard
-                            window.location.href = "/";
+                            // Redirigir al index
+                           window.location.href = "/index";
                         } else {
                             const error = await response.json();
                             alert("Error: " + (error.error || "Credenciales inválidas"));
@@ -373,7 +376,7 @@
                             const data = await response.json();
                             alert("¡Cuenta creada exitosamente! Bienvenido " + data.nombres);
                             // Redirigir al index
-                            window.location.href = "/";
+                            window.location.href = "/Detalles_web/login/logueo.html";
                         } else {
                             const error = await response.json();
                             alert("Error: " + (error.error || "No se pudo crear la cuenta"));

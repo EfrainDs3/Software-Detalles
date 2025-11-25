@@ -16,10 +16,12 @@ public class ClienteInicioVCController {
     @Autowired
     private ClienteInicioVCService clienteInicioVCService;
 
-    @GetMapping("/index")
+    @GetMapping({"/", "/index"})
     public String mostrarInicio(Model model) {
+
         List<Producto> productos = clienteInicioVCService.obtenerProductosDestacados();
         model.addAttribute("productos", productos);
-        return "index";
+
+        return "index"; // esto carga templates/index.html
     }
 }
