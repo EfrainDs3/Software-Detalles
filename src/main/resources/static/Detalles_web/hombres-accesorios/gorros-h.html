@@ -96,7 +96,7 @@
                                 <div class="submenu-column">
                                     <h3>Accesorios</h3>
                                     <ul>
-                                        <li><a href="../niños-accesorios/calcetines.html">Calcetines</li>
+                                        <li><a href="../niños-accesorios/calcetines.html">Calcetines</a></li>
                                         <li><a href="../niños-accesorios/cinturones.html">Cinturones</a></li>
                                         <li><a href="../niños-accesorios/gorras.html">Gorras</a></li>
                                         <li><a href="../niños-accesorios/lentes-sol.html">Lentes</a></li>
@@ -108,46 +108,53 @@
                 </ul>
                 
                 <div class="nav-icons">
-                    <a href="#" class="nav-icon search-icon"><i class="fas fa-search"></i></a>
+                    <div class="search-container">
+                        <div class="search-form">
+                            <input type="text" id="searchInput" placeholder="Buscar productos..." class="search-input">
+                            <button onclick="buscarProductos()" class="search-button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
                     <a href="../login/logueo.html" class="nav-icon"><i class="fas fa-user"></i></a>
                     <a href="../carrito/carritos.html" class="nav-icon cart-icon">
                         <i class="fas fa-shopping-bag"></i>
                         <span class="cart-count">0</span>
                     </a>
                 </div>
-                
+
+                <div id="searchOverlay" class="search-overlay">
+                    <div class="search-container">
+                        <span class="close-search">&times;</span>
+                        <div class="search-content">
+                            <h2>¿Qué estás buscando?</h2>
+                            <form class="search-form">
+                                <input type="text" class="search-input" placeholder="Buscar productos...">
+                                <button type="submit" class="search-button">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </form>
+                            <div class="search-suggestions">
+                                <h3>Sugerencias populares:</h3>
+                                <div class="suggestion-tags">
+                                    <span class="tag">Gorro de Lana</span>
+                                    <span class="tag">Gorro Deportivo</span>
+                                    <span class="tag">Gorro con Pompón</span>
+                                    <span class="tag">Gorro de Invierno</span>
+                                    <span class="tag">Gorro Hipster</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="hamburger">
                     <span></span><span></span><span></span>
                 </div>
             </div>
         </nav>
     </header>
-
-    <!-- Search Overlay -->
-    <div id="searchOverlay" class="search-overlay">
-        <div class="search-container">
-            <span class="close-search">&times;</span>
-            <div class="search-content">
-                <h2>¿Qué estás buscando?</h2>
-                <form class="search-form">
-                    <input type="text" class="search-input" placeholder="Buscar productos...">
-                    <button type="submit" class="search-button">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </form>
-                <div class="search-suggestions">
-                    <h3>Sugerencias populares:</h3>
-                    <div class="suggestion-tags">
-                        <span class="tag">Gorro de Lana</span>
-                        <span class="tag">Gorro Deportivo</span>
-                        <span class="tag">Gorro con Pompón</span>
-                        <span class="tag">Gorro de Invierno</span>
-                        <span class="tag">Gorro Hipster</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Breadcrumb -->
     <div class="breadcrumb">
@@ -163,6 +170,17 @@
         <div class="products-container">
             <!-- Filters Sidebar -->
             <aside class="filters-sidebar">
+                <div class="filter-section">
+                    <h3>Precio</h3>
+                    <div class="price-filter">
+                        <input type="range" class="price-range" min="20" max="60" value="40">
+                        <div class="price-inputs">
+                            <input type="number" placeholder="Mín" value="20">
+                            <input type="number" placeholder="Máx" value="60">
+                        </div>
+                    </div>
+                </div>
+
                 <div class="filter-section">
                     <h3>Talla</h3>
                     <div class="size-filter">
@@ -186,80 +204,31 @@
                     </div>
                 </div>
 
-                <div class="filter-section">
-                    <h3>Tipo de Gorro</h3>
-                    <div class="brand-filter">
-                        <label class="brand-option">
-                            <input type="checkbox"> Beanie/Calcetín
-                        </label>
-                        <label class="brand-option">
-                            <input type="checkbox"> Con Pompón
-                        </label>
-                        <label class="brand-option">
-                            <input type="checkbox"> Deportivo
-                        </label>
-                        <label class="brand-option">
-                            <input type="checkbox"> Gorro de Punto
-                        </label>
-                        <label class="brand-option">
-                            <input type="checkbox"> Gorro con Visera
-                        </label>
-                        <label class="brand-option">
-                            <input type="checkbox"> Gorro Hipster
-                        </label>
-                    </div>
-                </div>
 
                 <div class="filter-section">
                     <h3>Marca</h3>
                     <div class="brand-filter">
-                        <label class="brand-option">
-                            <input type="checkbox"> Carhartt
-                        </label>
-                        <label class="brand-option">
-                            <input type="checkbox"> The North Face
-                        </label>
-                        <label class="brand-option">
-                            <input type="checkbox"> Nike
-                        </label>
-                        <label class="brand-option">
-                            <input type="checkbox"> Adidas
-                        </label>
-                        <label class="brand-option">
-                            <input type="checkbox"> Columbia
-                        </label>
-                        <label class="brand-option">
-                            <input type="checkbox"> Timberland
-                        </label>
+                        <label class="brand-option"><input type="checkbox"> Carhartt</label>
+                        <label class="brand-option"><input type="checkbox"> The North Face</label>
+                        <label class="brand-option"><input type="checkbox"> Nike</label>
+                        <label class="brand-option"><input type="checkbox"> Adidas</label>
+                        <label class="brand-option"><input type="checkbox"> Columbia</label>
+                        <label class="brand-option"><input type="checkbox"> Timberland</label>
                     </div>
                 </div>
 
                 <div class="filter-section">
                     <h3>Material</h3>
                     <div class="brand-filter">
-                        <label class="brand-option">
-                            <input type="checkbox"> Lana
-                        </label>
-                        <label class="brand-option">
-                            <input type="checkbox"> Algodón
-                        </label>
-                        <label class="brand-option">
-                            <input type="checkbox"> Acrílico
-                        </label>
-                        <label class="brand-option">
-                            <input type="checkbox"> Poliéster
-                        </label>
-                        <label class="brand-option">
-                            <input type="checkbox"> Mezcla
-                        </label>
+                        <label class="brand-option"><input type="checkbox"> Lana</label>
+                        <label class="brand-option"><input type="checkbox"> Algodón</label>
+                        <label class="brand-option"><input type="checkbox"> Acrílico</label>
+                        <label class="brand-option"><input type="checkbox"> Poliéster</label>
+                        <label class="brand-option"><input type="checkbox"> Mezcla</label>
                     </div>
                 </div>
 
-                <div class="filter-section" style="display: flex; justify-content: center; margin-top: 1rem;">
-                    <button class="btn-add-cart" style="width: 150px; padding: 8px;">
-                        Aplicar Filtros
-                    </button>
-                </div>
+                <button class="btn-add-cart" style="width: 100%; margin-top: 1rem;">Aplicar Filtros</button>
             </aside>
 
             <!-- Products Main Content -->
@@ -267,211 +236,24 @@
                 <div class="products-header">
                     <h1>Gorros para Hombres</h1>
                     <div class="sort-options">
-                        <span class="products-count">9 productos</span>
-                        <select>
-                            <option>Ordenar por: Destacados</option>
-                            <option>Precio: Menor a Mayor</option>
-                            <option>Precio: Mayor a Menor</option>
-                            <option>Más Nuevos</option>
-                            <option>Mejor Valorados</option>
-                        </select>
+                        <span class="products-count" id="productsCount">Cargando...</span>
+                        
                     </div>
                 </div>
 
-                <div class="products-grid-detailed">
-                    <!-- Producto 1 -->
-                    <div class="product-card-detailed" data-product-id="gorro-h-1">
-                        <div class="product-image-detailed">
-                            <img src="https://via.placeholder.com/300x300" alt="Carhartt Beanie Negro">
-                            <div class="product-badge">Popular</div>
-                            <div class="product-overlay">
-                                <button class="quick-view">Vista Rápida</button>
-                            </div>
-                        </div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">CARHARTT</div>
-                            <h3 class="product-title-detailed">Beanie Acrílico Negro</h3>
-                            <div class="product-price">
-                                <span class="current-price">$24.99</span>
-                            </div>
-                            <div class="product-actions">
-                                <button class="btn-add-cart">Añadir al Carrito</button>
-                                <button class="btn-wishlist">
-                                    <i class="far fa-heart"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Producto 2 -->
-                    <div class="product-card-detailed" data-product-id="gorro-h-2">
-                        <div class="product-image-detailed">
-                            <img src="https://via.placeholder.com/300x300" alt="The North Face Gorro">
-                            <div class="product-badge">Abrigado</div>
-                        </div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">THE NORTH FACE</div>
-                            <h3 class="product-title-detailed">Gorro Térmico Invierno</h3>
-                            <div class="product-price">
-                                <span class="current-price">$34.99</span>
-                            </div>
-                            <div class="product-actions">
-                                <button class="btn-add-cart">Añadir al Carrito</button>
-                                <button class="btn-wishlist">
-                                    <i class="far fa-heart"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Producto 3 -->
-                    <div class="product-card-detailed" data-product-id="gorro-h-3">
-                        <div class="product-image-detailed">
-                            <img src="https://via.placeholder.com/300x300" alt="Nike Sport Beanie">
-                        </div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">NIKE</div>
-                            <h3 class="product-title-detailed">Sport Beanie Gris</h3>
-                            <div class="product-price">
-                                <span class="current-price">$29.99</span>
-                            </div>
-                            <div class="product-actions">
-                                <button class="btn-add-cart">Añadir al Carrito</button>
-                                <button class="btn-wishlist">
-                                    <i class="far fa-heart"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Producto 4 -->
-                    <div class="product-card-detailed" data-product-id="gorro-h-4">
-                        <div class="product-image-detailed">
-                            <img src="https://via.placeholder.com/300x300" alt="Adidas Classic Beanie">
-                            <div class="product-badge">Deportivo</div>
-                        </div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">ADIDAS</div>
-                            <h3 class="product-title-detailed">Classic Beanie Azul</h3>
-                            <div class="product-price">
-                                <span class="current-price">$27.99</span>
-                            </div>
-                            <div class="product-actions">
-                                <button class="btn-add-cart">Añadir al Carrito</button>
-                                <button class="btn-wishlist">
-                                    <i class="far fa-heart"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Producto 5 -->
-                    <div class="product-card-detailed" data-product-id="gorro-h-5">
-                        <div class="product-image-detailed">
-                            <img src="https://via.placeholder.com/300x300" alt="Columbia Gorro con Pompón">
-                        </div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">COLUMBIA</div>
-                            <h3 class="product-title-detailed">Gorro Pompón Lana</h3>
-                            <div class="product-price">
-                                <span class="current-price">$32.99</span>
-                            </div>
-                            <div class="product-actions">
-                                <button class="btn-add-cart">Añadir al Carrito</button>
-                                <button class="btn-wishlist">
-                                    <i class="far fa-heart"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Producto 6 -->
-                    <div class="product-card-detailed" data-product-id="gorro-h-6">
-                        <div class="product-image-detailed">
-                            <img src="https://via.placeholder.com/300x300" alt="Timberland Gorro Punto">
-                            <div class="product-badge">Clásico</div>
-                        </div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">TIMBERLAND</div>
-                            <h3 class="product-title-detailed">Gorro Punto Marrón</h3>
-                            <div class="product-price">
-                                <span class="current-price">$36.99</span>
-                            </div>
-                            <div class="product-actions">
-                                <button class="btn-add-cart">Añadir al Carrito</button>
-                                <button class="btn-wishlist">
-                                    <i class="far fa-heart"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Producto 7 -->
-                    <div class="product-card-detailed" data-product-id="gorro-h-7">
-                        <div class="product-image-detailed">
-                            <img src="https://via.placeholder.com/300x300" alt="Carhartt Gorro Cuffed">
-                        </div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">CARHARTT</div>
-                            <h3 class="product-title-detailed">Cuffed Beanie Gris</h3>
-                            <div class="product-price">
-                                <span class="current-price">$26.99</span>
-                            </div>
-                            <div class="product-actions">
-                                <button class="btn-add-cart">Añadir al Carrito</button>
-                                <button class="btn-wishlist">
-                                    <i class="far fa-heart"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Producto 8 -->
-                    <div class="product-card-detailed" data-product-id="gorro-h-8">
-                        <div class="product-image-detailed">
-                            <img src="https://via.placeholder.com/300x300" alt="The North Face Pompón">
-                            <div class="product-badge">Abrigado</div>
-                        </div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">THE NORTH FACE</div>
-                            <h3 class="product-title-detailed">Gorro Pompón Térmico</h3>
-                            <div class="product-price">
-                                <span class="current-price">$39.99</span>
-                            </div>
-                            <div class="product-actions">
-                                <button class="btn-add-cart">Añadir al Carrito</button>
-                                <button class="btn-wishlist">
-                                    <i class="far fa-heart"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Producto 9 -->
-                    <div class="product-card-detailed" data-product-id="gorro-h-9">
-                        <div class="product-image-detailed">
-                            <img src="https://via.placeholder.com/300x300" alt="Nike Therma Beanie">
-                        </div>
-                        <div class="product-info-detailed">
-                            <div class="product-brand">NIKE</div>
-                            <h3 class="product-title-detailed">Therma Beanie Negro</h3>
-                            <div class="product-price">
-                                <span class="current-price">$31.99</span>
-                            </div>
-                            <div class="product-actions">
-                                <button class="btn-add-cart">Añadir al Carrito</button>
-                                <button class="btn-wishlist">
-                                    <i class="far fa-heart"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                <div class="products-grid-detailed" id="productosContainer">
+                    <!-- Los productos se cargarán dinámicamente desde la API -->
+                    <div class="loading-message">Cargando gorros...</div>
+                </div>
+                
+                <div class="pagination">
+                    <!-- Paginación si es necesaria -->
                 </div>
             </main>
         </div>
     </section>
 
-     <footer>
+    <footer>
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
@@ -504,14 +286,284 @@
             </div>
         </div>
     </footer>
+
     <div id="quickViewModal" class="modal">
         <div class="modal-content">
             <span class="close-modal">&times;</span>
             <div class="modal-body">
-                </div>
+                <!-- Contenido del modal de vista rápida -->
+            </div>
         </div>
     </div>
-    <script src="js/script.js"></script>
-    <script src="js/carrito.js"></script>
+
+    <script src="../js/script.js"></script>
+    <script src="../js/carrito.js"></script>
+
+    <!-- JavaScript para búsqueda y filtros dinámicos -->
+    <script>
+        // Variables globales
+        let todosLosProductos = [];
+        let productosFiltrados = [];
+
+        // Cargar productos al iniciar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarGorrosHombres();
+            configurarFiltros();
+        });
+
+        // Función principal para cargar productos
+        async function cargarGorrosHombres() {
+            try {
+                console.log('Cargando gorros para hombres...');
+                
+                // Primero intentar con filtros específicos, si no funciona cargar todos de hombres
+                let response = await fetch('/api/productos/buscar?categoria=hombres&tipo=gorros');
+                
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta de la API');
+                }
+                
+                let productos = await response.json();
+                
+                // Si no hay resultados, cargar todos los productos de hombres
+                if (!productos || productos.length === 0) {
+                    console.log('No se encontraron gorros específicos, cargando todos los productos de hombres...');
+                    response = await fetch('/api/productos/buscar?categoria=hombres');
+                    productos = await response.json();
+                }
+                
+                console.log('Productos cargados:', productos);
+                
+                todosLosProductos = productos;
+                productosFiltrados = [...productos];
+                
+                mostrarProductos(productos);
+                actualizarContadorProductos(productos.length);
+                
+            } catch (error) {
+                console.error('Error cargando productos:', error);
+                document.getElementById('productosContainer').innerHTML = 
+                    '<p class="error-message">Error al cargar los productos. Intenta nuevamente.</p>';
+            }
+        }
+
+        // Función para mostrar productos en la página
+        function mostrarProductos(productos) {
+            const contenedor = document.getElementById('productosContainer');
+            
+            if (!productos || productos.length === 0) {
+                contenedor.innerHTML = `
+                    <div class="no-products">
+                        <i class="fas fa-search" style="font-size: 48px; color: #ccc; margin-bottom: 20px;"></i>
+                        <h3>No se encontraron gorros</h3>
+                        <p>Intenta con otros filtros o términos de búsqueda.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Generar HTML para cada producto
+            contenedor.innerHTML = productos.map(function(producto){
+                return '' +
+                    '<div class="product-card-detailed" data-product-id="' + (producto.id || '') + '">' +
+                        '<div class="product-image-detailed">' +
+                            '<img src="' + (producto.imagenUrl || 'https://via.placeholder.com/300x300') + '" alt="' + (producto.nombre || producto.nombre_producto || '') + '" onerror="this.src=\'https://via.placeholder.com/300x300\'">' +
+                            '<div class="product-overlay"><button class="quick-view" onclick="vistaRapida(\'' + (producto.id || '') + '\')">Vista Rápida</button></div>' +
+                        '</div>' +
+                        '<div class="product-info-detailed">' +
+                            '<div class="product-brand">' + obtenerMarcaProducto(producto) + '</div>' +
+                            '<h3 class="product-title-detailed">' + (producto.nombre || producto.nombre_producto || 'Producto') + '</h3>' +
+                            '<div class="product-price"><span class="current-price">S/ ' + (producto.precio_venta || producto.precioVenta || producto.precio || '0.00') + '</span></div>' +
+                            '<div class="product-actions">' +
+                                '<button class="btn-add-cart" onclick="agregarAlCarrito(\'' + (producto.id || '') + '\')">Añadir al Carrito</button>' +
+                                '<button class="btn-wishlist" onclick="agregarFavoritos(\'' + (producto.id || '') + '\')"><i class="far fa-heart"></i></button>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>';
+            }).join('');
+        }
+
+        // Función para extraer marca del nombre del producto
+        function obtenerMarcaProducto(producto) {
+            const nombre = producto.nombre || producto.nombre_producto || '';
+            // Extraer primera palabra como marca
+            return nombre.split(' ')[0] || 'MARCA';
+        }
+
+        // Función para búsqueda desde el navbar
+        async function buscarProductos() {
+            const searchTerm = document.getElementById('searchInput').value.trim();
+            
+            if (!searchTerm) {
+                // Si no hay término de búsqueda, recargar productos originales
+                cargarGorrosHombres();
+                return;
+            }
+            
+            try {
+                console.log('Buscando:', searchTerm);
+                const response = await fetch(`/api/productos/buscar?nombre=${encodeURIComponent(searchTerm)}&categoria=hombres`);
+                const productos = await response.json();
+                
+                productosFiltrados = productos;
+                mostrarProductos(productos);
+                actualizarContadorProductos(productos.length);
+                
+            } catch (error) {
+                console.error('Error en búsqueda:', error);
+            }
+        }
+
+        // Configurar eventos de filtros
+        function configurarFiltros() {
+            // Filtro de precio
+            const precioRange = document.querySelector('.price-range');
+            const precioMin = document.querySelector('.price-inputs input[placeholder="Mín"]');
+            const precioMax = document.querySelector('.price-inputs input[placeholder="Máx"]');
+            
+            if (precioRange && precioMin && precioMax) {
+                precioRange.addEventListener('input', function() {
+                    precioMax.value = this.value;
+                    aplicarFiltros();
+                });
+                
+                precioMin.addEventListener('change', aplicarFiltros);
+                precioMax.addEventListener('change', aplicarFiltros);
+            }
+            
+            // Filtro de tallas
+            const tallas = document.querySelectorAll('.size-option');
+            tallas.forEach(talla => {
+                talla.addEventListener('click', function() {
+                    this.classList.toggle('selected');
+                    aplicarFiltros();
+                });
+            });
+            
+            // Filtro de colores
+            const colores = document.querySelectorAll('.color-option');
+            colores.forEach(color => {
+                color.addEventListener('click', function() {
+                    this.classList.toggle('selected');
+                    aplicarFiltros();
+                });
+            });
+            
+            // Filtro de tipos de gorros
+            const tipos = document.querySelectorAll('.brand-option input[type="checkbox"]');
+            tipos.forEach(tipo => {
+                tipo.addEventListener('change', aplicarFiltros);
+            });
+            
+            // Filtro de marcas
+            const marcas = document.querySelectorAll('.brand-option input[type="checkbox"]');
+            marcas.forEach(marca => {
+                marca.addEventListener('change', aplicarFiltros);
+            });
+            
+            // Filtro de materiales
+            const materiales = document.querySelectorAll('.brand-option input[type="checkbox"]');
+            materiales.forEach(material => {
+                material.addEventListener('change', aplicarFiltros);
+            });
+            
+            // Botón aplicar filtros
+            const btnAplicar = document.querySelector('.btn-add-cart[style*="width: 100%"]');
+            if (btnAplicar) {
+                btnAplicar.addEventListener('click', aplicarFiltros);
+            }
+        }
+
+        // Función para aplicar todos los filtros
+        function aplicarFiltros() {
+            console.log('🎯 Aplicando filtros...');
+            
+            let productos = [...todosLosProductos];
+            
+            // 1. FILTRAR POR PRECIO
+            const precioMin = parseInt(document.querySelector('.price-inputs input[placeholder="Mín"]')?.value) || 0;
+            const precioMax = parseInt(document.querySelector('.price-inputs input[placeholder="Máx"]')?.value) || 9999;
+            
+            console.log('💰 Filtro precio:', { precioMin, precioMax });
+            
+            productos = productos.filter(producto => {
+                const precio = producto.precio_venta || producto.precioVenta || producto.precio || 0;
+                return precio >= precioMin && precio <= precioMax;
+            });
+            
+            // 2. FILTRAR POR COLORES SELECCIONADOS
+            const coloresSeleccionados = Array.from(document.querySelectorAll('.color-option.selected'))
+                .map(color => {
+                    const title = color.getAttribute('title');
+                    return title ? title.toLowerCase() : '';
+                })
+                .filter(color => color !== '');
+            
+            console.log('🎨 Colores seleccionados:', coloresSeleccionados);
+            
+            if (coloresSeleccionados.length > 0) {
+                productos = productos.filter(producto => 
+                    producto.color && coloresSeleccionados.includes(producto.color.toLowerCase())
+                );
+            }
+            
+            // 3. FILTRAR POR MARCAS SELECCIONADAS (extraer marca del nombre)
+            const marcasSeleccionadas = Array.from(document.querySelectorAll('.brand-option input[type="checkbox"]:checked'))
+                .map(cb => {
+                    const label = cb.parentElement.querySelector('label') || cb.parentElement;
+                    return label.textContent.trim().toLowerCase();
+                });
+            
+            console.log('🏷️ Marcas seleccionadas:', marcasSeleccionadas);
+            
+            if (marcasSeleccionadas.length > 0) {
+                productos = productos.filter(producto => {
+                    // Extraer marca del nombre del producto (primera palabra)
+                    const marcaProducto = obtenerMarcaProducto(producto).toLowerCase();
+                    return marcaProducto && marcasSeleccionadas.includes(marcaProducto);
+                });
+            }
+            
+            console.log('✅ Productos después de filtros:', productos);
+            
+            productosFiltrados = productos;
+            mostrarProductos(productos);
+            actualizarContadorProductos(productos.length);
+        }
+
+        // Actualizar contador de productos
+        function actualizarContadorProductos(cantidad) {
+            const contador = document.getElementById('productsCount');
+            if (contador) {
+                contador.textContent = `${cantidad} producto${cantidad !== 1 ? 's' : ''}`;
+            }
+        }
+
+        // Funciones auxiliares (puedes implementarlas después)
+        function vistaRapida(productoId) {
+            alert(`Vista rápida del producto ${productoId}`);
+        }
+
+        function agregarAlCarrito(productoId) {
+            alert(`Producto ${productoId} agregado al carrito`);
+            // Aquí integrarás con tu lógica del carrito
+        }
+
+        function agregarFavoritos(productoId) {
+            alert(`Producto ${productoId} agregado a favoritos`);
+        }
+
+        // Permitir búsqueda con Enter
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        buscarProductos();
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>

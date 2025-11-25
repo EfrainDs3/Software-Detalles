@@ -1,15 +1,25 @@
 package fisi.software.detalles.controller.api;
 
+import java.util.List;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
+
 import fisi.software.detalles.service.ProductoService;
 import fisi.software.detalles.service.ProductoService.CategoriaCodigo;
 import fisi.software.detalles.service.ProductoService.ProductoRequest;
 import fisi.software.detalles.service.ProductoService.ProductoResponse;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/productos")
@@ -23,13 +33,19 @@ public class ProductoApiController {
     }
 
     @GetMapping("/calzados")
-    public ResponseEntity<List<ProductoResponse>> listarCalzados() {
-        return ResponseEntity.ok(productoService.listarPorCategoria(CategoriaCodigo.CALZADO));
+    public ResponseEntity<List<ProductoResponse>> listarCalzados(
+            @RequestParam(name = "sexo", required = false) String sexo,
+            @RequestParam(name = "tipo", required = false) String tipo
+    ) {
+        return ResponseEntity.ok(productoService.listarPorCategoria(CategoriaCodigo.CALZADO, sexo, tipo));
     }
 
     @GetMapping("/accesorios")
-    public ResponseEntity<List<ProductoResponse>> listarAccesorios() {
-        return ResponseEntity.ok(productoService.listarPorCategoria(CategoriaCodigo.ACCESORIO));
+    public ResponseEntity<List<ProductoResponse>> listarAccesorios(
+            @RequestParam(name = "sexo", required = false) String sexo,
+            @RequestParam(name = "tipo", required = false) String tipo
+    ) {
+        return ResponseEntity.ok(productoService.listarPorCategoria(CategoriaCodigo.ACCESORIO, sexo, tipo));
     }
 
     @GetMapping("/calzados/{id}")

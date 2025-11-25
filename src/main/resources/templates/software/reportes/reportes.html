@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes - Sistema de Gestión</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <link rel="stylesheet" href="/css/reportes.css">
+</head>
+<body>
+
+    <div id="sidebar-container"></div>
+ 
+    <main class="main-content">
+
+        <div class="top-bar">
+            <div class="page-header">
+                <div class="breadcrumb">
+                    <a href="/dashboard" class="breadcrumb-link">
+                        Dashboard
+                    </a>
+                    <span class="breadcrumb-separator">/</span>
+                    <span class="breadcrumb-current">Reportes</span>
+                </div>
+                <h2 class="main-title">Módulo de Reportes</h2>
+                <p class="page-subtitle">Genera y exporta reportes del sistema</p>
+            </div>
+            <button class="logout-btn">
+                Cerrar Sesión
+            </button>
+        </div>
+
+        <!-- Selector de Tipo de Reporte -->
+        <div class="report-selector-container">
+            <div class="report-selector-header">
+                <i class="fas fa-chart-bar"></i>
+                <h3>Seleccionar Tipo de Reporte</h3>
+            </div>
+            <div class="report-types">
+                <button class="report-type-btn active" data-type="ventas">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Ventas</span>
+                </button>
+                <button class="report-type-btn" data-type="inventario">
+                    <i class="fas fa-boxes"></i>
+                    <span>Inventario</span>
+                </button>
+                <button class="report-type-btn" data-type="financiero">
+                    <i class="fas fa-dollar-sign"></i>
+                    <span>Financiero</span>
+                </button>
+                <button class="report-type-btn" data-type="clientes">
+                    <i class="fas fa-users"></i>
+                    <span>Clientes</span>
+                </button>
+                <button class="report-type-btn" data-type="compras">
+                    <i class="fas fa-truck"></i>
+                    <span>Compras</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Panel de Filtros -->
+        <div class="filters-panel">
+            <div class="filters-header">
+                <i class="fas fa-filter"></i>
+                <h4>Filtros</h4>
+                <button class="filters-toggle" id="toggleFilters">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+            <div class="filters-content" id="filtersContent">
+                <div class="filters-row">
+                    <div class="filter-group">
+                        <label for="fechaInicio">Fecha Inicio</label>
+                        <input type="date" id="fechaInicio" class="filter-input">
+                    </div>
+                    <div class="filter-group">
+                        <label for="fechaFin">Fecha Fin</label>
+                        <input type="date" id="fechaFin" class="filter-input">
+                    </div>
+                    <div class="filter-group" id="almacenFilter" style="display: none;">
+                        <label for="almacenId">Almacén</label>
+                        <select id="almacenId" class="filter-input">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div class="filter-group" id="productoFilter" style="display: none;">
+                        <label for="productoId">Producto</label>
+                        <select id="productoId" class="filter-input">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div class="filter-group" id="clienteFilter" style="display: none;">
+                        <label for="clienteId">Cliente</label>
+                        <select id="clienteId" class="filter-input">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div class="filter-group" id="proveedorFilter" style="display: none;">
+                        <label for="proveedorId">Proveedor</label>
+                        <select id="proveedorId" class="filter-input">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="filters-actions">
+                    <button class="btn btn-secondary" id="limpiarFiltros">
+                        <i class="fas fa-eraser"></i>
+                        Limpiar
+                    </button>
+                    <button class="btn btn-primary" id="generarReporte">
+                        <i class="fas fa-chart-line"></i>
+                        Generar Reporte
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Área de Visualización -->
+        <div class="report-visualization" id="reportVisualization" style="display: none;">
+            
+            <!-- Resumen General -->
+            <div class="report-summary" id="reportSummary">
+                <!-- Se llenará dinámicamente -->
+            </div>
+
+            <!-- Gráfico Circular -->
+            <div class="chart-container">
+                <h4 class="chart-title" id="chartTitle">Distribución</h4>
+                <canvas id="reportChart"></canvas>
+            </div>
+
+            <!-- Tabla de Datos -->
+            <div class="data-table-container">
+                <h4 class="table-title" id="tableTitle">Detalles</h4>
+                <div class="table-wrapper">
+                    <table class="report-table" id="reportTable">
+                        <thead id="reportTableHead">
+                            <!-- Se llenará dinámicamente -->
+                        </thead>
+                        <tbody id="reportTableBody">
+                            <!-- Se llenará dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Botón de Exportación -->
+            <div class="export-actions">
+                <button class="btn btn-success btn-export" id="exportarPDF">
+                    <i class="fas fa-file-pdf"></i>
+                    Exportar a PDF
+                </button>
+            </div>
+        </div>
+
+        <!-- Estado Vacío -->
+        <div class="empty-state" id="emptyState">
+            <i class="fas fa-chart-pie"></i>
+            <h3>Selecciona un tipo de reporte y aplica filtros</h3>
+            <p>Haz clic en "Generar Reporte" para visualizar los datos</p>
+        </div>
+
+        <!-- Indicador de Carga -->
+        <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Generando reporte...</p>
+            </div>
+        </div>
+
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="/js/sidebar.js"></script>
+    <script src="/js/logout.js"></script>
+    <script src="/js/reportes.js"></script>
+</body>
+</html>

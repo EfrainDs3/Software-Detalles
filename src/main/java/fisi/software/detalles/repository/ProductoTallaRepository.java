@@ -13,9 +13,12 @@ import java.util.List;
 @Repository
 public interface ProductoTallaRepository extends JpaRepository<ProductoTalla, ProductoTallaId> {
 
-    @Query("SELECT t FROM ProductoTalla t WHERE t.producto.id = :productoId")
-    List<ProductoTalla> findByProductoId(@Param("productoId") Long productoId);
+    @Query("SELECT t FROM ProductoTalla t WHERE t.producto.id = :productoId ORDER BY UPPER(t.id.talla)")
+    List<ProductoTalla> findByProductoIdOrderByNombre(@Param("productoId") Long productoId);
 
     @Query("SELECT t FROM ProductoTalla t WHERE t.producto.id IN :productoIds")
     List<ProductoTalla> findByProductoIds(@Param("productoIds") Collection<Long> productoIds);
+
+    @Query("SELECT COUNT(t) > 0 FROM ProductoTalla t WHERE t.producto.id = :productoId")
+    boolean existsByProductoId(@Param("productoId") Long productoId);
 }

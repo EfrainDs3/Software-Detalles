@@ -90,6 +90,8 @@ public class VentasController {
         try {
             Map<String, Object> response = ventaService.registrarNuevaVenta(ventaDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
             System.err.println("Error al registrar la venta: " + e.getMessage());
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
