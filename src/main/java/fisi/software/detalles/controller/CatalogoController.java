@@ -25,7 +25,7 @@ public class CatalogoController {
     // ========================
 
     @GetMapping("/marcas")
-    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_INVENTARIO, T(fisi.software.detalles.security.Permisos).VER_CATALOGOS_MAESTROS, T(fisi.software.detalles.security.Permisos).MODULO_CATALOGOS, T(fisi.software.detalles.security.Permisos).MODULO_PRODUCTOS)")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<MarcaResponse>> listarMarcas() {
         return ResponseEntity.ok(catalogoService.listarMarcas());
     }
@@ -54,7 +54,7 @@ public class CatalogoController {
     // ========================
 
     @GetMapping("/modelos")
-    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_INVENTARIO, T(fisi.software.detalles.security.Permisos).VER_CATALOGOS_MAESTROS, T(fisi.software.detalles.security.Permisos).MODULO_CATALOGOS, T(fisi.software.detalles.security.Permisos).MODULO_PRODUCTOS)")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<ModeloResponse>> listarModelos() {
         return ResponseEntity.ok(catalogoService.listarModelos());
     }
@@ -83,7 +83,7 @@ public class CatalogoController {
     // ========================
 
     @GetMapping("/materiales")
-    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_INVENTARIO, T(fisi.software.detalles.security.Permisos).VER_CATALOGOS_MAESTROS, T(fisi.software.detalles.security.Permisos).MODULO_CATALOGOS, T(fisi.software.detalles.security.Permisos).MODULO_PRODUCTOS)")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<MaterialResponse>> listarMateriales() {
         return ResponseEntity.ok(catalogoService.listarMateriales());
     }
@@ -96,7 +96,8 @@ public class CatalogoController {
 
     @PutMapping("/materiales/{id}")
     @PreAuthorize("hasAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_INVENTARIO)")
-    public ResponseEntity<MaterialResponse> actualizarMaterial(@PathVariable Long id, @RequestBody MaterialRequest request) {
+    public ResponseEntity<MaterialResponse> actualizarMaterial(@PathVariable Long id,
+            @RequestBody MaterialRequest request) {
         return ResponseEntity.ok(catalogoService.actualizarMaterial(id, request));
     }
 
@@ -112,7 +113,7 @@ public class CatalogoController {
     // ========================
 
     @GetMapping("/unidades")
-    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_INVENTARIO, T(fisi.software.detalles.security.Permisos).VER_CATALOGOS_MAESTROS, T(fisi.software.detalles.security.Permisos).MODULO_CATALOGOS, T(fisi.software.detalles.security.Permisos).MODULO_PRODUCTOS)")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<UnidadResponse>> listarUnidades() {
         return ResponseEntity.ok(catalogoService.listarUnidades());
     }
@@ -141,7 +142,7 @@ public class CatalogoController {
     // ========================
 
     @GetMapping("/tipos")
-    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_INVENTARIO, T(fisi.software.detalles.security.Permisos).VER_CATALOGOS_MAESTROS, T(fisi.software.detalles.security.Permisos).MODULO_CATALOGOS, T(fisi.software.detalles.security.Permisos).MODULO_PRODUCTOS)")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<TipoResponse>> listarTipos() {
         return ResponseEntity.ok(catalogoService.listarTipos());
     }
@@ -170,7 +171,7 @@ public class CatalogoController {
     // ========================
 
     @GetMapping("/categorias")
-    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_INVENTARIO, T(fisi.software.detalles.security.Permisos).VER_CATALOGOS_MAESTROS, T(fisi.software.detalles.security.Permisos).MODULO_CATALOGOS, T(fisi.software.detalles.security.Permisos).MODULO_PRODUCTOS)")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<Map<String, Object>>> listarCategorias() {
         return ResponseEntity.ok(catalogoService.listarCategoriasFijas());
     }

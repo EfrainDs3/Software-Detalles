@@ -28,7 +28,7 @@ public class ProveedorController {
     @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_COMPRAS, T(fisi.software.detalles.security.Permisos).VER_COMPRAS, T(fisi.software.detalles.security.Permisos).VER_PROVEEDORES, T(fisi.software.detalles.security.Permisos).MODULO_COMPRAS, T(fisi.software.detalles.security.Permisos).MODULO_PROVEEDORES)")
     public String showProveedoresView(Model model, Authentication authentication) {
         boolean puedeGestionarCompras = authentication != null && authentication.getAuthorities().stream()
-            .anyMatch(authority -> Permisos.GESTIONAR_COMPRAS.equals(authority.getAuthority()));
+                .anyMatch(authority -> Permisos.GESTIONAR_COMPRAS.equals(authority.getAuthority()));
         model.addAttribute("puedeGestionarCompras", puedeGestionarCompras);
         return "software/compras/proveedores";
     }
@@ -36,7 +36,7 @@ public class ProveedorController {
     // GET: Obtener todos los proveedores
     @GetMapping("/api/proveedores")
     @ResponseBody
-    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_COMPRAS, T(fisi.software.detalles.security.Permisos).VER_COMPRAS, T(fisi.software.detalles.security.Permisos).VER_PROVEEDORES, T(fisi.software.detalles.security.Permisos).MODULO_COMPRAS, T(fisi.software.detalles.security.Permisos).MODULO_PROVEEDORES)")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<Proveedor>> getAllProveedores() {
         try {
             List<Proveedor> proveedores = proveedorService.getAllProveedores();
@@ -68,11 +68,11 @@ public class ProveedorController {
         try {
             // Intentar buscar por diferentes criterios
             List<Proveedor> proveedores = proveedorService.searchByRazonSocial(query);
-            
+
             if (proveedores.isEmpty()) {
                 proveedores = proveedorService.searchByNombreComercial(query);
             }
-            
+
             return ResponseEntity.ok(proveedores);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -123,7 +123,7 @@ public class ProveedorController {
             response.put("success", true);
             response.put("message", "Proveedor creado exitosamente");
             response.put("data", nuevoProveedor);
-            
+
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
             response.put("success", false);
@@ -137,7 +137,7 @@ public class ProveedorController {
     @ResponseBody
     @PreAuthorize("hasAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_COMPRAS)")
     public ResponseEntity<Map<String, Object>> updateProveedor(
-            @PathVariable Integer id, 
+            @PathVariable Integer id,
             @RequestBody Proveedor proveedor) {
         Map<String, Object> response = new HashMap<>();
         try {
@@ -158,7 +158,7 @@ public class ProveedorController {
             response.put("success", true);
             response.put("message", "Proveedor actualizado exitosamente");
             response.put("data", proveedorActualizado);
-            
+
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             response.put("success", false);
