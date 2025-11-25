@@ -19,10 +19,10 @@ function loadSidebar(containerId) {
         .then(html => {
             container.innerHTML = html;
             filterSidebarByAuthorities(container);
-            
+
             // Configurar la página activa después de cargar
             setActivePage();
-            
+
             // Agregar manejadores de click
             addSidebarClickHandlers();
         })
@@ -180,7 +180,7 @@ function closeAllSubmenus(except = null) {
 function setActivePage() {
     const currentPage = getCurrentPage();
     const navLinks = document.querySelectorAll('.nav-menu a');
-    
+
     // Primero remover todas las clases activas
     navLinks.forEach(link => {
         link.classList.remove('active', 'active-parent');
@@ -191,21 +191,21 @@ function setActivePage() {
 
     // Cerrar todos los submenus
     closeAllSubmenus();
-    
+
     navLinks.forEach(link => {
         const pageData = link.getAttribute('data-page');
         if (pageData === currentPage) {
             link.classList.add('active');
-            
+
             // Si es un item del submenu, solo expandir el parent (sin marcarlo como activo)
             const parentLi = link.closest('li');
             const isInSubmenu = parentLi && parentLi.closest('.submenu');
-            
+
             if (isInSubmenu) {
                 // Encontrar el parent menu item
                 const parentSubmenu = parentLi.closest('.submenu');
                 const parentMenuItem = parentSubmenu.previousElementSibling;
-                
+
                 if (parentMenuItem && parentMenuItem.classList.contains('has-submenu')) {
                     // Solo agregar 'open' para expandir, NO 'active'
                     parentMenuItem.classList.add('open', 'active-parent');
@@ -269,9 +269,9 @@ function getCurrentPage() {
 // Agregar controladores de clic a los enlaces de la barra lateral
 function addSidebarClickHandlers() {
     const navLinks = document.querySelectorAll('.nav-menu a');
-    
+
     navLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
+        link.addEventListener('click', function (e) {
             const hasSubmenu = this.classList.contains('has-submenu');
             const parentSubmenu = this.closest('.submenu');
 
@@ -419,7 +419,7 @@ function getFallbackSidebar() {
                         </a></li>
                     </ul>
                 </li>
-                <li><a href="#" data-page="reportes" data-module="MODULO_REPORTES" data-authorities="VER_REPORTES,GENERAR_REPORTES,MODULO_REPORTES">
+                <li><a href="/reportes" data-page="reportes" data-module="MODULO_REPORTES" data-authorities="VER_REPORTES,GENERAR_REPORTES,MODULO_REPORTES">
                     <i class="fas fa-chart-bar"></i>
                     Reportes
                 </a></li>
@@ -433,31 +433,31 @@ function getFallbackSidebar() {
 function updateSidebarNavigation(menuItems) {
     const navMenu = document.querySelector('.nav-menu');
     if (!navMenu) return;
-    
+
     navMenu.innerHTML = '';
-    
+
     menuItems.forEach(item => {
         const li = document.createElement('li');
         const a = document.createElement('a');
-        
+
         a.href = item.href;
         a.setAttribute('data-page', item.page);
         a.textContent = item.text;
-        
+
         if (item.active) {
             a.classList.add('active');
         }
-        
+
         li.appendChild(a);
         navMenu.appendChild(li);
     });
-    
+
     // Re-add click handlers
     addSidebarClickHandlers();
 }
 
 // Initialize sidebar when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Auto-load sidebar if container exists
     const sidebarContainer = document.getElementById('sidebar-container');
     if (sidebarContainer) {
