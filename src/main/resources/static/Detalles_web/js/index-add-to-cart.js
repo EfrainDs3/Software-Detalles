@@ -14,78 +14,65 @@
  */
 
 (function () {
-  const USE_API_FLOW = true; // true: llama a /api/cart/items; false: redirige a /carrito/agregar/{id}
-  const LOGIN_URL = '/Detalles_web/login/logueo.html';
 
-  function addToCartApi(productId) {
-    return fetch('/api/cart/items', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ productId, qty: 1 }),
-      credentials: 'same-origin'
-    });
-  }
+  const LOGIN_URL = "/Detalles_web/login/logueo.html";
 
-  function addToCartServerRedirect(productId) {
-    window.location.href = '/carrito/agregar/' + encodeURIComponent(productId);
-  }
+  // Lógica REAL de tu backend
+  async function agregarAlCarrito(productId, userId) {
 
-  function wireButtons(isAuth) {
-    const buttons = document.querySelectorAll('.add-to-cart');
-    buttons.forEach((btn) => {
-      // Evitar listeners duplicados si el script se carga más de una vez
-      if (btn.dataset.boundAddToCart === '1') return;
-      btn.dataset.boundAddToCart = '1';
-
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        const productId = btn.getAttribute('data-id');
-        if (!productId) {
-          console.warn('Botón Add to Cart sin data-id');
-          return;
-        }
-
-        if (!isAuth) {
-          window.location.href = LOGIN_URL;
-          return;
-        }
-
-        if (USE_API_FLOW) {
-          addToCartApi(productId)
-            .then((res) => {
-              if (res.status === 401) {
-                window.location.href = LOGIN_URL;
-                return;
-              }
-              if (!res.ok) {
-                alert('Error al agregar al carrito');
-                return;
-              }
-              // Feedback: aquí puedes actualizar contador del carrito si tienes función global updateCartCounter()
-              if (typeof updateCartCounter === 'function') {
-                try { updateCartCounter(); } catch (_) {}
-              }
-              // Opcional: notificación visual
-              // alert('Producto añadido al carrito');
-            })
-            .catch(() => alert('Error de red'));
-        } else {
-          addToCartServerRedirect(productId);
-        }
+      const res = await fetch(`/api/carrito/${userId}/agregar`, {
+          credentials: "include",
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+              idProducto: productId,
+              cantidad: 1
+          })
       });
-    });
+
+      if (!res.ok) {
+          alert("Error al agregar al carrito");
+          return;
+      }
+
+      alert("Producto agregado al carrito");
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
-    // Consultar estado de autenticación
-    fetch('/api/auth/status', { credentials: 'same-origin' })
-      .then((r) => (r.ok ? r.json() : { authenticated: false }))
-      .then((d) => {
-        const isAuth = !!d.authenticated;
-        wireButtons(isAuth);
-      })
-      .catch(() => {
-        wireButtons(false);
+
+  function wireButtons(authData) {
+
+      const isAuth = authData.authenticated === true;
+
+      document.querySelectorAll(".add-to-cart").forEach(btn => {
+
+          if (btn.dataset.bound === "1") return;
+          btn.dataset.bound = "1";
+
+          btn.addEventListener("click", (e) => {
+              e.preventDefault();
+
+              const productId = btn.getAttribute("data-id");
+
+              if (!isAuth) {
+                  // Usuario no logueado → login
+                  window.location.href = LOGIN_URL;
+                  return;
+              }
+
+              // Usuario logueado → backend real
+              agregarAlCarrito(productId, authData.userId);
+          });
+
       });
+  }
+
+
+  document.addEventListener("DOMContentLoaded", () => {
+
+      fetch("/api/auth/status", { credentials: "include" })
+          .then(r => (r.ok ? r.json() : { authenticated: false }))
+          .then(data => wireButtons(data))
+          .catch(() => wireButtons({ authenticated: false }));
   });
+
 })();

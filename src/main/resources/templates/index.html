@@ -115,7 +115,7 @@
                     <a href="#" class="nav-icon search-icon"><i class="fas fa-search"></i></a>
                     <!-- Cambiado: abrir el login estático dentro de Detalles_web/login/logueo.html -->
                     <a th:href="@{/Detalles_web/login/logueo.html}" href="/Detalles_web/login/logueo.html" class="nav-icon"><i class="fas fa-user"></i></a>
-                    <a th:href="@{/carrito}" class="nav-icon cart-icon">
+                    <a th:href="@{/Detalles_web/carrito/carritos.html}" class="nav-icon cart-icon">
                         <i class="fas fa-shopping-bag"></i>
                         <span class="cart-count">0</span>
                     </a>
@@ -229,5 +229,8 @@
     <!-- ✅ JS desde static/Detalles_web -->
     <script th:src="@{/Detalles_web/js/script.js}" src="/Detalles_web/js/script.js"></script>
     <script th:src="@{/Detalles_web/js/carrito.js}" src="/Detalles_web/js/carrito.js"></script>
+    <script src="/Detalles_web/js/auth-status.js"></script>
+    <script src="/Detalles_web/js/cart-count.js"></script>
+
 </body>
 </html>

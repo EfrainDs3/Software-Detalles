@@ -35,24 +35,39 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // Habilitar CORS
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            
-            // Deshabilitar CSRF para desarrollo
             .csrf(csrf -> csrf.disable())
-            
-            // Configurar autorización
+
             .authorizeHttpRequests(authorize -> {
-                // Recursos públicos
-                authorize.requestMatchers("/css/**", "/js/**", "/img/**", "/images/**", "/login", "/forgot-password", "/forgot-password/**").permitAll();
-                authorize.requestMatchers("/api/auth/login", "/api/auth/forgot-password/**").permitAll();
+
+                // ============================
+                //  RUTAS PÚBLICAS PARA LA WEB
+                // ============================
+                authorize.requestMatchers(
+                    "/", 
+                    "/index",
+                    "/Detalles_web/**", 
+                    "/carrito/**",  
+                    "/cliente/**",
+                    "/css/**",
+                    "/js/**",
+                    "/img/**",
+                    "/images/**"
+                ).permitAll();
+
+                // API pública solo para login / registro web
+                authorize.requestMatchers(
+                    "/api/auth/**"
+                ).permitAll();
+
+                // Productos públicos
                 authorize.requestMatchers("/api/productos/**").permitAll();
 
-                // INICIOVC: rutas públicas para la vista cliente
-                authorize.requestMatchers("/", "/index", "/cliente/**", "/Detalles_web/**").permitAll();
-                // FIN INICIOVC
 
-                // Rutas protegidas por permisos específicos
+                // ========================================
+                //  RUTAS DEL SISTEMA (ADMIN) - PROTEGIDAS
+                // ========================================
+
                 authorize.requestMatchers("/dashboard", "/dashboard/**").hasAnyAuthority(
                     Permisos.ACCEDER_AL_DASHBOARD,
                     Permisos.MODULO_DASHBOARD
@@ -124,7 +139,6 @@ public class SecurityConfig {
 
                 authorize.requestMatchers("/software/**").authenticated();
 
-                // API de gestión de usuarios, roles y permisos con privilegios finos
                 authorize.requestMatchers(HttpMethod.GET, "/api/usuarios/**").hasAnyAuthority(
                     Permisos.GESTIONAR_USUARIOS,
                     Permisos.VER_USUARIOS,
@@ -153,30 +167,44 @@ public class SecurityConfig {
                 authorize.requestMatchers(HttpMethod.PUT, "/api/permisos/**").hasAuthority(Permisos.GESTIONAR_PERMISOS);
                 authorize.requestMatchers(HttpMethod.DELETE, "/api/permisos/**").hasAuthority(Permisos.GESTIONAR_PERMISOS);
 
+                // TODA API ADMINISTRATIVA EXIGE LOGIN
                 authorize.requestMatchers("/api/**").authenticated();
+
+                // TODO lo que no sea de la web → protegido
                 authorize.anyRequest().authenticated();
             })
-            
-            // Manejo de excepciones personalizado
-            .exceptionHandling(exception ->
-                exception.accessDeniedHandler(accessDeniedHandler)
+
+            .exceptionHandling(ex -> {
+                ex.accessDeniedHandler(accessDeniedHandler); 
+                ex.accessDeniedPage("/login-cliente");         
+            })
+
+
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
             )
 
-            // Configurar sesiones
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-            )
-            
-            // Configurar formulario de login
             .formLogin(form -> form
                 .loginPage("/login")
                 .loginProcessingUrl("/auth/login")
-                .defaultSuccessUrl("/dashboard", true)
+                .successHandler((request, response, authentication) -> {
+
+                    // Detectar si el login viene desde la página web
+                    String referer = request.getHeader("Referer");
+
+                    if (referer != null && referer.contains("/Detalles_web")) {
+                        // Redirige a tu página web
+                        response.sendRedirect("/index");
+                        return;
+                    }
+
+                    // Si no viene desde la página web → es el login del sistema
+                    response.sendRedirect("/dashboard");
+                })
                 .failureUrl("/login?error=true")
                 .permitAll()
             )
-            
-            // Configurar logout
+
             .logout(logout -> logout
                 .logoutUrl("/auth/logout")
                 .logoutSuccessUrl("/login?logout=true")
@@ -186,11 +214,10 @@ public class SecurityConfig {
             );
 
         http.userDetailsService(userDetailsService);
-            
+
         return http.build();
     }
 
-    // Configuración de CORS
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -198,13 +225,12 @@ public class SecurityConfig {
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", configuration);
         return source;
     }
 
-    // AuthenticationManager
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();

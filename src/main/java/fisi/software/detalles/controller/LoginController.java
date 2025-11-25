@@ -13,16 +13,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class LoginController {
     
     /**
-     * Ruta raíz - Redirige a la página de login
-     * 
-     * @return Redirección al login
-     */
-    @GetMapping("/")
-    public String index() {
-        return "redirect:/login";
-    }
-    
-    /**
      * Muestra la página de login
      * 
      * @return Vista de login
