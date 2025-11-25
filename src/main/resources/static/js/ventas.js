@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const facturaFieldsDiv = document.getElementById('facturaFields');
     const ventaRUCInput = document.getElementById('ventaRUC');
     const ventaRazonSocialInput = document.getElementById('ventaRazonSocial');
-    
+
     // Referencias de los campos del formulario
     const ventaIdInput = document.getElementById('ventaId');
     const ventaClienteInput = document.getElementById('ventaCliente');
@@ -40,212 +40,212 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // CÓDIGO PARA COPIAR Y PEGAR EN /js/ventas.js (Reemplaza la sección de Cliente anterior)
 
-// ======================================================
-// CONSTANTES DE CLIENTE
-// ======================================================
+    // ======================================================
+    // CONSTANTES DE CLIENTE
+    // ======================================================
 
-const clienteTipoDocInput = document.getElementById('clienteTipoDoc');
-const clienteNumDocInput = document.getElementById('clienteNumDoc');
-const buscarClienteBtn = document.getElementById('buscarClienteBtn');
-const clienteInfoDiv = document.getElementById('clienteInfo');
-const nombreClienteResultado = document.getElementById('nombreClienteResultado');
-const registrarClienteBtn = document.getElementById('registrarClienteBtn');
-const idClienteVentaInput = document.getElementById('idClienteVenta'); 
+    const clienteTipoDocInput = document.getElementById('clienteTipoDoc');
+    const clienteNumDocInput = document.getElementById('clienteNumDoc');
+    const buscarClienteBtn = document.getElementById('buscarClienteBtn');
+    const clienteInfoDiv = document.getElementById('clienteInfo');
+    const nombreClienteResultado = document.getElementById('nombreClienteResultado');
+    const registrarClienteBtn = document.getElementById('registrarClienteBtn');
+    const idClienteVentaInput = document.getElementById('idClienteVenta');
 
-// Constantes del Modal
-const clienteModal = document.getElementById('clienteModal');
-const cerrarModalClienteBtn = document.getElementById('cerrarModalClienteBtn');
-const cerrarModalClienteBtnTop = document.getElementById('cerrarModalClienteBtnTop');
-const guardarClienteBtn = document.getElementById('guardarClienteBtn');
-const modalClienteTipoDoc = document.getElementById('modalClienteTipoDoc');
-const modalClienteNumDoc = document.getElementById('modalClienteNumDoc');
-const modalClienteNombres = document.getElementById('modalClienteNombres');
-const modalClienteApellidos = document.getElementById('modalClienteApellidos');
+    // Constantes del Modal
+    const clienteModal = document.getElementById('clienteModal');
+    const cerrarModalClienteBtn = document.getElementById('cerrarModalClienteBtn');
+    const cerrarModalClienteBtnTop = document.getElementById('cerrarModalClienteBtnTop');
+    const guardarClienteBtn = document.getElementById('guardarClienteBtn');
+    const modalClienteTipoDoc = document.getElementById('modalClienteTipoDoc');
+    const modalClienteNumDoc = document.getElementById('modalClienteNumDoc');
+    const modalClienteNombres = document.getElementById('modalClienteNombres');
+    const modalClienteApellidos = document.getElementById('modalClienteApellidos');
 
-// ✅ FUNCIÓN PARA ESTABLECER LA FECHA ACTUAL
-function setFechaActual() {
-    const hoy = new Date();
-    const year = hoy.getFullYear();
-    const mes = String(hoy.getMonth() + 1).padStart(2, '0');
-    const dia = String(hoy.getDate()).padStart(2, '0');
-    const fechaFormateada = `${year}-${mes}-${dia}`;
-    
-    ventaFechaInput.value = fechaFormateada;
-}
+    // ✅ FUNCIÓN PARA ESTABLECER LA FECHA ACTUAL
+    function setFechaActual() {
+        const hoy = new Date();
+        const year = hoy.getFullYear();
+        const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+        const dia = String(hoy.getDate()).padStart(2, '0');
+        const fechaFormateada = `${year}-${mes}-${dia}`;
 
-// Escuchadores de Eventos
-buscarClienteBtn.addEventListener('click', buscarClientePorDocumento);
-registrarClienteBtn.addEventListener('click', () => {
-    // 1. Prepara el modal con los datos de búsqueda
-    modalClienteTipoDoc.value = clienteTipoDocInput.value;
-    modalClienteNumDoc.value = clienteNumDocInput.value.trim();
-    modalClienteNombres.value = '';
-    modalClienteApellidos.value = '';
-    
-    // 2. Abre el modal
-    clienteModal.style.display = 'block';
-});
-
-cerrarModalClienteBtn.addEventListener('click', () => { clienteModal.style.display = 'none'; });
-cerrarModalClienteBtnTop.addEventListener('click', () => { clienteModal.style.display = 'none'; });
-guardarClienteBtn.addEventListener('click', registrarCliente);
-
-
-// ======================================================
-// LÓGICA DE BÚSQUEDA
-// ======================================================
-
-async function buscarClientePorDocumento() {
-    const idTipoDoc = clienteTipoDocInput.value;
-    const numDoc = clienteNumDocInput.value.trim();
-    
-    if (!numDoc || idTipoDoc === '0') {
-        alert("Seleccione un tipo y número de documento válidos.");
-        return;
+        ventaFechaInput.value = fechaFormateada;
     }
 
-    // Reset de estado visual
-    idClienteVentaInput.value = '1';
-    nombreClienteResultado.textContent = 'Buscando...';
-    clienteInfoDiv.style.display = 'block';
-    clienteInfoDiv.className = 'alert mt-2 alert-warning'; 
-    registrarClienteBtn.style.display = 'none';
+    // Escuchadores de Eventos
+    buscarClienteBtn.addEventListener('click', buscarClientePorDocumento);
+    registrarClienteBtn.addEventListener('click', () => {
+        // 1. Prepara el modal con los datos de búsqueda
+        modalClienteTipoDoc.value = clienteTipoDocInput.value;
+        modalClienteNumDoc.value = clienteNumDocInput.value.trim();
+        modalClienteNombres.value = '';
+        modalClienteApellidos.value = '';
 
-    try {
-        const response = await fetch(`/clientes/api/buscar-documento?idTipoDoc=${idTipoDoc}&numDoc=${numDoc}`);
+        // 2. Abre el modal
+        clienteModal.style.display = 'block';
+    });
 
-        if (response.ok) {
-            const cliente = await response.json();
-            
-            // ✅ Cliente ENCONTRADO
-            idClienteVentaInput.value = cliente.idCliente;
-            
-            const nombreCompleto = `${cliente.nombres || ''} ${cliente.apellidos || ''}`.trim();
-            nombreClienteResultado.textContent = nombreCompleto || `Cliente #ID ${cliente.idCliente}`;
-            
-            // ✅ AUTO-RELLENAR EL CAMPO "CLIENTE" DEL FORMULARIO
-            ventaClienteInput.value = nombreCompleto || `Doc: ${cliente.nombre}`;
+    cerrarModalClienteBtn.addEventListener('click', () => { clienteModal.style.display = 'none'; });
+    cerrarModalClienteBtnTop.addEventListener('click', () => { clienteModal.style.display = 'none'; });
+    guardarClienteBtn.addEventListener('click', registrarCliente);
 
-            clienteInfoDiv.className = 'alert mt-2 alert-success';
-            registrarClienteBtn.style.display = 'none';
-            clienteTipoDocInput.disabled = true;
-            clienteNumDocInput.disabled = true;
-            buscarClienteBtn.disabled = true;
 
-        } else if (response.status === 404) {
-            // Cliente NO ENCONTRADO
-            nombreClienteResultado.textContent = `No existe cliente con ese documento.`;
-            clienteInfoDiv.className = 'alert mt-2 alert-danger';
-            registrarClienteBtn.style.display = 'block';
-            
-            // ✅ LIMPIAR EL CAMPO CLIENTE
-            ventaClienteInput.value = '';
+    // ======================================================
+    // LÓGICA DE BÚSQUEDA
+    // ======================================================
 
-        } else {
-            nombreClienteResultado.textContent = 'Error al buscar cliente. (Servidor)';
+    async function buscarClientePorDocumento() {
+        const idTipoDoc = clienteTipoDocInput.value;
+        const numDoc = clienteNumDocInput.value.trim();
+
+        if (!numDoc || idTipoDoc === '0') {
+            alert("Seleccione un tipo y número de documento válidos.");
+            return;
+        }
+
+        // Reset de estado visual
+        idClienteVentaInput.value = '1';
+        nombreClienteResultado.textContent = 'Buscando...';
+        clienteInfoDiv.style.display = 'block';
+        clienteInfoDiv.className = 'alert mt-2 alert-warning';
+        registrarClienteBtn.style.display = 'none';
+
+        try {
+            const response = await fetch(`/clientes/api/buscar-documento?idTipoDoc=${idTipoDoc}&numDoc=${numDoc}`);
+
+            if (response.ok) {
+                const cliente = await response.json();
+
+                // ✅ Cliente ENCONTRADO
+                idClienteVentaInput.value = cliente.idCliente;
+
+                const nombreCompleto = `${cliente.nombres || ''} ${cliente.apellidos || ''}`.trim();
+                nombreClienteResultado.textContent = nombreCompleto || `Cliente #ID ${cliente.idCliente}`;
+
+                // ✅ AUTO-RELLENAR EL CAMPO "CLIENTE" DEL FORMULARIO
+                ventaClienteInput.value = nombreCompleto || `Doc: ${cliente.nombre}`;
+
+                clienteInfoDiv.className = 'alert mt-2 alert-success';
+                registrarClienteBtn.style.display = 'none';
+                clienteTipoDocInput.disabled = true;
+                clienteNumDocInput.disabled = true;
+                buscarClienteBtn.disabled = true;
+
+            } else if (response.status === 404) {
+                // Cliente NO ENCONTRADO
+                nombreClienteResultado.textContent = `No existe cliente con ese documento.`;
+                clienteInfoDiv.className = 'alert mt-2 alert-danger';
+                registrarClienteBtn.style.display = 'block';
+
+                // ✅ LIMPIAR EL CAMPO CLIENTE
+                ventaClienteInput.value = '';
+
+            } else {
+                nombreClienteResultado.textContent = 'Error al buscar cliente. (Servidor)';
+                clienteInfoDiv.className = 'alert mt-2 alert-warning';
+            }
+        } catch (error) {
+            console.error('Error de conexión en búsqueda de cliente:', error);
+            nombreClienteResultado.textContent = 'Error de conexión con el servidor.';
             clienteInfoDiv.className = 'alert mt-2 alert-warning';
         }
-    } catch (error) {
-        console.error('Error de conexión en búsqueda de cliente:', error);
-        nombreClienteResultado.textContent = 'Error de conexión con el servidor.';
-        clienteInfoDiv.className = 'alert mt-2 alert-warning';
-    }
-}
-
-
-// ======================================================
-// LÓGICA DE REGISTRO RÁPIDO
-// ======================================================
-
-async function registrarCliente() {
-    const idTipoDoc = modalClienteTipoDoc.value;
-    const numDoc = modalClienteNumDoc.value.trim();
-    const nombres = modalClienteNombres.value.trim();
-    const apellidos = modalClienteApellidos.value.trim();
-
-    // ✅ VALIDACIÓN MANUAL
-    if (!idTipoDoc || idTipoDoc === '0') {
-        alert("❌ Debe seleccionar un Tipo de Documento.");
-        modalClienteTipoDoc.focus();
-        return;
-    }
-    
-    if (!numDoc) {
-        alert("❌ El Número de Documento es obligatorio.");
-        modalClienteNumDoc.focus();
-        return;
-    }
-    
-    if (!nombres) {
-        alert("❌ El campo Nombres/Razón Social es obligatorio.");
-        modalClienteNombres.focus();
-        return;
     }
 
-    const clienteData = {
-        idTipoDocumento: parseInt(idTipoDoc),
-        numeroDocumento: numDoc,
-        nombres: nombres,
-        apellidos: apellidos
-    };
 
-    try {
-        const response = await fetch('/clientes/api', { 
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(clienteData)
-        });
+    // ======================================================
+    // LÓGICA DE REGISTRO RÁPIDO
+    // ======================================================
 
-        if (response.status === 201) {
-            const nuevoCliente = await response.json();
-            
-            // 1. Cierra el modal
-            clienteModal.style.display = 'none';
-            
-            // 2. Limpia los campos del modal
-            modalClienteNumDoc.value = '';
-            modalClienteNombres.value = '';
-            modalClienteApellidos.value = '';
-            
-            // 3. Asigna el nuevo cliente al formulario de venta
-            clienteTipoDocInput.value = nuevoCliente.tipoDocumento.idTipoDocumento; 
-            clienteNumDocInput.value = nuevoCliente.numeroDocumento;
-            
-            // 4. Ejecuta la búsqueda para actualizar el estado
-            await buscarClientePorDocumento();
-            
-            alert("✅ Cliente registrado y seleccionado correctamente.");
-        } else {
-            const error = await response.json();
-            alert(`❌ Error al registrar el cliente: ${error.error || 'Datos inválidos o ya existe un cliente con ese documento.'}`);
+    async function registrarCliente() {
+        const idTipoDoc = modalClienteTipoDoc.value;
+        const numDoc = modalClienteNumDoc.value.trim();
+        const nombres = modalClienteNombres.value.trim();
+        const apellidos = modalClienteApellidos.value.trim();
+
+        // ✅ VALIDACIÓN MANUAL
+        if (!idTipoDoc || idTipoDoc === '0') {
+            alert("❌ Debe seleccionar un Tipo de Documento.");
+            modalClienteTipoDoc.focus();
+            return;
         }
-    } catch (error) {
-        console.error('Error de conexión en registro de cliente:', error);
-        alert("❌ Error de conexión con el servidor al registrar cliente.");
+
+        if (!numDoc) {
+            alert("❌ El Número de Documento es obligatorio.");
+            modalClienteNumDoc.focus();
+            return;
+        }
+
+        if (!nombres) {
+            alert("❌ El campo Nombres/Razón Social es obligatorio.");
+            modalClienteNombres.focus();
+            return;
+        }
+
+        const clienteData = {
+            idTipoDocumento: parseInt(idTipoDoc),
+            numeroDocumento: numDoc,
+            nombres: nombres,
+            apellidos: apellidos
+        };
+
+        try {
+            const response = await fetch('/clientes/api', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(clienteData)
+            });
+
+            if (response.status === 201) {
+                const nuevoCliente = await response.json();
+
+                // 1. Cierra el modal
+                clienteModal.style.display = 'none';
+
+                // 2. Limpia los campos del modal
+                modalClienteNumDoc.value = '';
+                modalClienteNombres.value = '';
+                modalClienteApellidos.value = '';
+
+                // 3. Asigna el nuevo cliente al formulario de venta
+                clienteTipoDocInput.value = nuevoCliente.tipoDocumento.idTipoDocumento;
+                clienteNumDocInput.value = nuevoCliente.numeroDocumento;
+
+                // 4. Ejecuta la búsqueda para actualizar el estado
+                await buscarClientePorDocumento();
+
+                alert("✅ Cliente registrado y seleccionado correctamente.");
+            } else {
+                const error = await response.json();
+                alert(`❌ Error al registrar el cliente: ${error.error || 'Datos inválidos o ya existe un cliente con ese documento.'}`);
+            }
+        } catch (error) {
+            console.error('Error de conexión en registro de cliente:', error);
+            alert("❌ Error de conexión con el servidor al registrar cliente.");
+        }
     }
-}
 
-// ======================================================
-// FUNCIÓN AUXILIAR DE REINICIO
-// ======================================================
+    // ======================================================
+    // FUNCIÓN AUXILIAR DE REINICIO
+    // ======================================================
 
-function resetClienteForm() {
-    clienteTipoDocInput.value = '0';
-    clienteNumDocInput.value = '';
-    idClienteVentaInput.value = '1'; 
-    nombreClienteResultado.textContent = 'Público General';
-    clienteInfoDiv.style.display = 'none';
-    registrarClienteBtn.style.display = 'none';
-    clienteTipoDocInput.disabled = false;
-    clienteNumDocInput.disabled = false;
-    buscarClienteBtn.disabled = false;
-}
+    function resetClienteForm() {
+        clienteTipoDocInput.value = '0';
+        clienteNumDocInput.value = '';
+        idClienteVentaInput.value = '1';
+        nombreClienteResultado.textContent = 'Público General';
+        clienteInfoDiv.style.display = 'none';
+        registrarClienteBtn.style.display = 'none';
+        clienteTipoDocInput.disabled = false;
+        clienteNumDocInput.disabled = false;
+        buscarClienteBtn.disabled = false;
+    }
 
-// 🛑 RECORDATORIO: En tu función `crearVenta()` (en ventas.js), 
-// asegúrate de enviar el campo: id_cliente: parseInt(idClienteVentaInput.value)
+    // 🛑 RECORDATORIO: En tu función `crearVenta()` (en ventas.js), 
+    // asegúrate de enviar el campo: id_cliente: parseInt(idClienteVentaInput.value)
 
     // ❌ ELIMINAMOS LOS DATOS DE EJEMPLO E INICIALIZAMOS LA VARIABLE VACÍA
-    let ventasData = []; 
+    let ventasData = [];
 
     // --- NUEVAS FUNCIONES DE LECTURA DE API ---
 
@@ -256,19 +256,19 @@ function resetClienteForm() {
         console.log("Cargando ventas desde la API...");
         try {
             // Llamada al endpoint creado en VentasController.java
-            const response = await fetch('/ventas/api/lista'); 
-            
+            const response = await fetch('/ventas/api/lista');
+
             if (!response.ok) {
                 // Si la respuesta no es OK (ej. 500 Internal Server Error)
                 throw new Error(`Error ${response.status}: No se pudo obtener la lista de ventas del servidor.`);
             }
 
             // Guardamos los datos reales del backend en la variable global
-            ventasData = await response.json(); 
+            ventasData = await response.json();
             console.log("Datos de ventas cargados:", ventasData);
 
             // Una vez cargados, se renderizan en la tabla
-            renderVentas(); 
+            renderVentas();
 
         } catch (error) {
             console.error('Fallo al cargar las ventas desde la base de datos:', error);
@@ -283,12 +283,12 @@ function resetClienteForm() {
     // Función para renderizar la tabla (Ahora usa 'ventasData' llenada por la API)
     function renderVentas() {
         ventasTableBody.innerHTML = '';
-        
+
         if (ventasData.length === 0) {
             ventasTableBody.innerHTML = '<tr><td colspan="8" class="text-center">No hay ventas registradas</td></tr>';
             return;
         }
-        
+
         ventasData.forEach(venta => {
             // ✅ ACCESO CORRECTO A LAS PROPIEDADES DEL DTO
             const id = venta.id;
@@ -326,12 +326,12 @@ function resetClienteForm() {
             `;
             ventasTableBody.appendChild(row);
         });
-        
+
         updateSelectAllCheckbox();
     }
-    
+
     // ... (Resto de las funciones: calculateTotal, addProductInput, openModal, closeModal, showDetalleModal, fillForm, toggleFacturaFields) ...
-    
+
     // Función para calcular el total de la venta
     function calculateTotal() {
         let total = 0;
@@ -407,13 +407,13 @@ function resetClienteForm() {
 
         detalleProductosList.innerHTML = '';
         const productosDetalle = venta.detalles || [];
-        
+
         productosDetalle.forEach(producto => {
             const li = document.createElement('li');
             const nombreProd = producto.nombre_producto || 'Producto sin nombre';
             const cantidadProd = producto.cantidad || 0;
             const precioProd = producto.precio_unitario || 0;
-            
+
             li.innerHTML = `
                 <span>${cantidadProd} x ${nombreProd}</span>
                 <strong>S/ ${(cantidadProd * precioProd).toFixed(2)}</strong>
@@ -429,7 +429,7 @@ function resetClienteForm() {
         // ✅ ACCESO CORRECTO A LAS PROPIEDADES
         ventaIdInput.value = venta.id || '';
         ventaClienteInput.value = venta.cliente || '';
-        
+
         // Convertir fecha ISO a formato yyyy-mm-dd
         if (venta.fecha) {
             const fecha = new Date(venta.fecha);
@@ -438,15 +438,15 @@ function resetClienteForm() {
             const dia = String(fecha.getDate()).padStart(2, '0');
             ventaFechaInput.value = `${year}-${mes}-${dia}`;
         }
-        
+
         ventaMetodoPagoSelect.value = venta.metodoPago || '';
         ventaEstadoSelect.value = venta.estado || 'Emitido';
-        
+
         // Cargar tipo de comprobante si existe
         if (venta.id_tipo_comprobante) {
             ventaTipoComprobanteSelect.value = venta.id_tipo_comprobante.toString();
         }
-        
+
         ventaRUCInput.value = venta.ruc || '';
         ventaRazonSocialInput.value = venta.razon_social || '';
         toggleFacturaFields();
@@ -454,23 +454,23 @@ function resetClienteForm() {
         // Cargar productos
         productosContainer.innerHTML = '';
         const productosDetalle = venta.detalles || [];
-        
+
         productosDetalle.forEach(product => {
-            addProductInput({ 
+            addProductInput({
                 nombre: product.nombre_producto || '',
                 cantidad: product.cantidad || 1,
                 precio: product.precio_unitario || 0
             });
         });
-        
+
         calculateTotal();
     }
 
     // --- Funciones para manejar la lógica de Factura/Boleta ---
     function toggleFacturaFields() {
         // ... (Tu código original de toggleFacturaFields se mantiene aquí) ...
-        const isFactura = ventaTipoComprobanteSelect.value === '2'; 
-        
+        const isFactura = ventaTipoComprobanteSelect.value === '2';
+
         if (isFactura) {
             facturaFieldsDiv.style.display = 'flex';
             ventaRUCInput.setAttribute('required', 'required');
@@ -482,7 +482,7 @@ function resetClienteForm() {
             // Opcional: limpiar campos si se cambia de Factura
             // ventaRUCInput.value = '';
             // ventaRazonSocialInput.value = '';
-        } 
+        }
 
         if (ventaTipoComprobanteSelect.value === '3') {
             ventaClienteInput.value = 'Cliente Varios';
@@ -512,62 +512,19 @@ function resetClienteForm() {
     cancelBtn.addEventListener('click', closeModal);
     window.addEventListener('click', (event) => {
         if (event.target === ventaModal) {
-            closeModal();
-        }
-    });
-
-    // Manejar el envío del formulario (DEBEMOS CONVERTIR LA LÓGICA DE 'EDITAR' A UNA LLAMADA DE API)
-    ventaForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        // 1. Recolectar detalles de productos (AJUSTADO PARA EL ENVÍO) con validación
-        const detalles = [];
-        let detallesValidos = true;
-        productosContainer.querySelectorAll('.product-item').forEach((item, idx) => {
-            const nombreProducto = item.querySelector('.product-name-input').value;
-            if (!nombreProducto || nombreProducto.trim() === "") {
-                alert(`El nombre del producto en el detalle #${idx + 1} no puede estar vacío.`);
-                detallesValidos = false;
+            const success = await saveVenta(ventaPayload);
+            if (success) {
+                await fetchAndRenderVentas();
+                closeModal();
             }
-            detalles.push({
-                nombre_producto_temp: nombreProducto,
-                cantidad: parseInt(item.querySelector('.product-qty-input').value),
-                precio_unitario: parseFloat(item.querySelector('.product-price-input').value)
-            });
-        });
-        if (!detallesValidos) return; // No envía la venta si hay error
-
-        // 2. Construir el objeto de Venta (ComprobantePago)
-        const ventaPayload = {
-            id_comprobante: ventaIdInput.value || null,
-            id_tipo_comprobante: parseInt(ventaTipoComprobanteSelect.value),
-            ruc: ventaRUCInput.value || null,
-            razon_social: ventaRazonSocialInput.value || null,
-            
-            // ✅ ENVIAR EL ID DEL CLIENTE (NO EL NOMBRE)
-            id_cliente: parseInt(idClienteVentaInput.value), // ✅ CRÍTICO
-            
-            fecha_emision: ventaFechaInput.value,
-            id_tipopago: ventaMetodoPagoSelect.value,
-            
-            monto_total: parseFloat(ventaTotalSpan.textContent.replace('S/ ', '')),
-            detalles: detalles
-        };
-
-        const success = await saveVenta(ventaPayload);
-
-        if (success) {
-            await fetchAndRenderVentas(); 
-            closeModal();
         }
     });
-    
     // Función Asíncrona para guardar/actualizar la venta
     async function saveVenta(payload) {
         const isUpdate = payload.id_comprobante && payload.id_comprobante !== '0';
         const method = isUpdate ? 'PUT' : 'POST'; // Asumo que tienes un PUT para editar
-        const url = '/ventas/api'; 
-        
+        const url = '/ventas/api';
+
         try {
             const response = await fetch(url, {
                 method: method,
@@ -576,7 +533,7 @@ function resetClienteForm() {
                 },
                 body: JSON.stringify(payload)
             });
-            
+
             const data = await response.json();
 
             if (!response.ok) {
@@ -607,8 +564,8 @@ function resetClienteForm() {
 
         const ventaId = btn.dataset.id;
         // ✅ BUSCAR POR LA PROPIEDAD CORRECTA
-        const venta = ventasData.find(v => v.id == ventaId); 
-        
+        const venta = ventasData.find(v => v.id == ventaId);
+
         if (btn.classList.contains('btn-edit')) {
             if (venta) {
                 fillForm(venta);
@@ -621,10 +578,10 @@ function resetClienteForm() {
                 try {
                     const response = await fetch(deleteUrl, { method: 'DELETE' });
                     if (!response.ok) throw new Error('Error al eliminar en el servidor.');
-                    
+
                     alert('✅ Venta eliminada exitosamente.');
-                    await fetchAndRenderVentas(); 
-                    
+                    await fetchAndRenderVentas();
+
                 } catch (error) {
                     console.error('Error al eliminar la venta:', error);
                     alert('❌ Falló la eliminación de la venta: ' + error.message);
@@ -697,5 +654,5 @@ function resetClienteForm() {
 
     // ⭐️ INICIO DE LA APLICACIÓN: Llamar a la función para cargar datos de la API
     // Reemplaza el antiguo 'renderVentas()' estático.
-    fetchAndRenderVentas(); 
+    fetchAndRenderVentas();
 });
