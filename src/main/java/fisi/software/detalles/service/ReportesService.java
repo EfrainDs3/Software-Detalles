@@ -19,6 +19,7 @@ public class ReportesService {
         private final VentaRepository ventaRepository;
         private final InventarioRepository inventarioRepository;
         private final ClienteRepository clienteRepository;
+        private final PedidoCompraRepository pedidoCompraRepository;
 
         public ReporteVentasDTO generarReporteVentas(FiltrosReporteDTO filtros) {
                 try {
@@ -182,6 +183,157 @@ public class ReportesService {
         }
 
         public ReporteComprasDTO generarReporteCompras(FiltrosReporteDTO filtros) {
+                try {
+                        List<PedidoCompra> compras = pedidoCompraRepository.findAllByOrderByFechaPedidoDesc();
+
+                        // Aplicar filtros de fecha
+                        compras = aplicarFiltrosFechasCompras(compras, filtros);
+
+                        // Filtrar por proveedor si se especifica
+                        if (filtros != null && filtros.getProveedorId() != null) {
+                                compras = compras.stream()
+                                                .filter(c -> c.getProveedor() != null &&
+                                                                c.getProveedor().getIdProveedor()
+                                                                                .equals(filtros.getProveedorId()))
+                                                .collect(Collectors.toList());
+                        }
+
+                        // Filtrar solo compras completadas
+                        compras = compras.stream()
+                                        .filter(c -> "Completado".equals(c.getEstadoPedido()))
+                                        .collect(Collectors.toList());
+
+                        // Calcular totales
+                        BigDecimal totalCompras = compras.stream()
+                                        .map(PedidoCompra::getTotalPedido)
+                                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                        int cantidadCompras = compras.size();
+
+                        BigDecimal costoPromedio = cantidadCompras > 0
+                                        ? totalCompras.divide(BigDecimal.valueOf(cantidadCompras), 2,
+                                                        RoundingMode.HALF_UP)
+                                        : BigDecimal.ZERO;
+
+                        // Calcular compras por proveedor
+                        List<ReporteComprasDTO.CompraPorProveedor> comprasPorProveedor = calcularComprasPorProveedor(
+                                        compras);
+
+                        // Calcular productos más comprados
+                        List<ReporteComprasDTO.ProductoMasComprado> productosMasComprados = calcularProductosMasComprados(
+                                        compras);
+
+                        // Crear distribución por proveedor para gráfico
+                        Map<String, BigDecimal> distribucionPorProveedor = comprasPorProveedor.stream()
+                                        .limit(5)
+                                        .collect(Collectors.toMap(
+                                                        ReporteComprasDTO.CompraPorProveedor::getNombreProveedor,
+                                                        ReporteComprasDTO.CompraPorProveedor::getTotalCompras,
+                                                        (a, b) -> a,
+                                                        LinkedHashMap::new));
+
+                        return ReporteComprasDTO.builder()
+                                        .totalCompras(totalCompras)
+                                        .cantidadCompras(cantidadCompras)
+                                        .costoPromedio(costoPromedio)
+                                        .comprasPorProveedor(comprasPorProveedor)
+                                        .productosMasComprados(productosMasComprados)
+                                        .distribucionPorProveedor(distribucionPorProveedor)
+                                        .build();
+                } catch (Exception e) {
+                        return crearReporteComprasVacio();
+                }
+        }
+
+        private List<PedidoCompra> aplicarFiltrosFechasCompras(List<PedidoCompra> compras, FiltrosReporteDTO filtros) {
+                if (filtros == null || (filtros.getFechaInicio() == null && filtros.getFechaFin() == null)) {
+                        return compras;
+                }
+
+                LocalDateTime inicio = filtros.getFechaInicio() != null
+                                ? filtros.getFechaInicio().atStartOfDay()
+                                : LocalDateTime.of(2000, 1, 1, 0, 0);
+                LocalDateTime fin = filtros.getFechaFin() != null
+                                ? filtros.getFechaFin().atTime(23, 59, 59)
+                                : LocalDateTime.now();
+
+                return compras.stream()
+                                .filter(c -> c.getFechaPedido() != null &&
+                                                !c.getFechaPedido().isBefore(inicio) &&
+                                                !c.getFechaPedido().isAfter(fin))
+                                .collect(Collectors.toList());
+        }
+
+        private List<ReporteComprasDTO.CompraPorProveedor> calcularComprasPorProveedor(List<PedidoCompra> compras) {
+                Map<Integer, CompraPorProveedorTemp> proveedoresMap = new HashMap<>();
+
+                for (PedidoCompra compra : compras) {
+                        if (compra.getProveedor() != null) {
+                                Integer proveedorId = compra.getProveedor().getIdProveedor();
+                                CompraPorProveedorTemp temp = proveedoresMap.getOrDefault(proveedorId,
+                                                new CompraPorProveedorTemp(
+                                                                compra.getProveedor().getRazonSocial(),
+                                                                compra.getProveedor().getRuc(),
+                                                                0,
+                                                                BigDecimal.ZERO));
+                                temp.cantidadCompras += 1;
+                                temp.totalCompras = temp.totalCompras.add(compra.getTotalPedido());
+                                proveedoresMap.put(proveedorId, temp);
+                        }
+                }
+
+                return proveedoresMap.values().stream()
+                                .sorted((a, b) -> b.totalCompras.compareTo(a.totalCompras))
+                                .map(temp -> ReporteComprasDTO.CompraPorProveedor.builder()
+                                                .nombreProveedor(temp.nombreProveedor)
+                                                .ruc(temp.ruc)
+                                                .cantidadCompras(temp.cantidadCompras)
+                                                .totalCompras(temp.totalCompras)
+                                                .build())
+                                .collect(Collectors.toList());
+        }
+
+        private List<ReporteComprasDTO.ProductoMasComprado> calcularProductosMasComprados(List<PedidoCompra> compras) {
+                Map<Long, ProductoMasCompradoTemp> productosMap = new HashMap<>();
+
+                for (PedidoCompra compra : compras) {
+                        if (compra.getDetalles() != null) {
+                                for (DetallePedidoCompra detalle : compra.getDetalles()) {
+                                        if (detalle.getProducto() != null) {
+                                                Long productoId = detalle.getProducto().getId();
+                                                ProductoMasCompradoTemp temp = productosMap.getOrDefault(productoId,
+                                                                new ProductoMasCompradoTemp(
+                                                                                detalle.getProducto().getNombre(),
+                                                                                0,
+                                                                                BigDecimal.ZERO));
+                                                temp.cantidadComprada += detalle.getCantidadPedida();
+                                                temp.totalCompras = temp.totalCompras.add(detalle.getSubtotalLinea());
+                                                productosMap.put(productoId, temp);
+                                        }
+                                }
+                        }
+                }
+
+                return productosMap.values().stream()
+                                .sorted((a, b) -> Integer.compare(b.cantidadComprada, a.cantidadComprada))
+                                .limit(10)
+                                .map(temp -> {
+                                        BigDecimal costoPromedio = temp.cantidadComprada > 0
+                                                        ? temp.totalCompras.divide(
+                                                                        BigDecimal.valueOf(temp.cantidadComprada), 2,
+                                                                        RoundingMode.HALF_UP)
+                                                        : BigDecimal.ZERO;
+                                        return ReporteComprasDTO.ProductoMasComprado.builder()
+                                                        .nombreProducto(temp.nombreProducto)
+                                                        .cantidadComprada(temp.cantidadComprada)
+                                                        .totalCompras(temp.totalCompras)
+                                                        .costoPromedio(costoPromedio)
+                                                        .build();
+                                })
+                                .collect(Collectors.toList());
+        }
+
+        private ReporteComprasDTO crearReporteComprasVacio() {
                 return ReporteComprasDTO.builder()
                                 .totalCompras(BigDecimal.ZERO)
                                 .cantidadCompras(0)
@@ -441,6 +593,33 @@ public class ReportesService {
                         this.nombre = nombre;
                         this.documento = documento;
                         this.cantidadCompras = cantidadCompras;
+                        this.totalCompras = totalCompras;
+                }
+        }
+
+        private static class CompraPorProveedorTemp {
+                String nombreProveedor;
+                String ruc;
+                int cantidadCompras;
+                BigDecimal totalCompras;
+
+                CompraPorProveedorTemp(String nombreProveedor, String ruc, int cantidadCompras,
+                                BigDecimal totalCompras) {
+                        this.nombreProveedor = nombreProveedor;
+                        this.ruc = ruc;
+                        this.cantidadCompras = cantidadCompras;
+                        this.totalCompras = totalCompras;
+                }
+        }
+
+        private static class ProductoMasCompradoTemp {
+                String nombreProducto;
+                int cantidadComprada;
+                BigDecimal totalCompras;
+
+                ProductoMasCompradoTemp(String nombreProducto, int cantidadComprada, BigDecimal totalCompras) {
+                        this.nombreProducto = nombreProducto;
+                        this.cantidadComprada = cantidadComprada;
                         this.totalCompras = totalCompras;
                 }
         }
