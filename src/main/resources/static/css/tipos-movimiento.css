@@ -1,0 +1,263 @@
+/* === Gestión de Tipos de Movimiento === */
+
+/* Tabla de Tipos */
+.tipos-table {
+    width: 100%;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e1e5e9;
+}
+
+.tipos-table thead {
+    background: #f8fafc;
+    border-bottom: 1px solid #e1e5e9;
+}
+
+.tipos-table th {
+    padding: 1rem 1.5rem;
+    text-align: left;
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.tipos-table td {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+.tipos-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+/* Badges */
+.badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.badge-entrada {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.badge-salida {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+/* Botones de acción en tabla */
+.btn-edit {
+    background: #eff6ff;
+    color: #3b82f6;
+    border: 1px solid #dbeafe;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.btn-edit:hover {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+}
+
+/* Estados vacíos */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #64748b;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.empty-state p {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+/* Loading state */
+.loading-state {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: #64748b;
+}
+
+.loading-state i {
+    font-size: 1.5rem;
+    margin-right: 0.5rem;
+}
+
+/* Modal de Tipo */
+.tipo-modal-content {
+    max-width: 500px;
+    width: 90%;
+    margin: 2% auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    border: none;
+    animation: modalFadeIn 0.3s ease-out;
+}
+
+.tipo-modal-content .modal-header {
+    border-bottom: 1px solid #e1e5e9;
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.tipo-modal-content .modal-header h3 {
+    margin: 0;
+    color: #1e293b;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.tipo-modal-content .modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #64748b;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tipo-modal-content .modal-close:hover {
+    background: #f1f5f9;
+    color: #374151;
+}
+
+.tipo-modal-content .modal-body {
+    padding: 1.5rem;
+}
+
+.tipo-modal-content .form-section {
+    margin-bottom: 1.5rem;
+}
+
+.tipo-modal-content .section-title {
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 1rem;
+}
+
+.tipo-modal-content .section-title i {
+    margin-right: 0.5rem;
+    color: #667eea;
+}
+
+.tipo-modal-content .form-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.tipo-modal-content .form-row.full-width {
+    flex-direction: column;
+}
+
+.tipo-modal-content .form-group {
+    flex: 1;
+}
+
+.tipo-modal-content .form-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+.tipo-modal-content .form-group input,
+.tipo-modal-content .form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.tipo-modal-content .form-group input:focus,
+.tipo-modal-content .form-group select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.tipo-modal-content .modal-footer {
+    border-top: 1px solid #e1e5e9;
+    padding-top: 1.5rem;
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    background: #f8fafc;
+    padding: 1.5rem;
+    margin: 0;
+    border-radius: 0 0 12px 12px;
+}
+
+/* Animations */
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .tipos-table {
+        font-size: 0.875rem;
+    }
+
+    .tipos-table th,
+    .tipos-table td {
+        padding: 0.75rem 1rem;
+    }
+
+    .tipo-modal-content {
+        margin: 1rem;
+        max-width: none;
+    }
+}

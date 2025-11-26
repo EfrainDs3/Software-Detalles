@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tipos de Movimiento - Detalles</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <link rel="stylesheet" href="/css/inventario.css">
+    <link rel="stylesheet" href="/css/tipos-movimiento.css">
+</head>
+<body>
+
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+
+        <div class="top-bar">
+            <div class="page-header">
+                <div class="breadcrumb">
+                    <a href="/dashboard" class="breadcrumb-link">
+                        Dashboard
+                    </a>
+                    <span class="breadcrumb-separator">/</span>
+                    <a href="/inventario" class="breadcrumb-link">
+                        Inventario
+                    </a>
+                    <span class="breadcrumb-separator">/</span>
+                    <span class="breadcrumb-current">Tipos de Movimiento</span>
+                </div>
+                <h2 class="main-title">Gestión de Tipos de Movimiento</h2>
+                <p class="page-subtitle">Administra las clasificaciones de entradas y salidas de stock</p>
+            </div>
+            <button class="logout-btn">
+                Cerrar Sesión
+            </button>
+        </div>
+
+        <div class="action-bar">
+            <div class="action-buttons">
+                <button class="btn btn-primary" id="addTipoBtn">
+                    <i class="fas fa-plus"></i>
+                    Nuevo Tipo
+                </button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table class="tipos-table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Clasificación</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tiposTableBody">
+                    <tr>
+                        <td colspan="3" class="loading-state">
+                            <i class="fas fa-spinner fa-spin"></i> Cargando tipos de movimiento...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <div id="tipoModal" class="modal" style="display: none;">
+        <div class="modal-content tipo-modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Nuevo Tipo de Movimiento</h3>
+                <button class="modal-close" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="tipoForm" class="modal-body">
+                <input type="hidden" id="tipoId">
+
+                <div class="form-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-info-circle"></i>
+                        Información del Tipo
+                    </h4>
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <label for="tipoNombre">Nombre del Tipo *</label>
+                            <input type="text" id="tipoNombre" name="nombre" required placeholder="Ej: Compra a Proveedor">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <label for="tipoCategoria">Clasificación *</label>
+                            <select id="tipoCategoria" name="esEntrada" required>
+                                <option value="" disabled selected>Seleccione una clasificación</option>
+                                <option value="true">Entrada (Aumenta Stock)</option>
+                                <option value="false">Salida (Disminuye Stock)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelBtn">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </button>
+                <button type="submit" form="tipoForm" class="btn btn-primary" id="saveBtn">
+                    <i class="fas fa-save"></i>
+                    Guardar Tipo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/sidebar.js"></script>
+    <script src="/js/logout.js"></script>
+    <script src="/js/tipos-movimiento.js"></script>
+</body>
+
+</html>
