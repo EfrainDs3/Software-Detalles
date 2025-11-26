@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import fisi.software.detalles.controller.dto.*;
 import fisi.software.detalles.entity.Caja;
+import fisi.software.detalles.security.UsuarioPrincipal;
 import fisi.software.detalles.service.CajaService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -22,15 +23,13 @@ public class CajaController {
 
     private final CajaService cajaService;
 
-    // Método auxiliar para obtener el ID del usuario autenticado
-    private Integer obtenerIdUsuario(Authentication authentication) {
-        if (authentication != null
-                && authentication.getPrincipal() instanceof org.springframework.security.core.userdetails.User) {
-            org.springframework.security.core.userdetails.User userDetails = (org.springframework.security.core.userdetails.User) authentication
-                    .getPrincipal();
-            return Integer.parseInt(userDetails.getUsername());
+    // ✅ Método auxiliar para obtener el ID del usuario autenticado
+    private Integer obtenerIdUsuarioAutenticado(Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof UsuarioPrincipal) {
+            UsuarioPrincipal userDetails = (UsuarioPrincipal) authentication.getPrincipal();
+            return userDetails.getId();
         }
-        throw new IllegalStateException("Usuario no autenticado.");
+        throw new IllegalStateException("Usuario no autenticado");
     }
 
     // 1. GET /api/caja/estado
@@ -51,16 +50,16 @@ public class CajaController {
 
     // 2. POST /api/caja/abrir
     @PostMapping("/abrir")
-    public ResponseEntity<?> abrirCaja(@RequestBody AperturaRequestDTO request) {
+    public ResponseEntity<?> abrirCaja(
+            @RequestBody AperturaRequestDTO request,
+            Authentication authentication) {
         try {
-            // Usar el ID del usuario desde el request
-            Integer idUsuario = request.getIdUsuario() != null ? request.getIdUsuario() : 4;
-
+            // ✅ Obtener ID del usuario autenticado
+            Integer idUsuario = obtenerIdUsuarioAutenticado(authentication);
             CajaEstadoDTO estado = cajaService.abrirCaja(
                     request.getMontoInicial(),
                     idUsuario,
                     request.getIdCaja());
-
             return ResponseEntity.ok(estado);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -69,11 +68,12 @@ public class CajaController {
     }
 
     @PostMapping("/cerrar")
-    public ResponseEntity<?> cerrarCaja(@RequestBody CierreRequestDTO request) {
+    public ResponseEntity<?> cerrarCaja(
+            @RequestBody CierreRequestDTO request,
+            Authentication authentication) {
         try {
-            // Usar el ID del usuario desde el request
-            Integer idUsuario = request.getIdUsuario() != null ? request.getIdUsuario() : 4;
-
+            // ✅ Obtener ID del usuario autenticado
+            Integer idUsuario = obtenerIdUsuarioAutenticado(authentication);
             cajaService.cerrarCaja(request.getIdApertura(), request.getMontoFinal(), idUsuario);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
