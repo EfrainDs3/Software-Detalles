@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import fisi.software.detalles.controller.dto.ProductoSimpleDTO;
 import fisi.software.detalles.service.ProductoService;
 import fisi.software.detalles.service.ProductoService.CategoriaCodigo;
 import fisi.software.detalles.service.ProductoService.ProductoRequest;
@@ -108,4 +109,9 @@ public class ProductoApiController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Producto no encontrado en la categoría solicitada");
         }
     }
+
+    @GetMapping
+public ResponseEntity<List<ProductoSimpleDTO>> listarTodosLosProductos() {
+    return ResponseEntity.ok(productoService.listarTodosSimple());
+}
 }

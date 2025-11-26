@@ -345,13 +345,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Función para agregar un campo de producto al modal
-    function addProductInput(product = { nombre: '', cantidad: '', precio: '' }) {
+    function addProductInput(product = { nombre: '', cantidad: 1, precio: '' }) {
         const itemDiv = document.createElement('div');
         itemDiv.classList.add('product-item');
+        
+        // ✅ Generar ID único para el datalist
+        const uniqueId = `productos-list-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        
         itemDiv.innerHTML = `
             <div class="form-group">
                 <label>Nombre del Producto</label>
-                <input type="text" class="product-name-input" value="${product.nombre}" placeholder="Ej: Zapatillas">
+                <input type="text" 
+                       class="product-name-input" 
+                       value="${product.nombre}" 
+                       placeholder="Buscar producto..." 
+                       list="${uniqueId}"
+                       autocomplete="off">
+                <datalist id="${uniqueId}">
+                    ${productosDisponibles.map(p => 
+                        `<option value="${p.nombre}">${p.nombre} - S/ ${(p.precioVenta || 0).toFixed(2)}</option>`
+                    ).join('')}
+                </datalist>
             </div>
             <div class="form-group">
                 <label>Cantidad</label>
@@ -366,12 +380,21 @@ document.addEventListener('DOMContentLoaded', () => {
             </button>
         `;
         productosContainer.appendChild(itemDiv);
-
+        // ✅ NUEVO: Detectar selección de producto y auto-rellenar precio
+        const nameInput = itemDiv.querySelector('.product-name-input');
+        const priceInput = itemDiv.querySelector('.product-price-input');
+        
+        nameInput.addEventListener('input', () => {
+            const selectedProduct = productosDisponibles.find(p => p.nombre === nameInput.value);
+            if (selectedProduct && selectedProduct.precioVenta) {
+                priceInput.value = selectedProduct.precioVenta.toFixed(2);
+                calculateTotal();
+            }
+        });
         // Actualizar el total en cada cambio de input
         itemDiv.querySelectorAll('input').forEach(input => {
             input.addEventListener('input', calculateTotal);
         });
-
         // Eliminar producto
         itemDiv.querySelector('.remove-product-btn').addEventListener('click', () => {
             itemDiv.remove();

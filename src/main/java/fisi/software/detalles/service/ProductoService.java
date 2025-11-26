@@ -469,4 +469,26 @@ public class ProductoService {
 
     public record TipoDto(Long id, String nombre) {
     }
+
+    // ✅ NUEVO: DTO simple para autocomplete de productos en ventas
+    public record ProductoSimpleDTO(
+            Long id,
+            String nombre,
+            BigDecimal precioVenta,
+            Integer stockDisponible
+    ) {
+    }
+    // ✅ NUEVO: Método para listar productos simples (para autocomplete)
+    public List<ProductoSimpleDTO> listarTodosSimple() {
+        List<Producto> productos = getAllProductosActivos();
+        return productos.stream()
+                .map(p -> new ProductoSimpleDTO(
+                        p.getId(),
+                        p.getNombre(),
+                        p.getPrecioVenta(),
+                        0 // TODO: Calcular stock real cuando se implemente inventario
+                ))
+                .sorted(Comparator.comparing(ProductoSimpleDTO::nombre, Comparator.nullsLast(String::compareToIgnoreCase)))
+                .toList();
+    }
 }
