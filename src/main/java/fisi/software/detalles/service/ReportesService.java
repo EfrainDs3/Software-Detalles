@@ -79,9 +79,8 @@ public class ReportesService {
                         List<ReporteInventarioDTO.ProductoStockBajo> productosStockBajo = obtenerProductosStockBajo(
                                         inventarios);
 
-                        Map<String, Integer> distribucionPorCategoria = new LinkedHashMap<>();
-                        distribucionPorCategoria.put("Calzados", (int) (totalUnidades * 0.7));
-                        distribucionPorCategoria.put("Accesorios", (int) (totalUnidades * 0.3));
+                        Map<String, Integer> distribucionPorCategoria = calcularDistribucionInventarioPorCategoria(
+                                        inventarios);
 
                         return ReporteInventarioDTO.builder()
                                         .totalProductos(totalProductos)
@@ -107,7 +106,14 @@ public class ReportesService {
                                         .map(ComprobantePago::getTotal)
                                         .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-                        BigDecimal totalEgresos = totalIngresos.multiply(BigDecimal.valueOf(0.6));
+                        // Calcular egresos reales desde compras
+                        List<PedidoCompra> compras = pedidoCompraRepository.findAllByOrderByFechaPedidoDesc();
+                        compras = aplicarFiltrosFechasCompras(compras, filtros);
+
+                        BigDecimal totalEgresos = compras.stream()
+                                        .filter(c -> "Completado".equals(c.getEstadoPedido()))
+                                        .map(PedidoCompra::getTotalPedido)
+                                        .reduce(BigDecimal.ZERO, BigDecimal::add);
                         BigDecimal utilidadBruta = totalIngresos.subtract(totalEgresos);
                         BigDecimal margenUtilidad = totalIngresos.compareTo(BigDecimal.ZERO) > 0
                                         ? utilidadBruta.divide(totalIngresos, 4, RoundingMode.HALF_UP)
@@ -428,6 +434,25 @@ public class ReportesService {
                 BigDecimal accesorios = totalVentas.multiply(BigDecimal.valueOf(0.3));
                 distribucion.put("Calzados", calzados);
                 distribucion.put("Accesorios", accesorios);
+                return distribucion;
+        }
+
+        private Map<String, Integer> calcularDistribucionInventarioPorCategoria(List<Inventario> inventarios) {
+                Map<String, Integer> distribucion = new LinkedHashMap<>();
+
+                for (Inventario inv : inventarios) {
+                        if (inv.getProducto() != null && inv.getProducto().getCategoria() != null) {
+                                String categoriaNombre = inv.getProducto().getCategoria().getNombre();
+                                int cantidadActual = distribucion.getOrDefault(categoriaNombre, 0);
+                                distribucion.put(categoriaNombre, cantidadActual + inv.getCantidadStock());
+                        }
+                }
+
+                // Si no hay categorías, retornar mapa vacío
+                if (distribucion.isEmpty()) {
+                        distribucion.put("Sin categoría", 0);
+                }
+
                 return distribucion;
         }
 
