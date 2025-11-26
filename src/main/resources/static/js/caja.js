@@ -359,28 +359,30 @@ document.addEventListener('DOMContentLoaded', () => {
                     idApertura: currentAperturaId,
                     montoFinal: finalAmount
                 };
-
                 const response = await fetch(`${API_BASE_URL}/cerrar`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(requestBody),
                     credentials: 'include' 
                 });
-
-                if (response.status === 409) {
-                    alert('Error: Esta sesión de caja ya estaba cerrada.');
-                } else if (!response.ok) {
-                    throw new Error(`Error en el Cierre: ${response.statusText}`);
+                // ✅ CORRECCIÓN: No intentar parsear JSON de respuesta vacía
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    if (response.status === 409) {
+                        alert('❌ Error: Esta caja ya estaba cerrada.');
+                    } else {
+                        alert(`❌ Error al cerrar caja: ${errorText || response.statusText}`);
+                    }
+                    return;
                 }
-
+                // ✅ Si llegamos aquí, el cierre fue exitoso
                 await fetchCajaStatus();
                 await fetchCajaHistory();
-                alert('Caja cerrada exitosamente.');
+                alert('✅ Caja cerrada exitosamente.');
                 checkOutModal.style.display = 'none';
                 finalAmountInput.value = '';
-
             } catch (error) {
-                console.error('Error al cerrar caja:', error);
+                console.error('❌ Error al cerrar caja:', error);
                 alert(`Hubo un error al intentar cerrar la caja. Consulte la consola.`);
             }
         });
@@ -637,8 +639,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
                 
-                const resultado = await response.json();
-                console.log('✅ Cierre exitoso:', resultado);
+                // ✅ CORRECCIÓN: No intentar parsear JSON de respuesta vacía
+                console.log('✅ Cierre exitoso desde tabla');
                 
                 alert('✅ Caja cerrada exitosamente');
                 await fetchCajaStatus();
