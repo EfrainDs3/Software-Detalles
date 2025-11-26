@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 25-11-2025 a las 17:49:34
+-- Tiempo de generación: 26-11-2025 a las 03:10:07
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.0.30
 
@@ -82,6 +82,31 @@ CREATE TABLE `cajas` (
   `nombre_caja` varchar(255) NOT NULL,
   `ubicacion` varchar(255) DEFAULT NULL,
   `estado` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `carrito`
+--
+
+CREATE TABLE `carrito` (
+  `id_carrito` bigint(20) NOT NULL,
+  `fecha_creacion` datetime(6) DEFAULT NULL,
+  `id_usuario` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `carrito_detalle`
+--
+
+CREATE TABLE `carrito_detalle` (
+  `id_detalle` bigint(20) NOT NULL,
+  `cantidad` int(11) DEFAULT NULL,
+  `id_carrito` bigint(20) NOT NULL,
+  `id_producto` bigint(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -201,6 +226,40 @@ CREATE TABLE `detallespedidocompra` (
   `subtotal_linea` decimal(10,2) NOT NULL,
   `cantidad_recibida` int(11) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `detallespedidocompra`
+--
+
+INSERT INTO `detallespedidocompra` (`id_detalle_pedido`, `id_pedido_compra`, `id_producto`, `cantidad_pedida`, `costo_unitario`, `subtotal_linea`, `cantidad_recibida`) VALUES
+(2, 2, 1, 4, 205.00, 820.00, 0),
+(3, 2, 4, 2, 200.00, 400.00, 0),
+(4, 3, 1, 1, 205.00, 205.00, 0),
+(5, 3, 2, 3, 2000.00, 6000.00, 0);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `detallespedidocompra_talla`
+--
+
+CREATE TABLE `detallespedidocompra_talla` (
+  `id_detalle_talla` bigint(20) NOT NULL,
+  `id_detalle_pedido` bigint(20) NOT NULL,
+  `talla` varchar(64) NOT NULL,
+  `cantidad_pedida` int(11) NOT NULL,
+  `cantidad_recibida` int(11) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `detallespedidocompra_talla`
+--
+
+INSERT INTO `detallespedidocompra_talla` (`id_detalle_talla`, `id_detalle_pedido`, `talla`, `cantidad_pedida`, `cantidad_recibida`) VALUES
+(1, 2, '35', 4, 0),
+(2, 3, '12', 2, 0),
+(3, 4, '35', 1, 0),
+(4, 5, 'M', 3, 0);
 
 -- --------------------------------------------------------
 
@@ -431,9 +490,20 @@ CREATE TABLE `pedidoscompra` (
   `id_usuario` int(11) NOT NULL,
   `fecha_pedido` datetime NOT NULL DEFAULT current_timestamp(),
   `fecha_entrega_esperada` date DEFAULT NULL,
+  `id_tipopago` int(11) DEFAULT NULL,
+  `referencia` varchar(100) DEFAULT NULL,
+  `observaciones` text DEFAULT NULL,
   `estado_pedido` varchar(50) NOT NULL DEFAULT 'Pendiente',
   `total_pedido` decimal(10,2) NOT NULL DEFAULT 0.00
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `pedidoscompra`
+--
+
+INSERT INTO `pedidoscompra` (`id_pedido_compra`, `id_proveedor`, `id_usuario`, `fecha_pedido`, `fecha_entrega_esperada`, `id_tipopago`, `referencia`, `observaciones`, `estado_pedido`, `total_pedido`) VALUES
+(2, 2, 4, '2025-11-25 21:07:11', NULL, NULL, NULL, NULL, 'Pendiente', 1220.00),
+(3, 2, 4, '2025-11-25 22:48:23', NULL, NULL, NULL, NULL, 'Pendiente', 6205.00);
 
 -- --------------------------------------------------------
 
@@ -1099,7 +1169,7 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id_usuario`, `nombres`, `apellidos`, `id_tipodocumento`, `numero_documento`, `celular`, `direccion`, `username`, `email`, `contraseña_hash`, `estado`, `fecha_creacion`, `fecha_ultima_sesion`) VALUES
-(4, 'Santiago Efrain', 'Torres Murrieta', 1, '75859114', '964983465', 'juan pablo de la cruz', 'EfrainDs3', 'santiagotorresmurrieta@gmail.com', '$2a$10$6587YGgYKDWyAywi61/cB.TFF.U6LrTWacPvzWaBZ9xoVsuGGy.4.', 1, '2025-10-08 15:17:29', '2025-11-25 01:38:02'),
+(4, 'Santiago Efrain', 'Torres Murrieta', 1, '75859114', '964983465', 'juan pablo de la cruz', 'EfrainDs3', 'santiagotorresmurrieta@gmail.com', '$2a$10$6587YGgYKDWyAywi61/cB.TFF.U6LrTWacPvzWaBZ9xoVsuGGy.4.', 1, '2025-10-08 15:17:29', '2025-11-25 22:46:42'),
 (5, 'Anggelo Lucciano', 'Urbina Espinoza', 1, '72863068', '903 171 836', 'juan pablo de la cruz', 'Ubuntu', 'anggelolucciano21@gmail.com', '$2a$10$VwIkH6380fJV0oPcQXNKiO1oU8zqQ1vKsc0uWSkm.vtCWoTPHzzMG', 1, '2025-10-08 15:46:19', '2025-11-25 01:38:39'),
 (6, 'Anlly Luz', 'Riva Yomona', 1, '72010812', '999888777', 'Calle Nueva 456', 'Anlly', 'al.rivayo@unsm.edu.pe', '$2a$10$E.7vIdGVqCYy5eoYIBjF/uYDym2.b6B6U6.TlT9uKd0tFUl4DMfJW', 1, '2025-10-08 15:57:57', '2025-11-06 01:16:25'),
 (12, 'Danny Alexander', 'Garcia Salas', 1, '98765432', '999888777', 'juan pablo de la cruz', 'Dingui', 'ia.jadrixgr26@gmail.com', '$2a$10$xKxtzv1ECV/74oi69b9hPubeUZgmSnrAUoxmjmSaz0NyeVOYE9BHW', 1, '2025-10-08 16:27:52', '2025-10-15 22:05:53'),
@@ -1161,6 +1231,20 @@ ALTER TABLE `cajas`
   ADD UNIQUE KEY `nombre_caja` (`nombre_caja`);
 
 --
+-- Indices de la tabla `carrito`
+--
+ALTER TABLE `carrito`
+  ADD PRIMARY KEY (`id_carrito`),
+  ADD KEY `FKkg5h8ejijsgwfr68aoggh4l8m` (`id_usuario`);
+
+--
+-- Indices de la tabla `carrito_detalle`
+--
+ALTER TABLE `carrito_detalle`
+  ADD PRIMARY KEY (`id_detalle`),
+  ADD KEY `FKrj8idxwbnpqm04uk9ayg7ptpw` (`id_carrito`);
+
+--
 -- Indices de la tabla `categoriasproducto`
 --
 ALTER TABLE `categoriasproducto`
@@ -1208,6 +1292,13 @@ ALTER TABLE `detallespedidocompra`
   ADD PRIMARY KEY (`id_detalle_pedido`),
   ADD UNIQUE KEY `id_pedido_compra` (`id_pedido_compra`,`id_producto`),
   ADD KEY `id_producto` (`id_producto`);
+
+--
+-- Indices de la tabla `detallespedidocompra_talla`
+--
+ALTER TABLE `detallespedidocompra_talla`
+  ADD PRIMARY KEY (`id_detalle_talla`),
+  ADD KEY `id_detalle_pedido` (`id_detalle_pedido`);
 
 --
 -- Indices de la tabla `etiquetas_producto_ia`
@@ -1293,7 +1384,8 @@ ALTER TABLE `pagoscomprobante`
 ALTER TABLE `pedidoscompra`
   ADD PRIMARY KEY (`id_pedido_compra`),
   ADD KEY `id_proveedor` (`id_proveedor`),
-  ADD KEY `id_usuario` (`id_usuario`);
+  ADD KEY `id_usuario` (`id_usuario`),
+  ADD KEY `fk_pedidoscompra_tipospago` (`id_tipopago`);
 
 --
 -- Indices de la tabla `perfiles_estilo_cliente`
@@ -1455,6 +1547,18 @@ ALTER TABLE `cajas`
   MODIFY `id_caja` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT de la tabla `carrito`
+--
+ALTER TABLE `carrito`
+  MODIFY `id_carrito` bigint(20) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `carrito_detalle`
+--
+ALTER TABLE `carrito_detalle`
+  MODIFY `id_detalle` bigint(20) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT de la tabla `categoriasproducto`
 --
 ALTER TABLE `categoriasproducto`
@@ -1488,7 +1592,13 @@ ALTER TABLE `detallescomprobantepago`
 -- AUTO_INCREMENT de la tabla `detallespedidocompra`
 --
 ALTER TABLE `detallespedidocompra`
-  MODIFY `id_detalle_pedido` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_detalle_pedido` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT de la tabla `detallespedidocompra_talla`
+--
+ALTER TABLE `detallespedidocompra_talla`
+  MODIFY `id_detalle_talla` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `etiquetas_producto_ia`
@@ -1554,7 +1664,7 @@ ALTER TABLE `pagoscomprobante`
 -- AUTO_INCREMENT de la tabla `pedidoscompra`
 --
 ALTER TABLE `pedidoscompra`
-  MODIFY `id_pedido_compra` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_pedido_compra` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `permisos`
@@ -1602,7 +1712,7 @@ ALTER TABLE `tiposcomprobantepago`
 -- AUTO_INCREMENT de la tabla `tiposmovimientoinventario`
 --
 ALTER TABLE `tiposmovimientoinventario`
-  MODIFY `id_tipo_movimiento` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_tipo_movimiento` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `tipospago`
@@ -1646,6 +1756,18 @@ ALTER TABLE `bitacora`
   ADD CONSTRAINT `bitacora_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`);
 
 --
+-- Filtros para la tabla `carrito`
+--
+ALTER TABLE `carrito`
+  ADD CONSTRAINT `FKkg5h8ejijsgwfr68aoggh4l8m` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`);
+
+--
+-- Filtros para la tabla `carrito_detalle`
+--
+ALTER TABLE `carrito_detalle`
+  ADD CONSTRAINT `FKrj8idxwbnpqm04uk9ayg7ptpw` FOREIGN KEY (`id_carrito`) REFERENCES `carrito` (`id_carrito`);
+
+--
 -- Filtros para la tabla `cierrescaja`
 --
 ALTER TABLE `cierrescaja`
@@ -1681,6 +1803,12 @@ ALTER TABLE `detallescomprobantepago`
 ALTER TABLE `detallespedidocompra`
   ADD CONSTRAINT `detallespedidocompra_ibfk_1` FOREIGN KEY (`id_pedido_compra`) REFERENCES `pedidoscompra` (`id_pedido_compra`) ON DELETE CASCADE,
   ADD CONSTRAINT `detallespedidocompra_ibfk_2` FOREIGN KEY (`id_producto`) REFERENCES `productos` (`id_producto`);
+
+--
+-- Filtros para la tabla `detallespedidocompra_talla`
+--
+ALTER TABLE `detallespedidocompra_talla`
+  ADD CONSTRAINT `detallespedidocompra_talla_ibfk_1` FOREIGN KEY (`id_detalle_pedido`) REFERENCES `detallespedidocompra` (`id_detalle_pedido`);
 
 --
 -- Filtros para la tabla `etiquetas_producto_ia`
@@ -1742,6 +1870,7 @@ ALTER TABLE `pagoscomprobante`
 -- Filtros para la tabla `pedidoscompra`
 --
 ALTER TABLE `pedidoscompra`
+  ADD CONSTRAINT `fk_pedidoscompra_tipospago` FOREIGN KEY (`id_tipopago`) REFERENCES `tipospago` (`id_tipopago`),
   ADD CONSTRAINT `pedidoscompra_ibfk_1` FOREIGN KEY (`id_proveedor`) REFERENCES `proveedores` (`id_proveedor`),
   ADD CONSTRAINT `pedidoscompra_ibfk_2` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`);
 
