@@ -512,11 +512,74 @@ document.addEventListener('DOMContentLoaded', () => {
     cancelBtn.addEventListener('click', closeModal);
     window.addEventListener('click', (event) => {
         if (event.target === ventaModal) {
-            const success = await saveVenta(ventaPayload);
-            if (success) {
-                await fetchAndRenderVentas();
-                closeModal();
+            closeModal();
+        }
+    });
+    // Manejar el envío del formulario de venta
+    ventaForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        // ✅ PASO 0: Obtener el ID de la apertura activa
+        let idAperturaActiva = null;
+        try {
+            const cajaResponse = await fetch('/api/caja/estado', { credentials: 'include' });
+            if (cajaResponse.ok) {
+                const cajaEstado = await cajaResponse.json();
+                if (cajaEstado.abierta && cajaEstado.idAperturaActiva) {
+                    idAperturaActiva = cajaEstado.idAperturaActiva;
+                    console.log('✅ ID Apertura obtenido:', idAperturaActiva);
+                } else {
+                    alert('❌ Error: No hay ninguna caja abierta. Debes abrir una caja antes de registrar una venta.');
+                    return;
+                }
+            } else {
+                alert('❌ Error al verificar el estado de la caja.');
+                return;
             }
+        } catch (error) {
+            console.error('Error al obtener estado de caja:', error);
+            alert('❌ Error de conexión al verificar la caja.');
+            return;
+        }
+        // 1. Recolectar detalles de productos con validación
+        const detalles = [];
+        let detallesValidos = true;
+        productosContainer.querySelectorAll('.product-item').forEach((item, idx) => {
+            const nombreProducto = item.querySelector('.product-name-input').value;
+            if (!nombreProducto || nombreProducto.trim() === "") {
+                alert(`El nombre del producto en el detalle #${idx + 1} no puede estar vacío.`);
+                detallesValidos = false;
+            }
+            detalles.push({
+                nombre_producto_temp: nombreProducto,
+                cantidad: parseInt(item.querySelector('.product-qty-input').value),
+                precio_unitario: parseFloat(item.querySelector('.product-price-input').value)
+            });
+        });
+        if (!detallesValidos) return;
+        // 2. Construir el objeto de Venta (ComprobantePago)
+        const ventaPayload = {
+            id_comprobante: ventaIdInput.value || null,
+            id_tipo_comprobante: parseInt(ventaTipoComprobanteSelect.value),
+            ruc: ventaRUCInput.value || null,
+            razon_social: ventaRazonSocialInput.value || null,
+            
+            // ✅ ENVIAR EL ID DEL CLIENTE
+            id_cliente: parseInt(idClienteVentaInput.value),
+            
+            // ✅ AGREGAR EL ID DE LA APERTURA ACTIVA
+            id_apertura: idAperturaActiva,
+            
+            fecha_emision: ventaFechaInput.value,
+            id_tipopago: ventaMetodoPagoSelect.value,
+            
+            monto_total: parseFloat(ventaTotalSpan.textContent.replace('S/ ', '')),
+            detalles: detalles
+        };
+        console.log('📦 Payload de venta:', ventaPayload);
+        const success = await saveVenta(ventaPayload);
+        if (success) {
+            await fetchAndRenderVentas(); 
+            closeModal();
         }
     });
     // Función Asíncrona para guardar/actualizar la venta
