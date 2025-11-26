@@ -16,11 +16,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import fisi.software.detalles.controller.dto.ProductoSimpleDTO;
 import fisi.software.detalles.service.ProductoService;
 import fisi.software.detalles.service.ProductoService.CategoriaCodigo;
 import fisi.software.detalles.service.ProductoService.ProductoRequest;
 import fisi.software.detalles.service.ProductoService.ProductoResponse;
+import fisi.software.detalles.service.ProductoService.ProductoSimpleDTO;
 
 @RestController
 @RequestMapping("/api/productos")
@@ -36,16 +36,14 @@ public class ProductoApiController {
     @GetMapping("/calzados")
     public ResponseEntity<List<ProductoResponse>> listarCalzados(
             @RequestParam(name = "sexo", required = false) String sexo,
-            @RequestParam(name = "tipo", required = false) String tipo
-    ) {
+            @RequestParam(name = "tipo", required = false) String tipo) {
         return ResponseEntity.ok(productoService.listarPorCategoria(CategoriaCodigo.CALZADO, sexo, tipo));
     }
 
     @GetMapping("/accesorios")
     public ResponseEntity<List<ProductoResponse>> listarAccesorios(
             @RequestParam(name = "sexo", required = false) String sexo,
-            @RequestParam(name = "tipo", required = false) String tipo
-    ) {
+            @RequestParam(name = "tipo", required = false) String tipo) {
         return ResponseEntity.ok(productoService.listarPorCategoria(CategoriaCodigo.ACCESORIO, sexo, tipo));
     }
 
@@ -76,13 +74,15 @@ public class ProductoApiController {
     }
 
     @PutMapping("/calzados/{id}")
-    public ResponseEntity<ProductoResponse> actualizarCalzado(@PathVariable Long id, @RequestBody ProductoRequest request) {
+    public ResponseEntity<ProductoResponse> actualizarCalzado(@PathVariable Long id,
+            @RequestBody ProductoRequest request) {
         ProductoResponse response = productoService.actualizarParaCategoria(id, CategoriaCodigo.CALZADO, request);
         return ResponseEntity.ok(response);
     }
 
     @PutMapping("/accesorios/{id}")
-    public ResponseEntity<ProductoResponse> actualizarAccesorio(@PathVariable Long id, @RequestBody ProductoRequest request) {
+    public ResponseEntity<ProductoResponse> actualizarAccesorio(@PathVariable Long id,
+            @RequestBody ProductoRequest request) {
         ProductoResponse response = productoService.actualizarParaCategoria(id, CategoriaCodigo.ACCESORIO, request);
         return ResponseEntity.ok(response);
     }
@@ -106,12 +106,13 @@ public class ProductoApiController {
     private void validarCategoria(ProductoResponse response, CategoriaCodigo categoriaEsperada) {
         String categoriaNombre = response.categoria() != null ? response.categoria().nombre() : null;
         if (categoriaNombre == null || !categoriaNombre.equalsIgnoreCase(categoriaEsperada.getNombre())) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Producto no encontrado en la categoría solicitada");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "Producto no encontrado en la categoría solicitada");
         }
     }
 
-    @GetMapping
-public ResponseEntity<List<ProductoSimpleDTO>> listarTodosLosProductos() {
-    return ResponseEntity.ok(productoService.listarTodosSimple());
-}
+    @GetMapping("/todos")
+    public ResponseEntity<List<ProductoSimpleDTO>> listarTodosLosProductos() {
+        return ResponseEntity.ok(productoService.listarTodosSimple());
+    }
 }
