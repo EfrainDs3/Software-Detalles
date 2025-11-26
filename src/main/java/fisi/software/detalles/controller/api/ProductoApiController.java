@@ -111,7 +111,7 @@ public class ProductoApiController {
         }
     }
 
-    @GetMapping("/todos")
+    @GetMapping("/simple")
     public ResponseEntity<List<ProductoSimpleDTO>> listarTodosLosProductos() {
         return ResponseEntity.ok(productoService.listarTodosSimple());
     }

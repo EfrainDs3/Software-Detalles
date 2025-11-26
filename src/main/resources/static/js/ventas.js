@@ -419,6 +419,21 @@ document.addEventListener('DOMContentLoaded', () => {
         calculateTotal();
     }
 
+    // ✅ NUEVO: Cache y función para cargar productos
+    let productosDisponibles = [];
+    
+    async function cargarProductosDisponibles() {
+        try {
+            const response = await fetch('/api/productos/simple', { credentials: 'include' });
+            if (response.ok) {
+                productosDisponibles = await response.json();
+                console.log(`✅ ${productosDisponibles.length} productos cargados`);
+            }
+        } catch (error) {
+            console.error('Error al cargar productos:', error);
+        }
+    }
+
     function showDetalleModal(venta) {
         // ✅ ACCESO CORRECTO A LAS PROPIEDADES
         detalleVentaId.textContent = venta.id;
@@ -523,10 +538,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // ... (Tu código de Event Listeners se mantiene aquí) ...
 
     // Abrir modal para crear nueva venta
-    addVentaBtn.addEventListener('click', () => {
+    addVentaBtn.addEventListener('click', async () => {
+        await cargarProductosDisponibles(); // ✅ Cargar productos primero
         openModal();
         modalTitle.textContent = 'Nueva Venta';
-        resetClienteForm(); // ✅ Resetea el formulario de cliente
+        resetClienteForm();
         addProductInput();
     });
 
