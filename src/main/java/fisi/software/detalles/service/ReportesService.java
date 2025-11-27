@@ -18,6 +18,7 @@ public class ReportesService {
 
         private final VentaRepository ventaRepository;
         private final InventarioRepository inventarioRepository;
+        private final InventarioTallaRepository inventarioTallaRepository;
         private final ClienteRepository clienteRepository;
         private final PedidoCompraRepository pedidoCompraRepository;
 
@@ -71,7 +72,19 @@ public class ReportesService {
 
                         int totalProductos = inventarios.size();
                         int totalUnidades = inventarios.stream()
-                                        .mapToInt(Inventario::getCantidadStock)
+                                        .mapToInt(inv -> {
+                                                // Obtener todas las tallas para este inventario
+                                                List<InventarioTalla> tallas = inventarioTallaRepository
+                                                                .findByInventario(inv);
+
+                                                // Calcular stock total sumando todas las tallas
+                                                int stockActualTotal = tallas.stream()
+                                                                .mapToInt(InventarioTalla::getCantidadStock)
+                                                                .sum();
+
+                                                // Si no hay tallas, usar el valor del inventario principal
+                                                return tallas.isEmpty() ? inv.getCantidadStock() : stockActualTotal;
+                                        })
                                         .sum();
 
                         BigDecimal valorTotalInventario = calcularValorInventario(inventarios);
@@ -444,7 +457,21 @@ public class ReportesService {
                         if (inv.getProducto() != null && inv.getProducto().getCategoria() != null) {
                                 String categoriaNombre = inv.getProducto().getCategoria().getNombre();
                                 int cantidadActual = distribucion.getOrDefault(categoriaNombre, 0);
-                                distribucion.put(categoriaNombre, cantidadActual + inv.getCantidadStock());
+
+                                // Obtener todas las tallas para este inventario
+                                List<InventarioTalla> tallas = inventarioTallaRepository.findByInventario(inv);
+
+                                // Calcular stock total sumando todas las tallas
+                                int stockActualTotal = tallas.stream()
+                                                .mapToInt(InventarioTalla::getCantidadStock)
+                                                .sum();
+
+                                // Si no hay tallas, usar el valor del inventario principal
+                                if (tallas.isEmpty()) {
+                                        stockActualTotal = inv.getCantidadStock();
+                                }
+
+                                distribucion.put(categoriaNombre, cantidadActual + stockActualTotal);
                         }
                 }
 
@@ -459,11 +486,24 @@ public class ReportesService {
         private BigDecimal calcularValorInventario(List<Inventario> inventarios) {
                 return inventarios.stream()
                                 .map(inv -> {
+                                        // Obtener todas las tallas para este inventario
+                                        List<InventarioTalla> tallas = inventarioTallaRepository.findByInventario(inv);
+
+                                        // Calcular stock total sumando todas las tallas
+                                        int stockActualTotal = tallas.stream()
+                                                        .mapToInt(InventarioTalla::getCantidadStock)
+                                                        .sum();
+
+                                        // Si no hay tallas, usar el valor del inventario principal
+                                        if (tallas.isEmpty()) {
+                                                stockActualTotal = inv.getCantidadStock();
+                                        }
+
                                         BigDecimal precio = inv.getProducto() != null
                                                         && inv.getProducto().getPrecioVenta() != null
                                                                         ? inv.getProducto().getPrecioVenta()
                                                                         : BigDecimal.ZERO;
-                                        return precio.multiply(BigDecimal.valueOf(inv.getCantidadStock()));
+                                        return precio.multiply(BigDecimal.valueOf(stockActualTotal));
                                 })
                                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         }
@@ -471,34 +511,91 @@ public class ReportesService {
         private List<ReporteInventarioDTO.StockProducto> obtenerStockProductos(List<Inventario> inventarios) {
                 return inventarios.stream()
                                 .limit(50)
-                                .map(inv -> ReporteInventarioDTO.StockProducto.builder()
-                                                .nombreProducto(inv.getProducto() != null
-                                                                ? inv.getProducto().getNombre()
-                                                                : "Desconocido")
-                                                .categoria("General")
-                                                .stockActual(inv.getCantidadStock())
-                                                .stockMinimo(inv.getStockMinimo())
-                                                .valorStock(inv.getProducto() != null
-                                                                && inv.getProducto().getPrecioVenta() != null
-                                                                                ? inv.getProducto().getPrecioVenta()
-                                                                                                .multiply(BigDecimal
-                                                                                                                .valueOf(inv.getCantidadStock()))
-                                                                                : BigDecimal.ZERO)
-                                                .build())
+                                .map(inv -> {
+                                        // Obtener todas las tallas para este inventario
+                                        List<InventarioTalla> tallas = inventarioTallaRepository.findByInventario(inv);
+
+                                        // Calcular stock total sumando todas las tallas
+                                        int stockActualTotal = tallas.stream()
+                                                        .mapToInt(InventarioTalla::getCantidadStock)
+                                                        .sum();
+
+                                        int stockMinimoTotal = tallas.stream()
+                                                        .mapToInt(InventarioTalla::getStockMinimo)
+                                                        .sum();
+
+                                        // Si no hay tallas, usar los valores del inventario principal
+                                        if (tallas.isEmpty()) {
+                                                stockActualTotal = inv.getCantidadStock();
+                                                stockMinimoTotal = inv.getStockMinimo();
+                                        }
+
+                                        return ReporteInventarioDTO.StockProducto.builder()
+                                                        .nombreProducto(inv.getProducto() != null
+                                                                        ? inv.getProducto().getNombre()
+                                                                        : "Desconocido")
+                                                        .categoria(inv.getProducto() != null
+                                                                        && inv.getProducto().getCategoria() != null
+                                                                                        ? inv.getProducto()
+                                                                                                        .getCategoria()
+                                                                                                        .getNombre()
+                                                                                        : "General")
+                                                        .stockActual(stockActualTotal)
+                                                        .stockMinimo(stockMinimoTotal)
+                                                        .valorStock(inv.getProducto() != null
+                                                                        && inv.getProducto().getPrecioVenta() != null
+                                                                                        ? inv.getProducto()
+                                                                                                        .getPrecioVenta()
+                                                                                                        .multiply(BigDecimal
+                                                                                                                        .valueOf(stockActualTotal))
+                                                                                        : BigDecimal.ZERO)
+                                                        .build();
+                                })
                                 .collect(Collectors.toList());
         }
 
         private List<ReporteInventarioDTO.ProductoStockBajo> obtenerProductosStockBajo(List<Inventario> inventarios) {
                 return inventarios.stream()
-                                .filter(inv -> inv.getCantidadStock() <= inv.getStockMinimo())
-                                .map(inv -> ReporteInventarioDTO.ProductoStockBajo.builder()
-                                                .nombreProducto(inv.getProducto() != null
-                                                                ? inv.getProducto().getNombre()
-                                                                : "Desconocido")
-                                                .stockActual(inv.getCantidadStock())
-                                                .stockMinimo(inv.getStockMinimo())
-                                                .estado(inv.getCantidadStock() == 0 ? "Crítico" : "Bajo")
-                                                .build())
+                                .map(inv -> {
+                                        // Obtener todas las tallas para este inventario
+                                        List<InventarioTalla> tallas = inventarioTallaRepository.findByInventario(inv);
+
+                                        // Calcular stock total sumando todas las tallas
+                                        int stockActualTotal = tallas.stream()
+                                                        .mapToInt(InventarioTalla::getCantidadStock)
+                                                        .sum();
+
+                                        int stockMinimoTotal = tallas.stream()
+                                                        .mapToInt(InventarioTalla::getStockMinimo)
+                                                        .sum();
+
+                                        // Si no hay tallas, usar los valores del inventario principal
+                                        if (tallas.isEmpty()) {
+                                                stockActualTotal = inv.getCantidadStock();
+                                                stockMinimoTotal = inv.getStockMinimo();
+                                        }
+
+                                        return new Object[] {
+                                                        inv,
+                                                        stockActualTotal,
+                                                        stockMinimoTotal
+                                        };
+                                })
+                                .filter(data -> (int) data[1] <= (int) data[2]) // Filtrar productos con stock bajo
+                                .map(data -> {
+                                        Inventario inv = (Inventario) data[0];
+                                        int stockActual = (int) data[1];
+                                        int stockMinimo = (int) data[2];
+
+                                        return ReporteInventarioDTO.ProductoStockBajo.builder()
+                                                        .nombreProducto(inv.getProducto() != null
+                                                                        ? inv.getProducto().getNombre()
+                                                                        : "Desconocido")
+                                                        .stockActual(stockActual)
+                                                        .stockMinimo(stockMinimo)
+                                                        .estado(stockActual == 0 ? "Crítico" : "Bajo")
+                                                        .build();
+                                })
                                 .collect(Collectors.toList());
         }
 
