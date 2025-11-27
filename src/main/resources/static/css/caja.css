@@ -6,26 +6,31 @@
 
 /* Estilo para el contenedor que oscurece el fondo */
 .modal-overlay {
-    display: none; /* Oculto por defecto */
+    display: none;
+    /* Oculto por defecto */
     position: fixed;
-    z-index: 1000; 
+    z-index: 1000;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(0,0,0,0.6); /* Fondo semitransparente oscuro */
-    backdrop-filter: blur(3px); /* Efecto de desenfoque opcional */
+    background-color: rgba(0, 0, 0, 0.6);
+    /* Fondo semitransparente oscuro */
+    backdrop-filter: blur(3px);
+    /* Efecto de desenfoque opcional */
 }
 
 /* Estilo para el contenido de la ventana */
 .modal-content {
     background-color: #ffffff;
-    margin: 8% auto; /* Centrar verticalmente */
+    margin: 8% auto;
+    /* Centrar verticalmente */
     padding: 25px;
     border: none;
     width: 90%;
-    max-width: 450px; /* Ancho cómodo para formularios */
+    max-width: 450px;
+    /* Ancho cómodo para formularios */
     border-radius: 10px;
     position: relative;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
@@ -64,7 +69,7 @@
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 5px;
-    box-sizing: border-box; 
+    box-sizing: border-box;
     font-size: 14px;
 }
 
@@ -373,6 +378,7 @@
         opacity: 0;
         transform: translateY(-50px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -525,8 +531,357 @@
         grid-template-columns: 1fr;
         gap: 15px;
     }
-    
+
     .modal-large {
         max-width: 95%;
+    }
+}
+
+/* ========================================
+   MODALES MODERNOS - NUEVO DISEÑO
+   ======================================== */
+/* Variables de colores modernos */
+:root {
+    --modal-bg: #ffffff;
+    --modal-overlay: rgba(0, 0, 0, 0.6);
+    --text-primary: #1f2937;
+    --text-secondary: #6b7280;
+    --success-color: #10b981;
+    --success-light: #d1fae5;
+    --danger-color: #ef4444;
+    --primary-color: #3b82f6;
+    --border-radius-lg: 20px;
+    --shadow-modern: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+        0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Overlay mejorado */
+.modal-overlay {
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.3s ease;
+}
+
+/* Modal moderno */
+.modal-content {
+    background: var(--modal-bg) !important;
+    border-radius: var(--border-radius-lg) !important;
+    box-shadow: var(--shadow-modern) !important;
+    max-width: 500px;
+    animation: modalSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Header del modal */
+.modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    padding: 30px 30px 20px !important;
+    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0 !important;
+    text-align: center;
+    position: relative;
+}
+
+.modal-header h3 {
+    color: white !important;
+    font-size: 24px;
+    font-weight: 600;
+    margin: 10px 0 5px;
+}
+
+.modal-subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+/* Icono del modal */
+.modal-icon {
+    width: 70px;
+    height: 70px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    animation: iconBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.modal-icon i {
+    font-size: 32px;
+    color: #667eea;
+}
+
+.modal-icon.success i {
+    color: var(--success-color);
+}
+
+.modal-icon.danger i {
+    color: var(--danger-color);
+}
+
+/* Body del modal */
+.modal-body {
+    padding: 30px !important;
+    background: white;
+}
+
+/* Formularios mejorados */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    color: var(--text-primary);
+    font-weight: 500;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    background: #f9fafb;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-group input[readonly] {
+    background: #f3f4f6;
+    color: var(--text-secondary);
+    cursor: not-allowed;
+}
+
+/* Footer del modal */
+.modal-footer {
+    padding: 20px 30px 30px !important;
+    background: white;
+    border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+/* Botones modernos */
+.modal-footer .btn {
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-weight: 500;
+    font-size: 15px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.modal-footer .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.modal-footer .btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.modal-footer .btn-danger {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+.modal-footer .btn-secondary {
+    background: #f3f4f6;
+    color: var(--text-secondary);
+}
+
+.modal-footer .btn-secondary:hover {
+    background: #e5e7eb;
+}
+
+/* Botón de cerrar (X) */
+.close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: white !important;
+    font-size: 20px;
+}
+
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+/* ========================================
+   TOAST NOTIFICATIONS
+   ======================================== */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast-notification {
+    background: white;
+    border-radius: 12px;
+    padding: 16px 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 300px;
+    animation: toastSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    border-left: 4px solid var(--success-color);
+}
+
+.toast-notification.success {
+    border-left-color: var(--success-color);
+}
+
+.toast-notification.error {
+    border-left-color: var(--danger-color);
+}
+
+.toast-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.toast-notification.success .toast-icon {
+    background: var(--success-light);
+    color: var(--success-color);
+}
+
+.toast-notification.error .toast-icon {
+    background: var(--danger-light);
+    color: var(--danger-color);
+}
+
+.toast-icon i {
+    font-size: 20px;
+    animation: checkAnimation 0.5s ease;
+}
+
+.toast-content h4 {
+    margin: 0 0 4px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.toast-content p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+/* ========================================
+   ANIMACIONES
+   ======================================== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes iconBounce {
+    0% {
+        transform: scale(0);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes toastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes checkAnimation {
+    0% {
+        transform: scale(0) rotate(-45deg);
+    }
+
+    50% {
+        transform: scale(1.2) rotate(0deg);
+    }
+
+    100% {
+        transform: scale(1) rotate(0deg);
+    }
+}
+
+/* Animación de salida */
+.toast-notification.hiding {
+    animation: toastSlideOut 0.3s ease forwards;
+}
+
+@keyframes toastSlideOut {
+    to {
+        opacity: 0;
+        transform: translateX(100%);
     }
 }

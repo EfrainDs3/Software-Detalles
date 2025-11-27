@@ -1,8 +1,40 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+    // ========================================
+    // SISTEMA DE TOAST NOTIFICATIONS
+    // ========================================
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('toastContainer') || createToastContainer();
+
+        const toast = document.createElement('div');
+        toast.className = `toast-notification ${type}`;
+        toast.innerHTML = `
+            <div class="toast-icon">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+            </div>
+            <div class="toast-content">
+                <h4>${type === 'success' ? '¡Éxito!' : '¡Error!'}</h4>
+                <p>${message}</p>
+            </div>
+        `;
+
+        container.appendChild(toast);
+
+        setTimeout(() => {
+            toast.classList.add('hiding');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+    function createToastContainer() {
+        const container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+        return container;
+    }
     // --- Referencias del DOM y Estado Global ---
-    const API_BASE_URL = '/api/caja'; 
-    
+    const API_BASE_URL = '/api/caja';
+
     // Referencias para Historial y Estado
     const cajaTableBody = document.getElementById('cajaTableBody');
     const cashierStatusText = document.getElementById('cashierStatusText');
@@ -93,18 +125,18 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateCajaStatusUI(estado) {
         const isAbierta = estado.abierta;
         cashierStatusText.textContent = isAbierta ? 'Abierta' : 'Cerrada';
-        
+
         cashierStatusText.classList.remove('cerrada', 'abierta');
         cashierStatusText.classList.add(isAbierta ? 'abierta' : 'cerrada');
-        
+
         // Controlar visibilidad de botones (Abrir vs Cerrar)
-        if(checkInBtn) checkInBtn.style.display = isAbierta ? 'none' : 'block';
-        if(checkOutBtn) checkOutBtn.style.display = isAbierta ? 'block' : 'none';
+        if (checkInBtn) checkInBtn.style.display = isAbierta ? 'none' : 'block';
+        if (checkOutBtn) checkOutBtn.style.display = isAbierta ? 'block' : 'none';
 
         // Llenar el nombre del trabajador en los inputs de los modales
         const trabajadorNombre = estado.trabajador || 'Usuario Actual';
-        if(cashierNameInput) cashierNameInput.value = trabajadorNombre;
-        if(cashierNameCheckoutInput) cashierNameCheckoutInput.value = trabajadorNombre;
+        if (cashierNameInput) cashierNameInput.value = trabajadorNombre;
+        if (cashierNameCheckoutInput) cashierNameCheckoutInput.value = trabajadorNombre;
 
         // Guardar el estado activo
         currentAperturaId = estado.idAperturaActiva;
@@ -116,18 +148,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. Obtener el estado actual de la caja (MEJORADO)
     async function fetchCajaStatus() {
         try {
-            const response = await fetch(`${API_BASE_URL}/estado`, { 
-                credentials: 'include' 
+            const response = await fetch(`${API_BASE_URL}/estado`, {
+                credentials: 'include'
             });
-            
+
             if (!response.ok) {
                 console.error(`Error ${response.status}: No se pudo obtener el estado de la caja`);
                 // NO actualizar la UI si hay error - mantener el estado actual
                 return;
             }
-            
+
             const estado = await response.json();
-            
+
             // Validar que el estado tenga la estructura esperada
             if (estado && typeof estado.abierta === 'boolean') {
                 updateCajaStatusUI(estado);
@@ -152,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    
+
     // ------------------------------------------
     // Lógica para Abrir/Cerrar la Modal de NUEVA CAJA
     // ------------------------------------------
@@ -163,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
             formNuevaCaja.reset();
             modalNuevaCaja.style.display = 'block';
         }
-        
+
         // Al hacer clic en la 'x'
         cerrarModalCaja.onclick = () => {
             modalNuevaCaja.style.display = 'none';
@@ -173,11 +205,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // LÓGICA DE ENVÍO DEL FORMULARIO DE NUEVA CAJA
     if (formNuevaCaja) {
         formNuevaCaja.addEventListener('submit', async (e) => {
-            e.preventDefault(); 
+            e.preventDefault();
 
             // 1. Obtener y limpiar los valores
             const nombre = document.getElementById('nombreCaja').value.trim();
-            const descripcion = document.getElementById('descripcionCaja').value.trim(); 
+            const descripcion = document.getElementById('descripcionCaja').value.trim();
 
             // 2. VALIDACIÓN CRÍTICA: Aseguramos que el nombre no esté vacío.
             if (!nombre) {
@@ -188,9 +220,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // 3. Crear el payload con los nombres de propiedad de su Entidad Java (camelCase)
             const data = {
-                nombreCaja: nombre, 
-                ubicacionCaja: descripcion || null, 
-                estado: 'ACTIVO' 
+                nombreCaja: nombre,
+                ubicacionCaja: descripcion || null,
+                estado: 'ACTIVO'
             };
 
             mensajeCaja.textContent = 'Guardando caja...';
@@ -203,7 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify(data),
-                    credentials: 'include' 
+                    credentials: 'include'
                 });
 
                 if (response.ok) {
@@ -211,12 +243,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     mensajeCaja.textContent = `✅ Caja '${nombre}' creada con éxito.`;
                     mensajeCaja.style.color = 'green';
                     formNuevaCaja.reset();
-                    
+
                     // Actualizar lista y cerrar modal tras éxito
                     await fetchAndPopulateCajas(); // Actualizar el selector
                     setTimeout(() => {
                         modalNuevaCaja.style.display = 'none';
-                    }, 1500); 
+                    }, 1500);
 
                 } else {
                     // Manejo de errores
@@ -241,47 +273,47 @@ document.addEventListener('DOMContentLoaded', () => {
     if (checkInForm) {
         checkInForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             // Usamos la referencia limpia
-            const idCajaValue = cajaSelect.value; 
+            const idCajaValue = cajaSelect.value;
             const montoInicial = parseFloat(initialAmountInput.value);
-            
+
             if (!idCajaValue) {
-                alert('❌ Por favor, seleccione una caja.');
+                showToast('❌ Por favor, seleccione una caja.');
                 return;
             }
 
             if (isNaN(montoInicial) || montoInicial < 0) {
-                alert('Por favor, ingrese un monto inicial válido.');
+                showToast('Por favor, ingrese un monto inicial válido.');
                 return;
             }
 
             try {
                 const requestBody = {
-                    idCaja: parseInt(idCajaValue, 10), 
+                    idCaja: parseInt(idCajaValue, 10),
                     montoInicial: montoInicial
                 };
 
                 const response = await fetch(`${API_BASE_URL}/abrir`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(requestBody), 
-                    credentials: 'include' 
+                    body: JSON.stringify(requestBody),
+                    credentials: 'include'
                 });
 
                 // MEJORA: Capturar el error específico del backend
                 if (!response.ok) {
                     const errorText = await response.text();
                     console.error('Error del servidor:', errorText);
-                    
+
                     if (response.status === 409) {
-                        alert('❌ Error: La caja ya estaba abierta.');
+                        showToast('❌ Error: La caja ya estaba abierta.');
                     } else if (response.status === 403) {
-                        alert('❌ Error: No tienes permisos o no estás autenticado.');
+                        showToast('❌ Error: No tienes permisos o no estás autenticado.');
                     } else if (response.status === 400) {
-                        alert('❌ Error: Datos inválidos. Verifica la caja seleccionada.');
+                        showToast('❌ Error: Datos inválidos. Verifica la caja seleccionada.');
                     } else {
-                        alert(`❌ Error ${response.status}: ${errorText.substring(0, 200)}`);
+                        showToast(`❌ Error ${response.status}: ${errorText.substring(0, 200)}`);
                     }
                     return; // Detiene la ejecución
                 }
@@ -289,14 +321,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const estadoActualizado = await response.json();
                 updateCajaStatusUI(estadoActualizado);
                 await fetchCajaHistory();
-                alert(`✅ Caja ${idCajaValue} abierta exitosamente.`);
+                showToast(`✅ Caja ${idCajaValue} abierta exitosamente.`);
                 checkInModal.style.display = 'none';
-                initialAmountInput.value = ''; 
-                finalAmountInput.value = ''; 
+                initialAmountInput.value = '';
+                finalAmountInput.value = '';
 
             } catch (error) {
                 console.error('❌ Error de conexión:', error);
-                alert(`Hubo un error de red. No se pudo conectar con el servidor.`);
+                showToast(`Hubo un error de red. No se pudo conectar con el servidor.`);
             }
         });
     }
@@ -307,7 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch(`${API_BASE_URL}/cajas/activas`, { credentials: 'include' });
             if (!response.ok) throw new Error(`Error ${response.status} al obtener lista de cajas`);
-            
+
             const cajas = await response.json();
             cajaSelect.innerHTML = ''; // Limpiar opciones
 
@@ -345,12 +377,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const finalAmount = parseFloat(finalAmountInput.value);
             if (isNaN(finalAmount) || finalAmount < 0) {
-                alert('Por favor, ingrese un monto final válido.');
+                showToast('Por favor, ingrese un monto final válido.');
                 return;
             }
-            
+
             if (!currentAperturaId) {
-                alert('No hay una caja activa para cerrar.');
+                showToast('No hay una caja activa para cerrar.');
                 return;
             }
 
@@ -363,34 +395,34 @@ document.addEventListener('DOMContentLoaded', () => {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(requestBody),
-                    credentials: 'include' 
+                    credentials: 'include'
                 });
                 // ✅ CORRECCIÓN: No intentar parsear JSON de respuesta vacía
                 if (!response.ok) {
                     const errorText = await response.text();
                     if (response.status === 409) {
-                        alert('❌ Error: Esta caja ya estaba cerrada.');
+                        showToast('❌ Error: Esta caja ya estaba cerrada.');
                     } else {
-                        alert(`❌ Error al cerrar caja: ${errorText || response.statusText}`);
+                        showToast(`❌ Error al cerrar caja: ${errorText || response.statusText}`);
                     }
                     return;
                 }
                 // ✅ Si llegamos aquí, el cierre fue exitoso
                 await fetchCajaStatus();
                 await fetchCajaHistory();
-                alert('✅ Caja cerrada exitosamente.');
+                showToast('✅ Caja cerrada exitosamente.');
                 checkOutModal.style.display = 'none';
                 finalAmountInput.value = '';
             } catch (error) {
                 console.error('❌ Error al cerrar caja:', error);
-                alert(`Hubo un error al intentar cerrar la caja. Consulte la consola.`);
+                showToast(`Hubo un error al intentar cerrar la caja. Consulte la consola.`);
             }
         });
     }
 
 
     // --- Event Listeners para Modales (Abrir/Cerrar Caja) ---
-    
+
     // Mostrar Modal Apertura
     if (checkInBtn) {
         checkInBtn.addEventListener('click', () => {
@@ -404,11 +436,11 @@ document.addEventListener('DOMContentLoaded', () => {
         checkOutBtn.addEventListener('click', () => {
             if (currentAperturaId) {
                 // Cargar el monto inicial en el modal de cierre
-                if(checkoutInitialAmountInput) checkoutInitialAmountInput.value = formatCurrency(currentMontoInicial);
+                if (checkoutInitialAmountInput) checkoutInitialAmountInput.value = formatCurrency(currentMontoInicial);
                 if (checkOutModal) checkOutModal.style.display = 'block';
                 finalAmountInput.focus();
             } else {
-                alert('La caja está cerrada. Debe abrirla primero.');
+                showToast('La caja está cerrada. Debe abrirla primero.');
             }
         });
     }
@@ -418,7 +450,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const closeBtn = document.getElementById(closeBtnId);
         const cancelBtn = document.getElementById(cancelBtnId);
         const modal = document.getElementById(modalId);
-        
+
         if (closeBtn) closeBtn.addEventListener('click', () => modal.style.display = 'none');
         if (cancelBtn) cancelBtn.addEventListener('click', () => modal.style.display = 'none');
     }
@@ -432,7 +464,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (event.target === checkOutModal) checkOutModal.style.display = 'none';
         if (event.target === modalNuevaCaja) modalNuevaCaja.style.display = 'none';
     });
-    
+
 
     // ======================================================
     // FUNCIONALIDAD DE VER DETALLES
@@ -448,32 +480,32 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('detalle-id').textContent = movimiento.id;
         document.getElementById('detalle-trabajador').textContent = movimiento.trabajador;
         document.getElementById('detalle-fecha').textContent = formatDate(movimiento.fecha);
-        
+
         // Estado
         const estadoSpan = document.getElementById('detalle-estado');
         estadoSpan.textContent = movimiento.estado;
         estadoSpan.className = 'status-badge ' + movimiento.estado.toLowerCase();
-        
+
         // Horas y montos
         document.getElementById('detalle-hora-apertura').textContent = movimiento.horaApertura || '-';
         document.getElementById('detalle-monto-inicial').textContent = formatCurrency(movimiento.montoInicial);
         document.getElementById('detalle-hora-cierre').textContent = movimiento.horaCierre || '-';
         document.getElementById('detalle-monto-final').textContent = movimiento.montoFinal ? formatCurrency(movimiento.montoFinal) : '-';
-        
+
         // Sección de diferencia (solo si está cerrada)
         const seccionDiferencia = document.getElementById('seccion-diferencia');
         if (movimiento.estado.toLowerCase() === 'cerrada' && movimiento.montoFinal) {
             seccionDiferencia.style.display = 'block';
-            
+
             // Calcular monto esperado y diferencia (puedes ajustar esta lógica)
             const montoEsperado = movimiento.montoInicial + 500; // Ejemplo: ventas simuladas
             const diferencia = movimiento.montoFinal - montoEsperado;
-            
+
             document.getElementById('detalle-monto-esperado').textContent = formatCurrency(montoEsperado);
-            
+
             const diferenciaSpan = document.getElementById('detalle-diferencia');
             diferenciaSpan.textContent = formatCurrency(Math.abs(diferencia));
-            
+
             // Colorear según positivo/negativo
             if (diferencia > 0) {
                 diferenciaSpan.className = 'monto-positivo';
@@ -488,11 +520,11 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             seccionDiferencia.style.display = 'none';
         }
-        
+
         // Observaciones (si las tienes en el backend)
-        document.getElementById('detalle-observaciones').textContent = 
+        document.getElementById('detalle-observaciones').textContent =
             movimiento.observaciones || 'Sin observaciones registradas';
-        
+
         // Mostrar modal
         modalDetalles.style.display = 'block';
     }
@@ -520,72 +552,72 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('click', async (e) => {
         // ========== BOTÓN VER DETALLES ==========
         const btnView = e.target.closest('.btn-view');
-        
+
         if (btnView) {
             const idMovimiento = btnView.getAttribute('data-id');
-            
+
             // Buscar el movimiento en el historial cargado
             try {
                 const response = await fetch(`${API_BASE_URL}/historial`, { credentials: 'include' });
                 if (!response.ok) throw new Error('Error al obtener historial');
-                
+
                 const history = await response.json();
                 const movimiento = history.find(m => m.id == idMovimiento);
-                
+
                 if (movimiento) {
                     abrirModalDetalles(movimiento);
                 } else {
-                    alert('No se encontró el movimiento solicitado');
+                    showToast('No se encontró el movimiento solicitado');
                 }
             } catch (error) {
                 console.error('Error al cargar detalles:', error);
-                alert('Error al cargar los detalles del movimiento');
+                showToast('Error al cargar los detalles del movimiento');
             }
             return; // Importante: salir después de manejar este evento
         }
 
         // ========== BOTÓN CERRAR CAJA DESDE TABLA ==========
         const btnCloseRow = e.target.closest('.btn-close-row');
-        
+
         if (btnCloseRow) {
             const idApertura = btnCloseRow.getAttribute('data-id');
-            
+
             // Buscar el movimiento para obtener el monto inicial
             try {
                 const historyResponse = await fetch(`${API_BASE_URL}/historial`, { credentials: 'include' });
                 if (!historyResponse.ok) throw new Error('Error al obtener historial');
-                
+
                 const history = await historyResponse.json();
                 const movimiento = history.find(m => m.id == idApertura);
-                
+
                 if (!movimiento) {
-                    alert('❌ No se encontró el movimiento');
+                    showToast('❌ No se encontró el movimiento');
                     return;
                 }
-                
+
                 // Verificar que esté abierta
                 if (movimiento.estado.toLowerCase() !== 'abierta') {
-                    alert('❌ Esta caja ya está cerrada');
+                    showToast('❌ Esta caja ya está cerrada');
                     return;
                 }
-                
+
                 // Mostrar información de la caja a cerrar
                 const mensaje = `Cerrar Caja #${idApertura}\n\n` +
-                               `Trabajador: ${movimiento.trabajador}\n` +
-                               `Monto Inicial: ${formatCurrency(movimiento.montoInicial)}\n` +
-                               `Hora Apertura: ${movimiento.horaApertura}\n\n` +
-                               `Ingrese el monto final de cierre:`;
-                
+                    `Trabajador: ${movimiento.trabajador}\n` +
+                    `Monto Inicial: ${formatCurrency(movimiento.montoInicial)}\n` +
+                    `Hora Apertura: ${movimiento.horaApertura}\n\n` +
+                    `Ingrese el monto final de cierre:`;
+
                 const montoFinal = prompt(mensaje);
-                
+
                 if (montoFinal === null) return; // Usuario canceló
-                
+
                 const monto = parseFloat(montoFinal);
                 if (isNaN(monto) || monto < 0) {
-                    alert('❌ Monto inválido. Debe ser un número positivo.');
+                    showToast('❌ Monto inválido. Debe ser un número positivo.');
                     return;
                 }
-                
+
                 // Confirmación adicional
                 const confirmar = confirm(
                     `¿Confirmar cierre de caja?\n\n` +
@@ -593,7 +625,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     `Monto Final: ${formatCurrency(monto)}\n` +
                     `Diferencia: ${formatCurrency(monto - movimiento.montoInicial)}`
                 );
-                
+
                 if (!confirmar) return;
 
                 console.log('🔍 DEBUG - Datos a enviar:', {
@@ -601,7 +633,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     montoFinal: parseFloat(monto.toFixed(2)),
                     movimiento: movimiento
                 });
-                
+
                 const response = await fetch(`${API_BASE_URL}/cerrar`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -613,7 +645,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 console.log('📡 Response status:', response.status);
-                
+
                 if (!response.ok) {
                     const errorText = await response.text();
                     console.error('❌ Error del servidor:', errorText);
@@ -622,33 +654,33 @@ document.addEventListener('DOMContentLoaded', () => {
                         statusText: response.statusText,
                         headers: response.headers
                     });
-                    
+
                     if (response.status === 409) {
-                        alert('❌ Conflicto: Esta caja ya está cerrada o el ID no coincide.');
+                        showToast('❌ Conflicto: Esta caja ya está cerrada o el ID no coincide.');
                     } else if (response.status === 404) {
-                        alert('❌ No se encontró la apertura de caja con ID ' + idApertura);
+                        showToast('❌ No se encontró la apertura de caja con ID ' + idApertura);
                     } else if (response.status === 500) {
                         alert('❌ Error del servidor.\n\nPosibles causas:\n' +
-                              '- La caja no existe en la base de datos\n' +
-                              '- Error de validación en el backend\n' +
-                              '- Problema con el formato de datos\n\n' +
-                              'Revisa la consola del navegador (F12) para más detalles.');
+                            '- La caja no existe en la base de datos\n' +
+                            '- Error de validación en el backend\n' +
+                            '- Problema con el formato de datos\n\n' +
+                            'Revisa la consola del navegador (F12) para más detalles.');
                     } else {
-                        alert(`❌ Error ${response.status} al cerrar la caja.\n\n${errorText.substring(0, 200)}`);
+                        showToast(`❌ Error ${response.status} al cerrar la caja.\n\n${errorText.substring(0, 200)}`);
                     }
                     return;
                 }
-                
+
                 // ✅ CORRECCIÓN: No intentar parsear JSON de respuesta vacía
                 console.log('✅ Cierre exitoso desde tabla');
-                
-                alert('✅ Caja cerrada exitosamente');
+
+                showToast('✅ Caja cerrada exitosamente');
                 await fetchCajaStatus();
                 await fetchCajaHistory();
             } catch (error) {
                 console.error('❌ Error completo:', error);
                 console.error('📋 Stack trace:', error.stack);
-                alert(`❌ Error de conexión: ${error.message}\n\nRevisa la consola del navegador para más detalles.`);
+                showToast(`❌ Error de conexión: ${error.message}\n\nRevisa la consola del navegador para más detalles.`);
             }
             return;
         }
