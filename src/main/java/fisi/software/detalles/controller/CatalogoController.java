@@ -25,7 +25,6 @@ public class CatalogoController {
     // ========================
 
     @GetMapping("/marcas")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<MarcaResponse>> listarMarcas() {
         return ResponseEntity.ok(catalogoService.listarMarcas());
     }
@@ -54,7 +53,6 @@ public class CatalogoController {
     // ========================
 
     @GetMapping("/modelos")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<ModeloResponse>> listarModelos() {
         return ResponseEntity.ok(catalogoService.listarModelos());
     }
@@ -83,7 +81,6 @@ public class CatalogoController {
     // ========================
 
     @GetMapping("/materiales")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<MaterialResponse>> listarMateriales() {
         return ResponseEntity.ok(catalogoService.listarMateriales());
     }
@@ -113,7 +110,6 @@ public class CatalogoController {
     // ========================
 
     @GetMapping("/unidades")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<UnidadResponse>> listarUnidades() {
         return ResponseEntity.ok(catalogoService.listarUnidades());
     }
@@ -142,7 +138,6 @@ public class CatalogoController {
     // ========================
 
     @GetMapping("/tipos")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<TipoResponse>> listarTipos() {
         return ResponseEntity.ok(catalogoService.listarTipos());
     }
@@ -171,7 +166,6 @@ public class CatalogoController {
     // ========================
 
     @GetMapping("/categorias")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<Map<String, Object>>> listarCategorias() {
         return ResponseEntity.ok(catalogoService.listarCategoriasFijas());
     }
