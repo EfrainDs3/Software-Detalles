@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ========================================
     function showToast(message, type = 'success') {
         const container = document.getElementById('toastContainer') || createToastContainer();
-        
+
         const toast = document.createElement('div');
         toast.className = `toast-notification ${type}`;
         toast.innerHTML = `
@@ -18,9 +18,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p>${message}</p>
             </div>
         `;
-        
+
         container.appendChild(toast);
-        
+
         setTimeout(() => {
             toast.classList.add('hiding');
             setTimeout(() => toast.remove(), 300);
@@ -381,10 +381,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function addProductInput(product = { nombre: '', cantidad: 1, precio: '' }) {
         const itemDiv = document.createElement('div');
         itemDiv.classList.add('product-item');
-        
+
         // ✅ Generar ID único para el datalist
         const uniqueId = `productos-list-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        
+
         itemDiv.innerHTML = `
             <div class="form-group">
                 <label>Nombre del Producto</label>
@@ -395,9 +395,9 @@ document.addEventListener('DOMContentLoaded', () => {
                        list="${uniqueId}"
                        autocomplete="off">
                 <datalist id="${uniqueId}">
-                    ${productosDisponibles.map(p => 
-                        `<option value="${p.nombre}">${p.nombre} - S/ ${(p.precioVenta || 0).toFixed(2)}</option>`
-                    ).join('')}
+                    ${productosDisponibles.map(p =>
+            `<option value="${p.nombre}">${p.nombre} - S/ ${(p.precioVenta || 0).toFixed(2)}</option>`
+        ).join('')}
                 </datalist>
             </div>
             <div class="form-group">
@@ -416,7 +416,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // ✅ NUEVO: Detectar selección de producto y auto-rellenar precio
         const nameInput = itemDiv.querySelector('.product-name-input');
         const priceInput = itemDiv.querySelector('.product-price-input');
-        
+
         nameInput.addEventListener('input', () => {
             const selectedProduct = productosDisponibles.find(p => p.nombre === nameInput.value);
             if (selectedProduct && selectedProduct.precioVenta) {
@@ -454,7 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ✅ NUEVO: Cache y función para cargar productos
     let productosDisponibles = [];
-    
+
     async function cargarProductosDisponibles() {
         try {
             const response = await fetch('/api/productos/simple', { credentials: 'include' });
@@ -523,20 +523,23 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleFacturaFields();
 
         // Cargar productos
-        productosContainer.innerHTML = '';
-        const productosDetalle = venta.detalles || [];
-
-        productosDetalle.forEach(product => {
-            addProductInput({
-                nombre: product.nombre_producto || '',
-                cantidad: product.cantidad || 1,
-                precio: product.precio_unitario || 0
+        if (productosContainer) {
+            productosContainer.innerHTML = '';
+            const productosDetalle = venta.detalles || [];
+            
+            productosDetalle.forEach(product => {
+                addProductInput({
+                    nombre: product.nombre_producto || '',
+                    cantidad: product.cantidad || 1,
+                    precio: product.precio_unitario || 0
+                });
             });
-        });
-
-        calculateTotal();
+            calculateTotal(); 
+        } else {
+            console.error('❌ No se pueden cargar productos: productosContainer es null');
+            showToast('Error: No se puede editar la venta. Recarga la página', 'error');
+        }
     }
-
     // --- Funciones para manejar la lógica de Factura/Boleta ---
     function toggleFacturaFields() {
         // ... (Tu código original de toggleFacturaFields se mantiene aquí) ...
@@ -634,23 +637,23 @@ document.addEventListener('DOMContentLoaded', () => {
             id_tipo_comprobante: parseInt(ventaTipoComprobanteSelect.value),
             ruc: ventaRUCInput.value || null,
             razon_social: ventaRazonSocialInput.value || null,
-            
+
             // ✅ ENVIAR EL ID DEL CLIENTE
             id_cliente: parseInt(idClienteVentaInput.value),
-            
+
             // ✅ AGREGAR EL ID DE LA APERTURA ACTIVA
             id_apertura: idAperturaActiva,
-            
+
             fecha_emision: ventaFechaInput.value,
             id_tipopago: ventaMetodoPagoSelect.value,
-            
+
             monto_total: parseFloat(ventaTotalSpan.textContent.replace('S/ ', '')),
             detalles: detalles
         };
         console.log('📦 Payload de venta:', ventaPayload);
         const success = await saveVenta(ventaPayload);
         if (success) {
-            await fetchAndRenderVentas(); 
+            await fetchAndRenderVentas();
             closeModal();
         }
     });

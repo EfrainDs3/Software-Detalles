@@ -37,8 +37,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Referencias para Historial y Estado
     const cajaTableBody = document.getElementById('cajaTableBody');
-    const cashierStatusText = document.getElementById('cashierStatusText');
+    if (!cajaTableBody) {
+        console.log('⚠️ caja.js: No se encontró la tabla de caja. Este script solo debe ejecutarse en /caja');
+        return; // Salir del script si no estamos en la página correcta
+    }
 
+    const cashierStatusText = document.getElementById('cashierStatusText');
+    
     // Referencias para Abrir/Cerrar Caja
     const checkInBtn = document.getElementById('checkInBtn');
     const checkOutBtn = document.getElementById('checkOutBtn');
