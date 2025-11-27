@@ -57,7 +57,7 @@
                         <th>
                             <input type="checkbox" id="selectAll">
                         </th>
-                        <th>ID Pedido</th>
+                        <th>ID Compra</th>
                         <th>Proveedor</th>
                         <th>RUC</th>
                         <th>Fecha Pedido</th>
@@ -105,14 +105,16 @@
                         Detalles de la Compra
                     </h4>
                     <div class="form-row">
-                        <div class="form-group">
-                            <label for="compraProveedor">Proveedor *</label>
-                            <select id="compraProveedor" name="proveedor" required>
+                        <div class="form-group full-width">
+                            <label for="proveedorSearchInput">Proveedor *</label>
+                            <div class="searchable-select" id="proveedorSelectContainer">
+                                <input type="text" id="proveedorSearchInput"
+                                       placeholder="Escribe para buscar por razón social, nombre comercial o RUC"
+                                       autocomplete="off">
+                                <ul class="searchable-options" id="proveedorSearchResults"></ul>
+                            </div>
+                            <select id="compraProveedor" name="proveedor" required hidden>
                                 <option value="">Seleccionar proveedor</option>
-                                <option value="1">Distribuidora Nike S.A.</option>
-                                <option value="2">Calzados Premium Ltda.</option>
-                                <option value="3">Accesorios Fashion</option>
-                                <option value="4">Sportswear Internacional</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -155,15 +157,25 @@
                 <div class="form-section">
                     <h4 class="section-title">
                         <i class="fas fa-boxes"></i>
-                        Productos del Pedido
+                        Productos de la Compra
                     </h4>
                     <div id="productosContainer">
                     </div>
-                    <button type="button" class="btn btn-secondary mt-3" id="addProductBtn">
+                    <button type="button" class="btn btn-secondary" id="addProductBtn">
                         <i class="fas fa-plus"></i>
                         Agregar Producto
                     </button>
-                    <div class="total-summary mt-3">
+                    <div class="igv-toggle">
+                        <label class="igv-toggle-control">
+                            <input type="checkbox" id="aplicaIgvToggle" checked>
+                            <span class="igv-toggle-slider"></span>
+                        </label>
+                        <div class="igv-toggle-text">
+                            <span class="igv-toggle-title">Aplicar IGV (18%)</span>
+                            <span class="igv-toggle-subtitle">Divide el importe total entre 1.18 para obtener la base imponible</span>
+                        </div>
+                    </div>
+                    <div class="total-summary">
                         <div class="summary-row">
                             <span>Subtotal:</span>
                             <span id="compraSubtotal">S/ 0.00</span>
@@ -204,12 +216,13 @@
                 <div class="detalle-compra-info">
                     <div class="info-grid">
                         <div class="info-section">
-                            <h5><i class="fas fa-receipt"></i> Información del Pedido</h5>
-                            <p><strong>ID de Pedido:</strong> <span id="detalleCompraId"></span></p>
+                            <h5><i class="fas fa-receipt"></i> Información de la Compra</h5>
+                            <p><strong>ID de Compra:</strong> <span id="detalleCompraId"></span></p>
                             <p><strong>Fecha de Pedido:</strong> <span id="detalleCompraFechaPedido"></span></p>
                             <p><strong>Fecha de Entrega:</strong> <span id="detalleCompraFechaEntrega"></span></p>
                             <p><strong>Referencia:</strong> <span id="detalleCompraReferencia"></span></p>
                             <p><strong>Estado:</strong> <span id="detalleCompraEstado"></span></p>
+                            <p><strong>IGV:</strong> <span id="detalleCompraIgvEstado"></span></p>
                         </div>
                         <div class="info-section">
                             <h5><i class="fas fa-industry"></i> Información del Proveedor</h5>
@@ -224,7 +237,7 @@
                 <hr class="detalle-divider">
 
                 <div class="detalle-productos-container">
-                    <h4><i class="fas fa-boxes"></i> Productos del Pedido</h4>
+                    <h4><i class="fas fa-boxes"></i> Productos de la Compra</h4>
                     <div class="productos-table-container">
                         <table class="detalle-productos-table">
                             <thead>

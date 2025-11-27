@@ -86,7 +86,16 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        tipos.forEach(tipo => {
+        const entradas = tipos
+            .filter(tipo => tipo.esEntrada)
+            .sort((a, b) => a.nombre.localeCompare(b.nombre));
+        const salidas = tipos
+            .filter(tipo => !tipo.esEntrada)
+            .sort((a, b) => a.nombre.localeCompare(b.nombre));
+
+        const tiposOrdenados = [...entradas, ...salidas];
+
+        tiposOrdenados.forEach(tipo => {
             const row = document.createElement('tr');
 
             const badgeClass = tipo.esEntrada ? 'badge-entrada' : 'badge-salida';

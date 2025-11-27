@@ -63,9 +63,21 @@
     align-items: center;
     gap: 15px;
     transition: transform 0.3s ease;
+    border: none;
+    text-align: left;
 }
 
 .summary-card:hover {
+    transform: translateY(-2px);
+}
+
+.summary-card.interactive {
+    cursor: pointer;
+    outline: none;
+}
+
+.summary-card.interactive:focus-visible {
+    box-shadow: 0 0 0 3px rgba(179, 0, 0, 0.2);
     transform: translateY(-2px);
 }
 
@@ -303,6 +315,43 @@
     background-color: #138496;
 }
 
+/* Summary Modals */
+.summary-modal-content {
+    max-width: 960px;
+}
+
+.summary-modal-description {
+    margin: 0 0 18px 0;
+    color: #4b5563;
+    font-size: 14px;
+}
+
+.summary-modal-table {
+    margin-bottom: 0;
+}
+
+.summary-modal-table .inventario-table th,
+.summary-modal-table .inventario-table td {
+    white-space: nowrap;
+}
+
+.summary-modal-table .inventario-table td:first-child {
+    white-space: normal;
+    max-width: 360px;
+}
+
+.summary-empty-state {
+    text-align: center;
+    padding: 36px 20px;
+    color: #6b7280;
+    font-size: 15px;
+}
+
+.summary-empty-state i {
+    font-size: 28px;
+    margin-bottom: 12px;
+    color: #cbd5f5;
+}
 .btn-success {
     background-color: #28a745;
     color: white;

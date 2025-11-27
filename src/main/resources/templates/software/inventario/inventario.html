@@ -33,7 +33,7 @@
 
         <!-- Resumen de Inventario -->
         <div class="inventory-summary">
-            <div class="summary-card alert">
+            <div class="summary-card alert interactive" id="stockMinimoCard" role="button" tabindex="0">
                 <div class="card-icon alerta-icon">
                     <i class="fas fa-exclamation-triangle"></i>
                 </div>
@@ -42,7 +42,7 @@
                     <p id="productosStockMinimo">0</p>
                 </div>
             </div>
-            <div class="summary-card alert">
+            <div class="summary-card alert interactive" id="stockAgotadoCard" role="button" tabindex="0">
                 <div class="card-icon agotados-icon">
                     <i class="fas fa-times-circle"></i>
                 </div>
@@ -99,7 +99,6 @@
                         <th>Categoría</th>
                         <th>Almacén</th>
                         <th>Tallas</th>
-                        <th>Stock Actual</th>
                         <th>Estado</th>
                         <th>Última Actualización</th>
                         <th>Acciones</th>
@@ -125,6 +124,62 @@
             </div>
         </div>
     </main>
+
+    <div id="stockMinimoModal" class="modal" style="display: none;">
+        <div class="modal-content summary-modal-content">
+            <div class="modal-header">
+                <h3>Productos en Stock Mínimo</h3>
+                <button class="modal-close" id="closeStockMinimoModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="summary-modal-description">Lista de inventarios con al menos una talla o stock total por debajo del mínimo configurado.</p>
+                <div class="table-container summary-modal-table">
+                    <table class="inventario-table">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Almacén</th>
+                                <th>Estado</th>
+                                <th>Última Actualización</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stockMinimoTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="stockAgotadoModal" class="modal" style="display: none;">
+        <div class="modal-content summary-modal-content">
+            <div class="modal-header">
+                <h3>Productos Agotados</h3>
+                <button class="modal-close" id="closeStockAgotadoModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="summary-modal-description">Inventarios sin unidades disponibles. Revisa y registra entradas para reponer stock.</p>
+                <div class="table-container summary-modal-table">
+                    <table class="inventario-table">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Almacén</th>
+                                <th>Estado</th>
+                                <th>Última Actualización</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stockAgotadoTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal de Registrar Producto en Almacén -->
     <div id="registrarProductoModal" class="modal" style="display: none;">

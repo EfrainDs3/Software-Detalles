@@ -22,6 +22,7 @@ public class CompraResponseDTO {
     private String estadoPedido;
     private BigDecimal totalPedido;
     private List<DetalleCompraDTO> detalles;
+    private Boolean aplicaIgv;
 
     // Constructores
     public CompraResponseDTO() {
@@ -115,6 +116,14 @@ public class CompraResponseDTO {
 
     public void setDetalles(List<DetalleCompraDTO> detalles) {
         this.detalles = detalles;
+    }
+
+    public Boolean getAplicaIgv() {
+        return aplicaIgv;
+    }
+
+    public void setAplicaIgv(Boolean aplicaIgv) {
+        this.aplicaIgv = aplicaIgv;
     }
 
     public String getTipoPago() {

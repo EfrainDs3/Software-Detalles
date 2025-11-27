@@ -119,6 +119,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Referencias para summary cards
     const productosStockMinimo = document.getElementById('productosStockMinimo');
     const productosAgotados = document.getElementById('productosAgotados');
+    const stockMinimoCard = document.getElementById('stockMinimoCard');
+    const stockAgotadoCard = document.getElementById('stockAgotadoCard');
+    const stockMinimoModal = document.getElementById('stockMinimoModal');
+    const closeStockMinimoModal = document.getElementById('closeStockMinimoModal');
+    const stockMinimoTableBody = document.getElementById('stockMinimoTableBody');
+    const stockAgotadoModal = document.getElementById('stockAgotadoModal');
+    const closeStockAgotadoModal = document.getElementById('closeStockAgotadoModal');
+    const stockAgotadoTableBody = document.getElementById('stockAgotadoTableBody');
 
     // Referencias para paginación
     const showingStart = document.getElementById('showingStart');
@@ -244,6 +252,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 return 'bajo';
             }
             return 'disponible';
+        }
+
+        if (tallasAgotadas !== null && tallasAgotadas > 0 && (tallasTotales === null || tallasTotales === 0)) {
+            return 'agotado';
+        }
+
+        if (tallasEnAlerta !== null && tallasEnAlerta > 0 && (tallasTotales === null || tallasTotales === 0)) {
+            return 'bajo';
         }
 
         const cantidad = item.cantidad_stock ?? item.cantidadStock ?? 0;
@@ -1412,16 +1428,177 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function getLocalStockSummary() {
+        return inventarioData.reduce((acc, item) => {
+            const status = getItemStockStatus(item);
+            if (status === 'bajo') {
+                acc.bajo += 1;
+            } else if (status === 'agotado') {
+                acc.agotado += 1;
+            }
+            return acc;
+        }, { bajo: 0, agotado: 0 });
+    }
+
     async function updateSummaryCards() {
+        const localSummary = getLocalStockSummary();
+        let stockBajoDisplay = localSummary.bajo;
+        let stockAgotadoDisplay = localSummary.agotado;
+
         try {
             const stats = await fetchJson('/inventario/api/estadisticas') || {};
 
-            productosStockMinimo.textContent = stats.productosStockBajo || 0;
-            productosAgotados.textContent = stats.productosAgotados || 0;
+            const remoteBajoRaw = Number(stats.productosStockBajo);
+            const remoteAgotadoRaw = Number(stats.productosAgotados);
+
+            if (Number.isFinite(remoteAgotadoRaw)) {
+                stockAgotadoDisplay = Math.max(stockAgotadoDisplay, remoteAgotadoRaw);
+            }
+
+            if (Number.isFinite(remoteBajoRaw)) {
+                const remoteAdjusted = Number.isFinite(remoteAgotadoRaw) && remoteBajoRaw >= remoteAgotadoRaw
+                    ? remoteBajoRaw - remoteAgotadoRaw
+                    : remoteBajoRaw;
+                stockBajoDisplay = Math.max(stockBajoDisplay, remoteAdjusted);
+            }
         } catch (error) {
             console.error('Error cargando estadísticas:', error);
-            productosStockMinimo.textContent = '0';
-            productosAgotados.textContent = '0';
+        }
+
+        productosStockMinimo.textContent = String(Math.max(stockBajoDisplay, 0));
+        productosAgotados.textContent = String(Math.max(stockAgotadoDisplay, 0));
+        refreshSummaryModalsIfOpen();
+    }
+
+    function renderSummaryModal(status, tableBody) {
+        if (!tableBody) {
+            return;
+        }
+
+        tableBody.innerHTML = '';
+        const matchingItems = inventarioData
+            .filter(item => getItemStockStatus(item) === status)
+            .sort((a, b) => (a.nombre_producto || '').localeCompare(b.nombre_producto || '', 'es'));
+
+        if (matchingItems.length === 0) {
+            const emptyMessage = status === 'agotado'
+                ? 'No hay productos agotados en este momento.'
+                : 'No hay productos en stock mínimo actualmente.';
+            const emptyRow = document.createElement('tr');
+            emptyRow.innerHTML = `
+                <td colspan="5">
+                    <div class="summary-empty-state">
+                        <i class="fas fa-box-open"></i>
+                        <p>${emptyMessage}</p>
+                    </div>
+                </td>
+            `;
+            tableBody.appendChild(emptyRow);
+            return;
+        }
+
+        matchingItems.forEach(item => {
+            const row = document.createElement('tr');
+            const hasTallas = parseBooleanFlag(
+                item.tiene_tallas ??
+                item.tieneTallas ??
+                item.maneja_tallas ??
+                item.manejaTallas ??
+                item.gestiona_tallas ??
+                item.gestionaTallas
+            );
+            const lastUpdateRaw = item.fecha_ultima_actualizacion ?? item.fechaUltimaActualizacion ?? null;
+            const lastUpdateFormatted = lastUpdateRaw ? formatDateTime(lastUpdateRaw) : '-';
+            const codigoBarra = item.codigo_barra || item.codigoBarra || '';
+            const nombreProducto = item.nombre_producto || 'Producto sin nombre';
+            const nombreAlmacen = item.nombre_almacen || 'Sin almacén';
+            const infoSubLines = [];
+            if (codigoBarra) {
+                infoSubLines.push(`<small>Código: ${codigoBarra}</small>`);
+            }
+            if (hasTallas) {
+                infoSubLines.push('<small>Gestiona stock por tallas</small>');
+            }
+            const adjustHandler = hasTallas
+                ? `gestionarTallas(${item.id_inventario})`
+                : `openAjusteModal(${item.id_inventario})`;
+            const adjustTitle = hasTallas ? 'Gestionar Tallas' : 'Ajustar Stock';
+
+            row.innerHTML = `
+                <td>
+                    <div class="product-info">
+                        <strong>${nombreProducto}</strong>
+                        ${infoSubLines.join('')}
+                    </div>
+                </td>
+                <td>${nombreAlmacen}</td>
+                <td class="text-center">
+                    <span class="stock-badge ${status}">${getStockStatusText(status)}</span>
+                </td>
+                <td class="text-center">${lastUpdateFormatted}</td>
+                <td>
+                    <div class="action-buttons-cell">
+                        <button class="btn-icon edit" type="button" onclick="${adjustHandler}" title="${adjustTitle}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-icon info" type="button" onclick="viewProductDetails(${item.id_inventario})" title="Visualizar Detalles">
+                            <i class="fas fa-info"></i>
+                        </button>
+                    </div>
+                </td>
+            `;
+
+            tableBody.appendChild(row);
+        });
+    }
+
+    function openSummaryModal(status) {
+        if (status === 'bajo' && stockAgotadoModal && stockAgotadoModal.style.display === 'block') {
+            closeSummaryModal(stockAgotadoModal);
+        }
+        if (status === 'agotado' && stockMinimoModal && stockMinimoModal.style.display === 'block') {
+            closeSummaryModal(stockMinimoModal);
+        }
+        if (status === 'bajo' && stockMinimoModal) {
+            renderSummaryModal('bajo', stockMinimoTableBody);
+            stockMinimoModal.style.display = 'block';
+            document.body.classList.add('modal-open');
+        }
+        if (status === 'agotado' && stockAgotadoModal) {
+            renderSummaryModal('agotado', stockAgotadoTableBody);
+            stockAgotadoModal.style.display = 'block';
+            document.body.classList.add('modal-open');
+        }
+    }
+
+    function anySummaryModalOpen() {
+        return (stockMinimoModal && stockMinimoModal.style.display === 'block') ||
+            (stockAgotadoModal && stockAgotadoModal.style.display === 'block');
+    }
+
+    function closeSummaryModal(modal) {
+        if (!modal) {
+            return;
+        }
+        modal.style.display = 'none';
+        if (!anySummaryModalOpen()) {
+            document.body.classList.remove('modal-open');
+        }
+    }
+
+    function refreshSummaryModalsIfOpen() {
+        if (stockMinimoModal && stockMinimoModal.style.display === 'block') {
+            renderSummaryModal('bajo', stockMinimoTableBody);
+        }
+        if (stockAgotadoModal && stockAgotadoModal.style.display === 'block') {
+            renderSummaryModal('agotado', stockAgotadoTableBody);
+        }
+    }
+
+    function handleSummaryCardKey(event, status) {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            openSummaryModal(status);
         }
     }
 
@@ -1471,9 +1648,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${item.categoria}</td>
                 <td>${item.nombre_almacen}</td>
                 <td class="text-center">${tallasCellHtml}</td>
-                <td class="text-center">
-                    <span class="stock-quantity ${status}">${item.cantidad_stock}</span>
-                </td>
                 <td class="text-center">
                     <span class="stock-badge ${status}">${getStockStatusText(status)}</span>
                 </td>
@@ -1606,6 +1780,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         currentPage = 1;
         renderInventarioTable();
+        refreshSummaryModalsIfOpen();
     }
 
     function rebuildProductosMasivoDisponibles() {
@@ -3422,6 +3597,35 @@ document.addEventListener('DOMContentLoaded', () => {
         saveAjusteMasivoBtn.addEventListener('click', aplicarAjustesMasivos);
     }
 
+    if (stockMinimoCard) {
+        stockMinimoCard.addEventListener('click', () => openSummaryModal('bajo'));
+        stockMinimoCard.addEventListener('keydown', (event) => handleSummaryCardKey(event, 'bajo'));
+    }
+
+    if (stockAgotadoCard) {
+        stockAgotadoCard.addEventListener('click', () => openSummaryModal('agotado'));
+        stockAgotadoCard.addEventListener('keydown', (event) => handleSummaryCardKey(event, 'agotado'));
+    }
+
+    if (closeStockMinimoModal) {
+        closeStockMinimoModal.addEventListener('click', () => closeSummaryModal(stockMinimoModal));
+    }
+
+    if (closeStockAgotadoModal) {
+        closeStockAgotadoModal.addEventListener('click', () => closeSummaryModal(stockAgotadoModal));
+    }
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            if (stockMinimoModal && stockMinimoModal.style.display === 'block') {
+                closeSummaryModal(stockMinimoModal);
+            }
+            if (stockAgotadoModal && stockAgotadoModal.style.display === 'block') {
+                closeSummaryModal(stockAgotadoModal);
+            }
+        }
+    });
+
     // Cerrar modales al hacer clic fuera
     window.addEventListener('click', (e) => {
         if (e.target === ajusteStockModal) {
@@ -3451,6 +3655,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target === ajusteMasivoModal) {
             ajusteMasivoModal.style.display = 'none';
             resetAjusteMasivoModal();
+        }
+        if (e.target === stockMinimoModal) {
+            closeSummaryModal(stockMinimoModal);
+        }
+        if (e.target === stockAgotadoModal) {
+            closeSummaryModal(stockAgotadoModal);
         }
     });
 
@@ -3703,6 +3913,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             updateCategoriaFilterOptions();
             applyFilters();
+            refreshSummaryModalsIfOpen();
         } catch (error) {
             console.error('Error cargando inventario:', error);
             productosMasivoDisponibles = [];

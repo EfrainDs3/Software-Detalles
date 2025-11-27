@@ -50,6 +50,9 @@ public class PedidoCompra implements Serializable {
     @Column(name = "total_pedido", nullable = false, precision = 10, scale = 2)
     private BigDecimal totalPedido;
 
+    @Column(name = "aplica_igv", nullable = false, columnDefinition = "TINYINT(1) DEFAULT 1")
+    private Boolean aplicaIgv;
+
     @OneToMany(mappedBy = "pedidoCompra", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DetallePedidoCompra> detalles = new ArrayList<>();
 
@@ -58,6 +61,7 @@ public class PedidoCompra implements Serializable {
         this.fechaPedido = LocalDateTime.now();
         this.estadoPedido = "Pendiente";
         this.totalPedido = BigDecimal.ZERO;
+        this.aplicaIgv = Boolean.TRUE;
     }
 
     public PedidoCompra(Proveedor proveedor, Usuario usuario, LocalDate fechaEntregaEsperada) {
@@ -84,6 +88,14 @@ public class PedidoCompra implements Serializable {
         this.totalPedido = detalles.stream()
                 .map(DetallePedidoCompra::getSubtotalLinea)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    @PrePersist
+    @PreUpdate
+    private void ensureIgvFlag() {
+        if (aplicaIgv == null) {
+            aplicaIgv = Boolean.TRUE;
+        }
     }
 
     // Getters y Setters
@@ -141,6 +153,14 @@ public class PedidoCompra implements Serializable {
 
     public void setTotalPedido(BigDecimal totalPedido) {
         this.totalPedido = totalPedido;
+    }
+
+    public Boolean getAplicaIgv() {
+        return aplicaIgv;
+    }
+
+    public void setAplicaIgv(Boolean aplicaIgv) {
+        this.aplicaIgv = aplicaIgv;
     }
 
     public List<DetallePedidoCompra> getDetalles() {

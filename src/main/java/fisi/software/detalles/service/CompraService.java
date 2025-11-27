@@ -79,6 +79,7 @@ public class CompraService {
 
         // Crear pedido
         PedidoCompra pedido = new PedidoCompra(proveedor, usuario, request.getFechaEntregaEsperada());
+        pedido.setAplicaIgv(request.getAplicaIgv() != null ? request.getAplicaIgv() : Boolean.TRUE);
 
         // Asignar campos opcionales
         if (request.getIdTipoPago() != null) {
@@ -332,6 +333,7 @@ public class CompraService {
         dto.setObservaciones(pedido.getObservaciones());
         dto.setEstadoPedido(pedido.getEstadoPedido());
         dto.setTotalPedido(pedido.getTotalPedido());
+        dto.setAplicaIgv(pedido.getAplicaIgv() != null ? pedido.getAplicaIgv() : Boolean.TRUE);
 
         // Convertir detalles
         List<DetalleCompraDTO> detallesDTO = pedido.getDetalles().stream()

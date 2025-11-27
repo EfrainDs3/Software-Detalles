@@ -12,6 +12,7 @@ public class CompraRequestDTO {
     private String referencia;
     private String observaciones;
     private List<DetalleCompraDTO> detalles;
+    private Boolean aplicaIgv = Boolean.TRUE;
 
     // Constructores
     public CompraRequestDTO() {
@@ -71,5 +72,13 @@ public class CompraRequestDTO {
 
     public void setObservaciones(String observaciones) {
         this.observaciones = observaciones;
+    }
+
+    public Boolean getAplicaIgv() {
+        return aplicaIgv;
+    }
+
+    public void setAplicaIgv(Boolean aplicaIgv) {
+        this.aplicaIgv = aplicaIgv;
     }
 }
