@@ -597,36 +597,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Verificar que esté abierta
                 if (movimiento.estado.toLowerCase() !== 'abierta') {
-                    showToast('❌ Esta caja ya está cerrada');
+                    showToast('Esta caja ya está cerrada', 'error');
                     return;
                 }
-
-                // Mostrar información de la caja a cerrar
-                const mensaje = `Cerrar Caja #${idApertura}\n\n` +
-                    `Trabajador: ${movimiento.trabajador}\n` +
-                    `Monto Inicial: ${formatCurrency(movimiento.montoInicial)}\n` +
-                    `Hora Apertura: ${movimiento.horaApertura}\n\n` +
-                    `Ingrese el monto final de cierre:`;
-
-                const montoFinal = prompt(mensaje);
-
-                if (montoFinal === null) return; // Usuario canceló
-
-                const monto = parseFloat(montoFinal);
-                if (isNaN(monto) || monto < 0) {
-                    showToast('❌ Monto inválido. Debe ser un número positivo.');
-                    return;
+                // ✅ Usar el modal de cierre existente
+                currentAperturaId = idApertura;
+                currentMontoInicial = movimiento.montoInicial;
+                // Llenar datos en el modal
+                if (cashierNameCheckoutInput) cashierNameCheckoutInput.value = movimiento.trabajador;
+                if (checkoutInitialAmountInput) checkoutInitialAmountInput.value = formatCurrency(movimiento.montoInicial);
+                if (finalAmountInput) finalAmountInput.value = '';
+                // Mostrar modal
+                if (checkOutModal) {
+                    checkOutModal.style.display = 'block';
+                    finalAmountInput.focus();
                 }
-
-                // Confirmación adicional
-                const confirmar = confirm(
-                    `¿Confirmar cierre de caja?\n\n` +
-                    `Monto Inicial: ${formatCurrency(movimiento.montoInicial)}\n` +
-                    `Monto Final: ${formatCurrency(monto)}\n` +
-                    `Diferencia: ${formatCurrency(monto - movimiento.montoInicial)}`
-                );
-
-                if (!confirmar) return;
+                return; // El modal manejará el cierre
 
                 console.log('🔍 DEBUG - Datos a enviar:', {
                     idApertura: parseInt(idApertura, 10),

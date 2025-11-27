@@ -1,5 +1,38 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+
+    // ========================================
+    // SISTEMA DE TOAST NOTIFICATIONS
+    // ========================================
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('toastContainer') || createToastContainer();
+        
+        const toast = document.createElement('div');
+        toast.className = `toast-notification ${type}`;
+        toast.innerHTML = `
+            <div class="toast-icon">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+            </div>
+            <div class="toast-content">
+                <h4>${type === 'success' ? '¡Éxito!' : '¡Error!'}</h4>
+                <p>${message}</p>
+            </div>
+        `;
+        
+        container.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.classList.add('hiding');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+    function createToastContainer() {
+        const container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+        return container;
+    }
     // --- Variables y Referencias del DOM ---
     const ventasTableBody = document.getElementById('ventasTableBody');
 
@@ -567,16 +600,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     idAperturaActiva = cajaEstado.idAperturaActiva;
                     console.log('✅ ID Apertura obtenido:', idAperturaActiva);
                 } else {
-                    alert('❌ Error: No hay ninguna caja abierta. Debes abrir una caja antes de registrar una venta.');
+                    showToast('❌ Error: No hay ninguna caja abierta. Debes abrir una caja antes de registrar una venta.');
                     return;
                 }
             } else {
-                alert('❌ Error al verificar el estado de la caja.');
+                showToast('❌ Error al verificar el estado de la caja.');
                 return;
             }
         } catch (error) {
             console.error('Error al obtener estado de caja:', error);
-            alert('❌ Error de conexión al verificar la caja.');
+            showToast('❌ Error de conexión al verificar la caja.');
             return;
         }
         // 1. Recolectar detalles de productos con validación
@@ -585,7 +618,7 @@ document.addEventListener('DOMContentLoaded', () => {
         productosContainer.querySelectorAll('.product-item').forEach((item, idx) => {
             const nombreProducto = item.querySelector('.product-name-input').value;
             if (!nombreProducto || nombreProducto.trim() === "") {
-                alert(`El nombre del producto en el detalle #${idx + 1} no puede estar vacío.`);
+                showToast(`El nombre del producto en el detalle #${idx + 1} no puede estar vacío.`);
                 detallesValidos = false;
             }
             detalles.push({
@@ -640,15 +673,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!response.ok) {
                 const errorMessage = data.error || `Error ${response.status}: Fallo en el ${method} de la venta.`;
-                alert(`Error: ${errorMessage}`);
+                showToast(`Error: ${errorMessage}`);
                 return false;
             }
 
-            alert(`Venta ${isUpdate ? 'actualizada' : 'registrada'} exitosamente. ID: ${data.id_comprobante || data.id}`);
+            showToast(`Venta ${isUpdate ? 'actualizada' : 'registrada'} exitosamente. ID: ${data.id_comprobante || data.id}`);
             return true;
         } catch (error) {
             console.error('Error al guardar la venta:', error);
-            alert('Hubo un error de conexión al guardar la venta.');
+            showToast('Hubo un error de conexión al guardar la venta.');
             return false;
         }
     }
@@ -681,12 +714,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     const response = await fetch(deleteUrl, { method: 'DELETE' });
                     if (!response.ok) throw new Error('Error al eliminar en el servidor.');
 
-                    alert('✅ Venta eliminada exitosamente.');
+                    showToast('✅ Venta eliminada exitosamente.');
                     await fetchAndRenderVentas();
 
                 } catch (error) {
                     console.error('Error al eliminar la venta:', error);
-                    alert('❌ Falló la eliminación de la venta: ' + error.message);
+                    showToast('❌ Falló la eliminación de la venta: ' + error.message);
                 }
             }
         } else if (btn.classList.contains('btn-view')) {
