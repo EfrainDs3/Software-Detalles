@@ -4,7 +4,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const cartTotalElement = document.getElementById('cart-total');
     const cartContent = document.querySelector('.cart-content');
     const emptyCartMessage = document.querySelector('.empty-cart-message');
-    const vaciarCarritoBtn = document.getElementById('vaciar-carrito'); // Mover aquí para acceso global
+    const vaciarCarritoBtn = document.getElementById('vaciar-carrito');
+
+    // Si no estamos en la página del carrito, no continuar
+    if (!cartItemsList || !cartSubtotalElement || !cartTotalElement) {
+        return;
+    }
 
     let cart = JSON.parse(localStorage.getItem('cart')) || [];
 

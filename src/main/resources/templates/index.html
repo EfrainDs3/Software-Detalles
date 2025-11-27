@@ -110,12 +110,20 @@
                     </li>
                 </ul>
 
-               
-                <!-- Iconos derecha -->
+                <!-- Iconos derecha (búsqueda, login cliente, carrito cliente) -->
                 <div class="nav-icons">
-                    <a href="#" class="nav-icon search-icon"><i class="fas fa-search"></i></a>
-                    <!-- Cambiado: abrir el login estático dentro de Detalles_web/login/logueo.html -->
+                    <div class="search-container">
+                        <div class="search-form">
+                            <input type="text" id="searchInput" placeholder="Buscar productos..." class="search-input">
+                            <button onclick="buscarProductos()" class="search-button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Login para cliente (Detalles_web) -->
                     <a th:href="@{/Detalles_web/login/logueo.html}" href="/Detalles_web/login/logueo.html" class="nav-icon"><i class="fas fa-user"></i></a>
+                    <!-- Carrito del cliente -->
                     <a th:href="@{/Detalles_web/carrito/carritos.html}" class="nav-icon cart-icon">
                         <i class="fas fa-shopping-bag"></i>
                         <span class="cart-count">0</span>
@@ -126,24 +134,6 @@
                 <div class="hamburger">
                     <span></span><span></span><span></span>
                 </div>
-            </div>
-
-            <div class="nav-icons">
-                <!-- BARRA DE BÚSQUEDA FUNCIONAL -->
-                <div class="search-container">
-                    <div class="search-form">
-                        <input type="text" id="searchInput" placeholder="Buscar productos..." class="search-input">
-                        <button onclick="buscarProductos()" class="search-button">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-                </div>
-                
-                <a th:href="@{/login}" class="nav-icon"><i class="fas fa-user"></i></a>
-                <a th:href="@{/carrito}" class="nav-icon cart-icon">
-                    <i class="fas fa-shopping-bag"></i>
-                    <span class="cart-count">0</span>
-                </a>
             </div>
         </nav>
     </header>
@@ -190,22 +180,28 @@
         <div class="container">
             <h2 class="section-title">Productos Destacados</h2>
             <div class="products-grid">
-                <div class="product-card" th:each="producto : ${productos}">
-                    <div class="product-image">
-                        <img th:src="@{/img/calzado-default.jpg}" alt="Producto" th:alt="${producto.nombre}">
-                        <div class="product-overlay"><button class="quick-view">Vista Rápida</button></div>
-                    </div>
-                    <div class="product-info">
-                        <h3 th:text="${producto.nombre}">Nombre del Producto</h3>
-                        <p th:text="${producto.descripcion}">Descripción breve</p>
-                        <p class="price" th:text="'S/ ' + ${producto.precioVenta}">S/ 0.00</p>
-                        <button class="add-to-cart"
-                            th:attr="data-id=${producto.id}"
-                            th:onclick="'window.location.href=\'/carrito/agregar/' + ${producto.id} + '\';'">
-                            Añadir al Carrito
-                        </button>
-                    </div>
+                <div th:if="${productos == null or productos.size() == 0}">
+                    <p>No hay productos disponibles</p>
                 </div>
+
+                <th:block th:each="producto, iter : ${productos}">
+                    <div th:if="${iter.count <= 6}" class="product-card">
+                        <div class="product-image">
+                            <img th:src="@{/img/calzado-default.jpg}" alt="Producto" th:alt="${producto.nombre}">
+                            <div class="product-overlay"><button class="quick-view">Vista Rápida</button></div>
+                        </div>
+                        <div class="product-info">
+                            <h3 th:text="${producto.nombre}">Nombre del Producto</h3>
+                            <p th:text="${producto.descripcion}">Descripción breve</p>
+                            <p class="price" th:text="'S/ ' + ${producto.precioVenta}">S/ 0.00</p>
+                            <button class="add-to-cart"
+                                th:attr="data-id=${producto.id}"
+                                th:onclick="'window.location.href=\'/carrito/agregar/' + ${producto.id} + '\';'">
+                                Añadir al Carrito
+                            </button>
+                        </div>
+                    </div>
+                </th:block>
             </div>
         </div>
     </section>
@@ -273,14 +269,17 @@ async function buscarProductos() {
 // Función para mostrar productos
 function mostrarProductos(productos) {
     const contenedor = document.querySelector('.products-grid');
-    
+
     if (!productos || productos.length === 0) {
         contenedor.innerHTML = '<p>No se encontraron productos</p>';
         return;
     }
 
+    // Limitar a 6 productos en la vista cliente
+    const items = (productos || []).slice(0, 6);
+
     // Generar HTML para cada producto
-    contenedor.innerHTML = productos.map(producto => `
+    contenedor.innerHTML = items.map(producto => `
         <div class="product-card">
             <div class="product-image">
                 <img th:src="@{/img/calzado-default.jpg}" alt="${producto.nombre}">
@@ -314,9 +313,16 @@ document.addEventListener('DOMContentLoaded', function() {
 // Función para cargar productos al inicio
 async function cargarProductosIniciales() {
     try {
+        // Si el servidor ya renderizó productos (product-card en DOM), no sobrescribir
+        const existing = document.querySelectorAll('.products-grid .product-card');
+        if (existing && existing.length > 0) {
+            return; // ya hay contenido renderizado por Thymeleaf
+        }
+
         const response = await fetch('/api/productos');
         const productos = await response.json();
-        mostrarProductos(productos);
+        // Mostrar solo los primeros 6 productos por seguridad
+        mostrarProductos(productos && productos.length ? productos.slice(0, 6) : []);
     } catch (error) {
         console.error('Error cargando productos:', error);
     }
