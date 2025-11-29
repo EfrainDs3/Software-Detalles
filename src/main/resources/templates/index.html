@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,16 +8,20 @@
 
     <!-- ✅ CSS desde static/Detalles_web -->
     <link rel="stylesheet" th:href="@{/Detalles_web/styles.css}" href="/Detalles_web/styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
+
 <body>
     <header>
         <nav class="navbar">
             <div class="nav-container">
                 <!-- Logo izquierda -->
                 <a th:href="@{/index}" class="logo-link">
-                    <img th:src="@{/Detalles_web/img/logo-detalles.jpg}" src="/Detalles_web/img/logo-detalles.jpg" alt="Detalles - Calzados y Accesorios">
+                    <img th:src="@{/Detalles_web/img/logo-detalles.jpg}" src="/Detalles_web/img/logo-detalles.jpg"
+                        alt="Detalles - Calzados y Accesorios">
                 </a>
 
                 <!-- Menú centrado -->
@@ -31,8 +36,10 @@
                                 <div class="submenu-column">
                                     <h3>Calzado</h3>
                                     <ul>
-                                        <li><a th:href="@{/Detalles_web/mujeres/zapatillas-deportivas.html}">Zapatillas Deportivas</a></li>
-                                        <li><a th:href="@{/Detalles_web/mujeres/zapatos-casuales.html}">Zapatos Casuales</a></li>
+                                        <li><a th:href="@{/Detalles_web/mujeres/zapatillas-deportivas.html}">Zapatillas
+                                                Deportivas</a></li>
+                                        <li><a th:href="@{/Detalles_web/mujeres/zapatos-casuales.html}">Zapatos
+                                                Casuales</a></li>
                                         <li><a th:href="@{/Detalles_web/mujeres/tacones.html}">Tacones</a></li>
                                         <li><a th:href="@{/Detalles_web/mujeres/sandalias.html}">Sandalias</a></li>
                                         <li><a th:href="@{/Detalles_web/mujeres/botas.html}">Botas</a></li>
@@ -42,9 +49,14 @@
                                     <h3>Accesorios</h3>
                                     <ul>
                                         <li><a th:href="@{/Detalles_web/mujeres-accesorios/bolsos.html}">Bolsos</a></li>
-                                        <li><a th:href="@{/Detalles_web/mujeres-accesorios/billeteras.html}">Billeteras</a></li>
-                                        <li><a th:href="@{/Detalles_web/mujeres-accesorios/gafas-de-sol.html}">Gafas de Sol</a></li>
-                                        <li><a th:href="@{/Detalles_web/mujeres-accesorios/cinturones.html}">Cinturones</a></li>
+                                        <li><a
+                                                th:href="@{/Detalles_web/mujeres-accesorios/billeteras.html}">Billeteras</a>
+                                        </li>
+                                        <li><a th:href="@{/Detalles_web/mujeres-accesorios/gafas-de-sol.html}">Gafas de
+                                                Sol</a></li>
+                                        <li><a
+                                                th:href="@{/Detalles_web/mujeres-accesorios/cinturones.html}">Cinturones</a>
+                                        </li>
                                     </ul>
                                 </div>
                             </div>
@@ -59,9 +71,12 @@
                                 <div class="submenu-column">
                                     <h3>Calzado</h3>
                                     <ul>
-                                        <li><a th:href="@{/Detalles_web/hombres/zapatillas-deportivas-h.html}">Zapatillas Deportivas</a></li>
-                                        <li><a th:href="@{/Detalles_web/hombres/zapatos-casuales-h.html}">Zapatos Casuales</a></li>
-                                        <li><a th:href="@{/Detalles_web/hombres/zapatos-formales-h.html}">Zapatos Formales</a></li>
+                                        <li><a th:href="@{/Detalles_web/hombres/zapatillas-deportivas-h.html}">Zapatillas
+                                                Deportivas</a></li>
+                                        <li><a th:href="@{/Detalles_web/hombres/zapatos-casuales-h.html}">Zapatos
+                                                Casuales</a></li>
+                                        <li><a th:href="@{/Detalles_web/hombres/zapatos-formales-h.html}">Zapatos
+                                                Formales</a></li>
                                         <li><a th:href="@{/Detalles_web/hombres/botas-h.html}">Botas</a></li>
                                         <li><a th:href="@{/Detalles_web/hombres/sandalias-h.html}">Sandalias</a></li>
                                     </ul>
@@ -69,11 +84,18 @@
                                 <div class="submenu-column">
                                     <h3>Accesorios</h3>
                                     <ul>
-                                        <li><a th:href="@{/Detalles_web/hombres-accesorios/cinturones-h.html}">Cinturones</a></li>
-                                        <li><a th:href="@{/Detalles_web/hombres-accesorios/relojes-h.html}">Relojes</a></li>
-                                        <li><a th:href="@{/Detalles_web/hombres-accesorios/gafas-de-sol-h.html}">Gafas de Sol</a></li>
-                                        <li><a th:href="@{/Detalles_web/hombres-accesorios/billeteras-h.html}">Billeteras</a></li>
-                                        <li><a th:href="@{/Detalles_web/hombres-accesorios/gorros-h.html}">Gorros</a></li>
+                                        <li><a
+                                                th:href="@{/Detalles_web/hombres-accesorios/cinturones-h.html}">Cinturones</a>
+                                        </li>
+                                        <li><a th:href="@{/Detalles_web/hombres-accesorios/relojes-h.html}">Relojes</a>
+                                        </li>
+                                        <li><a th:href="@{/Detalles_web/hombres-accesorios/gafas-de-sol-h.html}">Gafas
+                                                de Sol</a></li>
+                                        <li><a
+                                                th:href="@{/Detalles_web/hombres-accesorios/billeteras-h.html}">Billeteras</a>
+                                        </li>
+                                        <li><a th:href="@{/Detalles_web/hombres-accesorios/gorros-h.html}">Gorros</a>
+                                        </li>
                                     </ul>
                                 </div>
                             </div>
@@ -88,9 +110,12 @@
                                 <div class="submenu-column">
                                     <h3>Calzado</h3>
                                     <ul>
-                                        <li><a th:href="@{/Detalles_web/niños/zapatillas-deportivas.html}">Zapatillas Deportivas</a></li>
-                                        <li><a th:href="@{/Detalles_web/niños/zapatos-casuales.html}">Zapatos Casuales</a></li>
-                                        <li><a th:href="@{/Detalles_web/niños/zapatos-escolares.html}">Zapatos Escolares</a></li>
+                                        <li><a th:href="@{/Detalles_web/niños/zapatillas-deportivas.html}">Zapatillas
+                                                Deportivas</a></li>
+                                        <li><a th:href="@{/Detalles_web/niños/zapatos-casuales.html}">Zapatos
+                                                Casuales</a></li>
+                                        <li><a th:href="@{/Detalles_web/niños/zapatos-escolares.html}">Zapatos
+                                                Escolares</a></li>
                                         <li><a th:href="@{/Detalles_web/niños/pantuflas.html}">Pantuflas</a></li>
                                         <li><a th:href="@{/Detalles_web/niños/sandalias.html}">Sandalias</a></li>
                                         <li><a th:href="@{/Detalles_web/niños/botas.html}">Botas</a></li>
@@ -99,10 +124,15 @@
                                 <div class="submenu-column">
                                     <h3>Accesorios</h3>
                                     <ul>
-                                        <li><a th:href="@{/Detalles_web/niños-accesorios/calcetines.html}">Calcetines</a></li>
-                                        <li><a th:href="@{/Detalles_web/niños-accesorios/cinturones.html}">Cinturones</a></li>
+                                        <li><a
+                                                th:href="@{/Detalles_web/niños-accesorios/calcetines.html}">Calcetines</a>
+                                        </li>
+                                        <li><a
+                                                th:href="@{/Detalles_web/niños-accesorios/cinturones.html}">Cinturones</a>
+                                        </li>
                                         <li><a th:href="@{/Detalles_web/niños-accesorios/gorras.html}">Gorras</a></li>
-                                        <li><a th:href="@{/Detalles_web/niños-accesorios/lentes-sol.html}">Lentes</a></li>
+                                        <li><a th:href="@{/Detalles_web/niños-accesorios/lentes-sol.html}">Lentes</a>
+                                        </li>
                                     </ul>
                                 </div>
                             </div>
@@ -122,7 +152,27 @@
                     </div>
 
                     <!-- Login para cliente (Detalles_web) -->
-                    <a th:href="@{/Detalles_web/login/logueo.html}" href="/Detalles_web/login/logueo.html" class="nav-icon"><i class="fas fa-user"></i></a>
+                    <div class="user-menu">
+                        <a href="#" class="nav-icon" id="userMenuBtn">
+                            <i class="fas fa-user"></i>
+                            <span class="user-name" id="userName" style="display:none;"></span>
+                        </a>
+                        <!-- Dropdown menu -->
+                        <div class="user-dropdown" id="userDropdown" style="display:none;">
+                            <a href="/Detalles_web/perfil/mi-cuenta.html">
+                                <i class="fas fa-user-circle"></i> Mi Cuenta
+                            </a>
+                            <a href="/Detalles_web/perfil/mis-compras.html">
+                                <i class="fas fa-shopping-bag"></i> Mis Compras
+                            </a>
+                            <a href="/Detalles_web/perfil/favoritos.html">
+                                <i class="fas fa-heart"></i> Favoritos
+                            </a>
+                            <a href="#" id="logoutBtn">
+                                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                            </a>
+                        </div>
+                    </div>
                     <!-- Carrito del cliente -->
                     <a th:href="@{/Detalles_web/carrito/carritos.html}" class="nav-icon cart-icon">
                         <i class="fas fa-shopping-bag"></i>
@@ -142,7 +192,8 @@
     <section id="inicio" class="hero-slider">
         <div class="slider-container">
             <div class="slide active">
-                <div class="slide-image" th:style="'background-image:url(' + @{/Detalles_web/img/hero-banner.jpg} + ');'"></div>
+                <div class="slide-image"
+                    th:style="'background-image:url(' + @{/Detalles_web/img/hero-banner.jpg} + ');'"></div>
                 <div class="slide-content">
                     <h1>Nueva Colección Primavera 2025</h1>
                     <p>Descubre las últimas tendencias en calzado y accesorios para toda la familia</p>
@@ -150,7 +201,8 @@
                 </div>
             </div>
             <div class="slide">
-                <div class="slide-image" th:style="'background-image:url(' + @{/Detalles_web/img/hero-banner-2.jpg} + ');'"></div>
+                <div class="slide-image"
+                    th:style="'background-image:url(' + @{/Detalles_web/img/hero-banner-2.jpg} + ');'"></div>
                 <div class="slide-content">
                     <h1>Elegancia en cada Paso</h1>
                     <p>Calzado diseñado para tu confort y elegancia</p>
@@ -158,7 +210,8 @@
                 </div>
             </div>
             <div class="slide">
-                <div class="slide-image" th:style="'background-image:url(' + @{/Detalles_web/img/hero-banner-3.jpg} + ');'"></div>
+                <div class="slide-image"
+                    th:style="'background-image:url(' + @{/Detalles_web/img/hero-banner-3.jpg} + ');'"></div>
                 <div class="slide-content">
                     <h1>Complementa tu Estilo</h1>
                     <p>Encuentra el accesorio perfecto para cada ocasión</p>
@@ -194,8 +247,7 @@
                             <h3 th:text="${producto.nombre}">Nombre del Producto</h3>
                             <p th:text="${producto.descripcion}">Descripción breve</p>
                             <p class="price" th:text="'S/ ' + ${producto.precioVenta}">S/ 0.00</p>
-                            <button class="add-to-cart"
-                                th:attr="data-id=${producto.id}"
+                            <button class="add-to-cart" th:attr="data-id=${producto.id}"
                                 th:onclick="'window.location.href=\'/carrito/agregar/' + ${producto.id} + '\';'">
                                 Añadir al Carrito
                             </button>
@@ -246,40 +298,41 @@
     <script th:src="@{/Detalles_web/js/carrito.js}" src="/Detalles_web/js/carrito.js"></script>
     <script src="/Detalles_web/js/auth-status.js"></script>
     <script src="/Detalles_web/js/cart-count.js"></script>
+    <script src="/Detalles_web/js/user-menu.js"></script>
 
-<script>
-// Función para buscar productos
-async function buscarProductos() {
-    const searchTerm = document.getElementById('searchInput').value;
-    const resultadosContainer = document.getElementById('productos');
-    
-    try {
-        // Llamar a tu API REST
-        const response = await fetch(`/api/productos/buscar?nombre=${encodeURIComponent(searchTerm)}`);
-        const productos = await response.json();
-        
-        // Mostrar resultados
-        mostrarProductos(productos);
-    } catch (error) {
-        console.error('Error buscando productos:', error);
-        resultadosContainer.innerHTML = '<p>Error al buscar productos</p>';
-    }
-}
+    <script>
+        // Función para buscar productos
+        async function buscarProductos() {
+            const searchTerm = document.getElementById('searchInput').value;
+            const resultadosContainer = document.getElementById('productos');
 
-// Función para mostrar productos
-function mostrarProductos(productos) {
-    const contenedor = document.querySelector('.products-grid');
+            try {
+                // Llamar a tu API REST
+                const response = await fetch(`/api/productos/buscar?nombre=${encodeURIComponent(searchTerm)}`);
+                const productos = await response.json();
 
-    if (!productos || productos.length === 0) {
-        contenedor.innerHTML = '<p>No se encontraron productos</p>';
-        return;
-    }
+                // Mostrar resultados
+                mostrarProductos(productos);
+            } catch (error) {
+                console.error('Error buscando productos:', error);
+                resultadosContainer.innerHTML = '<p>Error al buscar productos</p>';
+            }
+        }
 
-    // Limitar a 6 productos en la vista cliente
-    const items = (productos || []).slice(0, 6);
+        // Función para mostrar productos
+        function mostrarProductos(productos) {
+            const contenedor = document.querySelector('.products-grid');
 
-    // Generar HTML para cada producto
-    contenedor.innerHTML = items.map(producto => `
+            if (!productos || productos.length === 0) {
+                contenedor.innerHTML = '<p>No se encontraron productos</p>';
+                return;
+            }
+
+            // Limitar a 6 productos en la vista cliente
+            const items = (productos || []).slice(0, 6);
+
+            // Generar HTML para cada producto
+            contenedor.innerHTML = items.map(producto => `
         <div class="product-card">
             <div class="product-image">
                 <img th:src="@{/img/calzado-default.jpg}" alt="${producto.nombre}">
@@ -297,37 +350,38 @@ function mostrarProductos(productos) {
             </div>
         </div>
     `).join('');
-}
-
-// Función para agregar al carrito (temporal)
-function agregarAlCarrito(productoId) {
-    alert(`Producto ${productoId} agregado al carrito`);
-    // Aquí integrarás con tu lógica del carrito después
-}
-
-// Cargar productos al iniciar la página
-document.addEventListener('DOMContentLoaded', function() {
-    cargarProductosIniciales();
-});
-
-// Función para cargar productos al inicio
-async function cargarProductosIniciales() {
-    try {
-        // Si el servidor ya renderizó productos (product-card en DOM), no sobrescribir
-        const existing = document.querySelectorAll('.products-grid .product-card');
-        if (existing && existing.length > 0) {
-            return; // ya hay contenido renderizado por Thymeleaf
         }
 
-        const response = await fetch('/api/productos');
-        const productos = await response.json();
-        // Mostrar solo los primeros 6 productos por seguridad
-        mostrarProductos(productos && productos.length ? productos.slice(0, 6) : []);
-    } catch (error) {
-        console.error('Error cargando productos:', error);
-    }
-}
-</script>
+        // Función para agregar al carrito (temporal)
+        function agregarAlCarrito(productoId) {
+            alert(`Producto ${productoId} agregado al carrito`);
+            // Aquí integrarás con tu lógica del carrito después
+        }
+
+        // Cargar productos al iniciar la página
+        document.addEventListener('DOMContentLoaded', function () {
+            cargarProductosIniciales();
+        });
+
+        // Función para cargar productos al inicio
+        async function cargarProductosIniciales() {
+            try {
+                // Si el servidor ya renderizó productos (product-card en DOM), no sobrescribir
+                const existing = document.querySelectorAll('.products-grid .product-card');
+                if (existing && existing.length > 0) {
+                    return; // ya hay contenido renderizado por Thymeleaf
+                }
+
+                const response = await fetch('/api/productos');
+                const productos = await response.json();
+                // Mostrar solo los primeros 6 productos por seguridad
+                mostrarProductos(productos && productos.length ? productos.slice(0, 6) : []);
+            } catch (error) {
+                console.error('Error cargando productos:', error);
+            }
+        }
+    </script>
 
 </body>
+
 </html>

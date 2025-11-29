@@ -37,7 +37,6 @@ import java.util.Locale;
 import java.util.Map;
 import org.springframework.security.core.Authentication;
 
-
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -54,20 +53,23 @@ public class AuthController {
 
     // Método existente para login autenticado (con Spring Security)
     @PostMapping("/login-spring")
-    public ResponseEntity<LoginResponse> loginSpring(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
+    public ResponseEntity<LoginResponse> loginSpring(@Valid @RequestBody LoginRequest request,
+            HttpServletRequest httpRequest) {
         Usuario usuarioAutenticado = usuarioService.autenticar(request.usernameOrEmail(), request.password());
 
         UsuarioPrincipal principal = UsuarioPrincipal.fromUsuario(usuarioAutenticado);
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-            principal,
-            null,
-            principal.getAuthorities()
-        );
+                principal,
+                null,
+                principal.getAuthorities());
 
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(authentication);
         SecurityContextHolder.setContext(context);
-        httpRequest.getSession(true).setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
+        httpRequest.getSession(true).setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+                context);
+        // Asignar USER_ID a la sesión para acceso al perfil
+        httpRequest.getSession(true).setAttribute("USER_ID", usuarioAutenticado.getId());
 
         return ResponseEntity.ok(LoginResponse.fromEntity(usuarioAutenticado));
     }
@@ -89,27 +91,26 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password/verify")
-    public ResponseEntity<SimpleMessageResponse> verifyIdentity(@Valid @RequestBody ForgotPasswordVerifyRequest request) {
+    public ResponseEntity<SimpleMessageResponse> verifyIdentity(
+            @Valid @RequestBody ForgotPasswordVerifyRequest request) {
         usuarioService.verificarDatosRecuperacion(
-            request.username(),
-            request.nombres(),
-            request.apellidos(),
-            request.email(),
-            request.numeroDocumento()
-        );
+                request.username(),
+                request.nombres(),
+                request.apellidos(),
+                request.email(),
+                request.numeroDocumento());
         return ResponseEntity.ok(SimpleMessageResponse.of("Identidad verificada"));
     }
 
     @PostMapping("/forgot-password/reset")
     public ResponseEntity<SimpleMessageResponse> resetPassword(@Valid @RequestBody ForgotPasswordResetRequest request) {
         usuarioService.restablecerPassword(
-            request.username(),
-            request.nombres(),
-            request.apellidos(),
-            request.email(),
-            request.numeroDocumento(),
-            request.newPassword()
-        );
+                request.username(),
+                request.nombres(),
+                request.apellidos(),
+                request.email(),
+                request.numeroDocumento(),
+                request.newPassword());
         return ResponseEntity.ok(SimpleMessageResponse.of("Contraseña actualizada correctamente"));
     }
 
@@ -129,9 +130,8 @@ public class AuthController {
         try {
             LoginRequest loginRequest = new LoginRequest(identifier, password);
             Usuario usuarioAutenticado = usuarioService.autenticar(
-                loginRequest.usernameOrEmail(),
-                loginRequest.password()
-            );
+                    loginRequest.usernameOrEmail(),
+                    loginRequest.password());
 
             // Build response object and log modules for debugging
             var loginResp = LoginResponse.fromEntity(usuarioAutenticado);
@@ -143,36 +143,39 @@ public class AuthController {
 
             UsuarioPrincipal principal = UsuarioPrincipal.fromUsuario(usuarioAutenticado);
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                principal,
-                null,
-                principal.getAuthorities()
-            );
+                    principal,
+                    null,
+                    principal.getAuthorities());
 
             SecurityContext context = SecurityContextHolder.createEmptyContext();
             context.setAuthentication(authentication);
             SecurityContextHolder.setContext(context);
-            request.getSession(true).setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
+            request.getSession(true).setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+                    context);
+            // Asignar USER_ID a la sesión para acceso al perfil
+            request.getSession(true).setAttribute("USER_ID", usuarioAutenticado.getId());
 
             return ResponseEntity.ok(loginResp);
         } catch (IllegalArgumentException ex) {
             final String message = ex.getMessage();
             final String responseMessage = (message != null && !message.isBlank())
-                ? message
-                : "Usuario o contraseña incorrectos";
+                    ? message
+                    : "Usuario o contraseña incorrectos";
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", responseMessage));
         } catch (AuthenticationException ex) {
             final String message = ex.getMessage();
             final String responseMessage = (message != null && !message.isBlank())
-                ? message
-                : "Usuario o contraseña incorrectos";
+                    ? message
+                    : "Usuario o contraseña incorrectos";
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", responseMessage));
         } catch (Exception ex) {
             log.error("Unexpected error during login", ex);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Ocurrió un problema al iniciar sesión"));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Ocurrió un problema al iniciar sesión"));
         }
     }
 
-        @GetMapping("/status")
+    @GetMapping("/status")
     public Map<String, Object> authStatus(Authentication auth) {
 
         // No autenticado
@@ -186,8 +189,7 @@ public class AuthController {
         return Map.of(
                 "authenticated", true,
                 "userId", usuario.getId(),
-                "username", usuario.getUsername()
-        );
+                "username", usuario.getUsername());
     }
 
     // Método simple para registro desde frontend web
@@ -197,27 +199,39 @@ public class AuthController {
         String apellidos = body.getOrDefault("apellidos", "").trim();
         String username = body.getOrDefault("username", "").trim();
         String email = body.getOrDefault("email", "").trim().toLowerCase(Locale.ROOT);
+        String numeroDocumento = body.getOrDefault("numeroDocumento", "").trim();
+        String celular = body.getOrDefault("celular", "").trim();
         String password = body.getOrDefault("password", "");
 
         if (nombres.isEmpty() || email.isEmpty() || password.isEmpty() || username.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Faltan campos requeridos"));
         }
 
+        // Validar DNI (8 dígitos)
+        if (numeroDocumento.isEmpty() || !numeroDocumento.matches("\\d{8}")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "El DNI debe tener 8 dígitos"));
+        }
+
+        // Validar Celular (9 dígitos)
+        if (celular.isEmpty() || !celular.matches("\\d{9}")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", "El celular debe tener 9 dígitos"));
+        }
+
         // comprobar existencia
         Integer count = jdbcTemplate.queryForObject(
-            "SELECT COUNT(*) FROM usuarios WHERE LOWER(email)=? OR LOWER(username)=?",
-            Integer.class, email, username.toLowerCase(Locale.ROOT)
-        );
+                "SELECT COUNT(*) FROM usuarios WHERE LOWER(email)=? OR LOWER(username)=?",
+                Integer.class, email, username.toLowerCase(Locale.ROOT));
         if (count != null && count > 0) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "Email o username ya registrado"));
         }
 
         String hash = encoder.encode(password);
-        // Insertar nuevo usuario
+        // Insertar nuevo usuario con DNI, celular y tipo_documento=1 (DNI) para
+        // registros web
         jdbcTemplate.update(
-            "INSERT INTO usuarios (nombres, apellidos, username, email, `contraseña_hash`, fecha_creacion) VALUES (?, ?, ?, ?, ?, NOW())",
-            nombres, apellidos, username, email, hash
-        );
+                "INSERT INTO usuarios (nombres, apellidos, username, email, `contraseña_hash`, id_tipodocumento, numero_documento, celular, fecha_creacion) VALUES (?, ?, ?, ?, ?, 1, ?, ?, NOW())",
+                nombres, apellidos, username, email, hash, numeroDocumento, celular);
         // obtener id generado
         Integer newId = jdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Integer.class);
 
@@ -225,12 +239,11 @@ public class AuthController {
         session.setAttribute("USER_ID", newId);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
-            "id_usuario", newId,
-            "nombres", nombres,
-            "apellidos", apellidos,
-            "username", username,
-            "email", email
-        ));
+                "id_usuario", newId,
+                "nombres", nombres,
+                "apellidos", apellidos,
+                "username", username,
+                "email", email));
     }
 
     @PostMapping("/logout")

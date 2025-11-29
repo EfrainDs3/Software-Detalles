@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -63,12 +64,12 @@
         }
 
         .tab-link.active {
-            color: #921212;
-            border-bottom-color: #921212;
+            color: #e83e8c;
+            border-bottom-color: #e83e8c;
         }
 
         .tab-link:focus {
-            outline: 2px solid #921212;
+            outline: 2px solid #e83e8c;
             outline-offset: 2px;
         }
 
@@ -104,7 +105,7 @@
 
         .input-group input:focus {
             outline: none;
-            border-color: #921212;
+            border-color: #e83e8c;
             box-shadow: 0 0 0 2px rgba(232, 62, 140, 0.2);
         }
 
@@ -135,13 +136,13 @@
         }
 
         .btn-primary {
-            background-color: #921212;
+            background-color: #e83e8c;
             color: white;
         }
 
         .btn-primary:hover,
         .btn-primary:focus {
-            background-color: #921212;
+            background-color: #d1327c;
             transform: translateY(-2px);
         }
 
@@ -182,8 +183,8 @@
             gap: 8px;
             padding: 12px 24px;
             background-color: transparent;
-            color: #921212;
-            border: 1px solid #921212;
+            color: #e83e8c;
+            border: 1px solid #e83e8c;
             border-radius: 8px;
             text-decoration: none;
             font-weight: 500;
@@ -192,7 +193,7 @@
 
         .back-btn:hover,
         .back-btn:focus {
-            background-color: #921212;
+            background-color: #e83e8c;
             color: white;
             transform: translateY(-2px);
         }
@@ -208,24 +209,27 @@
             .login-container {
                 padding: 25px 20px;
             }
-            
+
             .tabs {
                 flex-direction: column;
             }
-            
+
             .tab-link {
                 padding: 12px;
             }
         }
     </style>
 </head>
+
 <body>
 
     <div class="login-container">
         <!-- Pestañas -->
         <div class="tabs" role="tablist" aria-label="Formularios de acceso">
-            <button class="tab-link active" id="login-tab" role="tab" aria-selected="true" aria-controls="login" onclick="openTab(event, 'login')">Iniciar Sesión</button>
-            <button class="tab-link" id="register-tab" role="tab" aria-selected="false" aria-controls="register" onclick="openTab(event, 'register')">Registrarse</button>
+            <button class="tab-link active" id="login-tab" role="tab" aria-selected="true" aria-controls="login"
+                onclick="openTab(event, 'login')">Iniciar Sesión</button>
+            <button class="tab-link" id="register-tab" role="tab" aria-selected="false" aria-controls="register"
+                onclick="openTab(event, 'register')">Registrarse</button>
         </div>
 
         <!-- Contenido del Formulario de Login -->
@@ -243,7 +247,7 @@
                 <a href="recuperar_contraseña.html" class="forgot-password">¿Olvidaste tu contraseña?</a>
                 <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
             </form>
-            
+
             <div class="back-to-home">
                 <a href="/" class="back-btn">
                     <i class="fas fa-arrow-left"></i> Volver al Inicio
@@ -272,12 +276,23 @@
                     <input type="email" id="register-email" name="email" required aria-required="true">
                 </div>
                 <div class="input-group">
+                    <label for="register-dni">DNI</label>
+                    <input type="text" id="register-dni" name="dni" pattern="[0-9]{8}" maxlength="8" placeholder=""
+                        required aria-required="true" title="El DNI debe tener exactamente 8 dígitos">
+                </div>
+                <div class="input-group">
+                    <label for="register-celular">Celular</label>
+                    <input type="tel" id="register-celular" name="celular" pattern="[0-9]{9}" maxlength="9"
+                        placeholder="" required aria-required="true"
+                        title="El celular debe tener exactamente 9 dígitos">
+                </div>
+                <div class="input-group">
                     <label for="register-password">Contraseña</label>
                     <input type="password" id="register-password" name="password" required aria-required="true">
                 </div>
                 <button type="submit" class="btn btn-primary">Crear Cuenta</button>
             </form>
-            
+
             <div class="back-to-home">
                 <a href="/" class="back-btn">
                     <i class="fas fa-arrow-left"></i> Volver al Inicio
@@ -308,16 +323,16 @@
         }
 
         // Manejo de formularios
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
             const loginForm = document.getElementById("login-form");
             const registerForm = document.getElementById("register-form");
-            
+
             if (loginForm) {
-                loginForm.addEventListener("submit", async function(e) {
+                loginForm.addEventListener("submit", async function (e) {
                     e.preventDefault();
                     const identifier = document.getElementById("login-email").value;
                     const password = document.getElementById("login-password").value;
-                    
+
                     try {
                         const response = await fetch("/api/auth/login", {
                             method: "POST",
@@ -329,15 +344,12 @@
                                 password: password
                             })
                         });
-                        
+
                         if (response.ok) {
                             const data = await response.json();
-                            window.USER_ID = data.id_usuario;
-                            sessionStorage.setItem("USER_ID", data.id_usuario);
-
                             alert("¡Bienvenido " + data.nombres + "!");
-                            // Redirigir al index
-                           window.location.href = "/index";
+                            // Redirigir al index o dashboard
+                            window.location.href = "/";
                         } else {
                             const error = await response.json();
                             alert("Error: " + (error.error || "Credenciales inválidas"));
@@ -347,16 +359,18 @@
                     }
                 });
             }
-            
+
             if (registerForm) {
-                registerForm.addEventListener("submit", async function(e) {
+                registerForm.addEventListener("submit", async function (e) {
                     e.preventDefault();
                     const nombres = document.getElementById("register-nombres").value;
                     const apellidos = document.getElementById("register-apellidos").value;
                     const username = document.getElementById("register-username").value;
                     const email = document.getElementById("register-email").value;
+                    const dni = document.getElementById("register-dni").value;
+                    const celular = document.getElementById("register-celular").value;
                     const password = document.getElementById("register-password").value;
-                    
+
                     try {
                         const response = await fetch("/api/auth/register", {
                             method: "POST",
@@ -368,15 +382,17 @@
                                 apellidos: apellidos,
                                 username: username,
                                 email: email,
+                                numeroDocumento: dni,
+                                celular: celular,
                                 password: password
                             })
                         });
-                        
+
                         if (response.ok) {
                             const data = await response.json();
                             alert("¡Cuenta creada exitosamente! Bienvenido " + data.nombres);
                             // Redirigir al index
-                            window.location.href = "/Detalles_web/login/logueo.html";
+                            window.location.href = "/";
                         } else {
                             const error = await response.json();
                             alert("Error: " + (error.error || "No se pudo crear la cuenta"));
@@ -390,4 +406,5 @@
     </script>
 
 </body>
+
 </html>

@@ -1,0 +1,503 @@
+/* ===== PERFIL CSS ===== */
+/* Colores principales: Rojo (#b30000) y Blanco (#ffffff) */
+
+/* Contenedor Principal */
+.perfil-container {
+    padding: 30px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: #f9f9f9;
+}
+
+/* Top Bar Actions */
+.top-bar-actions {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.back-btn {
+    background-color: #b30000;
+    color: white;
+    border: none;
+    padding: 12px 16px;
+    border-radius: 5px;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    width: 45px;
+    height: 45px;
+}
+
+.back-btn:hover {
+    background-color: #8a0000;
+    transform: translateX(-3px);
+}
+
+.back-btn:active {
+    transform: scale(0.95);
+}
+
+/* Secciones del Perfil */
+.perfil-section {
+    background-color: white;
+    border-radius: 10px;
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    border-left: 5px solid #b30000;
+    transition: all 0.3s ease;
+}
+
+.perfil-section:hover {
+    box-shadow: 0 4px 15px rgba(179, 0, 0, 0.12);
+}
+
+/* Encabezado de Sección */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.section-header h3 {
+    font-size: 1.4rem;
+    color: #b30000;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-header h3 i {
+    font-size: 1.6rem;
+}
+
+/* Botones de Edición */
+.btn-edit {
+    background-color: #b30000;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-edit:hover {
+    background-color: #8a0000;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(179, 0, 0, 0.3);
+}
+
+.btn-edit:active {
+    transform: translateY(0);
+}
+
+/* Elementos de Datos */
+.datos-personales,
+.datos-contacto,
+.compras-container,
+.favoritos-container {
+    display: grid;
+    gap: 15px;
+}
+
+.dato-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.dato-item label {
+    font-weight: 600;
+    color: #b30000;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.dato-item p {
+    color: #333;
+    font-size: 1rem;
+    padding: 8px 12px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    border-left: 3px solid #b30000;
+}
+
+/* Formularios de Edición */
+.form-edicion {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid #f0f0f0;
+    display: grid;
+    gap: 15px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #b30000;
+    font-size: 0.95rem;
+}
+
+.form-group input {
+    padding: 10px 12px;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: all 0.3s ease;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #b30000;
+    box-shadow: 0 0 0 3px rgba(179, 0, 0, 0.1);
+    background-color: #fff9f9;
+}
+
+/* Botones de Formulario */
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.btn-primary,
+.btn-secondary {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-primary {
+    background-color: #b30000;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #8a0000;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(179, 0, 0, 0.3);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.btn-secondary {
+    background-color: #f0f0f0;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+.btn-secondary:hover {
+    background-color: #e5e5e5;
+}
+
+/* Compras - Tabla */
+.compras-list {
+    display: grid;
+    gap: 12px;
+}
+
+.compra-item {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 15px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    border-left: 4px solid #b30000;
+    transition: all 0.3s ease;
+}
+
+.compra-item:hover {
+    background-color: #fff0f0;
+    box-shadow: 0 2px 8px rgba(179, 0, 0, 0.15);
+}
+
+.compra-item-field {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.compra-item-field label {
+    font-size: 0.8rem;
+    color: #b30000;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.compra-item-field p {
+    color: #333;
+    font-weight: 500;
+}
+
+.compra-estado {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    width: fit-content;
+}
+
+.compra-estado.emitido {
+    background-color: #d4f4dd;
+    color: #1a6d2f;
+}
+
+.compra-estado.pendiente {
+    background-color: #fef3cd;
+    color: #856404;
+}
+
+.compra-estado.cancelado {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* Favoritos - Grid de Productos */
+.favoritos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 15px;
+}
+
+.favorito-card {
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid #f0f0f0;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.favorito-card:hover {
+    border-color: #b30000;
+    box-shadow: 0 4px 15px rgba(179, 0, 0, 0.2);
+    transform: translateY(-5px);
+}
+
+.favorito-imagen {
+    width: 100%;
+    height: 150px;
+    background-color: #e5e5e5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.favorito-imagen img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.favorito-imagen i {
+    color: #b30000;
+    font-size: 2.5rem;
+}
+
+.favorito-info {
+    padding: 12px;
+}
+
+.favorito-nombre {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.favorito-detalles {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.favorito-tipo {
+    font-size: 0.8rem;
+    color: #666;
+    background-color: #f0f0f0;
+    padding: 2px 6px;
+    border-radius: 3px;
+    text-transform: capitalize;
+}
+
+.favorito-precio {
+    font-weight: 700;
+    color: #b30000;
+    font-size: 1.1rem;
+}
+
+.favorito-color {
+    font-size: 0.8rem;
+    color: #666;
+    margin-top: 4px;
+}
+
+/* Estado de Carga */
+.loading-text {
+    text-align: center;
+    color: #999;
+    padding: 20px;
+    font-style: italic;
+}
+
+.empty-message {
+    text-align: center;
+    padding: 30px;
+    color: #999;
+}
+
+.empty-message i {
+    font-size: 2rem;
+    color: #b30000;
+    margin-bottom: 10px;
+}
+
+/* Mensajes de Notificación */
+.notification {
+    padding: 12px 16px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    animation: slideIn 0.3s ease;
+}
+
+.notification.success {
+    background-color: #d4edda;
+    color: #155724;
+    border-left: 4px solid #28a745;
+}
+
+.notification.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border-left: 4px solid #dc3545;
+}
+
+.notification.info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border-left: 4px solid #17a2b8;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .perfil-container {
+        padding: 20px 15px;
+    }
+
+    .perfil-section {
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .btn-edit {
+        align-self: flex-start;
+    }
+
+    .compra-item {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .favoritos-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    }
+
+    .datos-personales,
+    .datos-contacto {
+        grid-template-columns: 1fr;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        flex: none;
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .perfil-container {
+        padding: 15px 10px;
+    }
+
+    .perfil-section {
+        padding: 15px;
+        border-left-width: 3px;
+    }
+
+    .section-header h3 {
+        font-size: 1.1rem;
+    }
+
+    .favoritos-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+
+    .btn-edit {
+        padding: 6px 12px;
+        font-size: 0.85rem;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+    }
+}

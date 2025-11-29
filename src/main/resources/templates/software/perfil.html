@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil - Detalles</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Estilos globales compartidos -->
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <link rel="stylesheet" href="/Detalles_web/styles.css">
+    <!-- Estilos específicos del perfil -->
+    <link rel="stylesheet" href="/css/perfil.css">
+</head>
+<body>
+    <div id="sidebar-container"></div>
+
+    <main class="main-content">
+        <div class="top-bar">
+            <h2 class="main-title">Mi Perfil</h2>
+            <div class="top-bar-actions">
+                <a href="/dashboard" class="back-btn" title="Volver al Dashboard">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <button class="logout-btn">Cerrar Sesión</button>
+            </div>
+        </div>
+
+        <div class="perfil-container">
+            <!-- Sección de Datos Personales -->
+            <section class="perfil-section">
+                <div class="section-header">
+                    <h3><i class="fas fa-user-circle"></i> Datos Personales</h3>
+                    <button class="btn-edit" id="btn-edit-personal" title="Editar datos personales">
+                        <i class="fas fa-edit"></i> Editar
+                    </button>
+                </div>
+                
+                <div class="datos-personales" id="datos-personales">
+                    <div class="dato-item">
+                        <label>Nombres:</label>
+                        <p id="nombres-display">-</p>
+                    </div>
+                    <div class="dato-item">
+                        <label>Apellidos:</label>
+                        <p id="apellidos-display">-</p>
+                    </div>
+                    <div class="dato-item">
+                        <label>Usuario:</label>
+                        <p id="username-display">-</p>
+                    </div>
+                    <div class="dato-item">
+                        <label>Email:</label>
+                        <p id="email-display">-</p>
+                    </div>
+                </div>
+
+                <!-- Formulario de Edición de Datos Personales -->
+                <form class="form-edicion" id="form-edicion-personal" style="display: none;">
+                    <div class="form-group">
+                        <label for="input-nombres">Nombres *</label>
+                        <input type="text" id="input-nombres" name="nombres" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-apellidos">Apellidos *</label>
+                        <input type="text" id="input-apellidos" name="apellidos" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-email">Email *</label>
+                        <input type="email" id="input-email" name="email" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">Guardar Cambios</button>
+                        <button type="button" class="btn-secondary" id="btn-cancel-personal">Cancelar</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Sección de Información de Contacto -->
+            <section class="perfil-section">
+                <div class="section-header">
+                    <h3><i class="fas fa-phone"></i> Información de Contacto</h3>
+                    <button class="btn-edit" id="btn-edit-contacto" title="Editar información de contacto">
+                        <i class="fas fa-edit"></i> Editar
+                    </button>
+                </div>
+                
+                <div class="datos-contacto" id="datos-contacto">
+                    <div class="dato-item">
+                        <label>Teléfono/Celular:</label>
+                        <p id="celular-display">-</p>
+                    </div>
+                    <div class="dato-item">
+                        <label>Dirección:</label>
+                        <p id="direccion-display">-</p>
+                    </div>
+                    <div class="dato-item">
+                        <label>DNI/Documento:</label>
+                        <p id="documento-display">-</p>
+                    </div>
+                </div>
+
+                <!-- Formulario de Edición de Información de Contacto -->
+                <form class="form-edicion" id="form-edicion-contacto" style="display: none;">
+                    <div class="form-group">
+                        <label for="input-celular">Teléfono/Celular</label>
+                        <input type="tel" id="input-celular" name="celular" placeholder="Ej: 964983465">
+                    </div>
+                    <div class="form-group">
+                        <label for="input-direccion">Dirección</label>
+                        <input type="text" id="input-direccion" name="direccion" placeholder="Ej: Jr. Juan Pablo de la Cruz 123">
+                    </div>
+                    <div class="form-group">
+                        <label for="input-documento">DNI/Documento</label>
+                        <input type="text" id="input-documento" name="numero_documento" placeholder="Ej: 75859114">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">Guardar Cambios</button>
+                        <button type="button" class="btn-secondary" id="btn-cancel-contacto">Cancelar</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Sección de Compras Recientes -->
+            <section class="perfil-section">
+                <div class="section-header">
+                    <h3><i class="fas fa-receipt"></i> Compras Recientes</h3>
+                </div>
+                
+                <div class="compras-container" id="compras-container">
+                    <p class="loading-text">Cargando compras...</p>
+                </div>
+            </section>
+
+            <!-- Sección de Favoritos -->
+            <section class="perfil-section">
+                <div class="section-header">
+                    <h3><i class="fas fa-heart"></i> Productos en Carrito</h3>
+                </div>
+                
+                <div class="favoritos-container" id="favoritos-container">
+                    <p class="loading-text">Cargando productos...</p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="/js/sidebar.js"></script>
+    <script src="/js/logout.js"></script>
+    <script src="/js/perfil.js"></script>
+</body>
+</html>

@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 26-11-2025 a las 03:10:07
+-- Tiempo de generación: 26-11-2025 a las 18:51:32
 -- Versión del servidor: 10.4.32-MariaDB
--- Versión de PHP: 8.0.30
+-- Versión de PHP: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -56,6 +56,13 @@ CREATE TABLE `aperturascaja` (
   `monto_inicial` decimal(38,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `aperturascaja`
+--
+
+INSERT INTO `aperturascaja` (`id_apertura`, `id_caja`, `id_usuario`, `fecha_apertura`, `hora_apertura`, `monto_inicial`) VALUES
+(1, 1, 4, '2025-11-26', '12:49:13', 180.00);
+
 -- --------------------------------------------------------
 
 --
@@ -83,6 +90,14 @@ CREATE TABLE `cajas` (
   `ubicacion` varchar(255) DEFAULT NULL,
   `estado` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `cajas`
+--
+
+INSERT INTO `cajas` (`id_caja`, `nombre_caja`, `ubicacion`, `estado`) VALUES
+(1, 'Caja 1', 'del centro', 'Cerrada'),
+(2, 'Caja 2', 'del costado izquierdo', 'Cerrada');
 
 -- --------------------------------------------------------
 
@@ -147,6 +162,13 @@ CREATE TABLE `cierrescaja` (
   `observaciones` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `cierrescaja`
+--
+
+INSERT INTO `cierrescaja` (`id_cierre`, `id_apertura`, `id_caja`, `id_usuario`, `fecha_cierre`, `hora_cierre`, `monto_final`, `monto_esperado`, `diferencia`, `observaciones`) VALUES
+(1, 1, 1, 4, '2025-11-26', '12:50:16', 500.00, 580.00, -80.00, 'Cierre de turno manual.');
+
 -- --------------------------------------------------------
 
 --
@@ -172,7 +194,8 @@ CREATE TABLE `clientes` (
 
 INSERT INTO `clientes` (`id_cliente`, `nombre`, `apellido`, `id_tipodocumento`, `numero_documento`, `direccion`, `telefono`, `email`, `fecha_registro`, `estado`) VALUES
 (1, 'Santiago Efrain', 'Torres Murrieta ', 1, '75859114', 'Jr Tnaga Mandapio', '964983465', 'santiagotorresmurrieta@gmail.com', '2025-10-08 03:30:17', 1),
-(2, 'ANGGELO LUCCIANO', 'URBINA ESPINOZA', 2, '20154544667', 'JR. RICARDO PALMA 444', '-', NULL, '2025-11-11 17:39:19', 0);
+(2, 'ANGGELO LUCCIANO', 'URBINA ESPINOZA', 2, '20154544667', 'JR. RICARDO PALMA 444', '-', NULL, '2025-11-11 17:39:19', 0),
+(3, 'Anlly Luz', 'Riva', 1, '72010812', '-', '-', NULL, '2025-11-26 17:48:19', 1);
 
 -- --------------------------------------------------------
 
@@ -195,6 +218,13 @@ CREATE TABLE `comprobantespago` (
   `id_apertura` bigint(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `comprobantespago`
+--
+
+INSERT INTO `comprobantespago` (`id_comprobante`, `id_cliente`, `id_usuario`, `id_tipo_comprobante`, `numero_comprobante`, `fecha_emision`, `total`, `igv`, `subtotal`, `estado`, `motivo_anulacion`, `id_apertura`) VALUES
+(1, 3, 6, 1, 'B001-00000001', '2025-11-26 05:00:00', 400.00, 61.02, 338.98, 'Emitido', NULL, 1);
+
 -- --------------------------------------------------------
 
 --
@@ -210,6 +240,13 @@ CREATE TABLE `detallescomprobantepago` (
   `descuento_aplicado` decimal(10,2) NOT NULL DEFAULT 0.00,
   `subtotal_linea` decimal(10,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `detallescomprobantepago`
+--
+
+INSERT INTO `detallescomprobantepago` (`id_detalle_comprobante`, `id_comprobante`, `id_producto`, `cantidad`, `precio_unitario`, `descuento_aplicado`, `subtotal_linea`) VALUES
+(1, 1, 12, 2, 200.00, 0.00, 400.00);
 
 -- --------------------------------------------------------
 
@@ -234,8 +271,8 @@ CREATE TABLE `detallespedidocompra` (
 INSERT INTO `detallespedidocompra` (`id_detalle_pedido`, `id_pedido_compra`, `id_producto`, `cantidad_pedida`, `costo_unitario`, `subtotal_linea`, `cantidad_recibida`) VALUES
 (2, 2, 1, 4, 205.00, 820.00, 0),
 (3, 2, 4, 2, 200.00, 400.00, 0),
-(4, 3, 1, 1, 205.00, 205.00, 0),
-(5, 3, 2, 3, 2000.00, 6000.00, 0);
+(4, 3, 1, 1, 205.00, 205.00, 1),
+(5, 3, 2, 3, 2000.00, 6000.00, 3);
 
 -- --------------------------------------------------------
 
@@ -258,8 +295,8 @@ CREATE TABLE `detallespedidocompra_talla` (
 INSERT INTO `detallespedidocompra_talla` (`id_detalle_talla`, `id_detalle_pedido`, `talla`, `cantidad_pedida`, `cantidad_recibida`) VALUES
 (1, 2, '35', 4, 0),
 (2, 3, '12', 2, 0),
-(3, 4, '35', 1, 0),
-(4, 5, 'M', 3, 0);
+(3, 4, '35', 1, 1),
+(4, 5, 'M', 3, 3);
 
 -- --------------------------------------------------------
 
@@ -308,8 +345,8 @@ CREATE TABLE `inventario` (
 --
 
 INSERT INTO `inventario` (`id_inventario`, `id_producto`, `id_almacen`, `cantidad_stock`, `stock_minimo`, `fecha_ultima_actualizacion`) VALUES
-(4, 1, 1, 5, 1, '2025-11-24 16:47:29'),
-(5, 2, 1, 2, 1, '2025-10-30 06:28:14'),
+(4, 1, 1, 6, 1, '2025-11-26 13:57:52'),
+(5, 2, 1, 3, 1, '2025-11-26 13:57:52'),
 (6, 5, 1, 3, 0, '2025-11-24 16:49:15'),
 (7, 9, 1, 0, 0, '2025-11-20 03:13:53'),
 (8, 10, 1, 4, 3, '2025-11-20 05:01:54'),
@@ -338,9 +375,10 @@ CREATE TABLE `inventario_talla` (
 --
 
 INSERT INTO `inventario_talla` (`id_inventario_talla`, `cantidad_stock`, `fecha_ultima_actualizacion`, `stock_minimo`, `talla`, `id_inventario`) VALUES
-(1, 5, '2025-11-24 16:47:29.000000', 2, '35', 4),
+(1, 6, '2025-11-26 13:57:52.000000', 5, '35', 4),
 (2, 5, '2025-11-24 14:32:45.000000', 3, '42', 11),
-(3, 3, '2025-11-24 16:49:15.000000', 5, '12', 6);
+(3, 3, '2025-11-24 16:49:15.000000', 5, '12', 6),
+(4, 3, '2025-11-26 13:57:52.000000', 5, 'M', 5);
 
 -- --------------------------------------------------------
 
@@ -462,7 +500,9 @@ INSERT INTO `movimientosinventario` (`id_movimiento_inv`, `id_producto`, `id_alm
 (19, 1, 1, 2, 3, '2025-11-24 16:47:29', 4, '', '', '35'),
 (20, 5, 1, 1, 5, '2025-11-24 16:48:15', 4, '', '', '12'),
 (21, 5, 1, 2, 10, '2025-11-24 16:48:52', 4, '', '', '12'),
-(22, 5, 1, 1, 7, '2025-11-24 16:49:15', 4, NULL, NULL, '12');
+(22, 5, 1, 1, 7, '2025-11-24 16:49:15', 4, NULL, NULL, '12'),
+(23, 1, 1, 5, 1, '2025-11-26 13:57:52', 4, 'Entrada por compra - Talla 35 - Proveedor: Nike', 'COMPRA-3-TALLA-35', '35'),
+(24, 2, 1, 5, 3, '2025-11-26 13:57:52', 4, 'Entrada por compra - Talla M - Proveedor: Nike', 'COMPRA-3-TALLA-M', 'M');
 
 -- --------------------------------------------------------
 
@@ -503,7 +543,7 @@ CREATE TABLE `pedidoscompra` (
 
 INSERT INTO `pedidoscompra` (`id_pedido_compra`, `id_proveedor`, `id_usuario`, `fecha_pedido`, `fecha_entrega_esperada`, `id_tipopago`, `referencia`, `observaciones`, `estado_pedido`, `total_pedido`) VALUES
 (2, 2, 4, '2025-11-25 21:07:11', NULL, NULL, NULL, NULL, 'Pendiente', 1220.00),
-(3, 2, 4, '2025-11-25 22:48:23', NULL, NULL, NULL, NULL, 'Pendiente', 6205.00);
+(3, 2, 4, '2025-11-25 22:48:23', NULL, NULL, NULL, NULL, 'Completado', 6205.00);
 
 -- --------------------------------------------------------
 
@@ -1072,6 +1112,15 @@ CREATE TABLE `tiposcomprobantepago` (
   `serie_documento` varchar(10) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `tiposcomprobantepago`
+--
+
+INSERT INTO `tiposcomprobantepago` (`id_tipo_comprobante`, `nombre_tipo`, `serie_documento`) VALUES
+(1, 'Boleta de Venta', '0001'),
+(2, 'Factura', '0002'),
+(3, 'Ticket/ Venta rápida', '0003');
+
 -- --------------------------------------------------------
 
 --
@@ -1091,7 +1140,8 @@ CREATE TABLE `tiposmovimientoinventario` (
 INSERT INTO `tiposmovimientoinventario` (`id_tipo_movimiento`, `nombre_tipo`, `es_entrada`) VALUES
 (1, 'Salida', 0),
 (2, 'Entrada', 1),
-(3, 'Entrada - Registro Inicial', 1);
+(3, 'Salida - Venta', 1),
+(5, 'Entrada - Compra', 1);
 
 -- --------------------------------------------------------
 
@@ -1103,6 +1153,15 @@ CREATE TABLE `tipospago` (
   `id_tipopago` int(11) NOT NULL,
   `tipo_pago` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `tipospago`
+--
+
+INSERT INTO `tipospago` (`id_tipopago`, `tipo_pago`) VALUES
+(2, 'Efectivo'),
+(1, 'Tarjeta'),
+(3, 'Tranferencia');
 
 -- --------------------------------------------------------
 
@@ -1169,9 +1228,9 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id_usuario`, `nombres`, `apellidos`, `id_tipodocumento`, `numero_documento`, `celular`, `direccion`, `username`, `email`, `contraseña_hash`, `estado`, `fecha_creacion`, `fecha_ultima_sesion`) VALUES
-(4, 'Santiago Efrain', 'Torres Murrieta', 1, '75859114', '964983465', 'juan pablo de la cruz', 'EfrainDs3', 'santiagotorresmurrieta@gmail.com', '$2a$10$6587YGgYKDWyAywi61/cB.TFF.U6LrTWacPvzWaBZ9xoVsuGGy.4.', 1, '2025-10-08 15:17:29', '2025-11-25 22:46:42'),
+(4, 'Santiago Efrain', 'Torres Murrieta', 1, '75859114', '964983465', 'juan pablo de la cruz', 'EfrainDs3', 'santiagotorresmurrieta@gmail.com', '$2a$10$6587YGgYKDWyAywi61/cB.TFF.U6LrTWacPvzWaBZ9xoVsuGGy.4.', 1, '2025-10-08 15:17:29', '2025-11-26 13:57:34'),
 (5, 'Anggelo Lucciano', 'Urbina Espinoza', 1, '72863068', '903 171 836', 'juan pablo de la cruz', 'Ubuntu', 'anggelolucciano21@gmail.com', '$2a$10$VwIkH6380fJV0oPcQXNKiO1oU8zqQ1vKsc0uWSkm.vtCWoTPHzzMG', 1, '2025-10-08 15:46:19', '2025-11-25 01:38:39'),
-(6, 'Anlly Luz', 'Riva Yomona', 1, '72010812', '999888777', 'Calle Nueva 456', 'Anlly', 'al.rivayo@unsm.edu.pe', '$2a$10$E.7vIdGVqCYy5eoYIBjF/uYDym2.b6B6U6.TlT9uKd0tFUl4DMfJW', 1, '2025-10-08 15:57:57', '2025-11-06 01:16:25'),
+(6, 'Anlly Luz', 'Riva Yomona', 1, '72010812', '999888777', 'Calle Nueva 456', 'Anlly', 'al.rivayo@unsm.edu.pe', '$2a$10$E.7vIdGVqCYy5eoYIBjF/uYDym2.b6B6U6.TlT9uKd0tFUl4DMfJW', 1, '2025-10-08 15:57:57', '2025-11-26 17:42:14'),
 (12, 'Danny Alexander', 'Garcia Salas', 1, '98765432', '999888777', 'juan pablo de la cruz', 'Dingui', 'ia.jadrixgr26@gmail.com', '$2a$10$xKxtzv1ECV/74oi69b9hPubeUZgmSnrAUoxmjmSaz0NyeVOYE9BHW', 1, '2025-10-08 16:27:52', '2025-10-15 22:05:53'),
 (17, 'Alex', 'Pezo', 1, '73325101', '999999999', 'Jr. Trapoto', 'arxse', 'da.pezoin@unsm.edu.pe', '$2a$10$u6dftyj8BINK8/zY5GG.TO36M86byX5s8aWraTFHw4Zit3AiA2YSi', 1, '2025-10-15 22:08:21', '2025-10-15 22:12:18');
 
@@ -1193,7 +1252,7 @@ CREATE TABLE `usuario_roles` (
 INSERT INTO `usuario_roles` (`id_usuario`, `id_rol`) VALUES
 (4, 1),
 (5, 10),
-(6, 6),
+(6, 1),
 (12, 1),
 (17, 1);
 
@@ -1532,7 +1591,7 @@ ALTER TABLE `almacenes`
 -- AUTO_INCREMENT de la tabla `aperturascaja`
 --
 ALTER TABLE `aperturascaja`
-  MODIFY `id_apertura` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_apertura` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `bitacora`
@@ -1544,7 +1603,7 @@ ALTER TABLE `bitacora`
 -- AUTO_INCREMENT de la tabla `cajas`
 --
 ALTER TABLE `cajas`
-  MODIFY `id_caja` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_caja` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `carrito`
@@ -1568,25 +1627,25 @@ ALTER TABLE `categoriasproducto`
 -- AUTO_INCREMENT de la tabla `cierrescaja`
 --
 ALTER TABLE `cierrescaja`
-  MODIFY `id_cierre` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_cierre` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `clientes`
 --
 ALTER TABLE `clientes`
-  MODIFY `id_cliente` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_cliente` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `comprobantespago`
 --
 ALTER TABLE `comprobantespago`
-  MODIFY `id_comprobante` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_comprobante` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `detallescomprobantepago`
 --
 ALTER TABLE `detallescomprobantepago`
-  MODIFY `id_detalle_comprobante` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_detalle_comprobante` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `detallespedidocompra`
@@ -1622,7 +1681,7 @@ ALTER TABLE `inventario`
 -- AUTO_INCREMENT de la tabla `inventario_talla`
 --
 ALTER TABLE `inventario_talla`
-  MODIFY `id_inventario_talla` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_inventario_talla` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `marcasproducto`
@@ -1652,7 +1711,7 @@ ALTER TABLE `movimientoscaja`
 -- AUTO_INCREMENT de la tabla `movimientosinventario`
 --
 ALTER TABLE `movimientosinventario`
-  MODIFY `id_movimiento_inv` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+  MODIFY `id_movimiento_inv` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT de la tabla `pagoscomprobante`
@@ -1706,19 +1765,19 @@ ALTER TABLE `tipodocumento`
 -- AUTO_INCREMENT de la tabla `tiposcomprobantepago`
 --
 ALTER TABLE `tiposcomprobantepago`
-  MODIFY `id_tipo_comprobante` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_tipo_comprobante` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `tiposmovimientoinventario`
 --
 ALTER TABLE `tiposmovimientoinventario`
-  MODIFY `id_tipo_movimiento` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_tipo_movimiento` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de la tabla `tipospago`
 --
 ALTER TABLE `tipospago`
-  MODIFY `id_tipopago` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_tipopago` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `tiposproducto`

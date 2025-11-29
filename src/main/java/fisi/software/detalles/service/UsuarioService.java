@@ -42,21 +42,23 @@ public class UsuarioService {
 
     public List<UsuarioResponse> listarUsuarios() {
         return usuarioRepository.findAllByOrderByNombresAscApellidosAsc().stream()
-            .map(UsuarioResponse::fromEntity)
-            .collect(Collectors.toList());
+                .map(UsuarioResponse::fromEntity)
+                .collect(Collectors.toList());
     }
 
     public UsuarioResponse obtenerUsuario(Integer id) {
         Usuario usuario = usuarioRepository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
         return UsuarioResponse.fromEntity(usuario);
     }
 
     public UsuarioResponse crearUsuario(UsuarioCreateRequest request) {
-        validarDatosUnicos(null, request.username(), request.email(), request.tipoDocumentoId(), request.numeroDocumento());
+        validarDatosUnicos(null, request.username(), request.email(), request.tipoDocumentoId(),
+                request.numeroDocumento());
         Usuario usuario = new Usuario();
         mapearDatosBasicos(usuario, request.nombres(), request.apellidos(), request.username(), request.email(),
-            request.celular(), request.direccion(), request.numeroDocumento(), request.tipoDocumentoId(), request.estado());
+                request.celular(), request.direccion(), request.numeroDocumento(), request.tipoDocumentoId(),
+                request.estado());
         usuario.setPasswordHash(passwordEncoder.encode(request.password()));
         asignarRoles(usuario, request.rolIds());
         Usuario guardado = usuarioRepository.save(usuario);
@@ -65,10 +67,12 @@ public class UsuarioService {
 
     public UsuarioResponse actualizarUsuario(Integer id, UsuarioUpdateRequest request) {
         Usuario usuario = usuarioRepository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
-        validarDatosUnicos(usuario.getId(), request.username(), request.email(), request.tipoDocumentoId(), request.numeroDocumento());
+                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+        validarDatosUnicos(usuario.getId(), request.username(), request.email(), request.tipoDocumentoId(),
+                request.numeroDocumento());
         mapearDatosBasicos(usuario, request.nombres(), request.apellidos(), request.username(), request.email(),
-            request.celular(), request.direccion(), request.numeroDocumento(), request.tipoDocumentoId(), request.estado());
+                request.celular(), request.direccion(), request.numeroDocumento(), request.tipoDocumentoId(),
+                request.estado());
         if (StringUtils.hasText(request.password())) {
             usuario.setPasswordHash(passwordEncoder.encode(request.password()));
         }
@@ -84,13 +88,13 @@ public class UsuarioService {
     }
 
     public List<RolResponse> listarRoles() {
-    return rolService.listarRoles(true);
+        return rolService.listarRoles(true);
     }
 
     public Usuario autenticar(String identificador, String password) {
         Usuario usuario = usuarioRepository.findByUsernameIgnoreCase(identificador)
-            .or(() -> usuarioRepository.findByEmailIgnoreCase(identificador))
-            .orElseThrow(() -> new BadCredentialsException("Usuario o contraseña incorrectos"));
+                .or(() -> usuarioRepository.findByEmailIgnoreCase(identificador))
+                .orElseThrow(() -> new BadCredentialsException("Usuario o contraseña incorrectos"));
 
         if (!Boolean.TRUE.equals(usuario.getEstado())) {
             throw new DisabledException("El usuario se encuentra inactivo");
@@ -104,7 +108,7 @@ public class UsuarioService {
         Usuario actualizado = usuarioRepository.save(usuario);
 
         return usuarioRepository.findWithRolesAndPermisosById(actualizado.getId())
-            .orElse(actualizado);
+                .orElse(actualizado);
     }
 
     public Usuario validarUsuarioActivo(String username) {
@@ -113,7 +117,7 @@ public class UsuarioService {
         }
 
         Usuario usuario = usuarioRepository.findByUsernameIgnoreCase(username.trim())
-            .orElseThrow(() -> new BadCredentialsException("El usuario no se encuentra registrado"));
+                .orElseThrow(() -> new BadCredentialsException("El usuario no se encuentra registrado"));
 
         if (!Boolean.TRUE.equals(usuario.getEstado())) {
             throw new DisabledException("El usuario se encuentra inactivo");
@@ -122,20 +126,22 @@ public class UsuarioService {
         return usuario;
     }
 
-    public Usuario verificarDatosRecuperacion(String username, String nombres, String apellidos, String email, String numeroDocumento) {
+    public Usuario verificarDatosRecuperacion(String username, String nombres, String apellidos, String email,
+            String numeroDocumento) {
         Usuario usuario = validarUsuarioActivo(username);
 
         if (!coincide(usuario.getNombres(), nombres) ||
-            !coincide(usuario.getApellidos(), apellidos) ||
-            !coincide(usuario.getEmail(), email) ||
-            !coincide(usuario.getNumeroDocumento(), numeroDocumento)) {
+                !coincide(usuario.getApellidos(), apellidos) ||
+                !coincide(usuario.getEmail(), email) ||
+                !coincide(usuario.getNumeroDocumento(), numeroDocumento)) {
             throw new BadCredentialsException("Los datos proporcionados no coinciden con el usuario");
         }
 
         return usuario;
     }
 
-    public void restablecerPassword(String username, String nombres, String apellidos, String email, String numeroDocumento, String nuevaPassword) {
+    public void restablecerPassword(String username, String nombres, String apellidos, String email,
+            String numeroDocumento, String nuevaPassword) {
         if (!StringUtils.hasText(nuevaPassword)) {
             throw new ValidationException("Debes proporcionar una nueva contraseña válida");
         }
@@ -147,7 +153,7 @@ public class UsuarioService {
 
     public Usuario obtenerUsuarioConRoles(Integer id) {
         return usuarioRepository.findWithRolesAndPermisosById(id)
-            .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Usuario no encontrado"));
     }
 
     private boolean coincide(String valorSistema, String valorIngresado) {
@@ -158,8 +164,8 @@ public class UsuarioService {
     }
 
     private void mapearDatosBasicos(Usuario usuario, String nombres, String apellidos, String username, String email,
-                                    String celular, String direccion, String numeroDocumento, Integer tipoDocumentoId,
-                                    Boolean estado) {
+            String celular, String direccion, String numeroDocumento, Integer tipoDocumentoId,
+            Boolean estado) {
         usuario.setNombres(nombres);
         usuario.setApellidos(apellidos);
         usuario.setUsername(username);
@@ -168,9 +174,9 @@ public class UsuarioService {
         usuario.setDireccion(direccion);
         String numeroNormalizado = StringUtils.hasText(numeroDocumento) ? numeroDocumento.trim() : null;
         var tipoDocumentoSeleccionado = tipoDocumentoId != null
-            ? tipoDocumentoRepository.findById(tipoDocumentoId)
-                .orElseThrow(() -> new EntityNotFoundException("Tipo de documento no encontrado"))
-            : null;
+                ? tipoDocumentoRepository.findById(tipoDocumentoId)
+                        .orElseThrow(() -> new EntityNotFoundException("Tipo de documento no encontrado"))
+                : null;
 
         if (numeroNormalizado != null && !numeroNormalizado.isEmpty()) {
             if (!SOLO_DIGITOS.matcher(numeroNormalizado).matches()) {
@@ -197,26 +203,28 @@ public class UsuarioService {
         usuario.setRoles(roles);
     }
 
-    private void validarDatosUnicos(Integer idUsuario, String username, String email, Integer tipoDocumentoId, String numeroDocumento) {
+    private void validarDatosUnicos(Integer idUsuario, String username, String email, Integer tipoDocumentoId,
+            String numeroDocumento) {
         usuarioRepository.findByUsernameIgnoreCase(username)
-            .ifPresent(existing -> {
-                if (!existing.getId().equals(idUsuario)) {
-                    throw new ValidationException("El nombre de usuario ya está registrado");
-                }
-            });
-        usuarioRepository.findByEmailIgnoreCase(email)
-            .ifPresent(existing -> {
-                if (!existing.getId().equals(idUsuario)) {
-                    throw new ValidationException("El correo electrónico ya está registrado");
-                }
-            });
-        if (StringUtils.hasText(numeroDocumento) && tipoDocumentoId != null) {
-            usuarioRepository.findByTipoDocumento_IdTipoDocumentoAndNumeroDocumento(tipoDocumentoId, numeroDocumento)
                 .ifPresent(existing -> {
                     if (!existing.getId().equals(idUsuario)) {
-                        throw new ValidationException("El número de documento ya está registrado para el tipo seleccionado");
+                        throw new ValidationException("El nombre de usuario ya está registrado");
                     }
                 });
+        usuarioRepository.findByEmailIgnoreCase(email)
+                .ifPresent(existing -> {
+                    if (!existing.getId().equals(idUsuario)) {
+                        throw new ValidationException("El correo electrónico ya está registrado");
+                    }
+                });
+        if (StringUtils.hasText(numeroDocumento) && tipoDocumentoId != null) {
+            usuarioRepository.findByTipoDocumento_IdTipoDocumentoAndNumeroDocumento(tipoDocumentoId, numeroDocumento)
+                    .ifPresent(existing -> {
+                        if (!existing.getId().equals(idUsuario)) {
+                            throw new ValidationException(
+                                    "El número de documento ya está registrado para el tipo seleccionado");
+                        }
+                    });
         }
     }
 
@@ -232,6 +240,14 @@ public class UsuarioService {
         if (nombreTipo.contains("RUC") && numeroDocumento.length() != 11) {
             throw new ValidationException("El RUC debe tener exactamente 11 dígitos");
         }
+    }
+
+    /**
+     * Actualiza un usuario directamente (para cambios simples desde
+     * PerfilController)
+     */
+    public Usuario actualizarUsuario(Usuario usuario) {
+        return usuarioRepository.save(usuario);
     }
 
 }

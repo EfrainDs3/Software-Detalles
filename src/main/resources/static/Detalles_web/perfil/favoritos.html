@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Favoritos - Detalles</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .favorites-page {
+            padding: 40px 20px;
+            min-height: 70vh;
+        }
+
+        .favorites-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .favorites-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .favorite-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+            position: relative;
+        }
+
+        .favorite-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .favorite-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: #f5f5f5;
+        }
+
+        .favorite-info {
+            padding: 15px;
+        }
+
+        .favorite-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .favorite-price {
+            color: #c41e3a;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+
+        .favorite-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-add-cart,
+        .btn-remove {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .btn-add-cart {
+            background: #c41e3a;
+            color: white;
+        }
+
+        .btn-add-cart:hover {
+            background: #a01729;
+        }
+
+        .btn-remove {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .btn-remove:hover {
+            background: #e0e0e0;
+        }
+
+        .empty-favorites {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-favorites i {
+            font-size: 64px;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="breadcrumb">
+        <div class="breadcrumb-content">
+            <a href="../index.html">Inicio</a> / <span>Mis Favoritos</span>
+        </div>
+    </div>
+
+    <section class="favorites-page">
+        <div class="favorites-container">
+            <h1>Mis Favoritos <span id="favorites-count"></span></h1>
+
+            <div class="loading" id="loading">
+                <p>Cargando favoritos...</p>
+            </div>
+
+            <div class="favorites-grid" id="favorites-grid" style="display:none;"></div>
+
+            <div class="empty-favorites" id="empty-favorites" style="display:none;">
+                <i class="fas fa-heart-broken"></i>
+                <h2>No tienes favoritos aún</h2>
+                <p>Agrega productos a tus favoritos para verlos aquí</p>
+                <a href="../index.html" class="btn-primary">Explorar Productos</a>
+            </div>
+        </div>
+    </section>
+
+    <script src="../js/favorites.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Compras - Detalles</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .purchases-page {
+            padding: 40px 20px;
+            min-height: 70vh;
+        }
+
+        .purchases-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .empty-purchases {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 12px;
+        }
+
+        .empty-purchases i {
+            font-size: 64px;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="breadcrumb">
+        <div class="breadcrumb-content">
+            <a href="../index.html">Inicio</a> / <span>Mis Compras</span>
+        </div>
+    </div>
+
+    <section class="purchases-page">
+        <div class="purchases-container">
+            <h1>Historial de Compras</h1>
+
+            <div class="empty-purchases">
+                <i class="fas fa-shopping-bag"></i>
+                <h2>No tienes compras registradas</h2>
+                <p>Cuando realices tu primera compra, aparecerá aquí</p>
+                <a href="../index.html" class="btn-primary"
+                    style="display:inline-block; padding:12px 24px; background:#c41e3a; color:white; text-decoration:none; border-radius:6px; margin-top:20px;">Explorar
+                    Productos</a>
+            </div>
+        </div>
+    </section>
+</body>
+
+</html>

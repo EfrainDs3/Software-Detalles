@@ -7,10 +7,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.stereotype.Service;
+// import org.springframework.stereotype.Service;  // Deshabilitado para evitar conflicto con CustomUserDetailsService
 
-@Service
 @RequiredArgsConstructor
+// @Service  // Deshabilitado: Spring usa CustomUserDetailsService en su lugar
 public class AppUserDetailsService implements UserDetailsService {
 
     private final UsuarioRepository usuarioRepository;

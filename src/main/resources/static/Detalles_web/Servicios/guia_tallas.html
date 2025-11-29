@@ -1,217 +1,333 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Guía de Tallas - Detalles</title>
 	<link rel="stylesheet" href="../styles.css">
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-	
+
 
 
 	<!-- Nuevo: estilos locales para mejorar presentación -->
 	<style>
-		:root{
-			--accent:#921212;
-			--accent-dark:#921212;
-			--muted:#6b6f76;
-			--bg:#f6f8fb;
-			--card:#ffffff;
-			--radius:12px;
-			--max-width:1100px;
+		:root {
+			--accent: #921212;
+			--accent-dark: #921212;
+			--muted: #6b6f76;
+			--bg: #f6f8fb;
+			--card: #ffffff;
+			--radius: 12px;
+			--max-width: 1100px;
 		}
-		html,body{height:100%;}
-		body{
+
+		html,
+		body {
+			height: 100%;
+		}
+
+		body {
 			font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-			background:var(--bg);
-			color:#222;
-			margin:0;
-			-webkit-font-smoothing:antialiased;
-			-moz-osx-font-smoothing:grayscale;
+			background: var(--bg);
+			color: #222;
+			margin: 0;
+			-webkit-font-smoothing: antialiased;
+			-moz-osx-font-smoothing: grayscale;
 		}
-		.container{max-width:var(--max-width);margin:0 auto;padding:2rem;}
-		.guide-hero{
-			background:linear-gradient(90deg, rgba(233,30,99,0.06), rgba(33,150,243,0.03));
-			border-radius:var(--radius);
-			padding:1.6rem 1.6rem;
-			display:flex;
-			align-items:center;
-			justify-content:space-between;
-			gap:1rem;
-			box-shadow:0 8px 30px rgba(16,24,40,0.04);
-			margin-bottom:1.25rem;
+
+		.container {
+			max-width: var(--max-width);
+			margin: 0 auto;
+			padding: 2rem;
 		}
-		.hero-inner h1{margin:0;font-size:1.6rem;color:var(--accent);letter-spacing:0.2px;}
-		.hero-inner p{margin:.35rem 0 0;color:var(--muted);font-size:.95rem;}
-		.unit-toggle .btn{
-			background:var(--accent);
-			color:#fff;
-			border:0;
-			padding:.55rem .9rem;
-			border-radius:999px;
-			cursor:pointer;
-			font-weight:600;
-			box-shadow:0 8px 20px rgba(233,30,99,0.12);
-			transition:transform .12s ease, background .12s ease;
+
+		.guide-hero {
+			background: linear-gradient(90deg, rgba(233, 30, 99, 0.06), rgba(33, 150, 243, 0.03));
+			border-radius: var(--radius);
+			padding: 1.6rem 1.6rem;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 1rem;
+			box-shadow: 0 8px 30px rgba(16, 24, 40, 0.04);
+			margin-bottom: 1.25rem;
 		}
-		.unit-toggle .btn:hover{transform:translateY(-3px);background:var(--accent-dark)}
-		.size-section{
-			background:var(--card);
-			padding:1rem;
-			border-radius:10px;
-			box-shadow:0 6px 20px rgba(16,24,40,0.03);
-			margin-bottom:1rem;
-			overflow:hidden;
+
+		.hero-inner h1 {
+			margin: 0;
+			font-size: 1.6rem;
+			color: var(--accent);
+			letter-spacing: 0.2px;
 		}
-		.size-section h2{margin:0 0 .25rem;color:#111}
-		.size-section .muted{color:var(--muted);font-size:.95rem;margin-bottom:.5rem}
-		.table-responsive{overflow:auto;padding-top:.5rem}
-		.size-table{width:100%;border-collapse:collapse;font-size:.95rem;min-width:420px}
-		.size-table thead th{font-weight:700;padding:.7rem .6rem;text-align:left;color:#333;border-bottom:1px solid #eee}
-		.size-table tbody td{padding:.6rem .6rem;color:#333;vertical-align:middle;border-bottom:1px solid #f1f3f5}
-		.size-table tbody tr:nth-child(odd){background:transparent}
-		.measure{
-			display:inline-block;
-			background:rgba(13,71,161,0.08);
-			color:#0d47a1;
-			padding:4px 8px;
-			border-radius:999px;
-			font-weight:700;
-			font-size:.92rem;
+
+		.hero-inner p {
+			margin: .35rem 0 0;
+			color: var(--muted);
+			font-size: .95rem;
 		}
-		.how-to-measure ol{padding-left:1.2rem;margin-top:.5rem;color:var(--muted)}
-		.measure-tips{background:linear-gradient(180deg, #fff 0%, #fafafa 100%);padding:.8rem;border-radius:8px;margin-top:.6rem;border:1px solid #f0f2f5;color:var(--muted)}
-		.faq{margin-top:1rem}
-		.faq-item{padding:.6rem 0;border-top:1px dashed #f1f3f5}
-		.faq-item h4{margin:.25rem 0;color:#222;font-size:1rem}
-		.footer-bottom p{color:var(--muted)}
+
+		.unit-toggle .btn {
+			background: var(--accent);
+			color: #fff;
+			border: 0;
+			padding: .55rem .9rem;
+			border-radius: 999px;
+			cursor: pointer;
+			font-weight: 600;
+			box-shadow: 0 8px 20px rgba(233, 30, 99, 0.12);
+			transition: transform .12s ease, background .12s ease;
+		}
+
+		.unit-toggle .btn:hover {
+			transform: translateY(-3px);
+			background: var(--accent-dark)
+		}
+
+		.size-section {
+			background: var(--card);
+			padding: 1rem;
+			border-radius: 10px;
+			box-shadow: 0 6px 20px rgba(16, 24, 40, 0.03);
+			margin-bottom: 1rem;
+			overflow: hidden;
+		}
+
+		.size-section h2 {
+			margin: 0 0 .25rem;
+			color: #111
+		}
+
+		.size-section .muted {
+			color: var(--muted);
+			font-size: .95rem;
+			margin-bottom: .5rem
+		}
+
+		.table-responsive {
+			overflow: auto;
+			padding-top: .5rem
+		}
+
+		.size-table {
+			width: 100%;
+			border-collapse: collapse;
+			font-size: .95rem;
+			min-width: 420px
+		}
+
+		.size-table thead th {
+			font-weight: 700;
+			padding: .7rem .6rem;
+			text-align: left;
+			color: #333;
+			border-bottom: 1px solid #eee
+		}
+
+		.size-table tbody td {
+			padding: .6rem .6rem;
+			color: #333;
+			vertical-align: middle;
+			border-bottom: 1px solid #f1f3f5
+		}
+
+		.size-table tbody tr:nth-child(odd) {
+			background: transparent
+		}
+
+		.measure {
+			display: inline-block;
+			background: rgba(13, 71, 161, 0.08);
+			color: #0d47a1;
+			padding: 4px 8px;
+			border-radius: 999px;
+			font-weight: 700;
+			font-size: .92rem;
+		}
+
+		.how-to-measure ol {
+			padding-left: 1.2rem;
+			margin-top: .5rem;
+			color: var(--muted)
+		}
+
+		.measure-tips {
+			background: linear-gradient(180deg, #fff 0%, #fafafa 100%);
+			padding: .8rem;
+			border-radius: 8px;
+			margin-top: .6rem;
+			border: 1px solid #f0f2f5;
+			color: var(--muted)
+		}
+
+		.faq {
+			margin-top: 1rem
+		}
+
+		.faq-item {
+			padding: .6rem 0;
+			border-top: 1px dashed #f1f3f5
+		}
+
+		.faq-item h4 {
+			margin: .25rem 0;
+			color: #222;
+			font-size: 1rem
+		}
+
+		.footer-bottom p {
+			color: var(--muted)
+		}
+
 		/* responsive */
-		@media (max-width:800px){
-			.guide-hero{flex-direction:column;align-items:flex-start}
-			.unit-toggle{width:100%;display:flex;justify-content:flex-end}
+		@media (max-width:800px) {
+			.guide-hero {
+				flex-direction: column;
+				align-items: flex-start
+			}
+
+			.unit-toggle {
+				width: 100%;
+				display: flex;
+				justify-content: flex-end
+			}
 		}
 	</style>
-				</head>
-				<body>
-<header>
-    <nav class="navbar">
-        <div class="nav-container">
+</head>
 
-            <div class="logo">
-                <a href="/index" class="logo-link">
-                    <img src="/Detalles_web/img/logo-detalles.jpg"
-                         alt="Detalles - Calzados y Accesorios"
-                         style="height: 65px; width: auto;">
-                </a>
-            </div>
-            <ul class="nav-menu">
-                <li><a href="/index">Inicio</a></li>
+<body>
+	<header>
+		<nav class="navbar">
+			<div class="nav-container">
 
-                <!-- Submenú Mujeres -->
-                <li class="menu-item-has-children">
-                    <a href="#">Mujeres <i class="fas fa-chevron-down"></i></a>
-                    <div class="submenu">
-                        <div class="submenu-content">
-                            <div class="submenu-column">
-                                <h3>Calzado</h3>
-                                <ul>
-                                    <li><a href="/Detalles_web/mujeres/zapatillas-deportivas.html">Zapatillas Deportivas</a></li>
-                                    <li><a href="/Detalles_web/mujeres/zapatos-casuales.html">Zapatos Casuales</a></li>
-                                    <li><a href="/Detalles_web/mujeres/tacones.html">Tacones</a></li>
-                                    <li><a href="/Detalles_web/mujeres/sandalias.html">Sandalias</a></li>
-                                    <li><a href="/Detalles_web/mujeres/botas.html">Botas</a></li>
-                                </ul>
-                            </div>
+				<div class="logo">
+					<a href="/index" class="logo-link">
+						<img src="/Detalles_web/img/logo-detalles.jpg" alt="Detalles - Calzados y Accesorios"
+							style="height: 65px; width: auto;">
+					</a>
+				</div>
+				<ul class="nav-menu">
+					<li><a href="/index">Inicio</a></li>
 
-                            <div class="submenu-column">
-                                <h3>Accesorios</h3>
-                                <ul>
-                                    <li><a href="/Detalles_web/mujeres-accesorios/bolsos.html">Bolsos</a></li>
-                                    <li><a href="/Detalles_web/mujeres-accesorios/billeteras.html">Billeteras</a></li>
-                                    <li><a href="/Detalles_web/mujeres-accesorios/gafas-de-sol.html">Gafas de Sol</a></li>
-                                    <li><a href="/Detalles_web/mujeres-accesorios/cinturones.html">Cinturones</a></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </li>
+					<!-- Submenú Mujeres -->
+					<li class="menu-item-has-children">
+						<a href="#">Mujeres <i class="fas fa-chevron-down"></i></a>
+						<div class="submenu">
+							<div class="submenu-content">
+								<div class="submenu-column">
+									<h3>Calzado</h3>
+									<ul>
+										<li><a href="/Detalles_web/mujeres/zapatillas-deportivas.html">Zapatillas
+												Deportivas</a></li>
+										<li><a href="/Detalles_web/mujeres/zapatos-casuales.html">Zapatos Casuales</a>
+										</li>
+										<li><a href="/Detalles_web/mujeres/tacones.html">Tacones</a></li>
+										<li><a href="/Detalles_web/mujeres/sandalias.html">Sandalias</a></li>
+										<li><a href="/Detalles_web/mujeres/botas.html">Botas</a></li>
+									</ul>
+								</div>
 
-                <!-- Submenú Hombres -->
-                <li class="menu-item-has-children">
-                    <a href="#">Hombres <i class="fas fa-chevron-down"></i></a>
-                    <div class="submenu">
-                        <div class="submenu-content">
-                            <div class="submenu-column">
-                                <h3>Calzado</h3>
-                                <ul>
-                                    <li><a href="/Detalles_web/hombres/zapatillas-deportivas-h.html">Zapatillas Deportivas</a></li>
-                                    <li><a href="/Detalles_web/hombres/zapatos-casuales-h.html">Zapatos Casuales</a></li>
-                                    <li><a href="/Detalles_web/hombres/zapatos-formales-h.html">Zapatos Formales</a></li>
-                                    <li><a href="/Detalles_web/hombres/botas-h.html">Botas</a></li>
-                                    <li><a href="/Detalles_web/hombres/sandalias-h.html">Sandalias</a></li>
-                                </ul>
-                            </div>
+								<div class="submenu-column">
+									<h3>Accesorios</h3>
+									<ul>
+										<li><a href="/Detalles_web/mujeres-accesorios/bolsos.html">Bolsos</a></li>
+										<li><a href="/Detalles_web/mujeres-accesorios/billeteras.html">Billeteras</a>
+										</li>
+										<li><a href="/Detalles_web/mujeres-accesorios/gafas-de-sol.html">Gafas de
+												Sol</a></li>
+										<li><a href="/Detalles_web/mujeres-accesorios/cinturones.html">Cinturones</a>
+										</li>
+									</ul>
+								</div>
+							</div>
+						</div>
+					</li>
 
-                            <div class="submenu-column">
-                                <h3>Accesorios</h3>
-                                <ul>
-                                    <li><a href="/Detalles_web/hombres-accesorios/cinturones-h.html">Cinturones</a></li>
-                                    <li><a href="/Detalles_web/hombres-accesorios/relojes-h.html">Relojes</a></li>
-                                    <li><a href="/Detalles_web/hombres-accesorios/gafas-de-sol-h.html">Gafas de Sol</a></li>
-                                    <li><a href="/Detalles_web/hombres-accesorios/billeteras-h.html">Billeteras</a></li>
-                                    <li><a href="/Detalles_web/hombres-accesorios/gorros-h.html">Gorros</a></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </li>
+					<!-- Submenú Hombres -->
+					<li class="menu-item-has-children">
+						<a href="#">Hombres <i class="fas fa-chevron-down"></i></a>
+						<div class="submenu">
+							<div class="submenu-content">
+								<div class="submenu-column">
+									<h3>Calzado</h3>
+									<ul>
+										<li><a href="/Detalles_web/hombres/zapatillas-deportivas-h.html">Zapatillas
+												Deportivas</a></li>
+										<li><a href="/Detalles_web/hombres/zapatos-casuales-h.html">Zapatos Casuales</a>
+										</li>
+										<li><a href="/Detalles_web/hombres/zapatos-formales-h.html">Zapatos Formales</a>
+										</li>
+										<li><a href="/Detalles_web/hombres/botas-h.html">Botas</a></li>
+										<li><a href="/Detalles_web/hombres/sandalias-h.html">Sandalias</a></li>
+									</ul>
+								</div>
 
-                <!-- Submenú niños -->
-                <li class="menu-item-has-children">
-                    <a href="#">Niños <i class="fas fa-chevron-down"></i></a>
-                    <div class="submenu">
-                        <div class="submenu-content">
-                            <div class="submenu-column">
-                                <h3>Calzado</h3>
-                                <ul>
-                                    <li><a href="/Detalles_web/niños/zapatillas-deportivas.html">Zapatillas Deportivas</a></li>
-                                    <li><a href="/Detalles_web/niños/zapatos-casuales.html">Zapatos Casuales</a></li>
-                                    <li><a href="/Detalles_web/niños/zapatos-escolares.html">Zapatos Escolares</a></li>
-                                    <li><a href="/Detalles_web/niños/pantuflas.html">Pantuflas</a></li>
-                                    <li><a href="/Detalles_web/niños/sandalias.html">Sandalias</a></li>
-                                    <li><a href="/Detalles_web/niños/botas.html">Botas</a></li>
-                                </ul>
-                            </div>
+								<div class="submenu-column">
+									<h3>Accesorios</h3>
+									<ul>
+										<li><a href="/Detalles_web/hombres-accesorios/cinturones-h.html">Cinturones</a>
+										</li>
+										<li><a href="/Detalles_web/hombres-accesorios/relojes-h.html">Relojes</a></li>
+										<li><a href="/Detalles_web/hombres-accesorios/gafas-de-sol-h.html">Gafas de
+												Sol</a></li>
+										<li><a href="/Detalles_web/hombres-accesorios/billeteras-h.html">Billeteras</a>
+										</li>
+										<li><a href="/Detalles_web/hombres-accesorios/gorros-h.html">Gorros</a></li>
+									</ul>
+								</div>
+							</div>
+						</div>
+					</li>
 
-                            <div class="submenu-column">
-                                <h3>Accesorios</h3>
-                                <ul>
-                                    <li><a href="/Detalles_web/niños-accesorios/calcetines.html">Calcetines</a></li>
-                                    <li><a href="/Detalles_web/niños-accesorios/cinturones.html">Cinturones</a></li>
-                                    <li><a href="/Detalles_web/niños-accesorios/gorras.html">Gorras</a></li>
-                                    <li><a href="/Detalles_web/niños-accesorios/lentes-sol.html">Lentes</a></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </li>
-            </ul>
+					<!-- Submenú niños -->
+					<li class="menu-item-has-children">
+						<a href="#">Niños <i class="fas fa-chevron-down"></i></a>
+						<div class="submenu">
+							<div class="submenu-content">
+								<div class="submenu-column">
+									<h3>Calzado</h3>
+									<ul>
+										<li><a href="/Detalles_web/niños/zapatillas-deportivas.html">Zapatillas
+												Deportivas</a></li>
+										<li><a href="/Detalles_web/niños/zapatos-casuales.html">Zapatos Casuales</a>
+										</li>
+										<li><a href="/Detalles_web/niños/zapatos-escolares.html">Zapatos Escolares</a>
+										</li>
+										<li><a href="/Detalles_web/niños/pantuflas.html">Pantuflas</a></li>
+										<li><a href="/Detalles_web/niños/sandalias.html">Sandalias</a></li>
+										<li><a href="/Detalles_web/niños/botas.html">Botas</a></li>
+									</ul>
+								</div>
 
-            <div class="nav-icons">
-                <a href="#" class="nav-icon search-icon"><i class="fas fa-search"></i></a>
-                <a href="/Detalles_web/login/logueo.html" class="nav-icon"><i class="fas fa-user"></i></a>
-                <a href="/Detalles_web/carrito/carritos.html" class="nav-icon cart-icon">
-                    <i class="fas fa-shopping-bag"></i>
-                    <span class="cart-count">0</span>
-                </a>
-            </div>
+								<div class="submenu-column">
+									<h3>Accesorios</h3>
+									<ul>
+										<li><a href="/Detalles_web/niños-accesorios/calcetines.html">Calcetines</a></li>
+										<li><a href="/Detalles_web/niños-accesorios/cinturones.html">Cinturones</a></li>
+										<li><a href="/Detalles_web/niños-accesorios/gorras.html">Gorras</a></li>
+										<li><a href="/Detalles_web/niños-accesorios/lentes-sol.html">Lentes</a></li>
+									</ul>
+								</div>
+							</div>
+						</div>
+					</li>
+				</ul>
 
-            <div class="hamburger">
-                <span></span><span></span><span></span>
-            </div>
-        </div>
-    </nav>
-</header>
+				<div class="nav-icons">
+					<a href="#" class="nav-icon search-icon"><i class="fas fa-search"></i></a>
+					<a href="#" class="nav-icon" onclick="irAPerfil(event)"><i class="fas fa-user"></i></a>
+					<a href="#" class="nav-icon cart-icon" onclick="irACarrito(event)">
+						<i class="fas fa-shopping-bag"></i>
+						<span class="cart-count">0</span>
+					</a>
+				</div>
+
+				<div class="hamburger">
+					<span></span><span></span><span></span>
+				</div>
+			</div>
+		</nav>
+	</header>
 
 	<!-- Breadcrumb -->
 	<div class="breadcrumb">
@@ -220,33 +336,34 @@
 		</div>
 	</div>
 
-        <div id="searchOverlay" class="search-overlay">
-        <div class="search-container">
-            <span class="close-search">&times;</span>
-            <div class="search-content">
-                <h2>Buscar Productos</h2>
-                <form class="search-form">
-                    <input type="text" placeholder="¿Qué estás buscando?" class="search-input">
-                    <button type="submit" class="search-button"><i class="fas fa-search"></i></button>
-                </form>
-                <div class="search-suggestions">
-                    <h3>Sugerencias de búsqueda</h3>
-                    <div class="suggestion-tags">
-                        <span class="tag">Zapatillas Deportivas</span>
-                        <span class="tag">Zapatos Casuales</span>
-                        <span class="tag">Bolsos</span>
-                        <span class="tag">Tacones</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+	<div id="searchOverlay" class="search-overlay">
+		<div class="search-container">
+			<span class="close-search">&times;</span>
+			<div class="search-content">
+				<h2>Buscar Productos</h2>
+				<form class="search-form">
+					<input type="text" placeholder="¿Qué estás buscando?" class="search-input">
+					<button type="submit" class="search-button"><i class="fas fa-search"></i></button>
+				</form>
+				<div class="search-suggestions">
+					<h3>Sugerencias de búsqueda</h3>
+					<div class="suggestion-tags">
+						<span class="tag">Zapatillas Deportivas</span>
+						<span class="tag">Zapatos Casuales</span>
+						<span class="tag">Bolsos</span>
+						<span class="tag">Tacones</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 	<main class="container page-content">
 		<!-- Cambiado: hero más compacto y moderno -->
 		<section class="guide-hero">
 			<div class="hero-inner">
 				<h1>Guía de Tallas</h1>
-				<p>Encuentra la talla perfecta para calzado y ropa de niños. Sigue las indicaciones para medir correctamente.</p>
+				<p>Encuentra la talla perfecta para calzado y ropa de niños. Sigue las indicaciones para medir
+					correctamente.</p>
 			</div>
 			<div class="unit-toggle">
 				<button id="toggleUnits" class="btn">Ver en pulgadas</button>
@@ -269,31 +386,45 @@
 					<tbody>
 						<tr>
 							<td><span class="measure" data-cm="9.5">9.5 cm</span></td>
-							<td>17</td><td>2.5</td><td>3C</td>
+							<td>17</td>
+							<td>2.5</td>
+							<td>3C</td>
 						</tr>
 						<tr>
 							<td><span class="measure" data-cm="10.5">10.5 cm</span></td>
-							<td>18</td><td>3.5</td><td>4C</td>
+							<td>18</td>
+							<td>3.5</td>
+							<td>4C</td>
 						</tr>
 						<tr>
 							<td><span class="measure" data-cm="11.5">11.5 cm</span></td>
-							<td>19</td><td>4</td><td>5C</td>
+							<td>19</td>
+							<td>4</td>
+							<td>5C</td>
 						</tr>
 						<tr>
 							<td><span class="measure" data-cm="12.5">12.5 cm</span></td>
-							<td>20</td><td>5</td><td>6C</td>
+							<td>20</td>
+							<td>5</td>
+							<td>6C</td>
 						</tr>
 						<tr>
 							<td><span class="measure" data-cm="13.5">13.5 cm</span></td>
-							<td>21</td><td>6</td><td>7C</td>
+							<td>21</td>
+							<td>6</td>
+							<td>7C</td>
 						</tr>
 						<tr>
 							<td><span class="measure" data-cm="14.5">14.5 cm</span></td>
-							<td>22</td><td>7</td><td>8C</td>
+							<td>22</td>
+							<td>7</td>
+							<td>8C</td>
 						</tr>
 						<tr>
 							<td><span class="measure" data-cm="15.5">15.5 cm</span></td>
-							<td>23</td><td>8</td><td>9C</td>
+							<td>23</td>
+							<td>8</td>
+							<td>9C</td>
 						</tr>
 					</tbody>
 				</table>
@@ -306,13 +437,33 @@
 			<div class="table-responsive">
 				<table class="size-table">
 					<thead>
-						<tr><th>Tipo</th><th>Medida / Referencia</th><th>Notas</th></tr>
+						<tr>
+							<th>Tipo</th>
+							<th>Medida / Referencia</th>
+							<th>Notas</th>
+						</tr>
 					</thead>
 					<tbody>
-						<tr><td>Calcetines</td><td>EU 17-34</td><td>Ver tallas por edad y tipo (tobillero/largo)</td></tr>
-						<tr><td>Cinturones</td><td><span class="measure" data-cm="60">60 cm</span></td><td>Medir cintura + 10 cm para ajuste</td></tr>
-						<tr><td>Gorras (circunferencia)</td><td><span class="measure" data-cm="50">50 cm</span></td><td>Usar medida de cabeza</td></tr>
-						<tr><td>Lentes de sol (ancho)</td><td><span class="measure" data-cm="12">12 cm</span></td><td>Medida aproximada del marco</td></tr>
+						<tr>
+							<td>Calcetines</td>
+							<td>EU 17-34</td>
+							<td>Ver tallas por edad y tipo (tobillero/largo)</td>
+						</tr>
+						<tr>
+							<td>Cinturones</td>
+							<td><span class="measure" data-cm="60">60 cm</span></td>
+							<td>Medir cintura + 10 cm para ajuste</td>
+						</tr>
+						<tr>
+							<td>Gorras (circunferencia)</td>
+							<td><span class="measure" data-cm="50">50 cm</span></td>
+							<td>Usar medida de cabeza</td>
+						</tr>
+						<tr>
+							<td>Lentes de sol (ancho)</td>
+							<td><span class="measure" data-cm="12">12 cm</span></td>
+							<td>Medida aproximada del marco</td>
+						</tr>
 					</tbody>
 				</table>
 			</div>
@@ -328,15 +479,50 @@
 			<div class="table-responsive">
 				<table class="size-table">
 					<thead>
-						<tr><th>Longitud del pie</th><th>EU</th><th>UK</th><th>US (Mujer)</th></tr>
+						<tr>
+							<th>Longitud del pie</th>
+							<th>EU</th>
+							<th>UK</th>
+							<th>US (Mujer)</th>
+						</tr>
 					</thead>
 					<tbody>
-						<tr><td><span class="measure" data-cm="22.0">22.0 cm</span></td><td>35</td><td>2.5</td><td>5</td></tr>
-						<tr><td><span class="measure" data-cm="22.5">22.5 cm</span></td><td>36</td><td>3</td><td>6</td></tr>
-						<tr><td><span class="measure" data-cm="23.5">23.5 cm</span></td><td>37</td><td>4</td><td>6.5</td></tr>
-						<tr><td><span class="measure" data-cm="24.0">24.0 cm</span></td><td>38</td><td>5</td><td>7.5</td></tr>
-						<tr><td><span class="measure" data-cm="24.5">24.5 cm</span></td><td>39</td><td>5.5</td><td>8.5</td></tr>
-						<tr><td><span class="measure" data-cm="25.5">25.5 cm</span></td><td>40</td><td>6.5</td><td>9</td></tr>
+						<tr>
+							<td><span class="measure" data-cm="22.0">22.0 cm</span></td>
+							<td>35</td>
+							<td>2.5</td>
+							<td>5</td>
+						</tr>
+						<tr>
+							<td><span class="measure" data-cm="22.5">22.5 cm</span></td>
+							<td>36</td>
+							<td>3</td>
+							<td>6</td>
+						</tr>
+						<tr>
+							<td><span class="measure" data-cm="23.5">23.5 cm</span></td>
+							<td>37</td>
+							<td>4</td>
+							<td>6.5</td>
+						</tr>
+						<tr>
+							<td><span class="measure" data-cm="24.0">24.0 cm</span></td>
+							<td>38</td>
+							<td>5</td>
+							<td>7.5</td>
+						</tr>
+						<tr>
+							<td><span class="measure" data-cm="24.5">24.5 cm</span></td>
+							<td>39</td>
+							<td>5.5</td>
+							<td>8.5</td>
+						</tr>
+						<tr>
+							<td><span class="measure" data-cm="25.5">25.5 cm</span></td>
+							<td>40</td>
+							<td>6.5</td>
+							<td>9</td>
+						</tr>
 					</tbody>
 				</table>
 			</div>
@@ -345,12 +531,34 @@
 			<h3 style="margin-top:.8rem">Accesorios - Mujeres</h3>
 			<div class="table-responsive">
 				<table class="size-table">
-					<thead><tr><th>Tipo</th><th>Medida</th><th>Notas</th></tr></thead>
+					<thead>
+						<tr>
+							<th>Tipo</th>
+							<th>Medida</th>
+							<th>Notas</th>
+						</tr>
+					</thead>
 					<tbody>
-						<tr><td>Bolsos (capacidad)</td><td>10-25 L</td><td>Pequeño/Medio/Grande según uso</td></tr>
-						<tr><td>Cinturones</td><td><span class="measure" data-cm="85">85 cm</span></td><td>Medir cintura y añadir 10–15 cm</td></tr>
-						<tr><td>Gafas de sol</td><td><span class="measure" data-cm="13">13 cm</span></td><td>Ancho del marco (aprox.)</td></tr>
-						<tr><td>Relojes (diámetro)</td><td><span class="measure" data-cm="3.6">3.6 cm</span></td><td>Diámetro de la caja</td></tr>
+						<tr>
+							<td>Bolsos (capacidad)</td>
+							<td>10-25 L</td>
+							<td>Pequeño/Medio/Grande según uso</td>
+						</tr>
+						<tr>
+							<td>Cinturones</td>
+							<td><span class="measure" data-cm="85">85 cm</span></td>
+							<td>Medir cintura y añadir 10–15 cm</td>
+						</tr>
+						<tr>
+							<td>Gafas de sol</td>
+							<td><span class="measure" data-cm="13">13 cm</span></td>
+							<td>Ancho del marco (aprox.)</td>
+						</tr>
+						<tr>
+							<td>Relojes (diámetro)</td>
+							<td><span class="measure" data-cm="3.6">3.6 cm</span></td>
+							<td>Diámetro de la caja</td>
+						</tr>
 					</tbody>
 				</table>
 			</div>
@@ -366,15 +574,50 @@
 			<div class="table-responsive">
 				<table class="size-table">
 					<thead>
-						<tr><th>Longitud del pie</th><th>EU</th><th>UK</th><th>US (Hombre)</th></tr>
+						<tr>
+							<th>Longitud del pie</th>
+							<th>EU</th>
+							<th>UK</th>
+							<th>US (Hombre)</th>
+						</tr>
 					</thead>
 					<tbody>
-						<tr><td><span class="measure" data-cm="24.5">24.5 cm</span></td><td>39</td><td>6</td><td>7</td></tr>
-						<tr><td><span class="measure" data-cm="25.5">25.5 cm</span></td><td>40</td><td>6.5</td><td>7.5</td></tr>
-						<tr><td><span class="measure" data-cm="26.5">26.5 cm</span></td><td>41</td><td>7.5</td><td>8.5</td></tr>
-						<tr><td><span class="measure" data-cm="27.5">27.5 cm</span></td><td>42</td><td>8</td><td>9</td></tr>
-						<tr><td><span class="measure" data-cm="28.5">28.5 cm</span></td><td>43</td><td>9</td><td>10</td></tr>
-						<tr><td><span class="measure" data-cm="29.5">29.5 cm</span></td><td>44</td><td>9.5</td><td>10.5</td></tr>
+						<tr>
+							<td><span class="measure" data-cm="24.5">24.5 cm</span></td>
+							<td>39</td>
+							<td>6</td>
+							<td>7</td>
+						</tr>
+						<tr>
+							<td><span class="measure" data-cm="25.5">25.5 cm</span></td>
+							<td>40</td>
+							<td>6.5</td>
+							<td>7.5</td>
+						</tr>
+						<tr>
+							<td><span class="measure" data-cm="26.5">26.5 cm</span></td>
+							<td>41</td>
+							<td>7.5</td>
+							<td>8.5</td>
+						</tr>
+						<tr>
+							<td><span class="measure" data-cm="27.5">27.5 cm</span></td>
+							<td>42</td>
+							<td>8</td>
+							<td>9</td>
+						</tr>
+						<tr>
+							<td><span class="measure" data-cm="28.5">28.5 cm</span></td>
+							<td>43</td>
+							<td>9</td>
+							<td>10</td>
+						</tr>
+						<tr>
+							<td><span class="measure" data-cm="29.5">29.5 cm</span></td>
+							<td>44</td>
+							<td>9.5</td>
+							<td>10.5</td>
+						</tr>
 					</tbody>
 				</table>
 			</div>
@@ -383,12 +626,34 @@
 			<h3 style="margin-top:.8rem">Accesorios - Hombres</h3>
 			<div class="table-responsive">
 				<table class="size-table">
-					<thead><tr><th>Tipo</th><th>Medida</th><th>Notas</th></tr></thead>
+					<thead>
+						<tr>
+							<th>Tipo</th>
+							<th>Medida</th>
+							<th>Notas</th>
+						</tr>
+					</thead>
 					<tbody>
-						<tr><td>Cinturones</td><td><span class="measure" data-cm="95">95 cm</span></td><td>Medir cintura y añadir 10–15 cm</td></tr>
-						<tr><td>Relojes (diámetro)</td><td><span class="measure" data-cm="4.2">4.2 cm</span></td><td>Diámetro de la caja</td></tr>
-						<tr><td>Gorras</td><td><span class="measure" data-cm="58">58 cm</span></td><td>Circunferencia de la cabeza</td></tr>
-						<tr><td>Billeteras</td><td>Compacta / Bifold</td><td>Elegir según preferencia de espacio</td></tr>
+						<tr>
+							<td>Cinturones</td>
+							<td><span class="measure" data-cm="95">95 cm</span></td>
+							<td>Medir cintura y añadir 10–15 cm</td>
+						</tr>
+						<tr>
+							<td>Relojes (diámetro)</td>
+							<td><span class="measure" data-cm="4.2">4.2 cm</span></td>
+							<td>Diámetro de la caja</td>
+						</tr>
+						<tr>
+							<td>Gorras</td>
+							<td><span class="measure" data-cm="58">58 cm</span></td>
+							<td>Circunferencia de la cabeza</td>
+						</tr>
+						<tr>
+							<td>Billeteras</td>
+							<td>Compacta / Bifold</td>
+							<td>Elegir según preferencia de espacio</td>
+						</tr>
 					</tbody>
 				</table>
 			</div>
@@ -403,55 +668,58 @@
 				<li>Usa la medida resultante para buscar la talla en la tabla de calzado.</li>
 			</ol>
 			<div class="measure-tips">
-				<p><strong>Consejo:</strong> mide ambos pies y usa la medida mayor. Añade 0.5–1 cm para comodidad si va a usar calcetines gruesos.</p>
+				<p><strong>Consejo:</strong> mide ambos pies y usa la medida mayor. Añade 0.5–1 cm para comodidad si va
+					a usar calcetines gruesos.</p>
 			</div>
 		</section>
 	</main>
 
 	<footer>
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3>Detalles</h3>
-                    <p>Tu destino para calzados y accesorios de calidad.</p>
-                    <div class="social-links">
-                        <a href="#"><i class="fab fa-facebook"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-whatsapp"></i></a>
-                    </div>
-                </div>
-                <div class="footer-section">
-                    <h3>Servicios</h3>
-                    <ul>
-                        <li><a href="/detalles_web/Servicios/guia_tallas.html">Guía de Tallas</a></li>
-                        <li><a href="/Detalles_web/Servicios/preguntas.html">Preguntas Frecuentes</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h3>Newsletter</h3>
-                    <p>Suscríbete para recibir ofertas exclusivas</p>
-                    <form class="newsletter-form">
-                        <input type="email" placeholder="Tu email" required>
-                        <button type="submit">Suscribirse</button>
-                    </form>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2025 Detalles. Todos los derechos reservados.</p>
-            </div>
-        </div>
-    </footer>
-    
-    <div id="quickViewModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <div class="modal-body">
-                </div>
-        </div>
-    </div>
+		<div class="container">
+			<div class="footer-content">
+				<div class="footer-section">
+					<h3>Detalles</h3>
+					<p>Tu destino para calzados y accesorios de calidad.</p>
+					<div class="social-links">
+						<a href="#"><i class="fab fa-facebook"></i></a>
+						<a href="#"><i class="fab fa-instagram"></i></a>
+						<a href="#"><i class="fab fa-whatsapp"></i></a>
+					</div>
+				</div>
+				<div class="footer-section">
+					<h3>Servicios</h3>
+					<ul>
+						<li><a href="/detalles_web/Servicios/guia_tallas.html">Guía de Tallas</a></li>
+						<li><a href="/Detalles_web/Servicios/preguntas.html">Preguntas Frecuentes</a></li>
+					</ul>
+				</div>
+				<div class="footer-section">
+					<h3>Newsletter</h3>
+					<p>Suscríbete para recibir ofertas exclusivas</p>
+					<form class="newsletter-form">
+						<input type="email" placeholder="Tu email" required>
+						<button type="submit">Suscribirse</button>
+					</form>
+				</div>
+			</div>
+			<div class="footer-bottom">
+				<p>&copy; 2025 Detalles. Todos los derechos reservados.</p>
+			</div>
+		</div>
+	</footer>
 
+	<div id="quickViewModal" class="modal">
+		<div class="modal-content">
+			<span class="close-modal">&times;</span>
+			<div class="modal-body">
+			</div>
+		</div>
+	</div>
+
+	<script src="../js/user-nav.js"></script>
 	<script src="js/script.js"></script>
-    <script src="js/carrito.js"></script>
+	<script src="js/carrito.js"></script>
+	<script src="../js/user-link-fix.js"></script>
 
 	<!-- Script mejorado: alternar entre cm e pulgadas con transición simple -->
 	<script>
@@ -477,4 +745,5 @@
 		})();
 	</script>
 </body>
+
 </html>
