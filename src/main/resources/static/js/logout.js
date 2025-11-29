@@ -15,7 +15,7 @@ function initLogoutButton() {
                     localStorage.removeItem('usuarioRoles');
                     localStorage.removeItem('usuarioPermisos');
                     localStorage.removeItem('usuarioModulos');
-                    window.location.href = '/login';
+                    window.location.href = '/index';
                 });
             }
         });

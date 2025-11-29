@@ -1,5 +1,6 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="../styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
+
 <body>
     <header>
         <nav class="navbar">
@@ -104,7 +106,7 @@
                             </button>
                         </div>
                     </div>
-                    <a href="../login/logueo.html" class="nav-icon"><i class="fas fa-user"></i></a>
+                    <a href="#" class="nav-icon" onclick="irAPerfil(event)"><i class="fas fa-user"></i></a>
                     <a href="../carrito/carritos.html" class="nav-icon cart-icon">
                         <i class="fas fa-shopping-bag"></i>
                         <span class="cart-count">0</span>
@@ -174,7 +176,8 @@
                     <h3>Color</h3>
                     <div class="color-filter">
                         <div class="color-option" style="background: #000;" title="Negro"></div>
-                        <div class="color-option" style="background: #fff; border: 1px solid #ddd;" title="Blanco"></div>
+                        <div class="color-option" style="background: #fff; border: 1px solid #ddd;" title="Blanco">
+                        </div>
                         <div class="color-option" style="background: #795548;" title="Marrón"></div>
                         <div class="color-option" style="background: #C19A6B;" title="Camel"></div>
                         <div class="color-option" style="background: #800000;" title="Vino"></div>
@@ -193,14 +196,17 @@
                         <label class="brand-option"><input type="checkbox"> Aldo</label>
                     </div>
                 </div>
-           
+
                 <div class="filter-section">
                     <h3>Material</h3>
                     <div class="brand-filter">
-                        <div class="brand-option"><input type="checkbox" id="cuero" checked> <label for="cuero">Cuero</label></div>
-                        <div class="brand-option"><input type="checkbox" id="sintetico"> <label for="sintetico">Sintético</label></div>
+                        <div class="brand-option"><input type="checkbox" id="cuero" checked> <label
+                                for="cuero">Cuero</label></div>
+                        <div class="brand-option"><input type="checkbox" id="sintetico"> <label
+                                for="sintetico">Sintético</label></div>
                         <div class="brand-option"><input type="checkbox" id="lona"> <label for="lona">Lona</label></div>
-                        <div class="brand-option"><input type="checkbox" id="gamusa"> <label for="gamusa">Gamusa</label></div>
+                        <div class="brand-option"><input type="checkbox" id="gamusa"> <label for="gamusa">Gamusa</label>
+                        </div>
                     </div>
                 </div>
                 <button class="btn-add-cart" style="width: 100%; margin-top: 1rem;">Aplicar Filtros</button>
@@ -210,7 +216,7 @@
                     <h1>Botas y Botines</h1>
                     <div class="sort-options">
                         <span class="products-count" id="productsCount">Cargando...</span>
-                        
+
                     </div>
                 </div>
                 <div class="products-grid-detailed" id="productosContainer">
@@ -261,7 +267,7 @@
         <div class="modal-content">
             <span class="close-modal">&times;</span>
             <div class="modal-body">
-                </div>
+            </div>
         </div>
     </div>
     <script src="js/script.js"></script>
@@ -274,7 +280,7 @@
         let productosFiltrados = [];
 
         // Cargar productos al iniciar la página
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             cargarBotasMujeres();
             configurarFiltros();
         });
@@ -302,7 +308,7 @@
                 actualizarContadorProductos(productos.length);
             } catch (error) {
                 console.error('Error cargando productos:', error);
-                document.getElementById('productosContainer').innerHTML = 
+                document.getElementById('productosContainer').innerHTML =
                     '<p class="error-message">Error al cargar los productos. Intenta nuevamente.</p>';
             }
         }
@@ -384,7 +390,7 @@
             const precioMin = document.querySelector('.price-inputs input[placeholder="Mín"]');
             const precioMax = document.querySelector('.price-inputs input[placeholder="Máx"]');
             if (precioRange && precioMin && precioMax) {
-                precioRange.addEventListener('input', function() {
+                precioRange.addEventListener('input', function () {
                     precioMax.value = this.value;
                     aplicarFiltros();
                 });
@@ -394,7 +400,7 @@
             // Filtro de tallas
             const tallas = document.querySelectorAll('.size-option');
             tallas.forEach(talla => {
-                talla.addEventListener('click', function() {
+                talla.addEventListener('click', function () {
                     this.classList.toggle('selected');
                     aplicarFiltros();
                 });
@@ -402,7 +408,7 @@
             // Filtro de colores
             const colores = document.querySelectorAll('.color-option');
             colores.forEach(color => {
-                color.addEventListener('click', function() {
+                color.addEventListener('click', function () {
                     this.classList.toggle('selected');
                     aplicarFiltros();
                 });
@@ -445,7 +451,7 @@
                 .filter(color => color !== '');
             console.log('🎨 Colores seleccionados:', coloresSeleccionados);
             if (coloresSeleccionados.length > 0) {
-                productos = productos.filter(producto => 
+                productos = productos.filter(producto =>
                     producto.color && coloresSeleccionados.includes(producto.color.toLowerCase())
                 );
             }
@@ -492,10 +498,10 @@
         }
 
         // Permitir búsqueda con Enter
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const searchInput = document.getElementById('searchInput');
             if (searchInput) {
-                searchInput.addEventListener('keypress', function(e) {
+                searchInput.addEventListener('keypress', function (e) {
                     if (e.key === 'Enter') {
                         buscarProductos();
                     }
@@ -504,8 +510,10 @@
         });
     </script>
 
-// ...existing code...
-</script>
+    // ...existing code...
+    </script>
 
+    <script src="../js/user-nav.js"></script>
 </body>
+
 </html>

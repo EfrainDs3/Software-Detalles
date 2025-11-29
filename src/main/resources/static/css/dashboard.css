@@ -151,6 +151,38 @@ body {
     color: #b30000;
 }
 
+.top-bar-actions {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.profile-btn {
+    background-color: #b30000;
+    color: white;
+    border: none;
+    padding: 12px 16px;
+    border-radius: 5px;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    width: 45px;
+    height: 45px;
+}
+
+.profile-btn:hover {
+    background-color: #8a0000;
+    transform: scale(1.1);
+}
+
+.profile-btn:active {
+    transform: scale(0.95);
+}
+
 .logout-btn {
     background-color: #b30000;
     color: white;

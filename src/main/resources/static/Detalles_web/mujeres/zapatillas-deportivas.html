@@ -1,5 +1,6 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="../styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
+
 <body>
     <header>
         <nav class="navbar">
@@ -16,7 +18,7 @@
                         <img src="../../img/detalles-logo.png" alt="Detalles - Calzados y Accesorios">
                     </a>
                 </div>
-                
+
                 <ul class="nav-menu">
                     <li><a href="../../../templates/index.html">Inicio</a></li>
                     <li class="menu-item-has-children">
@@ -45,14 +47,15 @@
                             </div>
                         </div>
                     </li>
-                     <li class="menu-item-has-children">
+                    <li class="menu-item-has-children">
                         <a href="#hombres">Hombres <i class="fas fa-chevron-down"></i></a>
                         <div class="submenu">
                             <div class="submenu-content">
                                 <div class="submenu-column">
                                     <h3>Calzado</h3>
                                     <ul>
-                                        <li><a href="../hombres/zapatillas-deportivas-h.html">Zapatillas Deportivas</a></li>
+                                        <li><a href="../hombres/zapatillas-deportivas-h.html">Zapatillas Deportivas</a>
+                                        </li>
                                         <li><a href="../hombres/zapatos-casuales-h.html">Zapatos Casuales</a></li>
                                         <li><a href="../hombres/zapatos-formales-h.html">Zapatos Formales</a></li>
                                         <li><a href="../hombres/botas-h.html">Botas</a></li>
@@ -100,7 +103,7 @@
                         </div>
                     </li>
                 </ul>
-                
+
                 <div class="nav-icons">
                     <div class="search-container">
                         <div class="search-form">
@@ -110,8 +113,8 @@
                             </button>
                         </div>
                     </div>
-                    
-                    <a href="../login/logueo.html" class="nav-icon"><i class="fas fa-user"></i></a>
+
+                    <a href="#" class="nav-icon" onclick="irAPerfil(event)"><i class="fas fa-user"></i></a>
                     <a href="../carrito/carritos.html" class="nav-icon cart-icon">
                         <i class="fas fa-shopping-bag"></i>
                         <span class="cart-count">0</span>
@@ -173,8 +176,8 @@
 
     <div class="breadcrumb">
         <div class="breadcrumb-content">
-            <a href="../../index.html">Inicio</a> / 
-            <a href="../../index.html#mujeres">Mujer</a> / 
+            <a href="../../index.html">Inicio</a> /
+            <a href="../../index.html#mujeres">Mujer</a> /
             <span>Zapatillas Deportivas</span>
         </div>
     </div>
@@ -212,7 +215,8 @@
                     <h3>Color</h3>
                     <div class="color-filter">
                         <div class="color-option" style="background: #000;" title="Negro"></div>
-                        <div class="color-option" style="background: #fff; border: 1px solid #ddd;" title="Blanco"></div>
+                        <div class="color-option" style="background: #fff; border: 1px solid #ddd;" title="Blanco">
+                        </div>
                         <div class="color-option" style="background: #ff0000;" title="Rojo"></div>
                         <div class="color-option" style="background: #0000ff;" title="Azul"></div>
                         <div class="color-option" style="background: #ffd700;" title="Dorado"></div>
@@ -241,7 +245,7 @@
                     </div>
                 </div>
 
-                
+
                 <div class="filter-section">
                     <h3>Material</h3>
                     <div class="brand-filter">
@@ -273,7 +277,7 @@
                     <h1>Zapatillas Deportivas</h1>
                     <div class="sort-options">
                         <span class="products-count">16 productos</span>
-                      
+
                     </div>
                 </div>
 
@@ -333,59 +337,59 @@
     <script src="../../js/carrito.js"></script>
 
     <script>
-    // Variables globales
-    let todosLosProductos = [];
-    let productosFiltrados = [];
+        // Variables globales
+        let todosLosProductos = [];
+        let productosFiltrados = [];
 
-    // Cargar productos al iniciar la página
-    document.addEventListener('DOMContentLoaded', function() {
-        cargarZapatillasDeportivasMujeres();
-        configurarFiltros();
-    });
+        // Cargar productos al iniciar la página
+        document.addEventListener('DOMContentLoaded', function () {
+            cargarZapatillasDeportivasMujeres();
+            configurarFiltros();
+        });
 
-    // Función principal para cargar productos
-    async function cargarZapatillasDeportivasMujeres() {
-        try {
-            console.log('Cargando zapatillas deportivas para mujeres...');
-            
-            const response = await fetch('/api/productos/buscar?categoria=mujeres&tipo=zapatillas-deportivas');
-            
-            if (!response.ok) {
-                throw new Error('Error en la respuesta de la API');
+        // Función principal para cargar productos
+        async function cargarZapatillasDeportivasMujeres() {
+            try {
+                console.log('Cargando zapatillas deportivas para mujeres...');
+
+                const response = await fetch('/api/productos/buscar?categoria=mujeres&tipo=zapatillas-deportivas');
+
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta de la API');
+                }
+
+                const productos = await response.json();
+                console.log('Productos cargados:', productos);
+
+                todosLosProductos = productos;
+                productosFiltrados = [...productos];
+
+                mostrarProductos(productos);
+                actualizarContadorProductos(productos.length);
+
+            } catch (error) {
+                console.error('Error cargando productos:', error);
+                document.getElementById('productosContainer').innerHTML =
+                    '<p class="error-message">Error al cargar los productos. Intenta nuevamente.</p>';
             }
-            
-            const productos = await response.json();
-            console.log('Productos cargados:', productos);
-            
-            todosLosProductos = productos;
-            productosFiltrados = [...productos];
-            
-            mostrarProductos(productos);
-            actualizarContadorProductos(productos.length);
-            
-        } catch (error) {
-            console.error('Error cargando productos:', error);
-            document.getElementById('productosContainer').innerHTML = 
-                '<p class="error-message">Error al cargar los productos. Intenta nuevamente.</p>';
         }
-    }
 
-    // Función para mostrar productos en la página
-    function mostrarProductos(productos) {
-        const contenedor = document.getElementById('productosContainer');
-        
-        if (!productos || productos.length === 0) {
-            contenedor.innerHTML = `
+        // Función para mostrar productos en la página
+        function mostrarProductos(productos) {
+            const contenedor = document.getElementById('productosContainer');
+
+            if (!productos || productos.length === 0) {
+                contenedor.innerHTML = `
                 <div class="no-products">
                     <i class="fas fa-search" style="font-size: 48px; color: #ccc; margin-bottom: 20px;"></i>
                     <h3>No se encontraron zapatillas deportivas</h3>
                     <p>Intenta con otros filtros o términos de búsqueda.</p>
                 </div>
             `;
-            return;
-        }
+                return;
+            }
 
-        contenedor.innerHTML = productos.map(producto => `
+            contenedor.innerHTML = productos.map(producto => `
             <div class="product-card-detailed" data-product-id="${producto.id}">
                 <div class="product-image-detailed">
                     <img src="${producto.imagenUrl || '../../img/mujeres-calzados/calzado-default.jpg'}" 
@@ -412,132 +416,134 @@
                 </div>
             </div>
         `).join('');
-    }
-
-    // Función para búsqueda desde el navbar
-    async function buscarProductos() {
-        const searchTerm = document.getElementById('searchInput').value.trim();
-        
-        if (!searchTerm) {
-            cargarZapatillasDeportivasMujeres();
-            return;
         }
-        
-        try {
-            console.log('Buscando:', searchTerm);
-            const response = await fetch(`/api/productos/buscar?nombre=${encodeURIComponent(searchTerm)}&categoria=mujeres`);
-            const productos = await response.json();
-            
+
+        // Función para búsqueda desde el navbar
+        async function buscarProductos() {
+            const searchTerm = document.getElementById('searchInput').value.trim();
+
+            if (!searchTerm) {
+                cargarZapatillasDeportivasMujeres();
+                return;
+            }
+
+            try {
+                console.log('Buscando:', searchTerm);
+                const response = await fetch(`/api/productos/buscar?nombre=${encodeURIComponent(searchTerm)}&categoria=mujeres`);
+                const productos = await response.json();
+
+                productosFiltrados = productos;
+                mostrarProductos(productos);
+                actualizarContadorProductos(productos.length);
+
+            } catch (error) {
+                console.error('Error en búsqueda:', error);
+            }
+        }
+
+        // Configurar eventos de filtros
+        function configurarFiltros() {
+            const precioRange = document.querySelector('.price-range');
+            const precioMin = document.querySelector('.price-inputs input[placeholder="Mín"]');
+            const precioMax = document.querySelector('.price-inputs input[placeholder="Máx"]');
+
+            if (precioRange && precioMin && precioMax) {
+                precioRange.addEventListener('input', function () {
+                    precioMax.value = this.value;
+                    aplicarFiltros();
+                });
+
+                precioMin.addEventListener('change', aplicarFiltros);
+                precioMax.addEventListener('change', aplicarFiltros);
+            }
+
+            const tallas = document.querySelectorAll('.size-option');
+            tallas.forEach(talla => {
+                talla.addEventListener('click', function () {
+                    this.classList.toggle('selected');
+                    aplicarFiltros();
+                });
+            });
+
+            const colores = document.querySelectorAll('.color-option');
+            colores.forEach(color => {
+                color.addEventListener('click', function () {
+                    this.classList.toggle('selected');
+                    aplicarFiltros();
+                });
+            });
+
+            const marcas = document.querySelectorAll('.brand-option input[type="checkbox"]');
+            marcas.forEach(marca => {
+                marca.addEventListener('change', aplicarFiltros);
+            });
+
+            const btnAplicar = document.querySelector('.btn-add-cart[style*="width: 100%"]');
+            if (btnAplicar) {
+                btnAplicar.addEventListener('click', aplicarFiltros);
+            }
+        }
+
+        // Función para aplicar todos los filtros
+        function aplicarFiltros() {
+            let productos = [...todosLosProductos];
+
+            const precioMin = document.querySelector('.price-inputs input[placeholder="Mín"]')?.value || 0;
+            const precioMax = document.querySelector('.price-inputs input[placeholder="Máx"]')?.value || 9999;
+
+            productos = productos.filter(producto => {
+                const precio = producto.precioVenta || producto.precio || 0;
+                return precio >= parseInt(precioMin) && precio <= parseInt(precioMax);
+            });
+
+            const marcasSeleccionadas = Array.from(document.querySelectorAll('.brand-option input[type="checkbox"]:checked'))
+                .map(cb => cb.parentElement.textContent.trim().toLowerCase());
+
+            if (marcasSeleccionadas.length > 0) {
+                productos = productos.filter(producto =>
+                    producto.marca && marcasSeleccionadas.includes(producto.marca.toLowerCase())
+                );
+            }
+
             productosFiltrados = productos;
             mostrarProductos(productos);
             actualizarContadorProductos(productos.length);
-            
-        } catch (error) {
-            console.error('Error en búsqueda:', error);
         }
-    }
 
-    // Configurar eventos de filtros
-    function configurarFiltros() {
-        const precioRange = document.querySelector('.price-range');
-        const precioMin = document.querySelector('.price-inputs input[placeholder="Mín"]');
-        const precioMax = document.querySelector('.price-inputs input[placeholder="Máx"]');
-        
-        if (precioRange && precioMin && precioMax) {
-            precioRange.addEventListener('input', function() {
-                precioMax.value = this.value;
-                aplicarFiltros();
-            });
-            
-            precioMin.addEventListener('change', aplicarFiltros);
-            precioMax.addEventListener('change', aplicarFiltros);
+        // Actualizar contador de productos
+        function actualizarContadorProductos(cantidad) {
+            const contador = document.querySelector('.products-count');
+            if (contador) {
+                contador.textContent = `${cantidad} producto${cantidad !== 1 ? 's' : ''}`;
+            }
         }
-        
-        const tallas = document.querySelectorAll('.size-option');
-        tallas.forEach(talla => {
-            talla.addEventListener('click', function() {
-                this.classList.toggle('selected');
-                aplicarFiltros();
-            });
+
+        // Funciones auxiliares
+        function vistaRapida(productoId) {
+            alert(`Vista rápida del producto ${productoId}`);
+        }
+
+        function agregarAlCarrito(productoId) {
+            alert(`Producto ${productoId} agregado al carrito`);
+        }
+
+        function agregarFavoritos(productoId) {
+            alert(`Producto ${productoId} agregado a favoritos`);
+        }
+
+        // Permitir búsqueda con Enter
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        buscarProductos();
+                    }
+                });
+            }
         });
-        
-        const colores = document.querySelectorAll('.color-option');
-        colores.forEach(color => {
-            color.addEventListener('click', function() {
-                this.classList.toggle('selected');
-                aplicarFiltros();
-            });
-        });
-        
-        const marcas = document.querySelectorAll('.brand-option input[type="checkbox"]');
-        marcas.forEach(marca => {
-            marca.addEventListener('change', aplicarFiltros);
-        });
-        
-        const btnAplicar = document.querySelector('.btn-add-cart[style*="width: 100%"]');
-        if (btnAplicar) {
-            btnAplicar.addEventListener('click', aplicarFiltros);
-        }
-    }
-
-    // Función para aplicar todos los filtros
-    function aplicarFiltros() {
-        let productos = [...todosLosProductos];
-        
-        const precioMin = document.querySelector('.price-inputs input[placeholder="Mín"]')?.value || 0;
-        const precioMax = document.querySelector('.price-inputs input[placeholder="Máx"]')?.value || 9999;
-        
-        productos = productos.filter(producto => {
-            const precio = producto.precioVenta || producto.precio || 0;
-            return precio >= parseInt(precioMin) && precio <= parseInt(precioMax);
-        });
-        
-        const marcasSeleccionadas = Array.from(document.querySelectorAll('.brand-option input[type="checkbox"]:checked'))
-            .map(cb => cb.parentElement.textContent.trim().toLowerCase());
-        
-        if (marcasSeleccionadas.length > 0) {
-            productos = productos.filter(producto => 
-                producto.marca && marcasSeleccionadas.includes(producto.marca.toLowerCase())
-            );
-        }
-        
-        productosFiltrados = productos;
-        mostrarProductos(productos);
-        actualizarContadorProductos(productos.length);
-    }
-
-    // Actualizar contador de productos
-    function actualizarContadorProductos(cantidad) {
-        const contador = document.querySelector('.products-count');
-        if (contador) {
-            contador.textContent = `${cantidad} producto${cantidad !== 1 ? 's' : ''}`;
-        }
-    }
-
-    // Funciones auxiliares
-    function vistaRapida(productoId) {
-        alert(`Vista rápida del producto ${productoId}`);
-    }
-
-    function agregarAlCarrito(productoId) {
-        alert(`Producto ${productoId} agregado al carrito`);
-    }
-
-    function agregarFavoritos(productoId) {
-        alert(`Producto ${productoId} agregado a favoritos`);
-    }
-
-    // Permitir búsqueda con Enter
-    document.addEventListener('DOMContentLoaded', function() {
-        const searchInput = document.getElementById('searchInput');
-        if (searchInput) {
-            searchInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    buscarProductos();
-                }
-            });
-        }
-    });
     </script>
+    <script src="../js/user-nav.js"></script>
 </body>
+
 </html>
