@@ -14,9 +14,11 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class DetalleTallaDTO {
 
+    private Long idDetalleTalla;
     private String talla;
     private Integer cantidad;
     private Integer cantidadRecibida;
+    private Integer cantidadPendiente;
     private BigDecimal costoUnitario;
     private BigDecimal subtotal;
 
@@ -27,6 +29,7 @@ public class DetalleTallaDTO {
         this.talla = talla;
         this.cantidad = cantidad;
         this.cantidadRecibida = 0;
+        this.cantidadPendiente = cantidad != null ? cantidad : 0;
         this.costoUnitario = costoUnitario;
         this.subtotal = costoUnitario.multiply(new BigDecimal(cantidad));
     }

@@ -44,6 +44,18 @@
     const detalleCompraIgvEstado = document.getElementById('detalleCompraIgvEstado');
     const detalleProductosTableBody = document.getElementById('detalleProductosTableBody');
 
+    const recepcionModal = document.getElementById('recepcionModal');
+    const closeRecepcionModalBtn = document.getElementById('closeRecepcionModal');
+    const cancelRecepcionBtn = document.getElementById('cancelRecepcionBtn');
+    const confirmRecepcionBtn = document.getElementById('confirmRecepcionBtn');
+    const recepcionTableBody = document.getElementById('recepcionTableBody');
+    const recepcionSinPendientes = document.getElementById('recepcionSinPendientes');
+    const recepcionModoRadios = document.querySelectorAll('input[name="recepcionModo"]');
+    const recepcionCompraId = document.getElementById('recepcionCompraId');
+    const recepcionProveedor = document.getElementById('recepcionProveedor');
+    const recepcionEstado = document.getElementById('recepcionEstado');
+    const recepcionPendienteTotal = document.getElementById('recepcionPendienteTotal');
+
     // Variables globales
     let proveedoresData = [];
     let productosDelProveedor = [];
@@ -51,6 +63,10 @@
     let productosTallasCache = {}; // Cache para tallas de productos
     let proveedorDropdownItems = [];
     let proveedorHighlightedIndex = -1;
+    let compraSeleccionadaDetalle = null;
+    let recepcionDetalleActual = [];
+    let recepcionModoActual = 'parcial';
+    const unidadesFormatter = new Intl.NumberFormat('es-PE');
 
     // --- Funciones de API ---
 
@@ -218,6 +234,11 @@
             console.error('Error:', error);
             throw error;
         }
+    }
+
+    function toNumber(value) {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : 0;
     }
 
     // --- Componentes de búsqueda ---
@@ -459,6 +480,8 @@
             const fechaPedido = new Date(compra.fechaPedido).toLocaleDateString('es-PE');
             const fechaEntrega = compra.fechaEntregaEsperada ?
                 new Date(compra.fechaEntregaEsperada).toLocaleDateString('es-PE') : '-';
+            const puedeRecepcionar = compra.estadoPedido === 'Pendiente' || compra.estadoPedido === 'Parcial';
+            const puedeAnular = compra.estadoPedido === 'Pendiente';
 
             row.innerHTML = `
                 <td><input type="checkbox"></td>
@@ -473,10 +496,12 @@
                     <button class="btn btn-sm btn-info" onclick="window.comprasModule.verDetalle(${compra.idPedidoCompra})" title="Ver detalles">
                         <i class="fas fa-eye"></i>
                     </button>
-                    ${compra.estadoPedido === 'Pendiente' ? `
-                        <button class="btn btn-sm btn-success" onclick="window.comprasModule.completarCompra(${compra.idPedidoCompra})" title="Completar">
-                            <i class="fas fa-check"></i>
+                    ${puedeRecepcionar ? `
+                        <button class="btn btn-sm btn-success" onclick="window.comprasModule.recepcionarCompra(${compra.idPedidoCompra})" title="Registrar recepción">
+                            <i class="fas fa-truck-loading"></i>
                         </button>
+                    ` : ''}
+                    ${puedeAnular ? `
                         <button class="btn btn-sm btn-danger" onclick="window.comprasModule.anular(${compra.idPedidoCompra})" title="Anular">
                             <i class="fas fa-times"></i>
                         </button>
@@ -491,10 +516,309 @@
     function getEstadoBadge(estado) {
         const badges = {
             'Pendiente': { class: 'bg-warning' },
+            'Parcial': { class: 'bg-info' },
             'Completado': { class: 'bg-success' },
             'Cancelado': { class: 'bg-danger' }
         };
         return badges[estado] || { class: 'bg-secondary' };
+    }
+
+    // --- Recepción de Compras ---
+
+    function calcularPendienteTotal(detalles) {
+        if (!Array.isArray(detalles)) {
+            return 0;
+        }
+        return detalles.reduce((total, detalle) => {
+            if (detalle?.tieneTallas && Array.isArray(detalle.tallas) && detalle.tallas.length > 0) {
+                const subtotal = detalle.tallas.reduce((acc, talla) => acc + toNumber(talla.cantidadPendiente), 0);
+                return total + subtotal;
+            }
+            return total + toNumber(detalle?.cantidadPendiente);
+        }, 0);
+    }
+
+    function actualizarResumenRecepcion(compra) {
+        recepcionCompraId.textContent = compra.idPedidoCompra || '-';
+        recepcionProveedor.textContent = compra.nombreProveedor || '-';
+        recepcionEstado.textContent = compra.estadoPedido || '-';
+        const pendienteTotal = calcularPendienteTotal(compra.detalles);
+        recepcionPendienteTotal.textContent = `${unidadesFormatter.format(pendienteTotal)} unidades`;
+    }
+
+    function renderRecepcionTabla(detalles) {
+        recepcionTableBody.innerHTML = '';
+
+        if (!Array.isArray(detalles) || detalles.length === 0) {
+            recepcionSinPendientes.hidden = false;
+            confirmRecepcionBtn.disabled = true;
+            recepcionModoRadios.forEach(radio => {
+                radio.disabled = true;
+            });
+            return;
+        }
+
+        let hayPendientes = false;
+
+        detalles.forEach(detalle => {
+            const tieneTallas = Boolean(detalle?.tieneTallas);
+            const tallas = Array.isArray(detalle?.tallas) ? detalle.tallas : [];
+            const pendienteDetalle = tieneTallas
+                ? tallas.reduce((acc, talla) => acc + toNumber(talla.cantidadPendiente), 0)
+                : toNumber(detalle?.cantidadPendiente);
+
+            const row = document.createElement('tr');
+            row.className = 'detalle-row';
+            row.dataset.detalleId = detalle.idDetallePedido;
+            row.dataset.tieneTallas = tieneTallas ? 'true' : 'false';
+
+            const pendienteTexto = pendienteDetalle === 0
+                ? '<span class="recepcion-pendiente-cero">0</span>'
+                : unidadesFormatter.format(pendienteDetalle);
+
+            const inputHtml = tieneTallas
+                ? '-'
+                : `<input type="number" class="recepcion-detalle-input" min="0" max="${pendienteDetalle}" data-max="${pendienteDetalle}" value="0" ${pendienteDetalle === 0 ? 'disabled' : ''}>`;
+
+            row.innerHTML = `
+                <td>
+                    <div><strong>${detalle?.nombreProducto || 'Producto'}</strong></div>
+                    ${tieneTallas ? '<div class="text-muted">Gestiona por tallas</div>' : ''}
+                </td>
+                <td>${unidadesFormatter.format(toNumber(detalle?.cantidad))}</td>
+                <td>${unidadesFormatter.format(toNumber(detalle?.cantidadRecibida))}</td>
+                <td>${pendienteTexto}</td>
+                <td>${inputHtml}</td>
+            `;
+
+            recepcionTableBody.appendChild(row);
+
+            if (pendienteDetalle > 0) {
+                hayPendientes = true;
+            }
+
+            if (!tieneTallas) {
+                const input = row.querySelector('input[type="number"]');
+                if (input) {
+                    input.addEventListener('input', limitarEntradaCantidad);
+                    input.addEventListener('blur', limitarEntradaCantidad);
+                }
+                return;
+            }
+
+            tallas.forEach(talla => {
+                const pendienteTalla = toNumber(talla?.cantidadPendiente);
+                const tallaRow = document.createElement('tr');
+                tallaRow.className = 'talla-row';
+                tallaRow.dataset.detalleId = detalle.idDetallePedido;
+                tallaRow.dataset.tallaId = talla.idDetalleTalla;
+
+                const pendienteTallaTexto = pendienteTalla === 0
+                    ? '<span class="recepcion-pendiente-cero">0</span>'
+                    : unidadesFormatter.format(pendienteTalla);
+
+                tallaRow.innerHTML = `
+                    <td>Talla ${talla?.talla || '-'}</td>
+                    <td>${unidadesFormatter.format(toNumber(talla?.cantidad))}</td>
+                    <td>${unidadesFormatter.format(toNumber(talla?.cantidadRecibida))}</td>
+                    <td>${pendienteTallaTexto}</td>
+                    <td>
+                        <input type="number" class="recepcion-talla-input" min="0" max="${pendienteTalla}" data-max="${pendienteTalla}" value="0" ${pendienteTalla === 0 ? 'disabled' : ''}>
+                    </td>
+                `;
+
+                recepcionTableBody.appendChild(tallaRow);
+
+                if (pendienteTalla > 0) {
+                    hayPendientes = true;
+                }
+
+                const input = tallaRow.querySelector('input[type="number"]');
+                if (input) {
+                    input.addEventListener('input', limitarEntradaCantidad);
+                    input.addEventListener('blur', limitarEntradaCantidad);
+                }
+            });
+        });
+
+        recepcionSinPendientes.hidden = hayPendientes;
+        confirmRecepcionBtn.disabled = !hayPendientes;
+        recepcionModoRadios.forEach(radio => {
+            radio.disabled = !hayPendientes;
+        });
+
+        aplicarModoRecepcion(recepcionModoActual);
+    }
+
+    function aplicarModoRecepcion(modo) {
+        recepcionModoActual = modo;
+        const inputs = recepcionTableBody.querySelectorAll('input[type="number"]');
+        inputs.forEach(input => {
+            const max = toNumber(input.dataset.max || input.getAttribute('max'));
+            if (input.disabled) {
+                input.value = 0;
+                return;
+            }
+            if (modo === 'total') {
+                input.value = max;
+            } else {
+                input.value = 0;
+            }
+        });
+    }
+
+    function limitarEntradaCantidad(event) {
+        const input = event.target;
+        const max = toNumber(input.dataset.max || input.getAttribute('max'));
+        const min = toNumber(input.getAttribute('min'));
+        let valor = toNumber(input.value);
+        valor = Math.max(min, Math.min(max, valor));
+        input.value = valor;
+    }
+
+    function construirPayloadRecepcion() {
+        const payload = {
+            completarCompra: recepcionModoActual === 'total',
+            detalles: []
+        };
+
+        const detalleRows = recepcionTableBody.querySelectorAll('tr.detalle-row');
+        detalleRows.forEach(row => {
+            const idDetalle = Number(row.dataset.detalleId);
+            const tieneTallas = row.dataset.tieneTallas === 'true';
+
+            if (tieneTallas) {
+                const tallasRows = recepcionTableBody.querySelectorAll(`tr.talla-row[data-detalle-id="${idDetalle}"]`);
+                const tallasPayload = [];
+                let totalDetalle = 0;
+
+                tallasRows.forEach(tallaRow => {
+                    const input = tallaRow.querySelector('input[type="number"]');
+                    if (!input || input.disabled) {
+                        return;
+                    }
+                    const cantidad = toNumber(input.value);
+                    const max = toNumber(input.dataset.max || input.getAttribute('max'));
+                    const cantidadNormalizada = Math.max(0, Math.min(max, cantidad));
+                    if (cantidadNormalizada > 0) {
+                        tallasPayload.push({
+                            idDetalleTalla: Number(tallaRow.dataset.tallaId),
+                            cantidad: cantidadNormalizada
+                        });
+                        totalDetalle += cantidadNormalizada;
+                    }
+                });
+
+                if (tallasPayload.length > 0) {
+                    payload.detalles.push({
+                        idDetallePedido: idDetalle,
+                        cantidad: totalDetalle,
+                        tallas: tallasPayload
+                    });
+                }
+                return;
+            }
+
+            const input = row.querySelector('input[type="number"]');
+            if (!input || input.disabled) {
+                return;
+            }
+
+            const max = toNumber(input.dataset.max || input.getAttribute('max'));
+            const cantidad = Math.max(0, Math.min(max, toNumber(input.value)));
+
+            if (cantidad > 0) {
+                payload.detalles.push({
+                    idDetallePedido: idDetalle,
+                    cantidad
+                });
+            }
+        });
+
+        return payload;
+    }
+
+    async function abrirRecepcionModal(idCompra) {
+        try {
+            const compra = await obtenerDetalleCompra(idCompra);
+            compraSeleccionadaDetalle = compra;
+            recepcionDetalleActual = Array.isArray(compra.detalles) ? compra.detalles : [];
+            recepcionModoActual = 'parcial';
+
+            recepcionModoRadios.forEach(radio => {
+                radio.checked = radio.value === 'parcial';
+                radio.disabled = false;
+            });
+
+            actualizarResumenRecepcion(compra);
+            renderRecepcionTabla(recepcionDetalleActual);
+
+            recepcionModal.style.display = 'block';
+        } catch (error) {
+            console.error('Error:', error);
+            alert(error.message || 'Error al cargar la compra');
+        }
+    }
+
+    function cerrarRecepcionModal() {
+        recepcionModal.style.display = 'none';
+        recepcionTableBody.innerHTML = '';
+        recepcionSinPendientes.hidden = true;
+        confirmRecepcionBtn.disabled = false;
+        recepcionModoRadios.forEach(radio => {
+            radio.checked = radio.value === 'parcial';
+            radio.disabled = false;
+        });
+        compraSeleccionadaDetalle = null;
+        recepcionDetalleActual = [];
+        recepcionModoActual = 'parcial';
+    }
+
+    async function registrarRecepcion() {
+        if (!compraSeleccionadaDetalle) {
+            return;
+        }
+
+        const payload = construirPayloadRecepcion();
+
+        if (payload.detalles.length === 0) {
+            alert('Debe ingresar al menos una cantidad para registrar la recepción.');
+            return;
+        }
+
+        if (recepcionModoActual === 'total') {
+            const confirmar = confirm('Se registrará la recepción total de los pendientes. ¿Desea continuar?');
+            if (!confirmar) {
+                return;
+            }
+        }
+
+        try {
+            confirmRecepcionBtn.disabled = true;
+
+            const response = await fetch(`/compras/api/${compraSeleccionadaDetalle.idPedidoCompra}/recepciones`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                throw new Error(error.error || 'Error al registrar la recepción');
+            }
+
+            await response.json();
+            alert('Recepción registrada exitosamente');
+            cerrarRecepcionModal();
+            cargarCompras();
+        } catch (error) {
+            console.error('Error:', error);
+            alert(error.message || 'Error al registrar la recepción');
+        } finally {
+            confirmRecepcionBtn.disabled = false;
+        }
     }
 
     // --- Gestión de Productos en el Formulario ---
@@ -1334,6 +1658,17 @@
         detalleCompraModal.style.display = 'none';
     });
 
+    closeRecepcionModalBtn.addEventListener('click', cerrarRecepcionModal);
+    cancelRecepcionBtn.addEventListener('click', cerrarRecepcionModal);
+    confirmRecepcionBtn.addEventListener('click', registrarRecepcion);
+    recepcionModoRadios.forEach(radio => {
+        radio.addEventListener('change', (event) => {
+            if (event.target.checked) {
+                aplicarModoRecepcion(event.target.value);
+            }
+        });
+    });
+
     if (aplicaIgvToggle) {
         aplicaIgvToggle.addEventListener('change', calcularTotales);
     }
@@ -1376,19 +1711,7 @@
     window.comprasModule = {
         verDetalle: mostrarDetalleCompra,
 
-        completarCompra: async (idCompra) => {
-            if (!confirm('¿Está seguro de completar esta compra? Se actualizará el inventario automáticamente.')) {
-                return;
-            }
-
-            try {
-                await actualizarEstadoCompra(idCompra, 'Completado');
-                alert('Compra completada exitosamente. El inventario ha sido actualizado.');
-                cargarCompras();
-            } catch (error) {
-                alert(error.message || 'Error al completar la compra');
-            }
-        },
+        recepcionarCompra: abrirRecepcionModal,
 
         anular: async (idCompra) => {
             if (!confirm('¿Está seguro de anular esta compra?')) {
