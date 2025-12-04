@@ -549,7 +549,7 @@
     --success-color: #10b981;
     --success-light: #d1fae5;
     --danger-color: #ef4444;
-    --primary-color: #3b82f6;
+    --primary-color: #b30000;
     --border-radius-lg: 20px;
     --shadow-modern: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
         0 10px 10px -5px rgba(0, 0, 0, 0.04);
@@ -573,7 +573,7 @@
 
 /* Header del modal */
 .modal-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    background: linear-gradient(135deg, #b30000 0%, #800000 100%) !important;
     color: white !important;
     padding: 30px 30px 20px !important;
     border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0 !important;
@@ -610,7 +610,7 @@
 
 .modal-icon i {
     font-size: 32px;
-    color: #667eea;
+    color: #b30000;
 }
 
 .modal-icon.success i {
@@ -696,12 +696,12 @@
 }
 
 .modal-footer .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #b30000 0%, #800000 100%);
     color: white;
 }
 
 .modal-footer .btn-danger {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
     color: white;
 }
 
