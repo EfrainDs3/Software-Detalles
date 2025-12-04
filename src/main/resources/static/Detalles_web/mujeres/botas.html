@@ -290,7 +290,7 @@
             try {
                 console.log('Cargando botas para mujeres...');
                 // Primero intentar con filtros específicos, si no funciona cargar todos de mujeres
-                let response = await fetch('/api/productos/buscar?categoria=mujeres&tipo=botas');
+                let response = await fetch('/api/productos/calzados?sexo=MUJER&tipo=Botas');
                 if (!response.ok) {
                     throw new Error('Error en la respuesta de la API');
                 }
@@ -298,7 +298,7 @@
                 // Si no hay resultados, cargar todos los productos de mujeres
                 if (!productos || productos.length === 0) {
                     console.log('No se encontraron botas específicas, cargando todos los productos de mujeres...');
-                    response = await fetch('/api/productos/buscar?categoria=mujeres');
+                    response = await fetch('/api/productos/calzados?sexo=MUJER');
                     productos = await response.json();
                 }
                 console.log('Productos cargados:', productos);
@@ -373,7 +373,7 @@
             }
             try {
                 console.log('Buscando:', searchTerm);
-                const response = await fetch(`/api/productos/buscar?nombre=${encodeURIComponent(searchTerm)}&categoria=mujeres`);
+                const response = await fetch(`/api/productos/calzados?sexo=MUJER&tipo=Botas&nombre=${encodeURIComponent(searchTerm)}`);
                 const productos = await response.json();
                 productosFiltrados = productos;
                 mostrarProductos(productos);

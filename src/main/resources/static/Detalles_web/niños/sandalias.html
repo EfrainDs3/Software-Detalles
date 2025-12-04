@@ -323,7 +323,7 @@
                 console.log('Cargando sandalias para niños...');
                 
                 // Primero intentar con filtros específicos, si no funciona cargar todos los productos de niños
-                let response = await fetch('/api/productos/buscar?categoria=ninos&tipo=sandalias');
+                let response = await fetch('/api/productos/calzados?sexo=NIÑO&tipo=Sandalias');
                 
                 if (!response.ok) {
                     throw new Error('Error en la respuesta de la API');
@@ -334,7 +334,7 @@
                 // Si no hay resultados, cargar todos los productos de niños
                 if (!productos || productos.length === 0) {
                     console.log('No se encontraron sandalias específicas, cargando todos los productos de niños...');
-                    response = await fetch('/api/productos/buscar?categoria=ninos');
+                    response = await fetch('/api/productos/calzados?sexo=NIÑO');
                     productos = await response.json();
                 }
                 
@@ -408,7 +408,7 @@
             
             try {
                 console.log('Buscando:', searchTerm);
-                const response = await fetch(`/api/productos/buscar?nombre=${encodeURIComponent(searchTerm)}&categoria=ninos`);
+                const response = await fetch(`/api/productos/calzados?nombre=${encodeURIComponent(searchTerm)}&sexo=NIÑO&tipo=Sandalias`);
                 const productos = await response.json();
                 
                 productosFiltrados = productos;

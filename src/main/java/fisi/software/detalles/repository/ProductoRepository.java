@@ -39,7 +39,7 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
             "LEFT JOIN FETCH p.tiposProducto tp " +
             "LEFT JOIN FETCH p.tallas " +
             "WHERE p.categoria.id = :categoriaId AND (p.estado IS NULL OR p.estado = true) " +
-            "AND (:sexo IS NULL OR LOWER(p.tipo) = LOWER(:sexo) OR LOWER(p.tipo) LIKE CONCAT('%', LOWER(:sexo), '%')) " +
+            "AND (:sexo IS NULL OR LOWER(p.sexoTipo) = LOWER(:sexo) OR LOWER(p.sexoTipo) LIKE CONCAT('%', LOWER(:sexo), '%')) " +
             "AND (:tipoNombre IS NULL OR LOWER(tp.nombre) LIKE CONCAT('%', LOWER(:tipoNombre), '%')) " +
             "ORDER BY p.nombre")
     List<Producto> findByCategoriaIdWithDetallesAndFilters(@Param("categoriaId") Long categoriaId,
@@ -78,15 +78,15 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     List<Producto> findByModeloId(@Param("idModelo") Long idModelo);
 
     @Query("SELECT p FROM Producto p WHERE " +
-           "(:nombre IS NULL OR LOWER(p.nombre) LIKE LOWER(CONCAT('%', :nombre, '%'))) AND " +
-           "(:idCategoria IS NULL OR p.categoria.id = :idCategoria) AND " +
-           "(:tipo IS NULL OR p.tipo = :tipo) AND " +
-           "(:color IS NULL OR p.color = :color) AND " +
-           "(:idMaterial IS NULL OR p.material.id = :idMaterial) AND " +
-           "(:idModelo IS NULL OR p.modelo.id = :idModelo) AND " +
-           "(:minPrecio IS NULL OR p.precioVenta >= :minPrecio) AND " +
-           "(:maxPrecio IS NULL OR p.precioVenta <= :maxPrecio) AND " +
-           "(:estado IS NULL OR p.estado = :estado)")
+            "(:nombre IS NULL OR LOWER(p.nombre) LIKE LOWER(CONCAT('%', :nombre, '%'))) AND " +
+            "(:idCategoria IS NULL OR p.categoria.id = :idCategoria) AND " +
+            "(:tipo IS NULL OR p.sexoTipo = :tipo) AND " +
+            "(:color IS NULL OR p.color = :color) AND " +
+            "(:idMaterial IS NULL OR p.material.id = :idMaterial) AND " +
+            "(:idModelo IS NULL OR p.modelo.id = :idModelo) AND " +
+            "(:minPrecio IS NULL OR p.precioVenta >= :minPrecio) AND " +
+            "(:maxPrecio IS NULL OR p.precioVenta <= :maxPrecio) AND " +
+            "(:estado IS NULL OR p.estado = :estado)")
     List<Producto> searchProductos(
         @Param("nombre") String nombre,
         @Param("idCategoria") Long idCategoria,
@@ -102,8 +102,8 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     @Query("SELECT DISTINCT p.categoria.id FROM Producto p WHERE p.categoria.id IS NOT NULL AND p.estado = true")
     List<Long> findDistinctCategoriaIds();
 
-    @Query("SELECT DISTINCT p.tipo FROM Producto p WHERE p.tipo IS NOT NULL AND p.estado = true")
-    List<String> findDistinctTipos();
+        @Query("SELECT DISTINCT p.sexoTipo FROM Producto p WHERE p.sexoTipo IS NOT NULL AND p.estado = true")
+        List<String> findDistinctTipos();
 
     @Query("SELECT DISTINCT p.color FROM Producto p WHERE p.color IS NOT NULL AND p.estado = true")
     List<String> findDistinctColores();
