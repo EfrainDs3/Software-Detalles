@@ -7,8 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 // Importaciones del DTO
 import fisi.software.detalles.controller.dto.VentaRequestDTO;
 import fisi.software.detalles.controller.dto.DetalleVentaDTO;
-import fisi.software.detalles.controller.dto.VentaListDTO; // Asegúrate de que este DTO exista
-import fisi.software.detalles.controller.dto.DetalleVentaListDTO; // Asegúrate de que este DTO exista
+import fisi.software.detalles.controller.dto.VentaListDTO; // AsegÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âºrate de que este DTO exista
+import fisi.software.detalles.controller.dto.DetalleVentaListDTO; // AsegÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âºrate de que este DTO exista
 
 // Importaciones de Entidades
 import fisi.software.detalles.entity.ComprobantePago; 
@@ -18,7 +18,7 @@ import fisi.software.detalles.entity.Cliente;
 import fisi.software.detalles.entity.TipoComprobantePago;
 import fisi.software.detalles.entity.Producto;
 import fisi.software.detalles.entity.TipoDocumento; 
-import fisi.software.detalles.entity.AperturaCaja; // Nueva importación
+import fisi.software.detalles.entity.AperturaCaja; // Nueva importaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n
 
 // Importaciones de Repositorios
 import fisi.software.detalles.repository.VentaRepository; 
@@ -26,8 +26,8 @@ import fisi.software.detalles.repository.ClienteRepository;
 import fisi.software.detalles.repository.UsuarioRepository; 
 import fisi.software.detalles.repository.TipoComprobantePagoRepository;
 import fisi.software.detalles.repository.ProductoRepository;
-import fisi.software.detalles.repository.CajaRepository; // Nueva importación
-import fisi.software.detalles.repository.AperturaCajaRepository; // Nueva importación
+import fisi.software.detalles.repository.CajaRepository; // Nueva importaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n
+import fisi.software.detalles.repository.AperturaCajaRepository; // Nueva importaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n
 
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfPCell;
@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class VentaService {
-    // ⭐️ INYECCIÓN DE TODOS LOS REPOSITORIOS
+    // ÃƒÆ’Ã‚Â¢Ãƒâ€šÃ‚Â­Ãƒâ€šÃ‚ÂÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â INYECCIÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œN DE TODOS LOS REPOSITORIOS
     @Autowired 
     private VentaRepository ventaRepository; 
 
@@ -65,24 +65,22 @@ public class VentaService {
     private ClienteRepository clienteRepository; 
 
     @Autowired
-    private CajaRepository cajaRepository; // Nueva inyección
+    private CajaRepository cajaRepository; // Nueva inyecciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n
 
     @Autowired
-    private AperturaCajaRepository aperturaCajaRepository; // Nueva inyección
+    private AperturaCajaRepository aperturaCajaRepository; // Nueva inyecciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n
 
-    // --- Definición de Fuentes para PDF ---
+    // --- DefiniciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de Fuentes para PDF ---
     private static final Font FONT_TITULO = new Font(Font.FontFamily.HELVETICA, 16, Font.BOLD, BaseColor.RED);
     private static final Font FONT_NORMAL_BOLD = new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD);
     private static final Font FONT_NORMAL = new Font(Font.FontFamily.HELVETICA, 10, Font.NORMAL);
     private static final Font FONT_HEADER_TABLE = new Font(Font.FontFamily.HELVETICA, 10, Font.BOLD, BaseColor.WHITE);
 
-    // Constante para IGV (18% - Ajustar si es necesario)
-    private static final BigDecimal IGV_RATE = new BigDecimal("0.18");
-    private static final BigDecimal IGV_FACTOR = new BigDecimal("1.18");
+    // IGV eliminado - ya no se calcula impuesto
 
 
     // ======================================================================
-    // MÉTODO: ACTUALIZAR VENTA EXISTENTE
+    // MÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â°TODO: ACTUALIZAR VENTA EXISTENTE
     // ======================================================================
     public Map<String, Object> updateVenta(VentaRequestDTO ventaDTO) {
         if (ventaDTO.getId_comprobante() == null) {
@@ -90,7 +88,7 @@ public class VentaService {
         }
         Optional<ComprobantePago> ventaOpt = ventaRepository.findById(ventaDTO.getId_comprobante());
         if (ventaOpt.isEmpty()) {
-            throw new IllegalArgumentException("No se encontró la venta con ID: " + ventaDTO.getId_comprobante());
+            throw new IllegalArgumentException("No se encontrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³ la venta con ID: " + ventaDTO.getId_comprobante());
         }
         ComprobantePago venta = convertDtoToEntity(ventaDTO);
         venta.setIdComprobante(ventaDTO.getId_comprobante());
@@ -102,24 +100,24 @@ public class VentaService {
     }
 
     // ======================================================================
-    // MÉTODO 1: REGISTRAR NUEVA VENTA
+    // MÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â°TODO 1: REGISTRAR NUEVA VENTA
     // ======================================================================
 
-    // Método para verificar si la caja está abierta
+    // MÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©todo para verificar si la caja estÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ abierta
     private boolean isCajaAbierta() {
         return !cajaRepository.findByEstado("Abierta").isEmpty();
     }
 
     @Transactional
     public Map<String, Object> registrarNuevaVenta(VentaRequestDTO ventaDTO) {
-        // Verificar si la caja está abierta
+        // Verificar si la caja estÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ abierta
         if (!isCajaAbierta()) {
-            throw new IllegalStateException("No se pueden realizar ventas porque la caja está cerrada.");
+            throw new IllegalStateException("No se pueden realizar ventas porque la caja estÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡ cerrada.");
         }
 
         ComprobantePago nuevaVenta = convertDtoToEntity(ventaDTO);
         
-        // 💾 GUARDAR EN BASE DE DATOS
+        // ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢Ãƒâ€šÃ‚Â¾ GUARDAR EN BASE DE DATOS
         nuevaVenta = ventaRepository.save(nuevaVenta); 
         
         // Obtener el ID generado por la base de datos
@@ -135,7 +133,7 @@ public class VentaService {
     }
 
     // ======================================================================
-    // MÉTODO 3: LISTAR TODAS LAS VENTAS
+    // MÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â°TODO 3: LISTAR TODAS LAS VENTAS
     // ======================================================================
     @Transactional(readOnly = true)
     public List<VentaListDTO> listarTodasLasVentas() {
@@ -144,9 +142,9 @@ public class VentaService {
         List<VentaListDTO> lista = new ArrayList<>();
         
         for (ComprobantePago v : ventas) {
-            String nombreCliente = obtenerNombreCliente(v); // ✅ MÉTODO AUXILIAR
+            String nombreCliente = obtenerNombreCliente(v); // ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ MÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â°TODO AUXILIAR
             
-            String metodoPago = ""; // Ajusta si tienes relación con TipoPago
+            String metodoPago = ""; // Ajusta si tienes relaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n con TipoPago
             
             List<DetalleVentaListDTO> detalles = new ArrayList<>();
             for (DetalleComprobantePago d : v.getDetalles()) {
@@ -160,7 +158,7 @@ public class VentaService {
             
             lista.add(new VentaListDTO(
                 v.getIdComprobante(),
-                nombreCliente, // ✅ NOMBRE CORREGIDO
+                nombreCliente, // ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ NOMBRE CORREGIDO
                 v.getFechaEmision(),
                 metodoPago,
                 v.getEstado(),
@@ -171,7 +169,7 @@ public class VentaService {
         return lista;
     }
 
-    // ✅ NUEVO MÉTODO AUXILIAR PARA OBTENER NOMBRE DE CLIENTE
+    // ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ NUEVO MÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â°TODO AUXILIAR PARA OBTENER NOMBRE DE CLIENTE
     private String obtenerNombreCliente(ComprobantePago venta) {
         if (venta.getCliente() != null) {
             Cliente cliente = venta.getCliente();
@@ -187,17 +185,17 @@ public class VentaService {
             }
         }
         
-        return "Público General";
+        return "PÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âºblico General";
     }
 
     // ======================================================================
-    // MÉTODOS AUXILIARES (PRIVADOS) - Lógica de Conversión
+    // MÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â°TODOS AUXILIARES (PRIVADOS) - LÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³gica de ConversiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n
     // ======================================================================
 
     /**
-     * Convierte el DTO de Venta a la Entidad ComprobantePago,
-     * buscando las FKs y calculando subtotales.
-     */
+    ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â * Convierte el DTO de Venta a la Entidad ComprobantePago,
+    ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â * buscando las FKs y calculando subtotales.
+    ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â */
     private ComprobantePago convertDtoToEntity(VentaRequestDTO ventaDTO) {
         ComprobantePago venta = new ComprobantePago();
         
@@ -210,33 +208,33 @@ public class VentaService {
         BigDecimal total = ventaDTO.getMonto_total().setScale(2, RoundingMode.HALF_UP);
         venta.setTotal(total); 
     
-        // Calculamos IGV y Subtotal asumiendo que el DTO solo trae el total
-        BigDecimal subtotal = total.divide(IGV_FACTOR, 2, RoundingMode.HALF_UP);
-        BigDecimal igv = total.subtract(subtotal); 
+        // IGV eliminado - Subtotal es igual al total, IGV es cero
+        BigDecimal subtotal = total;
+        BigDecimal igv = BigDecimal.ZERO;
         
-        // Estos campos son NOT NULL, ahora se llenan con los valores calculados.
+        // Estos campos son NOT NULL, ahora se llenan sin IGV.
         venta.setSubtotal(subtotal);
         venta.setIgv(igv);
     
-        // Fecha de Emisión (LocalDate a LocalDateTime)
+        // Fecha de EmisiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n (LocalDate a LocalDateTime)
         venta.setFechaEmision(ventaDTO.getFecha_emision() != null 
             ? ventaDTO.getFecha_emision().atStartOfDay() 
             : LocalDateTime.now());
-        // Número de Comprobante (Placeholder)
+        // NÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âºmero de Comprobante (Placeholder)
     venta.setNumeroComprobante("B001-" + String.format("%08d", ventaRepository.count() + 1)); 
         
     // El estado ('Emitido') se inicializa en la Entidad, o se toma del DTO
     venta.setEstado(ventaDTO.getEstado_comprobante() != null ? ventaDTO.getEstado_comprobante() : "Emitido");
         
-    // --- 2. Asignación de Entidades Relacionadas (Claves Foráneas) ---
+    // --- 2. AsignaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de Entidades Relacionadas (Claves ForÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡neas) ---
         
-    // ⚠️ id_usuario (OBLIGATORIO - Se mantiene tu ID de prueba: 6)
+    // ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â id_usuario (OBLIGATORIO - Se mantiene tu ID de prueba: 6)
     Integer idUsuarioFijo = 6; 
     Usuario usuario = usuarioRepository.findById(idUsuarioFijo)
         .orElseThrow(() -> new RuntimeException("Error FK: Usuario que realiza la venta no encontrado con ID: " + idUsuarioFijo + ". Verifique tabla 'usuarios'."));
     venta.setUsuario(usuario);
         
-    // ⚠️ id_tipo_comprobante (OBLIGATORIO - Se busca primero en el DTO, si es nulo se fuerza 1)
+    // ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã‚Â¯Ãƒâ€šÃ‚Â¸Ãƒâ€šÃ‚Â id_tipo_comprobante (OBLIGATORIO - Se busca primero en el DTO, si es nulo se fuerza 1)
     Integer idTipoComprobante = ventaDTO.getId_tipo_comprobante() != null ? ventaDTO.getId_tipo_comprobante() : 1;
         
     // Se busca el tipo de comprobante usando el ID seguro
@@ -249,7 +247,7 @@ public class VentaService {
         Optional<Cliente> clienteOpt = clienteRepository.findById(ventaDTO.getId_cliente());
         clienteOpt.ifPresent(venta::setCliente);
     } else {
-        // Si la columna es NOT NULL y no lo especificas, usa el ID 1 (Cliente Genérico)
+        // Si la columna es NOT NULL y no lo especificas, usa el ID 1 (Cliente GenÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rico)
         Integer idClienteGenerico = 1;
         Optional<Cliente> clienteGenericoOpt = clienteRepository.findById(idClienteGenerico);
         clienteGenericoOpt.ifPresent(venta::setCliente);
@@ -263,7 +261,7 @@ public class VentaService {
         .orElseThrow(() -> new RuntimeException("Error FK: Apertura de caja no encontrada con ID: " + ventaDTO.getId_apertura() + ". Verifique tabla 'aperturascaja'."));
     venta.setApertura(aperturaCaja);
 
-    // --- 3. Mapear Detalles y establecer la relación ---
+    // --- 3. Mapear Detalles y establecer la relaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n ---
     if (ventaDTO.getDetalles() == null || ventaDTO.getDetalles().isEmpty()) {
         throw new IllegalArgumentException("La venta debe contener al menos un detalle de producto.");
     }
@@ -284,8 +282,8 @@ public class VentaService {
     } 
 
     /**
-     * Convierte el DetalleVentaDTO a la Entidad DetalleComprobantePago.
-     */
+    ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â * Convierte el DetalleVentaDTO a la Entidad DetalleComprobantePago.
+    ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â */
     private DetalleComprobantePago convertDetalleDtoToEntity(DetalleVentaDTO detalleDTO, ComprobantePago comprobante) {
         DetalleComprobantePago detalle = new DetalleComprobantePago();
 
@@ -294,9 +292,9 @@ public class VentaService {
         
         String nombreProducto = detalleDTO.getNombre_producto_temp();
 
-        // Verificación de NULO o VACÍO
+        // VerificaciÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n de NULO o VACÃƒÆ’Ã†â€™Ãƒâ€šÃ‚ÂO
         if (nombreProducto == null || nombreProducto.trim().isEmpty()) {
-            throw new IllegalArgumentException("El nombre_producto_temp en el detalle de la venta no puede ser nulo o vacío.");
+            throw new IllegalArgumentException("El nombre_producto_temp en el detalle de la venta no puede ser nulo o vacÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­o.");
         }
         
         // Buscar y asignar el producto por nombre.
@@ -310,7 +308,7 @@ public class VentaService {
         detalle.setCantidad(detalleDTO.getCantidad());
         detalle.setPrecioUnitario(detalleDTO.getPrecio_unitario());
 
-        // Subtotal de la línea = (Precio Unitario * Cantidad) - Descuento
+        // Subtotal de la lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­nea = (Precio Unitario * Cantidad) - Descuento
         BigDecimal subtotalLinea = detalleDTO.getPrecio_unitario()
             .multiply(new BigDecimal(detalleDTO.getCantidad()))
             .subtract(detalleDTO.getDescuento_aplicado() != null ? detalleDTO.getDescuento_aplicado() : BigDecimal.ZERO)
@@ -323,7 +321,7 @@ public class VentaService {
     }
 
     // ======================================================================
-    // MÉTODOS DE PDF
+    // MÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â°TODOS DE PDF
     // ======================================================================
 
     public byte[] generarComprobantePDF(Long idComprobante) throws DocumentException, IOException {
@@ -335,11 +333,11 @@ public class VentaService {
         ComprobantePago venta = ventaOptional.get();
         Map<String, Object> ventaMap = new HashMap<>();
         
-        // ✅ USAR EL MÉTODO AUXILIAR
+        // ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ USAR EL MÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â°TODO AUXILIAR
         String clienteNombre = obtenerNombreCliente(venta);
         
         ventaMap.put("tipoComprobante", venta.getTipoComprobante() != null ? venta.getTipoComprobante().getNombreTipo() : "");
-        ventaMap.put("cliente", clienteNombre); // ✅ NOMBRE CORREGIDO
+        ventaMap.put("cliente", clienteNombre); // ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ NOMBRE CORREGIDO
         ventaMap.put("fechaEmision", venta.getFechaEmision() != null ? venta.getFechaEmision().toString() : "");
         ventaMap.put("subtotal", venta.getSubtotal());
         ventaMap.put("igv", venta.getIgv());
@@ -389,7 +387,7 @@ public class VentaService {
         if ("Factura".equals(venta.get("tipoComprobante"))) {
             headerTable.addCell(new Paragraph("RUC:", FONT_NORMAL_BOLD));
             headerTable.addCell(new Paragraph((String) venta.get("ruc"), FONT_NORMAL));
-            headerTable.addCell(new Paragraph("Razón Social:", FONT_NORMAL_BOLD));
+            headerTable.addCell(new Paragraph("RazÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n Social:", FONT_NORMAL_BOLD));
             headerTable.addCell(new Paragraph((String) venta.get("razonSocial"), FONT_NORMAL));
         }   
         headerTable.addCell(new Paragraph("Cliente:", FONT_NORMAL_BOLD));
@@ -404,7 +402,7 @@ public class VentaService {
         table.setWidthPercentage(100);
         table.setSpacingBefore(10f);
         table.setWidths(new float[]{1.5f, 4f, 1.5f, 2f, 2f});
-        String[] headers = {"CÓDIGO", "DESCRIPCIÓN", "CANT.", "P. UNITARIO", "SUBTOTAL"};
+        String[] headers = {"CÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œDIGO", "DESCRIPCIÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œN", "CANT.", "P. UNITARIO", "SUBTOTAL"};
         for (String header : headers) {
             PdfPCell cell = new PdfPCell(new Phrase(header, FONT_HEADER_TABLE));
             cell.setBackgroundColor(BaseColor.DARK_GRAY);
@@ -453,7 +451,7 @@ public class VentaService {
         venta.put("tipoComprobante", tipoComprobante);
         venta.put("ruc", tipoComprobante.equals("Factura") ? "20545678901" : null);
         venta.put("razonSocial", tipoComprobante.equals("Factura") ? "DISTRIBUIDORA DETALLES SAC" : null);
-        venta.put("cliente", "Juan Pérez");
+        venta.put("cliente", "Juan PÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â©rez");
         venta.put("fechaEmision", LocalDateTime.now().toString());
         BigDecimal subtotal = new BigDecimal("420.00");
         BigDecimal igv = new BigDecimal("75.60"); 
@@ -463,7 +461,7 @@ public class VentaService {
         venta.put("total", total);
         List<Map<String, Object>> detalles = new ArrayList<>();
         detalles.add(Map.of("codigo", "P001", "descripcion", "Zapatillas", "cantidad", 1, "precioUnitario", new BigDecimal("250.00"), "subtotalLinea", new BigDecimal("250.00")));
-        detalles.add(Map.of("codigo", "P005", "descripcion", "Medias Compresión", "cantidad", 2, "precioUnitario", new BigDecimal("85.00"), "subtotalLinea", new BigDecimal("170.00")));
+        detalles.add(Map.of("codigo", "P005", "descripcion", "Medias CompresiÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â³n", "cantidad", 2, "precioUnitario", new BigDecimal("85.00"), "subtotalLinea", new BigDecimal("170.00")));
         venta.put("detalles", detalles);
         return venta;
     }
