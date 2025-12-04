@@ -313,19 +313,19 @@
             try {
                 console.log('Cargando zapatillas deportivas para hombres...');
                 
-                // Primero intentar con filtros específicos, si no funciona cargar todos de hombres
-                let response = await fetch('/api/productos/buscar?categoria=hombres&tipo=zapatillas-deportivas');
-                
+                // Primero intentar con filtros específicos por sexo + tipo
+                let response = await fetch('/api/productos/calzados?sexo=HOMBRE&tipo=Zapatillas%20Deportivas');
+
                 if (!response.ok) {
                     throw new Error('Error en la respuesta de la API');
                 }
-                
+
                 let productos = await response.json();
-                
-                // Si no hay resultados, cargar todos los productos de hombres
+
+                // Si no hay resultados, cargar todos los productos de hombres (por sexo)
                 if (!productos || productos.length === 0) {
                     console.log('No se encontraron zapatillas deportivas específicas, cargando todos los productos de hombres...');
-                    response = await fetch('/api/productos/buscar?categoria=hombres');
+                    response = await fetch('/api/productos/calzados?sexo=HOMBRE');
                     productos = await response.json();
                 }
                 
@@ -399,7 +399,7 @@
             
             try {
                 console.log('Buscando:', searchTerm);
-                const response = await fetch(`/api/productos/buscar?nombre=${encodeURIComponent(searchTerm)}&categoria=hombres`);
+                const response = await fetch(`/api/productos/calzados?sexo=HOMBRE&tipo=Zapatillas%20Deportivas&nombre=${encodeURIComponent(searchTerm)}`);
                 const productos = await response.json();
                 
                 productosFiltrados = productos;

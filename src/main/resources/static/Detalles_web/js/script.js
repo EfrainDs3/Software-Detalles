@@ -4,6 +4,82 @@
 
 document.addEventListener('DOMContentLoaded', function () {
 
+    // --- ADAPTADOR DE API PARA VISTA CLIENTE (calzados) ---
+    // Intercepta llamadas a `/api/productos/buscar?categoria=...` y las redirige
+    // a los endpoints nuevos `/api/productos/calzados?sexo=...&tipo=...`
+    (function installProductosApiAdapter(){
+        const originalFetch = window.fetch.bind(window);
+
+        const sexoMap = {
+            'mujeres': 'MUJER',
+            'mujer': 'MUJER',
+            'hombres': 'HOMBRE',
+            'hombre': 'HOMBRE',
+            'ninos': 'NIÑO',
+            'niños': 'NIÑO',
+            'nino': 'NIÑO',
+            'niño': 'NIÑO'
+        };
+
+        const tipoSlugToName = {
+            'zapatillas-deportivas': 'Zapatillas Deportivas',
+            'zapatos-casuales': 'Zapatos Casuales',
+            'tacones': 'Tacones',
+            'sandalias': 'Sandalias',
+            'botas': 'Botas',
+            'zapatos-formales': 'Zapatos Formales',
+            'zapatos-escolares': 'Zapatos Escolares',
+            'pantuflas': 'Pantuflas'
+        };
+
+        window.fetch = async function(input, init){
+            try {
+                const url = typeof input === 'string' ? input : (input && input.url) || '';
+                if (!url || !url.startsWith('/api/productos/buscar')){
+                    return originalFetch(input, init);
+                }
+
+                const u = new URL(url, window.location.origin);
+                const params = new URLSearchParams(u.search);
+                const categoria = params.get('categoria');
+                const tipo = params.get('tipo');
+                const nombre = params.get('nombre');
+
+                if (categoria){
+                    const sexo = sexoMap[categoria.toLowerCase()];
+                    if (!sexo){
+                        return originalFetch(input, init);
+                    }
+                    if (tipo){
+                        const tipoName = tipoSlugToName[tipo.toLowerCase()];
+                        if (!tipoName){
+                            return originalFetch(input, init);
+                        }
+                        const newUrl = `/api/productos/calzados?sexo=${sexo}&tipo=${encodeURIComponent(tipoName)}`;
+                        return originalFetch(newUrl, init);
+                    }
+                    if (nombre){
+                        // buscar por nombre y filtrar por sexo en el cliente
+                        const nameUrl = `/api/productos/buscar?nombre=${encodeURIComponent(nombre)}`;
+                        const resp = await originalFetch(nameUrl, init);
+                        if (!resp.ok) return resp;
+                        const data = await resp.json();
+                        const filtered = Array.isArray(data) ? data.filter(p => (p.tipo || '').toString().toUpperCase() === sexo) : data;
+                        const body = JSON.stringify(filtered);
+                        return new Response(body, { status: 200, headers: { 'Content-Type': 'application/json' } });
+                    }
+                    // solo categoria -> listar por sexo
+                    const newUrl = `/api/productos/calzados?sexo=${sexo}`;
+                    return originalFetch(newUrl, init);
+                }
+
+                return originalFetch(input, init);
+            } catch (e) {
+                return originalFetch(input, init);
+            }
+        };
+    })();
+
     // --- LÓGICA DEL MENÚ DE NAVEGACIÓN ---
     const hamburger = document.querySelector('.hamburger');
     const navMenu = document.querySelector('.nav-menu');

@@ -352,13 +352,26 @@
             try {
                 console.log('Cargando zapatillas deportivas para mujeres...');
 
-                const response = await fetch('/api/productos/buscar?categoria=mujeres&tipo=zapatillas-deportivas');
+                const response = await fetch('/api/productos/calzados?sexo=MUJER&tipo=Zapatillas%20Deportivas');
 
                 if (!response.ok) {
-                    throw new Error('Error en la respuesta de la API');
+                    const errText = await response.text().catch(() => '');
+                    throw new Error('API error: ' + response.status + (errText ? ' - ' + errText : ''));
                 }
 
-                const productos = await response.json();
+                let productos = await response.json();
+
+                // Si no hay resultados, cargar todos los productos de mujeres (por sexo)
+                if (!productos || productos.length === 0) {
+                    console.log('No se encontraron zapatillas deportivas específicas, cargando todos los productos de mujeres...');
+                    const resp2 = await fetch('/api/productos/calzados?sexo=MUJER');
+                    if (resp2.ok) {
+                        productos = await resp2.json();
+                    } else {
+                        const errText2 = await resp2.text().catch(() => '');
+                        throw new Error('Fallback API error: ' + resp2.status + (errText2 ? ' - ' + errText2 : ''));
+                    }
+                }
                 console.log('Productos cargados:', productos);
 
                 todosLosProductos = productos;
@@ -389,7 +402,7 @@
                 return;
             }
 
-            contenedor.innerHTML = productos.map(producto => `
+                contenedor.innerHTML = productos.map(producto => `
             <div class="product-card-detailed" data-product-id="${producto.id}">
                 <div class="product-image-detailed">
                     <img src="${producto.imagenUrl || '../../img/mujeres-calzados/calzado-default.jpg'}" 
@@ -399,8 +412,8 @@
                         <button class="quick-view" onclick="vistaRapida(${producto.id})">Vista Rápida</button>
                     </div>
                 </div>
-                <div class="product-info-detailed">
-                    <div class="product-brand">${producto.marca || 'MARCA'}</div>
+                    <div class="product-info-detailed">
+                    <div class="product-brand">${obtenerMarcaProducto(producto)}</div>
                     <h3 class="product-title-detailed">${producto.nombre}</h3>
                     <div class="product-price">
                         <span class="current-price">S/ ${producto.precioVenta || producto.precio || '0.00'}</span>
@@ -429,7 +442,7 @@
 
             try {
                 console.log('Buscando:', searchTerm);
-                const response = await fetch(`/api/productos/buscar?nombre=${encodeURIComponent(searchTerm)}&categoria=mujeres`);
+                const response = await fetch(`/api/productos/calzados?sexo=MUJER&tipo=Zapatillas%20Deportivas&nombre=${encodeURIComponent(searchTerm)}`);
                 const productos = await response.json();
 
                 productosFiltrados = productos;
@@ -438,6 +451,17 @@
 
             } catch (error) {
                 console.error('Error en búsqueda:', error);
+            }
+        }
+
+        // Extraer marca/primer token seguro del nombre del producto (evita [object Object])
+        function obtenerMarcaProducto(producto) {
+            try {
+                const nombre = (producto && (producto.nombre || producto.nombre_producto)) || '';
+                if (!nombre) return 'MARCA';
+                return String(nombre).split(' ')[0] || 'MARCA';
+            } catch (e) {
+                return 'MARCA';
             }
         }
 

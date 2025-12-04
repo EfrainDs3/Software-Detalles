@@ -16,6 +16,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
+import fisi.software.detalles.controller.dto.ProductoSearchRequest;
 import fisi.software.detalles.entity.Catalogo;
 import fisi.software.detalles.entity.Catalogo.Material;
 import fisi.software.detalles.entity.Catalogo.Modelo;
@@ -29,7 +30,6 @@ import fisi.software.detalles.repository.CatalogoRepository;
 import fisi.software.detalles.repository.CategoriaProductoRepository;
 import fisi.software.detalles.repository.ProductoRepository;
 import fisi.software.detalles.repository.ProveedorRepository;
-import fisi.software.detalles.controller.dto.ProductoSearchRequest;
 import fisi.software.detalles.service.storage.ProductoImageStorageService;
 
 @Service
@@ -135,7 +135,12 @@ public class ProductoService {
         producto.setDescripcion(normalizarTexto(request.descripcion()));
         producto.setCodigoBarra(normalizarTexto(request.codigoBarra()));
         producto.setColor(normalizarTexto(request.color()));
-        producto.setTipo(normalizarTexto(request.tipo()));
+        String sexoValor = normalizarTexto(request.tipo());
+        if (sexoValor != null) {
+            sexoValor = sexoValor.toUpperCase();
+        }
+        producto.setTipo(sexoValor);
+        producto.setSexoTipo(sexoValor);
         producto.setDimensiones(normalizarTexto(request.dimensiones()));
         producto.setPesoGramos(request.pesoGramos());
 
@@ -274,7 +279,7 @@ public class ProductoService {
                 producto.getPrecioVenta(),
                 producto.getCostoCompra(),
                 producto.getColor(),
-                producto.getTipo(),
+                (producto.getSexoTipo() != null ? producto.getSexoTipo() : producto.getTipo()),
                 producto.getDimensiones(),
                 producto.getPesoGramos(),
                 producto.getImagen(),

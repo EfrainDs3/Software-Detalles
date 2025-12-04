@@ -1,11 +1,5 @@
 package fisi.software.detalles.entity;
 
-import fisi.software.detalles.entity.Catalogo.Material;
-import fisi.software.detalles.entity.Catalogo.Modelo;
-import fisi.software.detalles.entity.Catalogo.Tipo;
-import fisi.software.detalles.entity.Catalogo.Unidad;
-import jakarta.persistence.*;
-
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.LinkedHashSet;
@@ -13,6 +7,24 @@ import java.util.Objects;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import fisi.software.detalles.entity.Catalogo.Material;
+import fisi.software.detalles.entity.Catalogo.Modelo;
+import fisi.software.detalles.entity.Catalogo.Tipo;
+import fisi.software.detalles.entity.Catalogo.Unidad;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 @Entity
 @Table(name = "productos")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "categoria", "proveedor", "modelo", "material", "unidad", "tiposProducto", "tallas"})
@@ -43,6 +55,9 @@ public class Producto implements Serializable {
 
     @Column(name = "tipo", length = 20)
     private String tipo;
+
+    @Column(name = "sexo_tipo", length = 10)
+    private String sexoTipo;
 
     @Column(name = "dimensiones", length = 50)
     private String dimensiones;
@@ -150,6 +165,14 @@ public class Producto implements Serializable {
 
     public void setTipo(String tipo) {
         this.tipo = tipo;
+    }
+
+    public String getSexoTipo() {
+        return sexoTipo;
+    }
+
+    public void setSexoTipo(String sexoTipo) {
+        this.sexoTipo = sexoTipo;
     }
 
     public String getDimensiones() {

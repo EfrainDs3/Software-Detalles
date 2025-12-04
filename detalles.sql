@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 26-11-2025 a las 18:51:32
+-- Tiempo de generación: 04-12-2025 a las 05:51:54
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -110,6 +110,13 @@ CREATE TABLE `carrito` (
   `fecha_creacion` datetime(6) DEFAULT NULL,
   `id_usuario` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `carrito`
+--
+
+INSERT INTO `carrito` (`id_carrito`, `fecha_creacion`, `id_usuario`) VALUES
+(1, '2025-11-28 21:31:05.000000', 18);
 
 -- --------------------------------------------------------
 
@@ -241,13 +248,6 @@ CREATE TABLE `detallescomprobantepago` (
   `subtotal_linea` decimal(10,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Volcado de datos para la tabla `detallescomprobantepago`
---
-
-INSERT INTO `detallescomprobantepago` (`id_detalle_comprobante`, `id_comprobante`, `id_producto`, `cantidad`, `precio_unitario`, `descuento_aplicado`, `subtotal_linea`) VALUES
-(1, 1, 12, 2, 200.00, 0.00, 400.00);
-
 -- --------------------------------------------------------
 
 --
@@ -264,16 +264,6 @@ CREATE TABLE `detallespedidocompra` (
   `cantidad_recibida` int(11) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Volcado de datos para la tabla `detallespedidocompra`
---
-
-INSERT INTO `detallespedidocompra` (`id_detalle_pedido`, `id_pedido_compra`, `id_producto`, `cantidad_pedida`, `costo_unitario`, `subtotal_linea`, `cantidad_recibida`) VALUES
-(2, 2, 1, 4, 205.00, 820.00, 0),
-(3, 2, 4, 2, 200.00, 400.00, 0),
-(4, 3, 1, 1, 205.00, 205.00, 1),
-(5, 3, 2, 3, 2000.00, 6000.00, 3);
-
 -- --------------------------------------------------------
 
 --
@@ -288,16 +278,6 @@ CREATE TABLE `detallespedidocompra_talla` (
   `cantidad_recibida` int(11) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Volcado de datos para la tabla `detallespedidocompra_talla`
---
-
-INSERT INTO `detallespedidocompra_talla` (`id_detalle_talla`, `id_detalle_pedido`, `talla`, `cantidad_pedida`, `cantidad_recibida`) VALUES
-(1, 2, '35', 4, 0),
-(2, 3, '12', 2, 0),
-(3, 4, '35', 1, 1),
-(4, 5, 'M', 3, 3);
-
 -- --------------------------------------------------------
 
 --
@@ -308,6 +288,19 @@ CREATE TABLE `etiquetas_producto_ia` (
   `id_etiqueta` int(11) NOT NULL,
   `id_producto` int(11) NOT NULL,
   `etiqueta` varchar(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `favoritos`
+--
+
+CREATE TABLE `favoritos` (
+  `id_favorito` int(11) NOT NULL,
+  `id_usuario` int(11) NOT NULL,
+  `id_producto` int(11) NOT NULL,
+  `fecha_agregado` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -340,21 +333,6 @@ CREATE TABLE `inventario` (
   `fecha_ultima_actualizacion` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Volcado de datos para la tabla `inventario`
---
-
-INSERT INTO `inventario` (`id_inventario`, `id_producto`, `id_almacen`, `cantidad_stock`, `stock_minimo`, `fecha_ultima_actualizacion`) VALUES
-(4, 1, 1, 6, 1, '2025-11-26 13:57:52'),
-(5, 2, 1, 3, 1, '2025-11-26 13:57:52'),
-(6, 5, 1, 3, 0, '2025-11-24 16:49:15'),
-(7, 9, 1, 0, 0, '2025-11-20 03:13:53'),
-(8, 10, 1, 4, 3, '2025-11-20 05:01:54'),
-(9, 4, 1, 0, 0, '2025-11-20 05:02:37'),
-(10, 12, 1, 0, 0, '2025-11-20 15:33:19'),
-(11, 6, 2, 5, 0, '2025-11-24 14:32:45'),
-(12, 11, 1, 0, 0, '2025-11-24 15:53:53');
-
 -- --------------------------------------------------------
 
 --
@@ -369,16 +347,6 @@ CREATE TABLE `inventario_talla` (
   `talla` varchar(64) DEFAULT NULL,
   `id_inventario` bigint(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Volcado de datos para la tabla `inventario_talla`
---
-
-INSERT INTO `inventario_talla` (`id_inventario_talla`, `cantidad_stock`, `fecha_ultima_actualizacion`, `stock_minimo`, `talla`, `id_inventario`) VALUES
-(1, 6, '2025-11-26 13:57:52.000000', 5, '35', 4),
-(2, 5, '2025-11-24 14:32:45.000000', 3, '42', 11),
-(3, 3, '2025-11-24 16:49:15.000000', 5, '12', 6),
-(4, 3, '2025-11-26 13:57:52.000000', 5, 'M', 5);
 
 -- --------------------------------------------------------
 
@@ -474,36 +442,6 @@ CREATE TABLE `movimientosinventario` (
   `talla` varchar(64) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Volcado de datos para la tabla `movimientosinventario`
---
-
-INSERT INTO `movimientosinventario` (`id_movimiento_inv`, `id_producto`, `id_almacen`, `id_tipo_movimiento`, `cantidad`, `fecha_movimiento`, `id_usuario`, `observaciones`, `referencia_doc`, `talla`) VALUES
-(1, 1, 1, 2, 1, '2025-10-30 06:00:12', 4, NULL, NULL, NULL),
-(2, 2, 1, 3, 2, '2025-10-30 06:28:14', 4, NULL, NULL, NULL),
-(3, 1, 1, 1, 1, '2025-10-30 06:36:34', 4, NULL, NULL, NULL),
-(4, 1, 1, 2, 1, '2025-10-30 06:40:20', 4, NULL, NULL, NULL),
-(5, 1, 1, 2, 1, '2025-10-30 06:42:02', 4, NULL, NULL, NULL),
-(6, 1, 1, 3, 1, '2025-11-17 22:17:17', 4, NULL, NULL, '35'),
-(7, 1, 1, 2, 1, '2025-11-17 22:17:37', 4, NULL, NULL, '35'),
-(8, 5, 1, 2, 1, '2025-11-19 13:09:36', 4, NULL, NULL, NULL),
-(9, 10, 1, 2, 5, '2025-11-20 03:32:14', 4, NULL, NULL, NULL),
-(10, 10, 1, 1, 6, '2025-11-20 04:27:48', 4, NULL, NULL, NULL),
-(11, 10, 1, 2, 1, '2025-11-20 04:36:25', 4, NULL, NULL, NULL),
-(12, 10, 1, 2, 1, '2025-11-20 05:01:29', 4, NULL, NULL, NULL),
-(13, 10, 1, 2, 1, '2025-11-20 05:01:44', 4, NULL, NULL, NULL),
-(14, 10, 1, 2, 1, '2025-11-20 05:01:54', 4, NULL, NULL, NULL),
-(15, 6, 2, 2, 1, '2025-11-20 15:59:53', 4, NULL, NULL, '42'),
-(16, 6, 2, 2, 4, '2025-11-20 16:00:23', 4, NULL, NULL, '42'),
-(17, 6, 2, 1, 4, '2025-11-24 14:32:21', 4, NULL, NULL, '42'),
-(18, 6, 2, 2, 4, '2025-11-24 14:32:45', 4, NULL, NULL, '42'),
-(19, 1, 1, 2, 3, '2025-11-24 16:47:29', 4, '', '', '35'),
-(20, 5, 1, 1, 5, '2025-11-24 16:48:15', 4, '', '', '12'),
-(21, 5, 1, 2, 10, '2025-11-24 16:48:52', 4, '', '', '12'),
-(22, 5, 1, 1, 7, '2025-11-24 16:49:15', 4, NULL, NULL, '12'),
-(23, 1, 1, 5, 1, '2025-11-26 13:57:52', 4, 'Entrada por compra - Talla 35 - Proveedor: Nike', 'COMPRA-3-TALLA-35', '35'),
-(24, 2, 1, 5, 3, '2025-11-26 13:57:52', 4, 'Entrada por compra - Talla M - Proveedor: Nike', 'COMPRA-3-TALLA-M', 'M');
-
 -- --------------------------------------------------------
 
 --
@@ -534,16 +472,17 @@ CREATE TABLE `pedidoscompra` (
   `referencia` varchar(100) DEFAULT NULL,
   `observaciones` text DEFAULT NULL,
   `estado_pedido` varchar(50) NOT NULL DEFAULT 'Pendiente',
-  `total_pedido` decimal(10,2) NOT NULL DEFAULT 0.00
+  `total_pedido` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `aplica_igv` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `pedidoscompra`
 --
 
-INSERT INTO `pedidoscompra` (`id_pedido_compra`, `id_proveedor`, `id_usuario`, `fecha_pedido`, `fecha_entrega_esperada`, `id_tipopago`, `referencia`, `observaciones`, `estado_pedido`, `total_pedido`) VALUES
-(2, 2, 4, '2025-11-25 21:07:11', NULL, NULL, NULL, NULL, 'Pendiente', 1220.00),
-(3, 2, 4, '2025-11-25 22:48:23', NULL, NULL, NULL, NULL, 'Completado', 6205.00);
+INSERT INTO `pedidoscompra` (`id_pedido_compra`, `id_proveedor`, `id_usuario`, `fecha_pedido`, `fecha_entrega_esperada`, `id_tipopago`, `referencia`, `observaciones`, `estado_pedido`, `total_pedido`, `aplica_igv`) VALUES
+(2, 2, 4, '2025-11-25 21:07:11', NULL, NULL, NULL, NULL, 'Pendiente', 1220.00, 1),
+(3, 2, 4, '2025-11-25 22:48:23', NULL, NULL, NULL, NULL, 'Completado', 6205.00, 1);
 
 -- --------------------------------------------------------
 
@@ -817,23 +756,9 @@ CREATE TABLE `productos` (
   `estado` bit(1) NOT NULL,
   `id_modelo` int(11) DEFAULT NULL,
   `id_material` int(11) DEFAULT NULL,
-  `imagen` varchar(255) DEFAULT NULL
+  `imagen` varchar(255) DEFAULT NULL,
+  `sexo_tipo` enum('HOMBRE','MUJER','NIÑO') DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Volcado de datos para la tabla `productos`
---
-
-INSERT INTO `productos` (`id_producto`, `nombre_producto`, `descripcion`, `precio_venta`, `costo_compra`, `codigo_barra`, `id_categoria`, `id_proveedor`, `id_unidad_medida`, `color`, `tipo`, `dimensiones`, `peso_gramos`, `estado`, `id_modelo`, `id_material`, `imagen`) VALUES
-(1, 'Zapatillas Deportivas Nike', 'ZapatillaNiker', 200.00, 205.00, NULL, 1, 2, 1, 'Blanco', 'Hombre', '30 x 20 x 12 cm', 1000, b'1', 2, 1, NULL),
-(2, 'Cinturón de Cuero', 'Cinturon de cuero', 200.00, 2000.00, NULL, 2, 2, 2, 'Blanco', 'Hombre', '120 x 4 x 0.5 cm', 11, b'1', 2, 1, NULL),
-(4, 'Zapatillas Deportivas Nike', 'Zapato123', 200.00, 200.00, NULL, 1, 2, 1, 'Blanco', 'Hombre', '30 x 20 x 12 cm', 2000, b'1', 3, 1, NULL),
-(5, 'Alexander123', NULL, 122.00, NULL, NULL, 2, 2, 2, 'Blanco', 'Hombre', '120 x 4 x 0.5 cm', 11, b'1', 3, 1, NULL),
-(6, 'Zapatilla Nike123', 'Zapatilla deportiva Nike', 250.00, 210.00, NULL, 1, 2, 1, 'Blanco y Rojo', 'Niños', '30x20', 1000, b'1', 3, 1, NULL),
-(9, 'Zapatillas1', NULL, 311.00, 313.00, NULL, 1, 2, 1, 'Blanco', 'Hombre', NULL, NULL, b'1', 4, 1, '/img/upload/productos/calzados/zapatillas1.jpg'),
-(10, 'Acc1', NULL, 200.00, 300.00, NULL, 2, 2, 1, 'Blanco', 'Hombre', '120 x 4 x 0.5 cm', 11, b'1', 2, 1, NULL),
-(11, 'Zapato1', NULL, 100.00, 200.00, NULL, 1, 2, 1, 'Negro', 'Hombre', NULL, NULL, b'1', 2, 1, '/img/upload/productos/calzados/zapato1.jpg'),
-(12, 'Zapatillas3', NULL, 200.00, 100.00, NULL, 1, 2, 1, 'Blanco', 'Hombre', NULL, NULL, b'1', 2, 1, NULL);
 
 -- --------------------------------------------------------
 
@@ -845,21 +770,6 @@ CREATE TABLE `producto_tipos` (
   `id_producto` int(11) NOT NULL,
   `id_tipo` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Volcado de datos para la tabla `producto_tipos`
---
-
-INSERT INTO `producto_tipos` (`id_producto`, `id_tipo`) VALUES
-(1, 1),
-(2, 1),
-(4, 1),
-(5, 1),
-(6, 1),
-(9, 1),
-(10, 1),
-(11, 1),
-(12, 1);
 
 -- --------------------------------------------------------
 
@@ -1066,21 +976,6 @@ CREATE TABLE `tallas` (
   `costo_compra` decimal(10,2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Volcado de datos para la tabla `tallas`
---
-
-INSERT INTO `tallas` (`id_producto`, `talla`, `precio_venta`, `costo_compra`) VALUES
-(1, '35', 200.00, 205.00),
-(2, 'M', 200.00, 2000.00),
-(4, '12', 200.00, 200.00),
-(5, '12', 122.00, NULL),
-(6, '42', 250.00, 210.00),
-(9, '31', 311.00, 313.00),
-(11, '20', 100.00, 200.00),
-(12, '30', 200.00, 100.00),
-(12, '31', 200.00, 100.00);
-
 -- --------------------------------------------------------
 
 --
@@ -1179,7 +1074,14 @@ CREATE TABLE `tiposproducto` (
 --
 
 INSERT INTO `tiposproducto` (`id_tipo`, `nombre_tipo`) VALUES
-(1, 'Deportivo');
+(5, 'Botas'),
+(8, 'Pantuflas'),
+(4, 'Sandalias'),
+(3, 'Tacones'),
+(1, 'Zapatillas Deportivas'),
+(2, 'Zapatos Casuales'),
+(7, 'Zapatos Escolares'),
+(6, 'Zapatos Formales');
 
 -- --------------------------------------------------------
 
@@ -1228,11 +1130,13 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id_usuario`, `nombres`, `apellidos`, `id_tipodocumento`, `numero_documento`, `celular`, `direccion`, `username`, `email`, `contraseña_hash`, `estado`, `fecha_creacion`, `fecha_ultima_sesion`) VALUES
-(4, 'Santiago Efrain', 'Torres Murrieta', 1, '75859114', '964983465', 'juan pablo de la cruz', 'EfrainDs3', 'santiagotorresmurrieta@gmail.com', '$2a$10$6587YGgYKDWyAywi61/cB.TFF.U6LrTWacPvzWaBZ9xoVsuGGy.4.', 1, '2025-10-08 15:17:29', '2025-11-26 13:57:34'),
+(4, 'Santiago Efrain', 'Torres Murrieta', 1, '75859114', '964983465', 'juan pablo de la cruz', 'EfrainDs3', 'santiagotorresmurrieta@gmail.com', '$2a$10$6587YGgYKDWyAywi61/cB.TFF.U6LrTWacPvzWaBZ9xoVsuGGy.4.', 1, '2025-10-08 15:17:29', '2025-12-04 03:14:20'),
 (5, 'Anggelo Lucciano', 'Urbina Espinoza', 1, '72863068', '903 171 836', 'juan pablo de la cruz', 'Ubuntu', 'anggelolucciano21@gmail.com', '$2a$10$VwIkH6380fJV0oPcQXNKiO1oU8zqQ1vKsc0uWSkm.vtCWoTPHzzMG', 1, '2025-10-08 15:46:19', '2025-11-25 01:38:39'),
 (6, 'Anlly Luz', 'Riva Yomona', 1, '72010812', '999888777', 'Calle Nueva 456', 'Anlly', 'al.rivayo@unsm.edu.pe', '$2a$10$E.7vIdGVqCYy5eoYIBjF/uYDym2.b6B6U6.TlT9uKd0tFUl4DMfJW', 1, '2025-10-08 15:57:57', '2025-11-26 17:42:14'),
 (12, 'Danny Alexander', 'Garcia Salas', 1, '98765432', '999888777', 'juan pablo de la cruz', 'Dingui', 'ia.jadrixgr26@gmail.com', '$2a$10$xKxtzv1ECV/74oi69b9hPubeUZgmSnrAUoxmjmSaz0NyeVOYE9BHW', 1, '2025-10-08 16:27:52', '2025-10-15 22:05:53'),
-(17, 'Alex', 'Pezo', 1, '73325101', '999999999', 'Jr. Trapoto', 'arxse', 'da.pezoin@unsm.edu.pe', '$2a$10$u6dftyj8BINK8/zY5GG.TO36M86byX5s8aWraTFHw4Zit3AiA2YSi', 1, '2025-10-15 22:08:21', '2025-10-15 22:12:18');
+(17, 'Alex', 'Pezo', 1, '73325101', '999999999', 'Jr. Trapoto', 'arxse', 'da.pezoin@unsm.edu.pe', '$2a$10$u6dftyj8BINK8/zY5GG.TO36M86byX5s8aWraTFHw4Zit3AiA2YSi', 1, '2025-10-15 22:08:21', '2025-10-15 22:12:18'),
+(18, 'Jose Santiago', 'Ponce Riveros', NULL, NULL, NULL, NULL, 'sant10', 'ponceriverosjosesantiago@gmail.com', '$2a$10$zoYYcxBzDIxuMt3JZZGgS.clUtW43gnYdx6gzrQzjzJSYmxzd3GK.', 1, '2025-11-27 08:14:29', '2025-11-29 13:17:39'),
+(20, 'Juan', 'Ponce Riveros', 1, '72129866', '918341898', NULL, 'san11', 'santi@gmail.com', '$2a$10$rAjmOHae2X3fxALc9iHdeeGEOtdbLQ1hPvr0db9MxX.srT5.4GjyK', 1, '2025-11-29 08:53:33', '2025-11-29 20:43:43');
 
 -- --------------------------------------------------------
 
@@ -1365,6 +1269,15 @@ ALTER TABLE `detallespedidocompra_talla`
 ALTER TABLE `etiquetas_producto_ia`
   ADD PRIMARY KEY (`id_etiqueta`),
   ADD UNIQUE KEY `id_producto` (`id_producto`,`etiqueta`);
+
+--
+-- Indices de la tabla `favoritos`
+--
+ALTER TABLE `favoritos`
+  ADD PRIMARY KEY (`id_favorito`),
+  ADD UNIQUE KEY `unique_user_product` (`id_usuario`,`id_producto`),
+  ADD KEY `fk_favoritos_usuario` (`id_usuario`),
+  ADD KEY `fk_favoritos_producto` (`id_producto`);
 
 --
 -- Indices de la tabla `historial_recomendaciones`
@@ -1609,7 +1522,7 @@ ALTER TABLE `cajas`
 -- AUTO_INCREMENT de la tabla `carrito`
 --
 ALTER TABLE `carrito`
-  MODIFY `id_carrito` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_carrito` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `carrito_detalle`
@@ -1645,25 +1558,31 @@ ALTER TABLE `comprobantespago`
 -- AUTO_INCREMENT de la tabla `detallescomprobantepago`
 --
 ALTER TABLE `detallescomprobantepago`
-  MODIFY `id_detalle_comprobante` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_detalle_comprobante` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `detallespedidocompra`
 --
 ALTER TABLE `detallespedidocompra`
-  MODIFY `id_detalle_pedido` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_detalle_pedido` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `detallespedidocompra_talla`
 --
 ALTER TABLE `detallespedidocompra_talla`
-  MODIFY `id_detalle_talla` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_detalle_talla` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `etiquetas_producto_ia`
 --
 ALTER TABLE `etiquetas_producto_ia`
   MODIFY `id_etiqueta` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `favoritos`
+--
+ALTER TABLE `favoritos`
+  MODIFY `id_favorito` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `historial_recomendaciones`
@@ -1675,13 +1594,13 @@ ALTER TABLE `historial_recomendaciones`
 -- AUTO_INCREMENT de la tabla `inventario`
 --
 ALTER TABLE `inventario`
-  MODIFY `id_inventario` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id_inventario` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `inventario_talla`
 --
 ALTER TABLE `inventario_talla`
-  MODIFY `id_inventario_talla` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_inventario_talla` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `marcasproducto`
@@ -1711,7 +1630,7 @@ ALTER TABLE `movimientoscaja`
 -- AUTO_INCREMENT de la tabla `movimientosinventario`
 --
 ALTER TABLE `movimientosinventario`
-  MODIFY `id_movimiento_inv` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id_movimiento_inv` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `pagoscomprobante`
@@ -1741,7 +1660,7 @@ ALTER TABLE `permisos_auditoria`
 -- AUTO_INCREMENT de la tabla `productos`
 --
 ALTER TABLE `productos`
-  MODIFY `id_producto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id_producto` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `proveedores`
@@ -1783,7 +1702,7 @@ ALTER TABLE `tipospago`
 -- AUTO_INCREMENT de la tabla `tiposproducto`
 --
 ALTER TABLE `tiposproducto`
-  MODIFY `id_tipo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_tipo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT de la tabla `unidadesmedida`
@@ -1795,7 +1714,7 @@ ALTER TABLE `unidadesmedida`
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- Restricciones para tablas volcadas
@@ -1874,6 +1793,13 @@ ALTER TABLE `detallespedidocompra_talla`
 --
 ALTER TABLE `etiquetas_producto_ia`
   ADD CONSTRAINT `etiquetas_producto_ia_ibfk_1` FOREIGN KEY (`id_producto`) REFERENCES `productos` (`id_producto`) ON DELETE CASCADE;
+
+--
+-- Filtros para la tabla `favoritos`
+--
+ALTER TABLE `favoritos`
+  ADD CONSTRAINT `fk_favoritos_producto` FOREIGN KEY (`id_producto`) REFERENCES `productos` (`id_producto`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_favoritos_usuario` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`) ON DELETE CASCADE;
 
 --
 -- Filtros para la tabla `historial_recomendaciones`
