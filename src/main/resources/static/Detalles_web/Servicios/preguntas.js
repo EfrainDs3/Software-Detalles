@@ -1,4 +1,4 @@
-/*(() => {
+(() => {
   const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
   const STORAGE_KEY_API = 'detalles_groq_api_key';
   const STORAGE_KEY_CONVERSATION = 'detalles_groq_conversation';
@@ -17,7 +17,7 @@
   const AI_RECOMMENDATIONS_URL = '/api/ai/recommendations';
   const MAX_RECOMMENDATIONS_FOR_PROMPT = 5;
   const MAX_HISTORY_SESSIONS = 25;
-  const EMBEDDED_API_KEY = '';
+  const SERVER_KEY_ENDPOINT = '/api/config/groq-key';
   const MASKED_VALUE = '••••••••••••••••';
   const SYSTEM_PROMPT = [
     'Eres el asistente virtual de selección de calzado de la marca Detalles y debes seguir este flujo sin utilizar respuestas de relleno ni "fallbacks":',
@@ -43,15 +43,17 @@
   let isProcessing = false;
   let currentModel = '';
   let adminModeEnabled = false;
-  const hasEmbeddedKey = EMBEDDED_API_KEY && EMBEDDED_API_KEY.startsWith('gsk_');
+  let hasServerKey = false;
 
-  document.addEventListener('DOMContentLoaded', init);
+  document.addEventListener('DOMContentLoaded', () => {
+    void init();
+  });
 
-  function init() {
+  async function init() {
     cacheElements();
     loadAdminModePreference();
     applyAdminMode(true);
-    loadApiKey();
+    await loadApiKey();
     loadModel();
     loadHistory();
     loadConversation();
@@ -108,7 +110,7 @@
     if (elements.apiHeader) {
       elements.apiHeader.addEventListener('click', toggleApiConfig);
     }
-    if (!hasEmbeddedKey && elements.saveApiKey && elements.clearApiKey) {
+    if (!hasServerKey && elements.saveApiKey && elements.clearApiKey) {
       elements.saveApiKey.addEventListener('click', saveApiKeyHandler);
       elements.clearApiKey.addEventListener('click', () => clearApiKey(true));
     }
@@ -166,10 +168,12 @@
     elements.apiChevron.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
   }
 
-  function loadApiKey() {
-    if (hasEmbeddedKey) {
-      apiKey = EMBEDDED_API_KEY;
-      configureEmbeddedKeyUIState();
+  async function loadApiKey() {
+    apiKey = await fetchServerApiKey();
+    hasServerKey = Boolean(apiKey);
+
+    if (hasServerKey) {
+      configureServerKeyUIState();
       return;
     }
 
@@ -216,7 +220,7 @@
     }
   }
 
-  function configureEmbeddedKeyUIState() {
+  function configureServerKeyUIState() {
     if (!elements.apiConfig) {
       return;
     }
@@ -226,7 +230,7 @@
       elements.apiKeyInput.disabled = true;
     }
     if (elements.saveApiKey) {
-      elements.saveApiKey.textContent = 'Definida en código';
+      elements.saveApiKey.textContent = 'Definida en servidor';
       elements.saveApiKey.disabled = true;
     }
     if (elements.clearApiKey) {
@@ -234,7 +238,32 @@
     }
     elements.apiConfig.classList.add('configured');
     if (elements.apiStatusText) {
-      elements.apiStatusText.textContent = 'API Key configurada desde el código (Groq)';
+      elements.apiStatusText.textContent = 'API Key configurada desde el servidor (Groq)';
+    }
+  }
+
+  async function fetchServerApiKey() {
+    try {
+      const response = await fetch(SERVER_KEY_ENDPOINT, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!response.ok || response.status === 204) {
+        return '';
+      }
+
+      const payload = await response.json();
+      const key = typeof payload?.apiKey === 'string' ? payload.apiKey.trim() : '';
+      if (key.startsWith('gsk_')) {
+        return key;
+      }
+      return '';
+    } catch (error) {
+      console.error('No se pudo obtener la API Key desde el servidor:', error);
+      return '';
     }
   }
 
@@ -346,8 +375,8 @@
   }
 
   function saveApiKeyHandler() {
-    if (hasEmbeddedKey) {
-      alert('La API Key está definida en el código. Edítala directamente en el archivo preguntas.js.');
+    if (hasServerKey) {
+      alert('La API Key está administrada por el servidor. Ajusta la configuración backend para modificarla.');
       return;
     }
 
@@ -384,15 +413,15 @@
     } catch (error) {
       console.error('No se pudo guardar la API Key en localStorage:', error);
     }
-    loadApiKey();
+    void loadApiKey();
     updateUIState();
     resetConversation(false, false);
     startConversation();
   }
 
   function clearApiKey(showConfirmation = true) {
-    if (hasEmbeddedKey) {
-      alert('La API Key está definida en el código. Edítala directamente en el archivo preguntas.js.');
+    if (hasServerKey) {
+      alert('La API Key está administrada por el servidor. Ajusta la configuración backend para modificarla.');
       return;
     }
 
@@ -406,7 +435,7 @@
     } catch (error) {
       console.error('No se pudo eliminar la API Key de localStorage:', error);
     }
-    loadApiKey();
+    void loadApiKey();
     updateUIState();
     resetConversation(false, false);
   }
@@ -420,8 +449,8 @@
     elements.sendBtn.disabled = !canSend;
 
     if (apiKey) {
-      const status = hasEmbeddedKey
-        ? '<span style="color:#10b981"><i class="fas fa-check-circle"></i> Asistente activo con API Key definida en código</span>'
+      const status = hasServerKey
+        ? '<span style="color:#10b981"><i class="fas fa-check-circle"></i> Asistente activo con API Key definida en servidor</span>'
         : '<span style="color:#10b981"><i class="fas fa-check-circle"></i> Asistente activo y listo</span>';
       elements.assistantStatus.innerHTML = status;
     } else {

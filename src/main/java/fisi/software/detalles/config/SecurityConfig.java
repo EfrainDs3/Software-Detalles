@@ -171,6 +171,7 @@ public class SecurityConfig {
 
                     // Endpoint público para el asistente IA
                     authorize.requestMatchers("/api/ai/**").permitAll();
+                    authorize.requestMatchers(HttpMethod.GET, "/api/config/groq-key").permitAll();
 
                     // TODA API ADMINISTRATIVA EXIGE LOGIN
                     authorize.requestMatchers("/api/**").authenticated();
