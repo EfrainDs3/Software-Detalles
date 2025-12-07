@@ -313,35 +313,35 @@
             configurarFiltros();
         });
 
-        // Función principal para cargar productos
+        // Función principal para cargar productos (usa endpoint de accesorios filtrado por sexo y tipo)
         async function cargarRelojesHombres() {
             try {
-                console.log('Cargando relojes para hombres...');
-                
-                // Primero intentar con filtros específicos, si no funciona cargar todos los accesorios de hombres
-                let response = await fetch('/api/productos/buscar?categoria=hombres&tipo=relojes');
-                
+                console.log('Cargando relojes para HOMBRE...');
+
+                // Intentar carga específica por sexo + tipo (nombres exactos del catálogo)
+                let response = await fetch('/api/productos/accesorios?sexo=HOMBRE&tipo=Relojes');
+
                 if (!response.ok) {
                     throw new Error('Error en la respuesta de la API');
                 }
-                
+
                 let productos = await response.json();
-                
-                // Si no hay resultados, cargar todos los accesorios de hombres
+
+                // Si no hay resultados, cargar todos los accesorios para HOMBRE
                 if (!productos || productos.length === 0) {
-                    console.log('No se encontraron relojes específicos, cargando todos los accesorios de hombres...');
-                    response = await fetch('/api/productos/buscar?categoria=hombres&tipo=accesorios');
+                    console.log('No se encontraron ``Relojes`` específicos, cargando todos los accesorios para HOMBRE...');
+                    response = await fetch('/api/productos/accesorios?sexo=HOMBRE');
                     productos = await response.json();
                 }
-                
+
                 console.log('Productos cargados:', productos);
-                
+
                 todosLosProductos = productos;
                 productosFiltrados = [...productos];
-                
+
                 mostrarProductos(productos);
                 actualizarContadorProductos(productos.length);
-                
+
             } catch (error) {
                 console.error('Error cargando productos:', error);
                 document.getElementById('productosContainer').innerHTML = 
@@ -352,7 +352,7 @@
         // Función para mostrar productos en la página
         function mostrarProductos(productos) {
             const contenedor = document.getElementById('productosContainer');
-            
+
             if (!productos || productos.length === 0) {
                 contenedor.innerHTML = `
                     <div class="no-products">
@@ -392,25 +392,25 @@
             return nombre.split(' ')[0] || 'MARCA';
         }
 
-        // Función para búsqueda desde el navbar
+        // Función para búsqueda desde el navbar (usa endpoint de accesorios filtrado por sexo/tipo)
         async function buscarProductos() {
             const searchTerm = document.getElementById('searchInput').value.trim();
-            
+
             if (!searchTerm) {
                 // Si no hay término de búsqueda, recargar productos originales
                 cargarRelojesHombres();
                 return;
             }
-            
+
             try {
                 console.log('Buscando:', searchTerm);
-                const response = await fetch(`/api/productos/buscar?nombre=${encodeURIComponent(searchTerm)}&categoria=hombres&tipo=accesorios`);
+                const response = await fetch(`/api/productos/accesorios?sexo=HOMBRE&tipo=Relojes&nombre=${encodeURIComponent(searchTerm)}`);
                 const productos = await response.json();
-                
+
                 productosFiltrados = productos;
                 mostrarProductos(productos);
                 actualizarContadorProductos(productos.length);
-                
+
             } catch (error) {
                 console.error('Error en búsqueda:', error);
             }
