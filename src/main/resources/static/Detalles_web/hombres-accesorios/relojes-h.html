@@ -156,7 +156,7 @@
                     </div>
                 </div>
 
-                <div class="filter-section">
+                <!-- <div class="filter-section">
                     <h3>Tamaño</h3>
                     <div class="size-filter">
                         <div class="size-option">38mm</div>
@@ -178,7 +178,7 @@
                         <div class="color-option" style="background: #8B4513;" title="Marrón"></div>
                         <div class="color-option" style="background: #B22222;" title="Rojo"></div>
                     </div>
-                </div>
+                </div> -->
 
              
 
@@ -294,6 +294,36 @@
             <span class="close-modal">&times;</span>
             <div class="modal-body">
                 <!-- Contenido del modal de vista rápida -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Detalles de Producto -->
+    <div id="modalProducto" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" id="cerrarModal">&times;</span>
+            <div class="modal-body">
+                <div class="modal-imagen">
+                    <img id="modalImg" src="../../img/mujeres-calzados/calzado-default.jpg" alt="Imagen del producto">
+                </div>
+                <div class="modal-info">
+                    <h2 id="modalNombre">Nombre del Producto</h2>
+                    <div class="modal-precio" id="modalPrecio">S/ 0.00</div>
+                    <div class="modal-descripcion" id="modalDescripcion">
+                        Descripción del producto.
+                    </div>
+                    
+                    <div class="modal-filtros">
+                        <div class="modal-colores" id="modalColores">
+                            <!-- Colores disponibles -->
+                        </div>
+                        <div class="modal-tallas" id="modalTallas">
+                            <!-- Tallas disponibles -->
+                        </div>
+                    </div>
+                    
+                    <button class="btn-add-cart" id="btnAgregarCarrito">Agregar al Carrito</button>
+                </div>
             </div>
         </div>
     </div>
@@ -560,6 +590,91 @@
                 });
             }
         });
+
+        // === MODAL DE DETALLES DE PRODUCTO ===
+        // Abre el modal y carga los datos del producto
+        async function abrirModalProducto(productoId) {
+          const modal = document.getElementById('modalProducto');
+          modal.classList.add('open');
+          document.getElementById('modalTallas').innerHTML = '';
+          document.getElementById('modalColores').innerHTML = '';
+          let tallaSeleccionada = null, colorSeleccionado = null;
+
+          // Fetch producto
+          const res = await fetch('/api/productos/' + productoId);
+          if (!res.ok) { alert('No se pudo cargar el producto'); return; }
+          const prod = await res.json();
+
+          document.getElementById('modalImg').src = prod.imagen || '../../img/mujeres-calzados/calzado-default.jpg';
+          document.getElementById('modalNombre').innerText = prod.nombre;
+          document.getElementById('modalPrecio').innerText = 'S/ ' + prod.precio;
+          document.getElementById('modalDescripcion').innerText = prod.descripcion;
+
+          // Tallas
+          prod.tallas.forEach(talla => {
+            const div = document.createElement('div');
+            div.className = 'cuadrado' + (talla.disponible === false ? ' disabled' : '');
+            div.innerText = talla.valor || talla;
+            if (talla.disponible === false) div.setAttribute('disabled', 'true');
+            div.onclick = function() {
+              if (div.classList.contains('disabled')) return;
+              document.querySelectorAll('#modalTallas .cuadrado').forEach(el => el.classList.remove('selected'));
+              div.classList.add('selected');
+              tallaSeleccionada = talla.valor || talla;
+            };
+            document.getElementById('modalTallas').appendChild(div);
+          });
+
+          // Colores
+          prod.colores.forEach(color => {
+            const div = document.createElement('div');
+            div.className = 'cuadrado';
+            div.innerText = color;
+            div.onclick = function() {
+              document.querySelectorAll('#modalColores .cuadrado').forEach(el => el.classList.remove('selected'));
+              div.classList.add('selected');
+              colorSeleccionado = color;
+            };
+            document.getElementById('modalColores').appendChild(div);
+          });
+
+          document.getElementById('btnAgregarCarrito').onclick = async function() {
+            if (!tallaSeleccionada) { alert('Selecciona una talla'); return; }
+            if (!colorSeleccionado) { alert('Selecciona un color'); return; }
+            const body = {
+              productoId: prod.id,
+              talla: tallaSeleccionada,
+              color: colorSeleccionado,
+              cantidad: 1
+            };
+            const resp = await fetch('/api/cart/add', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify(body)
+            });
+            if (resp.ok) {
+              alert('¡Producto agregado al carrito!');
+              cerrarModalProducto();
+            } else {
+              alert('No se pudo agregar al carrito');
+            }
+          };
+        }
+
+        function cerrarModalProducto() {
+          document.getElementById('modalProducto').classList.remove('open');
+        }
+        document.getElementById('cerrarModal').onclick = cerrarModalProducto;
+
+        // Vincula cada producto del catálogo
+        setTimeout(() => {
+          document.querySelectorAll('.product-card-detailed').forEach(card => {
+            card.onclick = function() {
+              const id = card.getAttribute('data-product-id');
+              if (id) abrirModalProducto(id);
+            };
+          });
+        }, 500);
     </script>
 </body>
 </html>

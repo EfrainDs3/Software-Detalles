@@ -156,7 +156,7 @@
                     </div>
                 </div>
 
-                <div class="filter-section">
+                <!-- <div class="filter-section">
                     <h3>Talla</h3>
                     <div class="size-filter">
                         <div class="size-option">20</div>
@@ -188,7 +188,7 @@
                         <div class="color-option" style="background: #1a237e;" title="Azul Marino"></div>
                         <div class="color-option" style="background: #424242;" title="Gris"></div>
                     </div>
-                </div>
+                </div> -->
 
                 <div class="filter-section">
                     <h3>Marca</h3>
@@ -292,11 +292,33 @@
         <div class="modal-content">
             <span class="close-modal">&times;</span>
             <div class="modal-body">
-                <!-- Contenido del modal de vista rápida -->
+                <div id="modal-loader" style="display:none;text-align:center;padding:2rem;">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                </div>
+                <div id="modal-product-detail" style="display:none;">
+                    <div class="modal-product-image">
+                        <img id="modal-product-img" src="" alt="Imagen del producto" style="max-width:200px;max-height:200px;object-fit:contain;">
+                    </div>
+                    <div class="modal-product-info">
+                        <h2 id="modal-product-name"></h2>
+                        <p id="modal-product-desc"></p>
+                        <div class="modal-product-price">
+                            <span id="modal-product-price"></span>
+                        </div>
+                        <div class="modal-product-tallas">
+                            <label>Talla:</label>
+                            <div id="modal-tallas-list" class="modal-tallas-list"></div>
+                        </div>
+                        <div class="modal-product-colores">
+                            <label>Color:</label>
+                            <div id="modal-colores-list" class="modal-colores-list"></div>
+                        </div>
+                        <button id="modal-add-cart-btn" class="btn-add-cart" style="margin-top:1rem;width:100%;">Agregar al carrito</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    
     <script src="../js/script.js"></script>
     <script src="../js/carrito.js"></script>
 
@@ -542,7 +564,7 @@
 
         // Funciones auxiliares (puedes implementarlas después)
         function vistaRapida(productoId) {
-            alert(`Vista rápida del producto ${productoId}`);
+            openQuickView(productoId);
         }
 
         function agregarAlCarrito(productoId) {
@@ -554,17 +576,103 @@
             alert(`Producto ${productoId} agregado a favoritos`);
         }
 
-        // Permitir búsqueda con Enter
-        document.addEventListener('DOMContentLoaded', function() {
-            const searchInput = document.getElementById('searchInput');
-            if (searchInput) {
-                searchInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        buscarProductos();
-                    }
+        // Modal de detalles de producto
+        const quickViewModal = document.getElementById('quickViewModal');
+        const closeModalBtn = document.querySelector('#quickViewModal .close-modal');
+        const modalLoader = document.getElementById('modal-loader');
+        const modalProductDetail = document.getElementById('modal-product-detail');
+        const modalProductImg = document.getElementById('modal-product-img');
+        const modalProductName = document.getElementById('modal-product-name');
+        const modalProductDesc = document.getElementById('modal-product-desc');
+        const modalProductPrice = document.getElementById('modal-product-price');
+        const modalTallasList = document.getElementById('modal-tallas-list');
+        const modalColoresList = document.getElementById('modal-colores-list');
+        const modalAddCartBtn = document.getElementById('modal-add-cart-btn');
+        let selectedTalla = null;
+        let selectedColor = null;
+        let currentProductId = null;
+
+        function openQuickView(productId) {
+            quickViewModal.style.display = 'block';
+            modalLoader.style.display = 'block';
+            modalProductDetail.style.display = 'none';
+            selectedTalla = null;
+            selectedColor = null;
+            currentProductId = productId;
+            fetch(`/api/productos/${productId}`)
+                .then(res => res.json())
+                .then(producto => {
+                    modalProductImg.src = producto.imagen || '../img/calzado-default.jpg';
+                    modalProductName.textContent = producto.nombre || producto.nombre_producto || 'Producto';
+                    modalProductDesc.textContent = producto.descripcion || 'Sin descripción.';
+                    modalProductPrice.textContent = producto.precio ? `S/ ${producto.precio}` : '';
+                    // Render tallas
+                    modalTallasList.innerHTML = '';
+                    (producto.tallas || []).forEach(talla => {
+                        const btn = document.createElement('button');
+                        btn.className = 'modal-talla-btn';
+                        btn.textContent = talla;
+                        btn.onclick = () => {
+                            document.querySelectorAll('.modal-talla-btn').forEach(b => b.classList.remove('selected'));
+                            btn.classList.add('selected');
+                            selectedTalla = talla;
+                        };
+                        modalTallasList.appendChild(btn);
+                    });
+                    // Render colores
+                    modalColoresList.innerHTML = '';
+                    (producto.colores || []).forEach(color => {
+                        const btn = document.createElement('button');
+                        btn.className = 'modal-color-btn';
+                        btn.style.background = color;
+                        btn.title = color;
+                        btn.onclick = () => {
+                            document.querySelectorAll('.modal-color-btn').forEach(b => b.classList.remove('selected'));
+                            btn.classList.add('selected');
+                            selectedColor = color;
+                        };
+                        modalColoresList.appendChild(btn);
+                    });
+                    modalLoader.style.display = 'none';
+                    modalProductDetail.style.display = 'flex';
+                })
+                .catch(() => {
+                    modalLoader.style.display = 'none';
+                    modalProductDetail.innerHTML = '<p style="color:red;">No se pudo cargar el producto.</p>';
+                    modalProductDetail.style.display = 'block';
                 });
+        }
+        closeModalBtn.onclick = function() {
+            quickViewModal.style.display = 'none';
+        };
+        window.onclick = function(event) {
+            if (event.target === quickViewModal) {
+                quickViewModal.style.display = 'none';
             }
-        });
+        };
+        if (modalAddCartBtn) {
+            modalAddCartBtn.onclick = function() {
+                if (!currentProductId || !selectedTalla || !selectedColor) {
+                    alert('Selecciona talla y color.');
+                    return;
+                }
+                fetch('/api/cart/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productoId: currentProductId, talla: selectedTalla, color: selectedColor, cantidad: 1 })
+                })
+                .then(res => res.ok ? res.json() : Promise.reject())
+                .then(() => {
+                    alert('Producto agregado al carrito');
+                    quickViewModal.style.display = 'none';
+                })
+                .catch(() => alert('No se pudo agregar al carrito.'));
+            };
+        }
+        // Integrar con botones de productos
+        function vistaRapida(productoId) {
+            openQuickView(productoId);
+        }
     </script>
 </body>
 </html>

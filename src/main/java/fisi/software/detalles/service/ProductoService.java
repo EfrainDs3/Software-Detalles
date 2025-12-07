@@ -25,6 +25,10 @@ import java.util.*;
 @Service
 @Transactional
 public class ProductoService {
+    public Producto buscarPorIdEntidad(Long id) {
+        return productoRepository.findByIdWithDetalles(id)
+            .orElse(null);
+    }
 
     private static final int ESTADO_PROVEEDOR_ACTIVO = 1;
 
@@ -74,7 +78,7 @@ public class ProductoService {
         Producto producto = new Producto();
         producto.setCategoria(categoria);
         producto.setEstado(Boolean.TRUE);
-        aplicarDatosBasicos(producto, request);
+        aplicarDatosBasicos(producto, request, categoriaCodigo);
     producto.setEstado(Boolean.TRUE);
         aplicarDatosBasicos(producto, request, categoriaCodigo);
         productoRepository.save(producto);

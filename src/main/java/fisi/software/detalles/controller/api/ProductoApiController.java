@@ -1,4 +1,7 @@
 package fisi.software.detalles.controller.api;
+import fisi.software.detalles.entity.Producto;
+import fisi.software.detalles.entity.ProductoTalla;
+import java.util.stream.Collectors;
 
 import fisi.software.detalles.service.ProductoService;
 import fisi.software.detalles.service.ProductoService.CategoriaCodigo;
@@ -20,6 +23,35 @@ public class ProductoApiController {
 
     public ProductoApiController(ProductoService productoService) {
         this.productoService = productoService;
+    }
+
+    // Endpoint unificado para detalles de producto (con tallas y colores)
+    @GetMapping("/{id}")
+    public ResponseEntity<?> obtenerProducto(@PathVariable Long id) {
+        ProductoResponse response = productoService.obtenerPorId(id);
+        Producto producto = productoService.buscarPorIdEntidad(id);
+        if (producto == null) return ResponseEntity.notFound().build();
+        // Tallas disponibles
+        var tallas = producto.getTallas().stream()
+            .map(t -> {
+                var map = new java.util.HashMap<String, Object>();
+                map.put("valor", t.getTalla());
+                map.put("disponible", true); // Puedes ajustar según stock
+                return map;
+            }).collect(Collectors.toList());
+        // Colores disponibles (si hay campo color)
+        var colores = new java.util.ArrayList<String>();
+        if (producto.getColor() != null) colores.add(producto.getColor());
+        // Si hay más colores, agrégalos aquí
+        var dto = new java.util.HashMap<String, Object>();
+        dto.put("id", response.id());
+        dto.put("nombre", response.nombre());
+        dto.put("precio", response.precioVenta());
+        dto.put("descripcion", response.descripcion());
+        dto.put("imagen", response.imagen());
+        dto.put("tallas", tallas);
+        dto.put("colores", colores);
+        return ResponseEntity.ok(dto);
     }
 
     @GetMapping("/calzados")

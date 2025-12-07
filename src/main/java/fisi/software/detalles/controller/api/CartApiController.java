@@ -18,18 +18,25 @@ public class CartApiController {
 	@SuppressWarnings("unchecked")
 	@PostMapping("/add")
 	public Map<String, Object> addToCart(@RequestBody Map<String, Object> body, HttpSession session) {
-		Integer productId = (body.get("productId") instanceof Number) ? ((Number) body.get("productId")).intValue() : null;
-		Integer qty = (body.get("quantity") instanceof Number) ? ((Number) body.get("quantity")).intValue() : 1;
+		Integer productId = (body.get("productoId") instanceof Number) ? ((Number) body.get("productoId")).intValue() : null;
+		String talla = (String) body.getOrDefault("talla", null);
+		String color = (String) body.getOrDefault("color", null);
+		Integer qty = (body.get("cantidad") instanceof Number) ? ((Number) body.get("cantidad")).intValue() : 1;
 		if (productId == null || qty <= 0) {
 			return Map.of("error", "producto o cantidad inválida");
 		}
-		Map<Integer, Integer> cart = (Map<Integer, Integer>) session.getAttribute("CART");
-		if (cart == null) {
-			cart = new HashMap<>();
-		}
-		cart.put(productId, cart.getOrDefault(productId, 0) + qty);
+		// Guardar como lista de items con talla/color
+		List<Map<String, Object>> cart = (List<Map<String, Object>>) session.getAttribute("CART");
+		if (cart == null) cart = new ArrayList<>();
+		Map<String, Object> item = new HashMap<>();
+		item.put("productoId", productId);
+		item.put("talla", talla);
+		item.put("color", color);
+		item.put("cantidad", qty);
+		cart.add(item);
 		session.setAttribute("CART", cart);
-		return Map.of("ok", true, "cartSize", cart.values().stream().mapToInt(i -> i).sum());
+		int total = cart.stream().mapToInt(i -> (int) i.getOrDefault("cantidad", 1)).sum();
+		return Map.of("ok", true, "cartSize", total);
 	}
 
 	@SuppressWarnings("unchecked")
