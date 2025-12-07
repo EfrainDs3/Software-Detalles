@@ -18,7 +18,16 @@ document.addEventListener('DOMContentLoaded', function () {
             'ninos': 'NIÑO',
             'niños': 'NIÑO',
             'nino': 'NIÑO',
-            'niño': 'NIÑO'
+            'niño': 'NIÑO',
+            // categorías con sufijo '-accesorios' para adaptador
+            'mujeres-accesorios': 'MUJER',
+            'mujer-accesorios': 'MUJER',
+            'hombres-accesorios': 'HOMBRE',
+            'hombre-accesorios': 'HOMBRE',
+            'ninos-accesorios': 'NIÑO',
+            'niños-accesorios': 'NIÑO',
+            'nino-accesorios': 'NIÑO',
+            'niño-accesorios': 'NIÑO'
         };
 
         const tipoSlugToName = {
@@ -30,6 +39,19 @@ document.addEventListener('DOMContentLoaded', function () {
             'zapatos-formales': 'Zapatos Formales',
             'zapatos-escolares': 'Zapatos Escolares',
             'pantuflas': 'Pantuflas'
+        };
+
+        // Mapa de slugs -> nombres exactos para accesorios (usado por el adaptador)
+        const tipoSlugToNameAccesorios = {
+            'bolsos': 'Bolsos',
+            'billeteras': 'Billeteras',
+            'gafas-de-sol': 'Gafas de sol',
+            'cinturones': 'Cinturones',
+            'relojes': 'Relojes',
+            'gorros': 'Gorros',
+            'calcetines': 'Calcetines',
+            'lentes-sol': 'Gafas de sol',
+            'gorras': 'Gorras'
         };
 
         window.fetch = async function(input, init){
@@ -51,12 +73,22 @@ document.addEventListener('DOMContentLoaded', function () {
                         return originalFetch(input, init);
                     }
                     if (tipo){
-                        const tipoName = tipoSlugToName[tipo.toLowerCase()];
-                        if (!tipoName){
-                            return originalFetch(input, init);
+                        const isAccesorios = categoria.toLowerCase().includes('accesorios');
+                        if (isAccesorios) {
+                            const tipoName = tipoSlugToNameAccesorios[tipo.toLowerCase()];
+                            if (!tipoName) {
+                                return originalFetch(input, init);
+                            }
+                            const newUrl = `/api/productos/accesorios?sexo=${sexo}&tipo=${encodeURIComponent(tipoName)}`;
+                            return originalFetch(newUrl, init);
+                        } else {
+                            const tipoName = tipoSlugToName[tipo.toLowerCase()];
+                            if (!tipoName){
+                                return originalFetch(input, init);
+                            }
+                            const newUrl = `/api/productos/calzados?sexo=${sexo}&tipo=${encodeURIComponent(tipoName)}`;
+                            return originalFetch(newUrl, init);
                         }
-                        const newUrl = `/api/productos/calzados?sexo=${sexo}&tipo=${encodeURIComponent(tipoName)}`;
-                        return originalFetch(newUrl, init);
                     }
                     if (nombre){
                         // buscar por nombre y filtrar por sexo en el cliente
@@ -64,12 +96,21 @@ document.addEventListener('DOMContentLoaded', function () {
                         const resp = await originalFetch(nameUrl, init);
                         if (!resp.ok) return resp;
                         const data = await resp.json();
-                        const filtered = Array.isArray(data) ? data.filter(p => (p.tipo || '').toString().toUpperCase() === sexo) : data;
+                        const isAccesorios = categoria.toLowerCase().includes('accesorios');
+                        let filtered;
+                        if (isAccesorios) {
+                            // para accesorios, filtrar por campo sexoTipo/sexo si está presente
+                            filtered = Array.isArray(data) ? data.filter(p => ((p.sexoTipo || p.sexo || '')).toString().toUpperCase() === sexo) : data;
+                        } else {
+                            // conserva la lógica previa para calzados
+                            filtered = Array.isArray(data) ? data.filter(p => (p.tipo || '').toString().toUpperCase() === sexo) : data;
+                        }
                         const body = JSON.stringify(filtered);
                         return new Response(body, { status: 200, headers: { 'Content-Type': 'application/json' } });
                     }
                     // solo categoria -> listar por sexo
-                    const newUrl = `/api/productos/calzados?sexo=${sexo}`;
+                    const isAccesoriosCat = categoria.toLowerCase().includes('accesorios');
+                    const newUrl = isAccesoriosCat ? `/api/productos/accesorios?sexo=${sexo}` : `/api/productos/calzados?sexo=${sexo}`;
                     return originalFetch(newUrl, init);
                 }
 

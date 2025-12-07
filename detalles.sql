@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 04-12-2025 a las 05:51:54
+-- Tiempo de generación: 07-12-2025 a las 00:45:52
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -61,7 +61,8 @@ CREATE TABLE `aperturascaja` (
 --
 
 INSERT INTO `aperturascaja` (`id_apertura`, `id_caja`, `id_usuario`, `fecha_apertura`, `hora_apertura`, `monto_inicial`) VALUES
-(1, 1, 4, '2025-11-26', '12:49:13', 180.00);
+(1, 1, 4, '2025-11-26', '12:49:13', 180.00),
+(2, 2, 4, '2025-12-04', '09:07:25', 200.00);
 
 -- --------------------------------------------------------
 
@@ -97,7 +98,7 @@ CREATE TABLE `cajas` (
 
 INSERT INTO `cajas` (`id_caja`, `nombre_caja`, `ubicacion`, `estado`) VALUES
 (1, 'Caja 1', 'del centro', 'Cerrada'),
-(2, 'Caja 2', 'del costado izquierdo', 'Cerrada');
+(2, 'Caja 2', 'del costado izquierdo', 'Abierta');
 
 -- --------------------------------------------------------
 
@@ -364,6 +365,17 @@ CREATE TABLE `marcasproducto` (
 --
 
 INSERT INTO `marcasproducto` (`id_marca`, `nombre_marca`) VALUES
+(5, 'Adidas'),
+(10, 'Angel'),
+(7, 'Boss'),
+(8, 'Caterpillar'),
+(6, 'Converse'),
+(9, 'Crocs'),
+(12, 'Daclay'),
+(11, 'Dearfoams'),
+(2, 'Dior'),
+(4, 'FootLoose'),
+(3, 'Louis Vuitton'),
 (1, 'Nike');
 
 -- --------------------------------------------------------
@@ -404,7 +416,21 @@ INSERT INTO `modelos` (`id_modelo`, `nombre_modelo`, `id_marca`) VALUES
 (1, 'Air Max720', 1),
 (2, 'Air Max710', 1),
 (3, 'Modelo123', 1),
-(4, 'Modelo2', 1);
+(4, 'Modelo2', 1),
+(5, 'J\'Adior', 2),
+(6, 'Territory', 3),
+(7, 'Ftl-Nw00015', 4),
+(8, 'Adidas Superstar', 5),
+(9, 'All Star', 6),
+(10, 'Derby', 7),
+(11, 'Cat', 8),
+(12, 'Bayaband Clogs', 9),
+(13, 'Modelo 4', 5),
+(14, 'Urbana', 10),
+(15, 'Footloose Kids', 4),
+(16, 'Clásicos', 11),
+(17, 'Crocs Kids', 9),
+(18, 'Daclay Kids', 12);
 
 -- --------------------------------------------------------
 
@@ -760,6 +786,28 @@ CREATE TABLE `productos` (
   `sexo_tipo` enum('HOMBRE','MUJER','NIÑO') DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `productos`
+--
+
+INSERT INTO `productos` (`id_producto`, `nombre_producto`, `descripcion`, `precio_venta`, `costo_compra`, `codigo_barra`, `id_categoria`, `id_proveedor`, `id_unidad_medida`, `color`, `tipo`, `dimensiones`, `peso_gramos`, `estado`, `id_modelo`, `id_material`, `imagen`, `sexo_tipo`) VALUES
+(1, 'Zapatillas Nike', 'Zapatillas Deportivas Nike Air Max710', 200.00, 190.00, '123456789', 1, 2, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 2, 1, NULL, 'MUJER'),
+(2, 'Zapatos Casuales', NULL, 180.00, 150.00, NULL, 1, 2, 1, 'Blanco', 'MUJER', NULL, NULL, b'1', 4, 1, NULL, 'MUJER'),
+(3, 'Tacones Elegantes', NULL, 230.00, 180.00, NULL, 1, 2, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 5, 1, NULL, 'MUJER'),
+(4, 'Botín Territory', NULL, 410.00, 359.98, NULL, 1, 2, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 6, 1, NULL, 'MUJER'),
+(5, 'Sandalias FootLoose', NULL, 360.00, 279.99, NULL, 1, 2, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 7, 1, NULL, 'MUJER'),
+(6, 'Zapatillas Deportiva Adidas', NULL, 410.00, 380.00, NULL, 1, 2, 1, 'Blanco', 'HOMBRE', NULL, NULL, b'1', 8, 1, NULL, 'HOMBRE'),
+(7, 'Zapatos All Star', NULL, 250.00, 179.98, NULL, 1, 2, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 9, 1, NULL, 'HOMBRE'),
+(8, 'Zapatos Elegantes BOSS', NULL, 370.00, 300.00, NULL, 1, 2, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 10, 1, NULL, 'HOMBRE'),
+(9, 'Botas Caterpillar', NULL, 340.00, 290.00, NULL, 1, 2, 1, 'Beige', 'HOMBRE', NULL, NULL, b'1', 11, 1, NULL, 'HOMBRE'),
+(10, 'Sandalias Crogs', NULL, 370.00, 350.00, NULL, 1, 2, 1, 'Blanco', 'HOMBRE', NULL, NULL, b'1', 12, 1, NULL, 'HOMBRE'),
+(11, 'Zapatillas Adidas Niños', NULL, 110.00, 70.00, NULL, 1, 2, 1, 'Blanco', 'NIÑO', NULL, NULL, b'1', 13, 1, NULL, 'NIÑO'),
+(12, 'Zapatos Derby Kids', NULL, 130.00, 109.98, NULL, 1, 2, 1, 'Marrón', 'NIÑO', NULL, NULL, b'1', 14, 1, NULL, 'NIÑO'),
+(13, 'Zapatos Escolares Footloose Kids', NULL, 65.00, 50.00, NULL, 1, 2, 1, 'Negro', 'NIÑO', NULL, NULL, b'1', 15, 1, NULL, 'NIÑO'),
+(14, 'Pantuflas Silenciosas', NULL, 40.00, 29.00, NULL, 1, 2, 1, 'Gris', 'NIÑO', NULL, NULL, b'1', 16, 1, NULL, 'NIÑO'),
+(15, 'Sandalias Clogs Kids', NULL, 70.00, 50.00, NULL, 1, 2, 1, 'Celeste', 'NIÑO', NULL, NULL, b'1', 17, 1, NULL, 'NIÑO'),
+(16, 'Botín Daclay Kids', NULL, 60.00, 40.00, NULL, 1, 2, 1, 'Beige', 'NIÑO', NULL, NULL, b'1', 18, 1, NULL, 'NIÑO');
+
 -- --------------------------------------------------------
 
 --
@@ -770,6 +818,28 @@ CREATE TABLE `producto_tipos` (
   `id_producto` int(11) NOT NULL,
   `id_tipo` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `producto_tipos`
+--
+
+INSERT INTO `producto_tipos` (`id_producto`, `id_tipo`) VALUES
+(1, 1),
+(2, 2),
+(3, 3),
+(4, 5),
+(5, 4),
+(6, 1),
+(7, 2),
+(8, 6),
+(9, 5),
+(10, 4),
+(11, 1),
+(12, 2),
+(13, 7),
+(14, 8),
+(15, 4),
+(16, 5);
 
 -- --------------------------------------------------------
 
@@ -976,6 +1046,28 @@ CREATE TABLE `tallas` (
   `costo_compra` decimal(10,2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `tallas`
+--
+
+INSERT INTO `tallas` (`id_producto`, `talla`, `precio_venta`, `costo_compra`) VALUES
+(1, '38', 200.00, 190.00),
+(2, '41', 180.00, 150.00),
+(3, '37', 230.00, 180.00),
+(4, '38', 410.00, 359.98),
+(5, '38', 360.00, 279.99),
+(6, '42', 410.00, 380.00),
+(7, '42', 250.00, 179.98),
+(8, '42', 370.00, 300.00),
+(9, '43', 340.00, 290.00),
+(10, '40', 370.00, 350.00),
+(11, '12', 110.00, 70.00),
+(12, '14', 130.00, 109.98),
+(13, '30', 65.00, 50.00),
+(14, '16', 40.00, 29.00),
+(15, '14', 70.00, 50.00),
+(16, '14', 60.00, 40.00);
+
 -- --------------------------------------------------------
 
 --
@@ -1074,8 +1166,15 @@ CREATE TABLE `tiposproducto` (
 --
 
 INSERT INTO `tiposproducto` (`id_tipo`, `nombre_tipo`) VALUES
+(10, 'Billeteras'),
+(9, 'Bolsos'),
 (5, 'Botas'),
+(15, 'Calcetines'),
+(12, 'Cinturones'),
+(11, 'Gafas de sol'),
+(14, 'Gorros'),
 (8, 'Pantuflas'),
+(13, 'Relojes'),
 (4, 'Sandalias'),
 (3, 'Tacones'),
 (1, 'Zapatillas Deportivas'),
@@ -1130,7 +1229,7 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id_usuario`, `nombres`, `apellidos`, `id_tipodocumento`, `numero_documento`, `celular`, `direccion`, `username`, `email`, `contraseña_hash`, `estado`, `fecha_creacion`, `fecha_ultima_sesion`) VALUES
-(4, 'Santiago Efrain', 'Torres Murrieta', 1, '75859114', '964983465', 'juan pablo de la cruz', 'EfrainDs3', 'santiagotorresmurrieta@gmail.com', '$2a$10$6587YGgYKDWyAywi61/cB.TFF.U6LrTWacPvzWaBZ9xoVsuGGy.4.', 1, '2025-10-08 15:17:29', '2025-12-04 03:14:20'),
+(4, 'Santiago Efrain', 'Torres Murrieta', 1, '75859114', '964983465', 'juan pablo de la cruz', 'EfrainDs3', 'santiagotorresmurrieta@gmail.com', '$2a$10$6587YGgYKDWyAywi61/cB.TFF.U6LrTWacPvzWaBZ9xoVsuGGy.4.', 1, '2025-10-08 15:17:29', '2025-12-06 23:38:31'),
 (5, 'Anggelo Lucciano', 'Urbina Espinoza', 1, '72863068', '903 171 836', 'juan pablo de la cruz', 'Ubuntu', 'anggelolucciano21@gmail.com', '$2a$10$VwIkH6380fJV0oPcQXNKiO1oU8zqQ1vKsc0uWSkm.vtCWoTPHzzMG', 1, '2025-10-08 15:46:19', '2025-11-25 01:38:39'),
 (6, 'Anlly Luz', 'Riva Yomona', 1, '72010812', '999888777', 'Calle Nueva 456', 'Anlly', 'al.rivayo@unsm.edu.pe', '$2a$10$E.7vIdGVqCYy5eoYIBjF/uYDym2.b6B6U6.TlT9uKd0tFUl4DMfJW', 1, '2025-10-08 15:57:57', '2025-11-26 17:42:14'),
 (12, 'Danny Alexander', 'Garcia Salas', 1, '98765432', '999888777', 'juan pablo de la cruz', 'Dingui', 'ia.jadrixgr26@gmail.com', '$2a$10$xKxtzv1ECV/74oi69b9hPubeUZgmSnrAUoxmjmSaz0NyeVOYE9BHW', 1, '2025-10-08 16:27:52', '2025-10-15 22:05:53'),
@@ -1504,7 +1603,7 @@ ALTER TABLE `almacenes`
 -- AUTO_INCREMENT de la tabla `aperturascaja`
 --
 ALTER TABLE `aperturascaja`
-  MODIFY `id_apertura` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_apertura` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `bitacora`
@@ -1606,7 +1705,7 @@ ALTER TABLE `inventario_talla`
 -- AUTO_INCREMENT de la tabla `marcasproducto`
 --
 ALTER TABLE `marcasproducto`
-  MODIFY `id_marca` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_marca` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT de la tabla `materialesproducto`
@@ -1618,7 +1717,7 @@ ALTER TABLE `materialesproducto`
 -- AUTO_INCREMENT de la tabla `modelos`
 --
 ALTER TABLE `modelos`
-  MODIFY `id_modelo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_modelo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT de la tabla `movimientoscaja`
@@ -1660,7 +1759,7 @@ ALTER TABLE `permisos_auditoria`
 -- AUTO_INCREMENT de la tabla `productos`
 --
 ALTER TABLE `productos`
-  MODIFY `id_producto` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_producto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT de la tabla `proveedores`
@@ -1702,7 +1801,7 @@ ALTER TABLE `tipospago`
 -- AUTO_INCREMENT de la tabla `tiposproducto`
 --
 ALTER TABLE `tiposproducto`
-  MODIFY `id_tipo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id_tipo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT de la tabla `unidadesmedida`
