@@ -483,6 +483,28 @@
             const puedeRecepcionar = compra.estadoPedido === 'Pendiente' || compra.estadoPedido === 'Parcial';
             const puedeAnular = compra.estadoPedido === 'Pendiente';
 
+            const actionButtons = [`
+                <button class="btn btn-sm btn-info" onclick="window.comprasModule.verDetalle(${compra.idPedidoCompra})" title="Ver detalles">
+                    <i class="fas fa-eye"></i>
+                </button>
+            `];
+
+            if (puedeRecepcionar) {
+                actionButtons.push(`
+                    <button class="btn btn-sm btn-success" onclick="window.comprasModule.recepcionarCompra(${compra.idPedidoCompra})" title="Registrar recepción">
+                        <i class="fas fa-truck-loading"></i>
+                    </button>
+                `);
+            }
+
+            if (puedeAnular) {
+                actionButtons.push(`
+                    <button class="btn btn-sm btn-danger" onclick="window.comprasModule.anular(${compra.idPedidoCompra})" title="Anular">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `);
+            }
+
             row.innerHTML = `
                 <td><input type="checkbox"></td>
                 <td>${compra.idPedidoCompra}</td>
@@ -493,19 +515,9 @@
                 <td><span class="badge ${estadoBadge.class}">${compra.estadoPedido}</span></td>
                 <td>S/ ${compra.totalPedido.toFixed(2)}</td>
                 <td>
-                    <button class="btn btn-sm btn-info" onclick="window.comprasModule.verDetalle(${compra.idPedidoCompra})" title="Ver detalles">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    ${puedeRecepcionar ? `
-                        <button class="btn btn-sm btn-success" onclick="window.comprasModule.recepcionarCompra(${compra.idPedidoCompra})" title="Registrar recepción">
-                            <i class="fas fa-truck-loading"></i>
-                        </button>
-                    ` : ''}
-                    ${puedeAnular ? `
-                        <button class="btn btn-sm btn-danger" onclick="window.comprasModule.anular(${compra.idPedidoCompra})" title="Anular">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    ` : ''}
+                    <div class="action-buttons-cell">
+                        ${actionButtons.join('')}
+                    </div>
                 </td>
             `;
 

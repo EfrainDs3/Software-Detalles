@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 07-12-2025 a las 00:45:52
+-- Tiempo de generación: 07-12-2025 a las 05:18:28
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -375,8 +375,15 @@ INSERT INTO `marcasproducto` (`id_marca`, `nombre_marca`) VALUES
 (11, 'Dearfoams'),
 (2, 'Dior'),
 (4, 'FootLoose'),
+(15, 'Gucci'),
+(13, 'Guess'),
 (3, 'Louis Vuitton'),
-(1, 'Nike');
+(17, 'New York Yankees'),
+(1, 'Nike'),
+(14, 'Oakley'),
+(19, 'Ray-Ban'),
+(16, 'Rolex'),
+(18, 'Tommy Hilfiger');
 
 -- --------------------------------------------------------
 
@@ -430,7 +437,19 @@ INSERT INTO `modelos` (`id_modelo`, `nombre_modelo`, `id_marca`) VALUES
 (15, 'Footloose Kids', 4),
 (16, 'Clásicos', 11),
 (17, 'Crocs Kids', 9),
-(18, 'Daclay Kids', 12);
+(18, 'Daclay Kids', 12),
+(19, 'Laurel Slg', 13),
+(20, 'Holbrook', 14),
+(21, 'Blondie', 15),
+(22, 'GG Supreme', 15),
+(23, 'Sky-Dweller', 16),
+(24, 'Eyewear', 15),
+(25, 'Crosstown', 7),
+(26, '9Forty MLB', 17),
+(27, 'Everyday', 1),
+(28, 'Essential', 18),
+(29, 'Heritage86', 1),
+(30, 'Aviator Junior', 19);
 
 -- --------------------------------------------------------
 
@@ -806,7 +825,20 @@ INSERT INTO `productos` (`id_producto`, `nombre_producto`, `descripcion`, `preci
 (13, 'Zapatos Escolares Footloose Kids', NULL, 65.00, 50.00, NULL, 1, 2, 1, 'Negro', 'NIÑO', NULL, NULL, b'1', 15, 1, NULL, 'NIÑO'),
 (14, 'Pantuflas Silenciosas', NULL, 40.00, 29.00, NULL, 1, 2, 1, 'Gris', 'NIÑO', NULL, NULL, b'1', 16, 1, NULL, 'NIÑO'),
 (15, 'Sandalias Clogs Kids', NULL, 70.00, 50.00, NULL, 1, 2, 1, 'Celeste', 'NIÑO', NULL, NULL, b'1', 17, 1, NULL, 'NIÑO'),
-(16, 'Botín Daclay Kids', NULL, 60.00, 40.00, NULL, 1, 2, 1, 'Beige', 'NIÑO', NULL, NULL, b'1', 18, 1, NULL, 'NIÑO');
+(16, 'Botín Daclay Kids', NULL, 60.00, 40.00, NULL, 1, 2, 1, 'Beige', 'NIÑO', NULL, NULL, b'1', 18, 1, NULL, 'NIÑO'),
+(17, 'Bolso de cuero', NULL, 100.00, 80.00, NULL, 2, 2, 1, 'Negro', 'MUJER', '120 x 4 x 0.5 cm', 11, b'1', 5, 1, NULL, 'MUJER'),
+(18, 'Billetera Guess', NULL, 290.00, 190.00, NULL, 2, 2, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 19, 1, NULL, 'MUJER'),
+(19, 'Gafas de sol Oakley Polarizado', NULL, 590.00, 470.00, NULL, 2, 2, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 20, 1, NULL, 'MUJER'),
+(20, 'Cinturón Gucci', NULL, 510.00, 460.00, NULL, 2, 2, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 21, 1, NULL, 'MUJER'),
+(21, 'Cinturón Doble G', NULL, 620.00, 570.00, NULL, 2, 2, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 22, 1, NULL, 'HOMBRE'),
+(22, 'Reloj Rolex de Oro', NULL, 730.00, 650.00, NULL, 2, 2, 1, 'Dorado', 'HOMBRE', NULL, NULL, b'1', 23, 1, NULL, 'HOMBRE'),
+(23, 'Gafas de Sol Gucci', NULL, 670.00, 589.99, NULL, 2, 2, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 24, 1, NULL, 'HOMBRE'),
+(24, 'Billetera Bifold clásica', NULL, 780.00, 650.00, NULL, 2, 2, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 25, 1, NULL, 'HOMBRE'),
+(25, 'Gorra New York Yankess MLB', NULL, 160.00, 120.00, NULL, 2, 2, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 26, 1, NULL, 'HOMBRE'),
+(26, 'Calcetín Everyday niños', NULL, 40.00, 20.00, NULL, 2, 2, 1, 'Blanco', 'NIÑO', NULL, NULL, b'1', 27, 1, NULL, 'NIÑO'),
+(27, 'Cinturón Essential Trenzado', NULL, 120.00, 90.00, NULL, 2, 2, 1, 'Negro', 'NIÑO', NULL, NULL, b'1', 28, 1, NULL, 'NIÑO'),
+(28, 'Gorra R86 Nike', NULL, 170.00, 130.00, NULL, 2, 2, 1, 'Negro', 'NIÑO', NULL, NULL, b'1', 29, 1, NULL, 'NIÑO'),
+(29, 'Gafas de sol Aviator Junior', NULL, 260.00, 180.00, NULL, 2, 2, 1, 'Negro', 'NIÑO', NULL, NULL, b'1', 30, 1, NULL, 'NIÑO');
 
 -- --------------------------------------------------------
 
@@ -839,7 +871,20 @@ INSERT INTO `producto_tipos` (`id_producto`, `id_tipo`) VALUES
 (13, 7),
 (14, 8),
 (15, 4),
-(16, 5);
+(16, 5),
+(17, 9),
+(18, 10),
+(19, 11),
+(20, 12),
+(21, 12),
+(22, 13),
+(23, 11),
+(24, 10),
+(25, 14),
+(26, 15),
+(27, 12),
+(28, 14),
+(29, 11);
 
 -- --------------------------------------------------------
 
@@ -1066,7 +1111,20 @@ INSERT INTO `tallas` (`id_producto`, `talla`, `precio_venta`, `costo_compra`) VA
 (13, '30', 65.00, 50.00),
 (14, '16', 40.00, 29.00),
 (15, '14', 70.00, 50.00),
-(16, '14', 60.00, 40.00);
+(16, '14', 60.00, 40.00),
+(17, 'Única', 100.00, 80.00),
+(18, 'Única', 290.00, 190.00),
+(19, 'Única', 590.00, 470.00),
+(20, '90cm', 510.00, 460.00),
+(21, '100cm', 620.00, 570.00),
+(22, '42mm', 730.00, 650.00),
+(23, 'Única', 670.00, 589.99),
+(24, 'Única', 780.00, 650.00),
+(25, 'M', 160.00, 120.00),
+(26, 'S', 40.00, 20.00),
+(27, 'M', 120.00, 90.00),
+(28, 'M', 170.00, 130.00),
+(29, '50mm', 260.00, 180.00);
 
 -- --------------------------------------------------------
 
@@ -1229,7 +1287,7 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id_usuario`, `nombres`, `apellidos`, `id_tipodocumento`, `numero_documento`, `celular`, `direccion`, `username`, `email`, `contraseña_hash`, `estado`, `fecha_creacion`, `fecha_ultima_sesion`) VALUES
-(4, 'Santiago Efrain', 'Torres Murrieta', 1, '75859114', '964983465', 'juan pablo de la cruz', 'EfrainDs3', 'santiagotorresmurrieta@gmail.com', '$2a$10$6587YGgYKDWyAywi61/cB.TFF.U6LrTWacPvzWaBZ9xoVsuGGy.4.', 1, '2025-10-08 15:17:29', '2025-12-06 23:38:31'),
+(4, 'Santiago Efrain', 'Torres Murrieta', 1, '75859114', '964983465', 'juan pablo de la cruz', 'EfrainDs3', 'santiagotorresmurrieta@gmail.com', '$2a$10$6587YGgYKDWyAywi61/cB.TFF.U6LrTWacPvzWaBZ9xoVsuGGy.4.', 1, '2025-10-08 15:17:29', '2025-12-07 03:50:27'),
 (5, 'Anggelo Lucciano', 'Urbina Espinoza', 1, '72863068', '903 171 836', 'juan pablo de la cruz', 'Ubuntu', 'anggelolucciano21@gmail.com', '$2a$10$VwIkH6380fJV0oPcQXNKiO1oU8zqQ1vKsc0uWSkm.vtCWoTPHzzMG', 1, '2025-10-08 15:46:19', '2025-11-25 01:38:39'),
 (6, 'Anlly Luz', 'Riva Yomona', 1, '72010812', '999888777', 'Calle Nueva 456', 'Anlly', 'al.rivayo@unsm.edu.pe', '$2a$10$E.7vIdGVqCYy5eoYIBjF/uYDym2.b6B6U6.TlT9uKd0tFUl4DMfJW', 1, '2025-10-08 15:57:57', '2025-11-26 17:42:14'),
 (12, 'Danny Alexander', 'Garcia Salas', 1, '98765432', '999888777', 'juan pablo de la cruz', 'Dingui', 'ia.jadrixgr26@gmail.com', '$2a$10$xKxtzv1ECV/74oi69b9hPubeUZgmSnrAUoxmjmSaz0NyeVOYE9BHW', 1, '2025-10-08 16:27:52', '2025-10-15 22:05:53'),
@@ -1705,7 +1763,7 @@ ALTER TABLE `inventario_talla`
 -- AUTO_INCREMENT de la tabla `marcasproducto`
 --
 ALTER TABLE `marcasproducto`
-  MODIFY `id_marca` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id_marca` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT de la tabla `materialesproducto`
@@ -1717,7 +1775,7 @@ ALTER TABLE `materialesproducto`
 -- AUTO_INCREMENT de la tabla `modelos`
 --
 ALTER TABLE `modelos`
-  MODIFY `id_modelo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id_modelo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT de la tabla `movimientoscaja`
@@ -1759,7 +1817,7 @@ ALTER TABLE `permisos_auditoria`
 -- AUTO_INCREMENT de la tabla `productos`
 --
 ALTER TABLE `productos`
-  MODIFY `id_producto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id_producto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT de la tabla `proveedores`

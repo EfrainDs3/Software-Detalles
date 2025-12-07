@@ -269,9 +269,10 @@
     const page = state.marcas.page;
     const rows = paginate(filtered, page);
     const tbody = document.getElementById('marcasTableBody');
-    tbody.innerHTML = rows.map(r => `
+    const offset = (page - 1) * PAGE_SIZE;
+    tbody.innerHTML = rows.map((r, index) => `
       <tr>
-        <td>${r.id}</td>
+        <td>${offset + index + 1}</td>
         <td>${r.nombre}</td>
         <td><div class="action-buttons-cell">
           <button class="btn-icon btn-view" data-scope="marca" data-id="${r.id}"><i class="fas fa-eye"></i></button>
@@ -294,20 +295,19 @@
     const rows = paginate(filtered, page);
     const tbody = document.getElementById('modelosTableBody');
     if (!tbody) return;
-    tbody.innerHTML = rows.map(renderModeloRow).join('');
+    const offset = (page - 1) * PAGE_SIZE;
+    tbody.innerHTML = rows.map((row, index) => renderModeloRow(row, offset + index + 1)).join('');
     setFixedHeightForTable('modelosTable');
     renderPagination('modelosPagination', filtered.length, page, (p)=>{ state.modelos.page=p; renderModelos(); });
   }
 
-  function renderModeloRow(modelo){
+  function renderModeloRow(modelo, displayIndex){
     const id = modelo.id ?? '';
-    const idDisplay = escapeHtml(id ?? '-');
     const nombre = escapeHtml(modelo.nombre ?? '');
     const marcaNombre = escapeHtml(modelo.marca ?? '');
-    const altText = nombre || 'Modelo sin nombre';
     return `
       <tr>
-        <td>${idDisplay}</td>
+        <td>${displayIndex}</td>
         <td>${nombre}</td>
         <td>${marcaNombre}</td>
         <td><div class="action-buttons-cell">
@@ -324,9 +324,10 @@
     const page = state.materiales.page;
     const rows = paginate(filtered, page);
     const tbody = document.getElementById('materialesTableBody');
-    tbody.innerHTML = rows.map(r => `
+    const offset = (page - 1) * PAGE_SIZE;
+    tbody.innerHTML = rows.map((r, index) => `
       <tr>
-        <td>${r.id}</td>
+        <td>${offset + index + 1}</td>
         <td>${r.nombre}</td>
         <td><div class="action-buttons-cell">
           <button class="btn-icon btn-view" data-scope="material" data-id="${r.id}"><i class="fas fa-eye"></i></button>
@@ -340,13 +341,14 @@
 
   function renderUnidades(){
     const term = state.unidades.term.toLowerCase();
-  const filtered = unidades.filter(u => u.nombre.toLowerCase().includes(term) || (u.abreviatura||'').toLowerCase().includes(term));
+    const filtered = unidades.filter(u => u.nombre.toLowerCase().includes(term) || (u.abreviatura||'').toLowerCase().includes(term));
     const page = state.unidades.page;
     const rows = paginate(filtered, page);
     const tbody = document.getElementById('unidadesTableBody');
-    tbody.innerHTML = rows.map(r => `
+    const offset = (page - 1) * PAGE_SIZE;
+    tbody.innerHTML = rows.map((r, index) => `
       <tr>
-        <td>${r.id}</td>
+        <td>${offset + index + 1}</td>
         <td>${r.nombre}</td>
   <td>${r.abreviatura || '-'}</td>
         <td><div class="action-buttons-cell">
@@ -365,9 +367,10 @@
     const page = state.tipos.page;
     const rows = paginate(filtered, page);
     const tbody = document.getElementById('tiposTableBody');
-    tbody.innerHTML = rows.map(r => `
+    const offset = (page - 1) * PAGE_SIZE;
+    tbody.innerHTML = rows.map((r, index) => `
       <tr>
-        <td>${r.id}</td>
+        <td>${offset + index + 1}</td>
         <td>${r.nombre}</td>
         <td><div class="action-buttons-cell">
           <button class="btn-icon btn-view" data-scope="tipo" data-id="${r.id}"><i class="fas fa-eye"></i></button>
