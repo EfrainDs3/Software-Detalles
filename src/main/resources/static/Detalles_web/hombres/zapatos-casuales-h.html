@@ -363,24 +363,33 @@
             }
 
             // Generar HTML para cada producto
-            contenedor.innerHTML = productos.map(function(producto){
-                return '' +
-                    '<div class="product-card-detailed" data-product-id="' + (producto.id || '') + '">' +
-                        '<div class="product-image-detailed">' +
-                            '<img src="' + (producto.imagenUrl || 'https://via.placeholder.com/300x300') + '" alt="' + (producto.nombre || producto.nombre_producto || '') + '" onerror="this.src=\'https://via.placeholder.com/300x300\'">' +
-                            '<div class="product-overlay"><button class="quick-view" onclick="vistaRapida(\'' + (producto.id || '') + '\')">Vista Rápida</button></div>' +
-                        '</div>' +
-                        '<div class="product-info-detailed">' +
-                            '<div class="product-brand">' + obtenerMarcaProducto(producto) + '</div>' +
-                            '<h3 class="product-title-detailed">' + (producto.nombre || producto.nombre_producto || 'Producto') + '</h3>' +
-                            '<div class="product-price"><span class="current-price">S/ ' + (producto.precio_venta || producto.precioVenta || producto.precio || '0.00') + '</span></div>' +
-                            '<div class="product-actions">' +
-                                '<button class="btn-add-cart" onclick="agregarAlCarrito(\'' + (producto.id || '') + '\')">Añadir al Carrito</button>' +
-                                '<button class="btn-wishlist" onclick="agregarFavoritos(\'' + (producto.id || '') + '\')"><i class="far fa-heart"></i></button>' +
-                            '</div>' +
-                        '</div>' +
-                    '</div>';
-            }).join('');
+            contenedor.innerHTML = productos.map(producto => `
+                <div class="product-card-detailed" data-product-id="${producto.id}">
+                    <div class="product-image-detailed">
+                        <img src="${producto.imagen || '/img/Upload/productos/producto-default.jpg'}" 
+                             alt="${producto.nombre}" 
+                             onerror="this.src='/img/Upload/productos/producto-default.jpg'">
+                        <div class="product-overlay">
+                            <button class="quick-view" onclick="vistaRapida(${producto.id})">Vista Rápida</button>
+                        </div>
+                    </div>
+                    <div class="product-info-detailed">
+                        <div class="product-brand">${obtenerMarcaProducto(producto)}</div>
+                        <h3 class="product-title-detailed">${producto.nombre || producto.nombre_producto || 'Producto'}</h3>
+                        <div class="product-price">
+                            <span class="current-price">S/ ${producto.precio_venta || producto.precioVenta || producto.precio || '0.00'}</span>
+                        </div>
+                        <div class="product-actions">
+                            <button class="btn-add-cart" onclick="agregarAlCarrito(${producto.id})">
+                                Añadir al Carrito
+                            </button>
+                            <button class="btn-wishlist" onclick="agregarFavoritos(${producto.id})">
+                                <i class="far fa-heart"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
         }
 
         // Función para extraer marca del nombre del producto

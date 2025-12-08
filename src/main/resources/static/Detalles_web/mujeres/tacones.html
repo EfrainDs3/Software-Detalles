@@ -335,9 +335,9 @@
             contenedor.innerHTML = productos.map(producto => `
                 <div class="product-card-detailed" data-product-id="${producto.id}">
                     <div class="product-image-detailed">
-                        <img src="${producto.imagenUrl || 'https://via.placeholder.com/300x300'}" 
-                             alt="${producto.nombre || producto.nombre_producto}" 
-                             onerror="this.src='https://via.placeholder.com/300x300'">
+                        <img src="${producto.imagen || '/img/Upload/productos/producto-default.jpg'}" 
+                             alt="${producto.nombre}" 
+                             onerror="this.src='/img/Upload/productos/producto-default.jpg'">
                         <div class="product-overlay">
                             <button class="quick-view" onclick="vistaRapida(${producto.id})">Vista Rápida</button>
                         </div>
