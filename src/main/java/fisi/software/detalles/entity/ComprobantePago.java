@@ -29,7 +29,7 @@ import lombok.AllArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "usuario", "cliente", "tipoComprobante"})
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler", "usuario", "cliente", "tipoComprobante" })
 public class ComprobantePago {
 
     // Clave Primaria: id_comprobante (BIGINT, AUTO_INCREMENT)
@@ -41,11 +41,11 @@ public class ComprobantePago {
     // -----------------------------------------------------------
     // RELACIONES (Claves Foráneas)
     // -----------------------------------------------------------
-    
+
     // id_cliente (FK)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_cliente")
-    private Cliente cliente; 
+    private Cliente cliente;
 
     // id_usuario (FK, NOT NULL)
     @ManyToOne(fetch = FetchType.LAZY)
@@ -61,6 +61,11 @@ public class ComprobantePago {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_apertura", nullable = false)
     private AperturaCaja apertura;
+
+    // Relación recursiva para ventas editadas
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_venta_original", nullable = true)
+    private ComprobantePago ventaOriginal;
 
     // -----------------------------------------------------------
     // ATRIBUTOS DE LA TABLA
@@ -86,7 +91,7 @@ public class ComprobantePago {
 
     @Column(name = "motivo_anulacion", columnDefinition = "TEXT")
     private String motivoAnulacion;
-    
+
     // -----------------------------------------------------------
     // RELACIÓN CON DETALLES (OneToMany)
     // -----------------------------------------------------------

@@ -198,19 +198,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // ✅ VALIDACIÓN MANUAL
         if (!idTipoDoc || idTipoDoc === '0') {
-            alert("❌ Debe seleccionar un Tipo de Documento.");
+            showToast("❌ Debe seleccionar un Tipo de Documento.", "error");
             modalClienteTipoDoc.focus();
             return;
         }
 
         if (!numDoc) {
-            alert("❌ El Número de Documento es obligatorio.");
+            showToast("❌ El Número de Documento es obligatorio.", "error");
             modalClienteNumDoc.focus();
             return;
         }
 
         if (!nombres) {
-            alert("❌ El campo Nombres/Razón Social es obligatorio.");
+            showToast("❌ El campo Nombres/Razón Social es obligatorio.", "error");
             modalClienteNombres.focus();
             return;
         }
@@ -247,14 +247,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 // 4. Ejecuta la búsqueda para actualizar el estado
                 await buscarClientePorDocumento();
 
-                alert("✅ Cliente registrado y seleccionado correctamente.");
+                showToast("✅ Cliente registrado y seleccionado correctamente.", "success");
             } else {
                 const error = await response.json();
-                alert(`❌ Error al registrar el cliente: ${error.error || 'Datos inválidos o ya existe un cliente con ese documento.'}`);
+                showToast(`❌ Error al registrar el cliente: ${error.error || 'Datos inválidos o ya existe un cliente con ese documento.'}`, "error");
             }
         } catch (error) {
             console.error('Error de conexión en registro de cliente:', error);
-            alert("❌ Error de conexión con el servidor al registrar cliente.");
+            showToast("❌ Error de conexión con el servidor al registrar cliente.", "error");
         }
     }
 
@@ -325,11 +325,15 @@ document.addEventListener('DOMContentLoaded', () => {
         ventasData.forEach(venta => {
             // ✅ ACCESO CORRECTO A LAS PROPIEDADES DEL DTO
             const id = venta.id;
-            const cliente = venta.cliente || 'Público General'; // ✅ Ya viene como string del backend
+            const cliente = venta.cliente || 'Público General';
             const fecha = venta.fecha ? new Date(venta.fecha).toLocaleDateString('es-PE') : '';
             const metodoPago = venta.metodoPago || 'N/A';
             const estado = venta.estado || 'Emitido';
             const total = venta.total || 0;
+            const isModificado = estado === 'Modificado';
+
+            // Opcional: Estilo visual para ventas modificadas
+            const rowClass = isModificado ? 'text-muted' : '';
 
             const row = document.createElement('tr');
             row.innerHTML = `
@@ -342,12 +346,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td><span class="price">S/ ${total.toFixed(2)}</span></td>
                 <td>
                     <div class="action-buttons-cell">
-                        <button class="btn-icon btn-edit" data-id="${id}" title="Editar">
+                        <button class="btn-icon btn-edit" data-id="${id}" title="Editar" ${isModificado ? 'disabled' : ''}>
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn-icon btn-delete" data-id="${id}" title="Eliminar">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                        <!-- Botón Eliminar REMOVIDO -->
                         <button class="btn-icon btn-view" data-id="${id}" title="Ver detalles">
                             <i class="fas fa-eye"></i>
                         </button>
@@ -525,13 +527,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showDetalleModal(venta) {
-        // ✅ ACCESO CORRECTO A LAS PROPIEDADES
-        detalleVentaId.textContent = venta.id;
-        detalleVentaCliente.textContent = venta.cliente || 'Público General';
-        detalleVentaFecha.textContent = venta.fecha ? new Date(venta.fecha).toLocaleDateString('es-PE') : '';
-        detalleVentaMetodoPago.textContent = venta.metodoPago || 'N/A';
-        detalleVentaEstado.textContent = venta.estado || 'Emitido';
-        detalleVentaTotal.textContent = `S/ ${(venta.total || 0).toFixed(2)}`;
+        if (venta.idVentaOriginal) {
+            const infoDiv = document.createElement('div');
+            infoDiv.id = 'infoEdicionVenta';
+            infoDiv.className = 'alert alert-info mt-3';
+            infoDiv.innerHTML = `
+                <i class="fas fa-info-circle"></i> Esta venta es una edición de la Venta #${venta.idVentaOriginal}.
+                <button class="btn btn-sm btn-outline-primary ml-2" onclick="window.open('/ventas/${venta.idVentaOriginal}/pdf', '_blank')">
+                    <i class="fas fa-file-download"></i> Descargar Boleta Original
+                </button>
+            `;
+            detalleVentaTotal.parentNode.appendChild(infoDiv);
+        }
 
         detalleProductosList.innerHTML = '';
         const productosDetalle = venta.detalles || [];
@@ -564,14 +571,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const year = fecha.getFullYear();
             const mes = String(fecha.getMonth() + 1).padStart(2, '0');
             const dia = String(fecha.getDate()).padStart(2, '0');
-            ventaFechaInput.value = `${year}-${mes}-${dia}`;
+
+            if (ventaFechaInput) {
+                ventaFechaInput.value = `${year}-${mes}-${dia}`;
+            } else {
+                console.error("Error: Elemento 'ventaFecha' no encontrado en el DOM.");
+            }
         }
 
-        ventaMetodoPagoSelect.value = venta.metodoPago || '';
-        ventaEstadoSelect.value = venta.estado || 'Emitido';
+        if (ventaMetodoPagoSelect) ventaMetodoPagoSelect.value = venta.metodoPago || '';
+        if (ventaEstadoSelect) ventaEstadoSelect.value = venta.estado || 'Emitido';
 
         // Cargar tipo de comprobante si existe
-        if (venta.id_tipo_comprobante) {
+        if (venta.id_tipo_comprobante && ventaTipoComprobanteSelect) {
             ventaTipoComprobanteSelect.value = venta.id_tipo_comprobante.toString();
         }
 
@@ -582,6 +594,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Cargar productos
         if (productosContainer) {
             productosContainer.innerHTML = '';
+            // Limpia los productos anteriores
             const productosDetalle = venta.detalles || [];
 
             productosDetalle.forEach(product => {
@@ -763,6 +776,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (btn.classList.contains('btn-edit')) {
             if (venta) {
+                await cargarProductosDisponibles();
                 fillForm(venta);
                 modalTitle.textContent = 'Editar Venta';
                 openModal();
