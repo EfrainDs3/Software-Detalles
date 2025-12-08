@@ -2,7 +2,7 @@
   const PRODUCT_API = '/api/productos/calzados';
   const PROVIDER_API = '/api/proveedores';
   const CATALOG_BASE = '/api/catalogos';
-  const PLACEHOLDER_IMG = '/img/calzado-default.jpg';
+  const PLACEHOLDER_IMG = '/img/Upload/productos/producto-default.jpg';
 
   const state = {
     items: [],

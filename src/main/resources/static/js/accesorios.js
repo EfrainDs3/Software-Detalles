@@ -4,7 +4,7 @@
   const PRODUCT_API = '/api/productos/accesorios';
   const PROVIDER_API = '/api/proveedores';
   const CATALOG_BASE = '/api/catalogos';
-  const PLACEHOLDER_IMG = '/img/calzado-default.jpg';
+  const PLACEHOLDER_IMG = '/img/Upload/productos/producto-default.jpg';
 
   // Mapear tiposProducto válidos por sexo. Los nombres deben coincidir EXACTAMENTE
   // con los registrados en detalles.sql

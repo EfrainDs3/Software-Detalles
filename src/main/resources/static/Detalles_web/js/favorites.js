@@ -46,7 +46,7 @@
 
         grid.innerHTML = favoritos.map(fav => `
             <div class="favorite-card" data-id="${fav.producto.id}">
-                <img src="${fav.producto.imagen || '/img/calzado-default.jpg'}" 
+                <img src="${fav.producto.imagen || '/img/Upload/productos/producto-default.jpg'}" 
                      alt="${fav.producto.nombre}" class="favorite-image">
                 <div class="favorite-info">
                     <div class="favorite-name">${fav.producto.nombre}</div>
