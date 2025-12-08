@@ -94,6 +94,22 @@ public class VentasController {
         }
     }
 
+    @GetMapping("/api/historial-apertura/{id}")
+    @ResponseBody
+    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).VER_VENTAS, T(fisi.software.detalles.security.Permisos).MODULO_CAJA)")
+    public ResponseEntity<List<fisi.software.detalles.controller.dto.VentaListDTO>> getHistorialPorApertura(
+            @PathVariable Long id) {
+        try {
+            System.out.println("Solicitando historial para apertura ID: " + id);
+            List<fisi.software.detalles.controller.dto.VentaListDTO> ventas = ventaService.listarVentasPorApertura(id);
+            return ResponseEntity.ok(ventas);
+        } catch (Exception e) {
+            System.err.println("Error calculating history for aperture " + id + ": " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
     /**
      * POST /ventas/api
      * 💡 CORRECCIÓN: Se añade @Valid para que se ejecute la validación de los DTOs
