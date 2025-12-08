@@ -537,6 +537,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     <i class="fas fa-file-download"></i> Descargar Boleta Original
                 </button>
             `;
+            // Insertar después de la información del detalle
+            const detalleInfo = document.querySelector('.detalle-venta-info');
+            if (detalleInfo) {
+                // Eliminar alerta previa si existe
+                const existingAlert = document.getElementById('infoEdicionVenta');
+                if (existingAlert) existingAlert.remove();
+
+                detalleInfo.parentNode.insertBefore(infoDiv, detalleInfo.nextSibling);
+            }
+        } else {
+            // Limpiar si no es edición
+            const existingAlert = document.getElementById('infoEdicionVenta');
+            if (existingAlert) existingAlert.remove();
         }
 
         // ✅ POPULATE HEADER FIELDS (Fix for missing details)
