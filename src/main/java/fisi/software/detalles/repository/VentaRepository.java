@@ -10,13 +10,15 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface VentaRepository extends JpaRepository<ComprobantePago, Long> {
-    
+
     // Spring Data JPA automáticamente proporciona:
     // - findAll() para listar todas las ventas.
     // - save(ComprobantePago venta) para guardar o actualizar una venta.
     // - findById(Long id) para buscar por ID.
-    
-    // Si necesitas métodos de consulta específicos, los agregarías aquí.
-    // Ejemplo:
-    // List<ComprobantePago> findByEstado(String estado);
+
+    // Obtiene la suma de TOTOTAL de las ventas (estado='Emitido') para una apertura
+    // específica
+    @org.springframework.data.jpa.repository.Query("SELECT COALESCE(SUM(v.total), 0) FROM ComprobantePago v WHERE v.apertura.idApertura = :idApertura AND v.estado = 'Emitido'")
+    java.math.BigDecimal sumTotalByAperturaId(
+            @org.springframework.web.bind.annotation.PathVariable("idApertura") Long idApertura);
 }

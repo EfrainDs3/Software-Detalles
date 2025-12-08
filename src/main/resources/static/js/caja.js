@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const cashierStatusText = document.getElementById('cashierStatusText');
-    
+
     // Referencias para Abrir/Cerrar Caja
     const checkInBtn = document.getElementById('checkInBtn');
     const checkOutBtn = document.getElementById('checkOutBtn');
@@ -437,13 +437,46 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Mostrar Modal Cierre
+    // Mostrar Modal Cierre
     if (checkOutBtn) {
-        checkOutBtn.addEventListener('click', () => {
+        checkOutBtn.addEventListener('click', async () => {
             if (currentAperturaId) {
                 // Cargar el monto inicial en el modal de cierre
                 if (checkoutInitialAmountInput) checkoutInitialAmountInput.value = formatCurrency(currentMontoInicial);
+
+                // ✅ NUEVO: Cargar total de ventas y calcular monto esperado
+                const checkoutSalesSummary = document.getElementById('checkoutSalesSummary');
+                const checkoutTotalSales = document.getElementById('checkoutTotalSales');
+                const checkoutExpectedTotal = document.getElementById('checkoutExpectedTotal');
+
+                try {
+                    // Mostrar "Cargando..." mientras se consulta
+                    if (checkoutTotalSales) checkoutTotalSales.textContent = 'Cargando...';
+                    if (checkoutExpectedTotal) checkoutExpectedTotal.textContent = '...';
+                    if (checkoutSalesSummary) checkoutSalesSummary.style.display = 'block';
+
+                    const response = await fetch(`/ventas/api/total-apertura/${currentAperturaId}`, { credentials: 'include' });
+                    if (response.ok) {
+                        const data = await response.json();
+                        const totalVentas = parseFloat(data.total) || 0;
+                        const totalEsperado = currentMontoInicial + totalVentas;
+
+                        if (checkoutTotalSales) checkoutTotalSales.textContent = formatCurrency(totalVentas);
+                        if (checkoutExpectedTotal) checkoutExpectedTotal.textContent = formatCurrency(totalEsperado);
+
+                        // ✅ Pre-llenar el campo editable con el total esperado
+                        if (finalAmountInput) finalAmountInput.value = totalEsperado.toFixed(2);
+                    } else {
+                        console.error('Error al obtener totales de venta');
+                        if (checkoutTotalSales) checkoutTotalSales.textContent = 'Error';
+                    }
+                } catch (error) {
+                    console.error('Error de conexión al obtener totales:', error);
+                }
+
                 if (checkOutModal) checkOutModal.style.display = 'block';
-                finalAmountInput.focus();
+                // Seleccionar el texto para editar fácilmente si es necesario
+                if (finalAmountInput) finalAmountInput.select();
             } else {
                 showToast('La caja está cerrada. Debe abrirla primero.');
             }

@@ -103,6 +103,10 @@ public class VentaService {
         return response;
     }
 
+    public BigDecimal calcularTotalVentasPorApertura(Long idApertura) {
+        return ventaRepository.sumTotalByAperturaId(idApertura);
+    }
+
     private boolean isCajaAbierta() {
         return !cajaRepository.findByEstado("Abierta").isEmpty();
     }

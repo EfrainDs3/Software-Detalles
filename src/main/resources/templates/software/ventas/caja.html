@@ -241,6 +241,20 @@
                     <label>Monto Inicial</label>
                     <input type="text" id="checkoutInitialAmount" readonly>
                 </div>
+
+                <div id="checkoutSalesSummary" class="alert alert-info"
+                    style="display: none; padding: 10px; font-size: 0.9em; margin-bottom: 15px;">
+                    <p style="margin: 0; display: flex; justify-content: space-between;">
+                        <span>Ventas del Turno:</span>
+                        <strong id="checkoutTotalSales">S/ 0.00</strong>
+                    </p>
+                    <hr style="margin: 5px 0; border-color: #bee5eb;">
+                    <p style="margin: 0; display: flex; justify-content: space-between; font-weight: bold;">
+                        <span>Total Esperado:</span>
+                        <span id="checkoutExpectedTotal">S/ 0.00</span>
+                    </p>
+                </div>
+
                 <div class="form-group">
                     <label for="finalAmount">Monto Final (S/)</label>
                     <input type="number" id="finalAmount" name="finalAmount" required placeholder="Ej: 580.50"
@@ -277,9 +291,9 @@
             <p id="mensajeCaja" style="margin-top: 10px;"></p>
         </div>
     </div>
-    <script src="/js/sidebar.js"></script>
-    <script src="/js/logout.js"></script>
-    <script src="/js/caja.js"></script>
+    <script src="/js/sidebar.js?v=2.0"></script>
+    <script src="/js/logout.js?v=2.0"></script>
+    <script src="/js/caja.js?v=2.1"></script>
 </body>
 
 </html>
