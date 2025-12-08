@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 07-12-2025 a las 05:18:28
+-- Tiempo de generación: 08-12-2025 a las 23:26:48
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -223,15 +223,16 @@ CREATE TABLE `comprobantespago` (
   `subtotal` decimal(10,2) NOT NULL,
   `estado` varchar(20) NOT NULL DEFAULT 'Emitido',
   `motivo_anulacion` text DEFAULT NULL,
-  `id_apertura` bigint(20) NOT NULL
+  `id_apertura` bigint(20) NOT NULL,
+  `id_venta_original` bigint(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `comprobantespago`
 --
 
-INSERT INTO `comprobantespago` (`id_comprobante`, `id_cliente`, `id_usuario`, `id_tipo_comprobante`, `numero_comprobante`, `fecha_emision`, `total`, `igv`, `subtotal`, `estado`, `motivo_anulacion`, `id_apertura`) VALUES
-(1, 3, 6, 1, 'B001-00000001', '2025-11-26 05:00:00', 400.00, 61.02, 338.98, 'Emitido', NULL, 1);
+INSERT INTO `comprobantespago` (`id_comprobante`, `id_cliente`, `id_usuario`, `id_tipo_comprobante`, `numero_comprobante`, `fecha_emision`, `total`, `igv`, `subtotal`, `estado`, `motivo_anulacion`, `id_apertura`, `id_venta_original`) VALUES
+(1, 3, 6, 1, 'B001-00000001', '2025-11-26 05:00:00', 400.00, 61.02, 338.98, 'Emitido', NULL, 1, NULL);
 
 -- --------------------------------------------------------
 
@@ -366,7 +367,9 @@ CREATE TABLE `marcasproducto` (
 
 INSERT INTO `marcasproducto` (`id_marca`, `nombre_marca`) VALUES
 (5, 'Adidas'),
+(29, 'Aldo'),
 (10, 'Angel'),
+(30, 'Birkenstock'),
 (7, 'Boss'),
 (8, 'Caterpillar'),
 (6, 'Converse'),
@@ -377,13 +380,22 @@ INSERT INTO `marcasproducto` (`id_marca`, `nombre_marca`) VALUES
 (4, 'FootLoose'),
 (15, 'Gucci'),
 (13, 'Guess'),
+(26, 'H&M'),
+(24, 'Hush Puppies'),
 (3, 'Louis Vuitton'),
+(27, 'Massimo Dutti'),
+(21, 'New Balance'),
 (17, 'New York Yankees'),
 (1, 'Nike'),
+(23, 'North Star'),
 (14, 'Oakley'),
+(28, 'Piazza'),
+(20, 'Puma'),
 (19, 'Ray-Ban'),
+(22, 'Reebok'),
 (16, 'Rolex'),
-(18, 'Tommy Hilfiger');
+(18, 'Tommy Hilfiger'),
+(25, 'Vans');
 
 -- --------------------------------------------------------
 
@@ -401,7 +413,12 @@ CREATE TABLE `materialesproducto` (
 --
 
 INSERT INTO `materialesproducto` (`id_material`, `nombre_material`) VALUES
-(1, 'Cuero');
+(5, 'Canvas'),
+(1, 'Cuero'),
+(4, 'Sintético'),
+(3, 'Suede'),
+(6, 'Tela'),
+(2, 'Textil');
 
 -- --------------------------------------------------------
 
@@ -420,13 +437,13 @@ CREATE TABLE `modelos` (
 --
 
 INSERT INTO `modelos` (`id_modelo`, `nombre_modelo`, `id_marca`) VALUES
-(1, 'Air Max720', 1),
-(2, 'Air Max710', 1),
-(3, 'Modelo123', 1),
+(1, 'Air Force 1', 1),
+(2, 'Ultra Boost 22', 5),
+(3, 'Air Max 270', 1),
 (4, 'Modelo2', 1),
 (5, 'J\'Adior', 2),
 (6, 'Territory', 3),
-(7, 'Ftl-Nw00015', 4),
+(7, 'Fch-Rs023 Danae', 4),
 (8, 'Adidas Superstar', 5),
 (9, 'All Star', 6),
 (10, 'Derby', 7),
@@ -449,7 +466,19 @@ INSERT INTO `modelos` (`id_modelo`, `nombre_modelo`, `id_marca`) VALUES
 (27, 'Everyday', 1),
 (28, 'Essential', 18),
 (29, 'Heritage86', 1),
-(30, 'Aviator Junior', 19);
+(30, 'Aviator Junior', 19),
+(31, 'Cali Court', 20),
+(32, '574 Core', 21),
+(33, 'Classic Leather', 22),
+(34, 'Compus', 23),
+(35, 'Memory Foam', 24),
+(36, 'Ward', 25),
+(37, 'Chuck Taylor', 6),
+(38, 'Pump', 26),
+(39, 'Destalonado', 27),
+(40, 'Pump', 28),
+(41, 'Tela Sandal', 29),
+(42, 'Arizona', 30);
 
 -- --------------------------------------------------------
 
@@ -520,14 +549,6 @@ CREATE TABLE `pedidoscompra` (
   `total_pedido` decimal(10,2) NOT NULL DEFAULT 0.00,
   `aplica_igv` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Volcado de datos para la tabla `pedidoscompra`
---
-
-INSERT INTO `pedidoscompra` (`id_pedido_compra`, `id_proveedor`, `id_usuario`, `fecha_pedido`, `fecha_entrega_esperada`, `id_tipopago`, `referencia`, `observaciones`, `estado_pedido`, `total_pedido`, `aplica_igv`) VALUES
-(2, 2, 4, '2025-11-25 21:07:11', NULL, NULL, NULL, NULL, 'Pendiente', 1220.00, 1),
-(3, 2, 4, '2025-11-25 22:48:23', NULL, NULL, NULL, NULL, 'Completado', 6205.00, 1);
 
 -- --------------------------------------------------------
 
@@ -802,7 +823,7 @@ CREATE TABLE `productos` (
   `id_modelo` int(11) DEFAULT NULL,
   `id_material` int(11) DEFAULT NULL,
   `imagen` varchar(255) DEFAULT NULL,
-  `sexo_tipo` enum('HOMBRE','MUJER','NIÑO') DEFAULT NULL
+  `sexo_tipo` varchar(10) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -810,35 +831,47 @@ CREATE TABLE `productos` (
 --
 
 INSERT INTO `productos` (`id_producto`, `nombre_producto`, `descripcion`, `precio_venta`, `costo_compra`, `codigo_barra`, `id_categoria`, `id_proveedor`, `id_unidad_medida`, `color`, `tipo`, `dimensiones`, `peso_gramos`, `estado`, `id_modelo`, `id_material`, `imagen`, `sexo_tipo`) VALUES
-(1, 'Zapatillas Nike', 'Zapatillas Deportivas Nike Air Max710', 200.00, 190.00, '123456789', 1, 2, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 2, 1, NULL, 'MUJER'),
-(2, 'Zapatos Casuales', NULL, 180.00, 150.00, NULL, 1, 2, 1, 'Blanco', 'MUJER', NULL, NULL, b'1', 4, 1, NULL, 'MUJER'),
-(3, 'Tacones Elegantes', NULL, 230.00, 180.00, NULL, 1, 2, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 5, 1, NULL, 'MUJER'),
-(4, 'Botín Territory', NULL, 410.00, 359.98, NULL, 1, 2, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 6, 1, NULL, 'MUJER'),
-(5, 'Sandalias FootLoose', NULL, 360.00, 279.99, NULL, 1, 2, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 7, 1, NULL, 'MUJER'),
-(6, 'Zapatillas Deportiva Adidas', NULL, 410.00, 380.00, NULL, 1, 2, 1, 'Blanco', 'HOMBRE', NULL, NULL, b'1', 8, 1, NULL, 'HOMBRE'),
-(7, 'Zapatos All Star', NULL, 250.00, 179.98, NULL, 1, 2, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 9, 1, NULL, 'HOMBRE'),
-(8, 'Zapatos Elegantes BOSS', NULL, 370.00, 300.00, NULL, 1, 2, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 10, 1, NULL, 'HOMBRE'),
-(9, 'Botas Caterpillar', NULL, 340.00, 290.00, NULL, 1, 2, 1, 'Beige', 'HOMBRE', NULL, NULL, b'1', 11, 1, NULL, 'HOMBRE'),
-(10, 'Sandalias Crogs', NULL, 370.00, 350.00, NULL, 1, 2, 1, 'Blanco', 'HOMBRE', NULL, NULL, b'1', 12, 1, NULL, 'HOMBRE'),
-(11, 'Zapatillas Adidas Niños', NULL, 110.00, 70.00, NULL, 1, 2, 1, 'Blanco', 'NIÑO', NULL, NULL, b'1', 13, 1, NULL, 'NIÑO'),
-(12, 'Zapatos Derby Kids', NULL, 130.00, 109.98, NULL, 1, 2, 1, 'Marrón', 'NIÑO', NULL, NULL, b'1', 14, 1, NULL, 'NIÑO'),
-(13, 'Zapatos Escolares Footloose Kids', NULL, 65.00, 50.00, NULL, 1, 2, 1, 'Negro', 'NIÑO', NULL, NULL, b'1', 15, 1, NULL, 'NIÑO'),
-(14, 'Pantuflas Silenciosas', NULL, 40.00, 29.00, NULL, 1, 2, 1, 'Gris', 'NIÑO', NULL, NULL, b'1', 16, 1, NULL, 'NIÑO'),
-(15, 'Sandalias Clogs Kids', NULL, 70.00, 50.00, NULL, 1, 2, 1, 'Celeste', 'NIÑO', NULL, NULL, b'1', 17, 1, NULL, 'NIÑO'),
-(16, 'Botín Daclay Kids', NULL, 60.00, 40.00, NULL, 1, 2, 1, 'Beige', 'NIÑO', NULL, NULL, b'1', 18, 1, NULL, 'NIÑO'),
-(17, 'Bolso de cuero', NULL, 100.00, 80.00, NULL, 2, 2, 1, 'Negro', 'MUJER', '120 x 4 x 0.5 cm', 11, b'1', 5, 1, NULL, 'MUJER'),
-(18, 'Billetera Guess', NULL, 290.00, 190.00, NULL, 2, 2, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 19, 1, NULL, 'MUJER'),
-(19, 'Gafas de sol Oakley Polarizado', NULL, 590.00, 470.00, NULL, 2, 2, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 20, 1, NULL, 'MUJER'),
-(20, 'Cinturón Gucci', NULL, 510.00, 460.00, NULL, 2, 2, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 21, 1, NULL, 'MUJER'),
-(21, 'Cinturón Doble G', NULL, 620.00, 570.00, NULL, 2, 2, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 22, 1, NULL, 'HOMBRE'),
-(22, 'Reloj Rolex de Oro', NULL, 730.00, 650.00, NULL, 2, 2, 1, 'Dorado', 'HOMBRE', NULL, NULL, b'1', 23, 1, NULL, 'HOMBRE'),
-(23, 'Gafas de Sol Gucci', NULL, 670.00, 589.99, NULL, 2, 2, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 24, 1, NULL, 'HOMBRE'),
-(24, 'Billetera Bifold clásica', NULL, 780.00, 650.00, NULL, 2, 2, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 25, 1, NULL, 'HOMBRE'),
-(25, 'Gorra New York Yankess MLB', NULL, 160.00, 120.00, NULL, 2, 2, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 26, 1, NULL, 'HOMBRE'),
-(26, 'Calcetín Everyday niños', NULL, 40.00, 20.00, NULL, 2, 2, 1, 'Blanco', 'NIÑO', NULL, NULL, b'1', 27, 1, NULL, 'NIÑO'),
-(27, 'Cinturón Essential Trenzado', NULL, 120.00, 90.00, NULL, 2, 2, 1, 'Negro', 'NIÑO', NULL, NULL, b'1', 28, 1, NULL, 'NIÑO'),
-(28, 'Gorra R86 Nike', NULL, 170.00, 130.00, NULL, 2, 2, 1, 'Negro', 'NIÑO', NULL, NULL, b'1', 29, 1, NULL, 'NIÑO'),
-(29, 'Gafas de sol Aviator Junior', NULL, 260.00, 180.00, NULL, 2, 2, 1, 'Negro', 'NIÑO', NULL, NULL, b'1', 30, 1, NULL, 'NIÑO');
+(1, 'Zapatillas Nike Air Force 1 Mujer', 'Zapatilla deportiva para mujer con diseño clásico y acabado en cuero sintético, ideal para uso diario gracias a su comodidad, resistencia y estilo urbano.', 379.00, 280.00, '7891234567012', 1, 1, 1, 'Blanco', 'MUJER', NULL, NULL, b'1', 1, 1, '/img/Upload/productos/zapatillas-nike-air-force-1-mujer.jpg', 'MUJER'),
+(2, 'Zapatillas Urbanas North Star Campus Azul Mujer', 'Zapato casual cómodo con diseño minimalista y suela flexible.', 189.00, 130.00, '7892234567042', 1, 1, 1, 'Azul', 'MUJER', NULL, NULL, b'1', 34, 1, '/img/Upload/productos/zapatillas-urbanas-north-star-campus-azul-mujer.jpg', 'MUJER'),
+(3, 'Tacones Elegantes H&M Pump Negro', 'Tacón clásico femenino en color negro, elegante y versátil, ideal para oficina o eventos formales.', 159.00, 110.00, '7894234567014', 1, 3, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 38, 1, '/img/Upload/productos/tacones-elegantes-h-m-pump-negro.jpg', 'MUJER'),
+(4, 'Botín Territory', NULL, 410.00, 359.98, NULL, 1, NULL, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 6, 1, NULL, 'MUJER'),
+(5, 'Sandalias FootLoose Fch-Rs023 Danae Mujer', 'Estilo cómodo y desenfadado, con diseño sencillo ideal para el día a día, perfecta para looks informales.', 119.00, 80.00, '7895234567010', 1, 2, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 7, 4, '/img/Upload/productos/sandalias-footloose-fch-rs023-danae-mujer.jpg', 'MUJER'),
+(6, 'Zapatillas Deportiva Adidas', NULL, 410.00, 380.00, NULL, 1, NULL, 1, 'Blanco', 'HOMBRE', NULL, NULL, b'1', 8, 1, NULL, 'HOMBRE'),
+(7, 'Zapatos All Star', NULL, 250.00, 179.98, NULL, 1, NULL, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 9, 1, NULL, 'HOMBRE'),
+(8, 'Zapatos Elegantes BOSS', NULL, 370.00, 300.00, NULL, 1, NULL, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 10, 1, NULL, 'HOMBRE'),
+(9, 'Botas Caterpillar', NULL, 340.00, 290.00, NULL, 1, NULL, 1, 'Beige', 'HOMBRE', NULL, NULL, b'1', 11, 1, NULL, 'HOMBRE'),
+(10, 'Sandalias Crogs', NULL, 370.00, 350.00, NULL, 1, NULL, 1, 'Blanco', 'HOMBRE', NULL, NULL, b'1', 12, 1, NULL, 'HOMBRE'),
+(11, 'Zapatillas Adidas Niños', NULL, 110.00, 70.00, NULL, 1, NULL, 1, 'Blanco', 'NIÑO', NULL, NULL, b'1', 13, 1, NULL, 'NIÑO'),
+(12, 'Zapatos Derby Kids', NULL, 130.00, 109.98, NULL, 1, NULL, 1, 'Marrón', 'NIÑO', NULL, NULL, b'1', 14, 1, NULL, 'NIÑO'),
+(13, 'Zapatos Escolares Footloose Kids', NULL, 65.00, 50.00, NULL, 1, NULL, 1, 'Negro', 'NIÑO', NULL, NULL, b'1', 15, 1, NULL, 'NIÑO'),
+(14, 'Pantuflas Silenciosas', NULL, 40.00, 29.00, NULL, 1, NULL, 1, 'Gris', 'NIÑO', NULL, NULL, b'1', 16, 1, NULL, 'NIÑO'),
+(15, 'Sandalias Clogs Kids', NULL, 70.00, 50.00, NULL, 1, NULL, 1, 'Celeste', 'NIÑO', NULL, NULL, b'1', 17, 1, NULL, 'NIÑO'),
+(16, 'Botín Daclay Kids', NULL, 60.00, 40.00, NULL, 1, NULL, 1, 'Beige', 'NIÑO', NULL, NULL, b'1', 18, 1, NULL, 'NIÑO'),
+(17, 'Bolso de cuero', NULL, 100.00, 80.00, NULL, 2, NULL, 1, 'Negro', 'MUJER', '120 x 4 x 0.5 cm', 11, b'1', 5, 1, NULL, 'MUJER'),
+(18, 'Billetera Guess', NULL, 290.00, 190.00, NULL, 2, NULL, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 19, 1, NULL, 'MUJER'),
+(19, 'Gafas de sol Oakley Polarizado', NULL, 590.00, 470.00, NULL, 2, NULL, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 20, 1, NULL, 'MUJER'),
+(20, 'Cinturón Gucci', NULL, 510.00, 460.00, NULL, 2, NULL, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 21, 1, NULL, 'MUJER'),
+(21, 'Cinturón Doble G', NULL, 620.00, 570.00, NULL, 2, NULL, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 22, 1, NULL, 'HOMBRE'),
+(22, 'Reloj Rolex de Oro', NULL, 730.00, 650.00, NULL, 2, NULL, 1, 'Dorado', 'HOMBRE', NULL, NULL, b'1', 23, 1, NULL, 'HOMBRE'),
+(23, 'Gafas de Sol Gucci', NULL, 670.00, 589.99, NULL, 2, NULL, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 24, 1, NULL, 'HOMBRE'),
+(24, 'Billetera Bifold clásica', NULL, 780.00, 650.00, NULL, 2, NULL, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 25, 1, NULL, 'HOMBRE'),
+(25, 'Gorra New York Yankess MLB', NULL, 160.00, 120.00, NULL, 2, NULL, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 26, 1, NULL, 'HOMBRE'),
+(26, 'Calcetín Everyday niños', NULL, 40.00, 20.00, NULL, 2, NULL, 1, 'Blanco', 'NIÑO', NULL, NULL, b'1', 27, 1, NULL, 'NIÑO'),
+(27, 'Cinturón Essential Trenzado', NULL, 120.00, 90.00, NULL, 2, NULL, 1, 'Negro', 'NIÑO', NULL, NULL, b'1', 28, 1, NULL, 'NIÑO'),
+(28, 'Gorra R86 Nike', NULL, 170.00, 130.00, NULL, 2, NULL, 1, 'Negro', 'NIÑO', NULL, NULL, b'1', 29, 1, NULL, 'NIÑO'),
+(29, 'Gafas de sol Aviator Junior', NULL, 260.00, 180.00, NULL, 2, NULL, 1, 'Negro', 'NIÑO', NULL, NULL, b'1', 30, 1, NULL, 'NIÑO'),
+(30, 'Zapatillas Adidas UltraBoost 22 Running Mujer', 'Zapatilla running para mujer con amortiguación reactiva Boost y ajuste tipo calcetín para largas distancias.', 599.00, 420.00, '7891234567024', 1, 1, 1, 'Blanco', 'MUJER', NULL, NULL, b'1', 2, 2, '/img/Upload/productos/zapatillas-adidas-ultraboost-22-running-mujer.jpg', 'MUJER'),
+(31, 'Zapatillas Puma Cali Court Lth Mujer', 'Zapatilla casual femenina estilo retro con suela ancha.', 399.00, 325.00, '7891234567031', 1, 1, 1, 'Blanco', 'MUJER', NULL, NULL, b'1', 31, 1, '/img/Upload/productos/zapatillas-puma-cali-court-lth-mujer.jpg', 'MUJER'),
+(32, 'Zapatillas New Balance 574 Core Mujer', 'Zapatilla lifestyle duradera y cómoda para uso diario.', 279.00, 195.00, '7891234567048', 1, 2, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 32, 3, '/img/Upload/productos/zapatillas-new-balance-574-core-mujer.jpg', 'MUJER'),
+(33, 'Zapatillas Rebook Classic Leather Mujer', 'Zapatilla atemporal, cómoda y versátil para outfit diario.', 249.00, 170.00, '7891234567055', 1, 2, 1, 'Crema', 'MUJER', NULL, NULL, b'1', 33, 1, '/img/Upload/productos/zapatillas-rebook-classic-leather-mujer.jpg', 'MUJER'),
+(34, 'Zapatillas Casuales Hush Puppies Lens Mujer Beige', 'Zapatilla mujer con plantilla de memory foam que absorbe el impacto al caminar otorgando mayor amortiguación y confort.', 159.00, 109.99, '7892234567035', 1, 2, 1, 'Beige', 'MUJER', NULL, NULL, b'1', 35, 4, '/img/Upload/productos/zapatillas-casuales-hush-puppies-lens-mujer-beige.jpg', 'MUJER'),
+(35, 'Zapatillas Urbanas Vans Ward Mujer', 'Zapatilla casual clásica con plataforma y estilo skate.', 149.00, 115.00, '7892234567059', 1, 1, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 36, 4, '/img/Upload/productos/zapatillas-urbanas-vans-ward-mujer.jpg', 'MUJER'),
+(36, 'Zapatillas Converse Chuck Taylor All Star Mujer', 'Zapatilla casual femenina con plataforma y diseño icónico.', 299.00, 210.00, '7892234567018', 1, 2, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 37, 5, '/img/Upload/productos/zapatillas-converse-chuck-taylor-all-star-mujer.jpg', 'MUJER'),
+(37, 'Tacones Elegantes Mujer J\'Adior Negro', 'Tacón femenino negro estilo slingback con punta fina y detalle J\'Adior, elegante y sofisticado, ideal para eventos formales.', 2499.00, 2100.00, '7893234567023', 1, 3, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 5, 1, '/img/Upload/productos/tacones-elegantes-mujer-j-adior-negro.jpg', 'MUJER'),
+(38, 'Tacones Elegantes Massimo Dutti  Negro', 'Tacón sofisticado, textura suave y look refinado para outfits casual-elegantes.', 299.00, 220.00, '7893234567020', 1, 3, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 39, 1, '/img/Upload/productos/tacones-elegantes-massimo-dutti-negro.jpg', 'MUJER'),
+(39, 'Tacones de Vestir Rojos Piazza', 'Un zapato que se convierte en el aliado perfecto para un look sofisticado y femenino. Ideal tanto para eventos especiales como para acompañar tu estilo en el día a día.', 179.00, 140.00, '7893234567039', 1, 3, 1, 'Rojo', 'MUJER', NULL, NULL, b'1', 40, 1, '/img/Upload/productos/tacones-de-vestir-rojos-piazza.jpg', 'MUJER'),
+(40, 'Sandalias Casuales Aldo Tela Mujer', 'Sandalia de tiras cómoda y versátil.', 199.00, 135.00, '7896234567017', 1, 1, 1, 'Beige', 'MUJER', NULL, NULL, b'1', 41, 6, '/img/Upload/productos/sandalias-casuales-aldo-tela-mujer.jpg', 'MUJER'),
+(41, 'Sandalias Birkenstock Arizona Mujer', 'Sandalias de doble tira ajustable, máxima comodidad para todo el día.', 319.00, 220.00, '7896234567031', 1, 1, 1, 'Gris', 'MUJER', NULL, NULL, b'1', 42, 1, '/img/Upload/productos/sandalias-birkenstock-arizona-mujer.jpg', 'MUJER');
 
 -- --------------------------------------------------------
 
@@ -884,7 +917,19 @@ INSERT INTO `producto_tipos` (`id_producto`, `id_tipo`) VALUES
 (26, 15),
 (27, 12),
 (28, 14),
-(29, 11);
+(29, 11),
+(30, 1),
+(31, 1),
+(32, 1),
+(33, 1),
+(34, 2),
+(35, 2),
+(36, 2),
+(37, 3),
+(38, 3),
+(39, 3),
+(40, 4),
+(41, 4);
 
 -- --------------------------------------------------------
 
@@ -909,7 +954,11 @@ CREATE TABLE `proveedores` (
 --
 
 INSERT INTO `proveedores` (`id_proveedor`, `razon_social`, `nombre_comercial`, `ruc`, `rubro`, `direccion`, `telefono`, `email`, `estado`) VALUES
-(2, 'Zapatos', 'Nike', '12345678911', 'C', '1defefeffe', '999999999', 'dokiperrosisurro12@gmail.com', 1);
+(1, 'Comercializadora Zapatería Andina S.A.C.', 'AndinaFoot', '20658743921', 'Distribución de calzado deportivo y casual', 'Av. Los Frutales 155 – La Molina, Lima', '942576392', 'contacto@andinafoot.pe', 1),
+(2, 'Importaciones Nova Shoes E.I.R.L.', 'Nova Shoes', '20574398216', 'Venta de zapatillas y más', 'Av. Benavides 842 – Surco, Lima', '902876141', 'contacto@novashoes.pe', 1),
+(3, 'Global Footwear Trading S.A.C.', 'Global Footwear', '20639481274', 'Importación de calzado formal y de vestir', 'Calle Montecarlo 229 – San Isidro, Lima', '942785026', 'info@globalfootwear.pe', 1),
+(4, 'Accesorios y Estilos del Pacífico S.A.C.', 'EstiloPacífico', '20658247391', 'Accesorios de moda', 'Av. Del Ejército 380 – Miraflores, Lima', '942547390', 'ventas@estilopacifico.pe', 1),
+(5, 'TrendLine Import S.A.C.', 'TrendLine', '20659123870', 'Importación de accesorios', 'Av. La Marina 1259 – San Miguel, Lima', '903489201', 'contacto@trendline.pe', 1);
 
 -- --------------------------------------------------------
 
@@ -1096,11 +1145,11 @@ CREATE TABLE `tallas` (
 --
 
 INSERT INTO `tallas` (`id_producto`, `talla`, `precio_venta`, `costo_compra`) VALUES
-(1, '38', 200.00, 190.00),
-(2, '41', 180.00, 150.00),
-(3, '37', 230.00, 180.00),
+(1, '38', 379.00, 280.00),
+(2, '38', 189.00, 130.00),
+(3, '38', 159.00, 110.00),
 (4, '38', 410.00, 359.98),
-(5, '38', 360.00, 279.99),
+(5, '38', 119.00, 80.00),
 (6, '42', 410.00, 380.00),
 (7, '42', 250.00, 179.98),
 (8, '42', 370.00, 300.00),
@@ -1124,7 +1173,19 @@ INSERT INTO `tallas` (`id_producto`, `talla`, `precio_venta`, `costo_compra`) VA
 (26, 'S', 40.00, 20.00),
 (27, 'M', 120.00, 90.00),
 (28, 'M', 170.00, 130.00),
-(29, '50mm', 260.00, 180.00);
+(29, '50mm', 260.00, 180.00),
+(30, '39', 599.00, 420.00),
+(31, '39', 399.00, 325.00),
+(32, '38', 279.00, 195.00),
+(33, '39', 249.00, 170.00),
+(34, '38', 159.00, 109.99),
+(35, '38', 149.00, 115.00),
+(36, '38', 299.00, 210.00),
+(37, '38', 2499.00, 2100.00),
+(38, '37', 299.00, 220.00),
+(39, '38', 179.00, 140.00),
+(40, '37', 199.00, 135.00),
+(41, '38', 319.00, 220.00);
 
 -- --------------------------------------------------------
 
@@ -1287,7 +1348,7 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id_usuario`, `nombres`, `apellidos`, `id_tipodocumento`, `numero_documento`, `celular`, `direccion`, `username`, `email`, `contraseña_hash`, `estado`, `fecha_creacion`, `fecha_ultima_sesion`) VALUES
-(4, 'Santiago Efrain', 'Torres Murrieta', 1, '75859114', '964983465', 'juan pablo de la cruz', 'EfrainDs3', 'santiagotorresmurrieta@gmail.com', '$2a$10$6587YGgYKDWyAywi61/cB.TFF.U6LrTWacPvzWaBZ9xoVsuGGy.4.', 1, '2025-10-08 15:17:29', '2025-12-07 03:50:27'),
+(4, 'Santiago Efrain', 'Torres Murrieta', 1, '75859114', '964983465', 'juan pablo de la cruz', 'EfrainDs3', 'santiagotorresmurrieta@gmail.com', '$2a$10$6587YGgYKDWyAywi61/cB.TFF.U6LrTWacPvzWaBZ9xoVsuGGy.4.', 1, '2025-10-08 15:17:29', '2025-12-08 19:25:06'),
 (5, 'Anggelo Lucciano', 'Urbina Espinoza', 1, '72863068', '903 171 836', 'juan pablo de la cruz', 'Ubuntu', 'anggelolucciano21@gmail.com', '$2a$10$VwIkH6380fJV0oPcQXNKiO1oU8zqQ1vKsc0uWSkm.vtCWoTPHzzMG', 1, '2025-10-08 15:46:19', '2025-11-25 01:38:39'),
 (6, 'Anlly Luz', 'Riva Yomona', 1, '72010812', '999888777', 'Calle Nueva 456', 'Anlly', 'al.rivayo@unsm.edu.pe', '$2a$10$E.7vIdGVqCYy5eoYIBjF/uYDym2.b6B6U6.TlT9uKd0tFUl4DMfJW', 1, '2025-10-08 15:57:57', '2025-11-26 17:42:14'),
 (12, 'Danny Alexander', 'Garcia Salas', 1, '98765432', '999888777', 'juan pablo de la cruz', 'Dingui', 'ia.jadrixgr26@gmail.com', '$2a$10$xKxtzv1ECV/74oi69b9hPubeUZgmSnrAUoxmjmSaz0NyeVOYE9BHW', 1, '2025-10-08 16:27:52', '2025-10-15 22:05:53'),
@@ -1395,7 +1456,8 @@ ALTER TABLE `comprobantespago`
   ADD UNIQUE KEY `id_tipo_comprobante` (`id_tipo_comprobante`,`numero_comprobante`),
   ADD KEY `id_cliente` (`id_cliente`),
   ADD KEY `id_usuario` (`id_usuario`),
-  ADD KEY `FKi9x21nkc57r4an9bqagc3lh9u` (`id_apertura`);
+  ADD KEY `FKi9x21nkc57r4an9bqagc3lh9u` (`id_apertura`),
+  ADD KEY `FKd46g8t6xjnl4i922nywtpccee` (`id_venta_original`);
 
 --
 -- Indices de la tabla `detallescomprobantepago`
@@ -1763,19 +1825,19 @@ ALTER TABLE `inventario_talla`
 -- AUTO_INCREMENT de la tabla `marcasproducto`
 --
 ALTER TABLE `marcasproducto`
-  MODIFY `id_marca` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id_marca` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT de la tabla `materialesproducto`
 --
 ALTER TABLE `materialesproducto`
-  MODIFY `id_material` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_material` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `modelos`
 --
 ALTER TABLE `modelos`
-  MODIFY `id_modelo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id_modelo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
 
 --
 -- AUTO_INCREMENT de la tabla `movimientoscaja`
@@ -1799,7 +1861,7 @@ ALTER TABLE `pagoscomprobante`
 -- AUTO_INCREMENT de la tabla `pedidoscompra`
 --
 ALTER TABLE `pedidoscompra`
-  MODIFY `id_pedido_compra` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_pedido_compra` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `permisos`
@@ -1817,13 +1879,13 @@ ALTER TABLE `permisos_auditoria`
 -- AUTO_INCREMENT de la tabla `productos`
 --
 ALTER TABLE `productos`
-  MODIFY `id_producto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
+  MODIFY `id_producto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
 
 --
 -- AUTO_INCREMENT de la tabla `proveedores`
 --
 ALTER TABLE `proveedores`
-  MODIFY `id_proveedor` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_proveedor` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de la tabla `roles`
@@ -1920,6 +1982,7 @@ ALTER TABLE `clientes`
 -- Filtros para la tabla `comprobantespago`
 --
 ALTER TABLE `comprobantespago`
+  ADD CONSTRAINT `FKd46g8t6xjnl4i922nywtpccee` FOREIGN KEY (`id_venta_original`) REFERENCES `comprobantespago` (`id_comprobante`),
   ADD CONSTRAINT `FKi9x21nkc57r4an9bqagc3lh9u` FOREIGN KEY (`id_apertura`) REFERENCES `aperturascaja` (`id_apertura`),
   ADD CONSTRAINT `comprobantespago_ibfk_1` FOREIGN KEY (`id_cliente`) REFERENCES `clientes` (`id_cliente`),
   ADD CONSTRAINT `comprobantespago_ibfk_2` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`),
