@@ -131,7 +131,8 @@ document.addEventListener('DOMContentLoaded', function() {
         let html = '<div class="favoritos-grid">';
         favoritos.forEach(producto => {
             const precio = parseFloat(producto.precio_venta).toFixed(2);
-            const imagen = producto.imagen ? `/img/Upload/productos${producto.imagen}` : null;
+            // producto.imagen already contains the public path returned by the backend (e.g. "/img/Upload/productos/archivo.jpg")
+            const imagen = producto.imagen ? producto.imagen : null;
 
             html += `
                 <div class="favorito-card">
