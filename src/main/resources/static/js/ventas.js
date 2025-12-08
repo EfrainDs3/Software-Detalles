@@ -537,8 +537,35 @@ document.addEventListener('DOMContentLoaded', () => {
                     <i class="fas fa-file-download"></i> Descargar Boleta Original
                 </button>
             `;
-            detalleVentaTotal.parentNode.appendChild(infoDiv);
         }
+
+        // ✅ POPULATE HEADER FIELDS (Fix for missing details)
+        const idSpan = document.getElementById('detalleVentaId');
+        const clienteSpan = document.getElementById('detalleVentaCliente');
+        const fechaSpan = document.getElementById('detalleVentaFecha');
+        const metodoSpan = document.getElementById('detalleVentaMetodoPago');
+        const estadoSpan = document.getElementById('detalleVentaEstado');
+        const totalSpan = document.getElementById('detalleVentaTotal');
+
+        if (idSpan) idSpan.textContent = venta.id || venta.idComprobante || '-'; // Handle DTO variations
+        if (clienteSpan) clienteSpan.textContent = venta.cliente || 'Público General';
+
+        if (fechaSpan && venta.fecha) {
+            // Handle both ISO string and array if needed, but DTO usually sends string/null
+            fechaSpan.textContent = venta.fecha;
+        } else if (fechaSpan) {
+            fechaSpan.textContent = '-';
+        }
+
+        if (metodoSpan) metodoSpan.textContent = venta.metodoPago || '-';
+        if (estadoSpan) {
+            estadoSpan.textContent = venta.estado || 'Emitido';
+            // Optional: Add color styling based on status
+            estadoSpan.className = ''; // Reset
+            if (venta.estado === 'Anulado') estadoSpan.classList.add('text-danger');
+            else if (venta.estado === 'Emitido') estadoSpan.classList.add('text-success');
+        }
+        if (totalSpan) totalSpan.textContent = 'S/ ' + (venta.total ? parseFloat(venta.total).toFixed(2) : '0.00');
 
         detalleProductosList.innerHTML = '';
         const productosDetalle = venta.detalles || [];

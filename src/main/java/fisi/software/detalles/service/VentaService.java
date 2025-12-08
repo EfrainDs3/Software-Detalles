@@ -4,6 +4,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Optional;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
 import fisi.software.detalles.controller.dto.VentaRequestDTO;
 import fisi.software.detalles.controller.dto.DetalleVentaDTO;
 import fisi.software.detalles.controller.dto.VentaListDTO;
@@ -29,17 +42,6 @@ import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 @Service
 public class VentaService {
@@ -129,18 +131,18 @@ public class VentaService {
 
     @Transactional(readOnly = true)
     public List<VentaListDTO> listarTodasLasVentas() {
-        List<ComprobantePago> ventas = ventaRepository.findAll();
+        return listarVentasGenerico(ventaRepository.findAll());
+    }
+
+    @Transactional(readOnly = true)
+    public List<VentaListDTO> listarVentasPorApertura(Long idApertura) {
+        return listarVentasGenerico(ventaRepository.findByApertura_IdAperturaOrderByFechaEmisionDesc(idApertura));
+    }
+
+    private List<VentaListDTO> listarVentasGenerico(List<ComprobantePago> ventas) {
         List<VentaListDTO> lista = new ArrayList<>();
 
         for (ComprobantePago v : ventas) {
-            // Check if sale is original part of an edit flow or just hidden?
-            // The requirement implies showing current valid sales.
-            // "Modificado" sales might be nice to hide from the main list, OR show
-            // distinctively.
-            // The user didn't explicitly say "Hide old sales", but logic suggests we likely
-            // want to see the NEW ones.
-            // For now, list ALL, frontend can filter or show status.
-
             String nombreCliente = obtenerNombreCliente(v);
             String metodoPago = "";
 
@@ -192,9 +194,25 @@ public class VentaService {
         venta.setSubtotal(total);
         venta.setIgv(BigDecimal.ZERO);
 
-        venta.setFechaEmision(
-                ventaDTO.getFecha_emision() != null ? ventaDTO.getFecha_emision().atStartOfDay() : LocalDateTime.now());
-        venta.setNumeroComprobante("B001-" + String.format("%08d", ventaRepository.count() + 1));
+        if (ventaDTO.getFecha_emision() != null) {
+            // Si la fecha enviada es "hoy", usamos la hora actual para no perder el tiempo
+            if (ventaDTO.getFecha_emision().isEqual(LocalDate.now())) {
+                venta.setFechaEmision(LocalDateTime.now());
+            } else {
+                // Si es fecha pasada/futura, usamos inicio del día (o fin, según prefieras,
+                // pero inicio es estándar)
+                venta.setFechaEmision(ventaDTO.getFecha_emision().atStartOfDay());
+            }
+        } else {
+            venta.setFechaEmision(LocalDateTime.now());
+        }
+
+        // Logica de numeración diaria: B001-XXXX (donde XXXX es correlativo diario)
+        LocalDateTime inicioDia = venta.getFechaEmision().toLocalDate().atStartOfDay();
+        LocalDateTime finDia = venta.getFechaEmision().toLocalDate().atTime(23, 59, 59);
+        long correlativoDiario = ventaRepository.countByFechaEmisionBetween(inicioDia, finDia) + 1;
+        venta.setNumeroComprobante(String.format("B001-%04d", correlativoDiario));
+
         venta.setEstado(ventaDTO.getEstado_comprobante() != null ? ventaDTO.getEstado_comprobante() : "Emitido");
 
         Integer idUsuarioFijo = 6;
@@ -267,7 +285,13 @@ public class VentaService {
         ventaMap.put("tipoComprobante",
                 venta.getTipoComprobante() != null ? venta.getTipoComprobante().getNombreTipo() : "");
         ventaMap.put("cliente", obtenerNombreCliente(venta));
-        ventaMap.put("fechaEmision", venta.getFechaEmision() != null ? venta.getFechaEmision().toString() : "");
+        // Formato de fecha con HORA
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter
+                .ofPattern("dd/MM/yyyy hh:mm a");
+        ventaMap.put("fechaEmision", venta.getFechaEmision() != null ? venta.getFechaEmision().format(formatter) : "");
+
+        // Usar numero de comprobante real
+        ventaMap.put("numeroComprobante", venta.getNumeroComprobante() != null ? venta.getNumeroComprobante() : "");
 
         // Mantener Fix: Subtotal = Total, IGV = 0
         ventaMap.put("subtotal", venta.getTotal());
@@ -322,6 +346,8 @@ public class VentaService {
         headerTable.addCell(new Paragraph((String) venta.get("cliente"), FONT_NORMAL));
         headerTable.addCell(new Paragraph("Fecha:", FONT_NORMAL_BOLD));
         headerTable.addCell(new Paragraph((String) venta.get("fechaEmision"), FONT_NORMAL));
+        headerTable.addCell(new Paragraph("N° Doc:", FONT_NORMAL_BOLD));
+        headerTable.addCell(new Paragraph((String) venta.get("numeroComprobante"), FONT_NORMAL));
         document.add(headerTable);
     }
 

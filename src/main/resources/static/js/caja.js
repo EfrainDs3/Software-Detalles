@@ -1,4 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('🏁 caja.js: Script inicializado');
+    // alert('DEBUG: caja.js se ha cargado correctamente (Versión Debug)'); // Comentado tras verificación
 
     // ========================================
     // SISTEMA DE TOAST NOTIFICATIONS
@@ -36,10 +38,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const API_BASE_URL = '/api/caja';
 
     // Referencias para Historial y Estado
+    // Referencias para Historial y Estado
     const cajaTableBody = document.getElementById('cajaTableBody');
     if (!cajaTableBody) {
-        console.log('⚠️ caja.js: No se encontró la tabla de caja. Este script solo debe ejecutarse en /caja');
-        return; // Salir del script si no estamos en la página correcta
+        console.log('ℹ️ modal caja logic: Tabla de caja no encontrada, pero se cargará la lógica de cierre/apertura si existen los modales.');
     }
 
     const cashierStatusText = document.getElementById('cashierStatusText');
@@ -85,6 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Función para renderizar la tabla del historial de caja
     function renderCajaHistory(history) {
+        if (!cajaTableBody) return;
         cajaTableBody.innerHTML = '';
         if (history.length === 0) {
             cajaTableBody.innerHTML = '<tr><td colspan="9" style="text-align: center;">No hay movimientos de caja registrados.</td></tr>';
@@ -152,28 +155,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 1. Obtener el estado actual de la caja (MEJORADO)
     async function fetchCajaStatus() {
+        console.log('🔄 fetchCajaStatus: Solicitando estado de caja...');
         try {
             const response = await fetch(`${API_BASE_URL}/estado`, {
                 credentials: 'include'
             });
 
             if (!response.ok) {
-                console.error(`Error ${response.status}: No se pudo obtener el estado de la caja`);
-                // NO actualizar la UI si hay error - mantener el estado actual
+                console.error(`❌ Error ${response.status}: No se pudo obtener el estado de la caja`);
                 return;
             }
 
             const estado = await response.json();
+            console.log('✅ Estado recibido:', estado);
 
-            // Validar que el estado tenga la estructura esperada
             if (estado && typeof estado.abierta === 'boolean') {
                 updateCajaStatusUI(estado);
             } else {
-                console.warn('Estado inválido recibido del backend:', estado);
+                console.warn('⚠️ Estado inválido recibido del backend:', estado);
             }
         } catch (error) {
-            console.error('Error al cargar estado de caja:', error);
-            // NO actualizar la UI en caso de error de red
+            console.error('❌ Error crítico al cargar estado de caja:', error);
         }
     }
 
@@ -346,48 +348,214 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!response.ok) throw new Error(`Error ${response.status} al obtener lista de cajas`);
 
             const cajas = await response.json();
-            cajaSelect.innerHTML = ''; // Limpiar opciones
 
-            if (cajas.length === 0) {
-                cajaSelect.innerHTML = '<option value="">No hay cajas activas disponibles</option>';
-                cajaSelect.disabled = true;
-                return;
+            if (cajaSelect) {
+                cajaSelect.innerHTML = ''; // Limpiar opciones
+
+                if (cajas.length === 0) {
+                    cajaSelect.innerHTML = '<option value="">No hay cajas activas disponibles</option>';
+                    cajaSelect.disabled = true;
+                    return;
+                }
+
+                // Opción por defecto
+                const defaultOption = document.createElement('option');
+                defaultOption.value = "";
+                defaultOption.textContent = "Seleccione una caja";
+                cajaSelect.appendChild(defaultOption);
+
+                cajas.forEach(caja => {
+                    const option = document.createElement('option');
+                    option.value = caja.idCaja;
+                    option.textContent = `${caja.nombreCaja}`;
+                    cajaSelect.appendChild(option);
+                });
+                cajaSelect.disabled = false;
+
             }
-
-            // Opción por defecto
-            const defaultOption = document.createElement('option');
-            defaultOption.value = "";
-            defaultOption.textContent = "Seleccione una caja";
-            cajaSelect.appendChild(defaultOption);
-
-            cajas.forEach(caja => {
-                const option = document.createElement('option');
-                option.value = caja.idCaja;
-                option.textContent = `${caja.nombreCaja}`;
-                cajaSelect.appendChild(option);
-            });
-            cajaSelect.disabled = false;
-
         } catch (error) {
             console.error('Error al cargar la lista de cajas:', error);
-            cajaSelect.innerHTML = '<option value="">Error al cargar (Consola)</option>';
-            cajaSelect.disabled = true;
+            if (cajaSelect) {
+                cajaSelect.innerHTML = '<option value="">Error al cargar (Consola)</option>';
+                cajaSelect.disabled = true;
+            }
         }
     }
 
     // 4. Cierre de caja (Check-out)
     if (checkOutForm) {
+    }
+
+
+    // ------------------------------------------
+    // Lógica para Abrir/Cerrar la Modal de NUEVA CAJA
+    // ------------------------------------------
+    if (btnAbrirModalCaja && modalNuevaCaja) {
+        // Al hacer clic en el botón "Nueva Caja"
+        btnAbrirModalCaja.onclick = () => {
+            mensajeCaja.textContent = ''; // Limpia mensajes anteriores
+            formNuevaCaja.reset();
+            modalNuevaCaja.style.display = 'block';
+        }
+
+        // Al hacer clic en la 'x'
+        cerrarModalCaja.onclick = () => {
+            modalNuevaCaja.style.display = 'none';
+        }
+    }
+
+    // LÓGICA DE ENVÍO DEL FORMULARIO DE NUEVA CAJA
+    if (formNuevaCaja) {
+        formNuevaCaja.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // 1. Obtener y limpiar los valores
+            const nombre = document.getElementById('nombreCaja').value.trim();
+            const descripcion = document.getElementById('descripcionCaja').value.trim();
+
+            // 2. VALIDACIÓN CRÍTICA: Aseguramos que el nombre no esté vacío.
+            if (!nombre) {
+                mensajeCaja.textContent = '❌ El Nombre/Identificador de Caja no puede estar vacío.';
+                mensajeCaja.style.color = 'red';
+                return; // Detiene el envío si está vacío
+            }
+
+            // 3. Crear el payload con los nombres de propiedad de su Entidad Java (camelCase)
+            const data = {
+                nombreCaja: nombre,
+                ubicacionCaja: descripcion || null,
+                estado: 'ACTIVO'
+            };
+
+            mensajeCaja.textContent = 'Guardando caja...';
+            mensajeCaja.style.color = 'orange';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/cajas`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    const cajaCreada = await response.json();
+                    mensajeCaja.textContent = `✅ Caja '${nombre}' creada con éxito.`;
+                    mensajeCaja.style.color = 'green';
+                    formNuevaCaja.reset();
+
+                    // Actualizar lista y cerrar modal tras éxito
+                    await fetchAndPopulateCajas(); // Actualizar el selector
+                    setTimeout(() => {
+                        modalNuevaCaja.style.display = 'none';
+                    }, 1500);
+
+                } else {
+                    // Manejo de errores
+                    const errorMsg = await response.text();
+                    mensajeCaja.textContent = `❌ Error ${response.status}: El backend falló. ${errorMsg.substring(0, 100)}...`;
+                    mensajeCaja.style.color = 'red';
+                    console.error('Error al crear caja:', errorMsg);
+                }
+            } catch (error) {
+                console.error('Error de conexión:', error);
+                mensajeCaja.textContent = '❌ Error de conexión o servidor no disponible.';
+                mensajeCaja.style.color = 'red';
+            }
+        });
+    }
+    // ------------------------------------------
+    // Lógica para Abrir y Cerrar Caja
+    // ------------------------------------------
+
+    // ------------------------------------------
+    // 3. Apertura de caja (Check-in) Logic
+    // ------------------------------------------
+    if (checkInForm) {
+        checkInForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btnSubmit = checkInForm.querySelector('button[type="submit"]');
+            if (btnSubmit) btnSubmit.disabled = true;
+
+            const idCajaValue = cajaSelect.value;
+            const montoInicial = parseFloat(initialAmountInput.value);
+
+            if (!idCajaValue) {
+                showToast('❌ Por favor, seleccione una caja.');
+                if (btnSubmit) btnSubmit.disabled = false;
+                return;
+            }
+
+            if (isNaN(montoInicial) || montoInicial < 0) {
+                showToast('Por favor, ingrese un monto inicial válido.');
+                if (btnSubmit) btnSubmit.disabled = false;
+                return;
+            }
+
+            try {
+                const requestBody = {
+                    idCaja: parseInt(idCajaValue, 10),
+                    montoInicial: montoInicial
+                };
+
+                const response = await fetch(`${API_BASE_URL}/abrir`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody),
+                    credentials: 'include'
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Error del servidor:', errorText);
+
+                    if (response.status === 409) {
+                        showToast('❌ Error: La caja ya estaba abierta.');
+                    } else if (response.status === 403) {
+                        showToast('❌ Error: No tienes permisos.');
+                    } else {
+                        showToast(`❌ Error ${response.status}: ${errorText.substring(0, 200)}`);
+                    }
+                    if (btnSubmit) btnSubmit.disabled = false;
+                    return;
+                }
+
+                const estadoActualizado = await response.json();
+                updateCajaStatusUI(estadoActualizado);
+                await fetchCajaHistory();
+                showToast(`✅ Caja ${idCajaValue} abierta exitosamente.`);
+                checkInModal.style.display = 'none';
+                initialAmountInput.value = '';
+            } catch (error) {
+                console.error('❌ Error de conexión:', error);
+                showToast(`Hubo un error de red.`);
+            } finally {
+                if (btnSubmit) btnSubmit.disabled = false;
+            }
+        });
+    }
+
+    // ------------------------------------------
+    // 4. Cierre de caja (Check-out) Logic
+    // ------------------------------------------
+    if (checkOutForm) {
         checkOutForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            const btnSubmit = checkOutForm.querySelector('button[type="submit"]');
+            if (btnSubmit) btnSubmit.disabled = true;
 
             const finalAmount = parseFloat(finalAmountInput.value);
             if (isNaN(finalAmount) || finalAmount < 0) {
                 showToast('Por favor, ingrese un monto final válido.');
+                if (btnSubmit) btnSubmit.disabled = false;
                 return;
             }
 
             if (!currentAperturaId) {
                 showToast('No hay una caja activa para cerrar.');
+                if (btnSubmit) btnSubmit.disabled = false;
                 return;
             }
 
@@ -402,7 +570,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     body: JSON.stringify(requestBody),
                     credentials: 'include'
                 });
-                // ✅ CORRECCIÓN: No intentar parsear JSON de respuesta vacía
+
                 if (!response.ok) {
                     const errorText = await response.text();
                     if (response.status === 409) {
@@ -410,9 +578,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else {
                         showToast(`❌ Error al cerrar caja: ${errorText || response.statusText}`);
                     }
+                    if (btnSubmit) btnSubmit.disabled = false;
                     return;
                 }
-                // ✅ Si llegamos aquí, el cierre fue exitoso
+
                 await fetchCajaStatus();
                 await fetchCajaHistory();
                 showToast('✅ Caja cerrada exitosamente.');
@@ -420,75 +589,181 @@ document.addEventListener('DOMContentLoaded', () => {
                 finalAmountInput.value = '';
             } catch (error) {
                 console.error('❌ Error al cerrar caja:', error);
-                showToast(`Hubo un error al intentar cerrar la caja. Consulte la consola.`);
+                showToast(`Hubo un error al intentar cerrar la caja.`);
+            } finally {
+                if (btnSubmit) btnSubmit.disabled = false;
             }
         });
     }
 
+    // ------------------------------------------
+    // 5. Fetch Cajas Activas & Nueva Caja Modal
+    // ------------------------------------------
+    async function fetchAndPopulateCajas() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/cajas/activas`, { credentials: 'include' });
+            if (!response.ok) throw new Error(`Error ${response.status}`);
+            const cajas = await response.json();
 
-    // --- Event Listeners para Modales (Abrir/Cerrar Caja) ---
+            if (cajaSelect) {
+                cajaSelect.innerHTML = '';
+                if (cajas.length === 0) {
+                    cajaSelect.innerHTML = '<option value="">No hay cajas activas disponibles</option>';
+                    cajaSelect.disabled = true;
+                    return;
+                }
+                const defaultOption = document.createElement('option');
+                defaultOption.value = "";
+                defaultOption.textContent = "Seleccione una caja";
+                cajaSelect.appendChild(defaultOption);
 
-    // Mostrar Modal Apertura
-    if (checkInBtn) {
-        checkInBtn.addEventListener('click', () => {
-            if (checkInModal) checkInModal.style.display = 'block';
-            initialAmountInput.focus();
+                cajas.forEach(caja => {
+                    const option = document.createElement('option');
+                    option.value = caja.idCaja;
+                    option.textContent = `${caja.nombreCaja}`;
+                    cajaSelect.appendChild(option);
+                });
+                cajaSelect.disabled = false;
+            }
+        } catch (error) {
+            console.error('Error al cargar cajas:', error);
+            if (cajaSelect) {
+                cajaSelect.innerHTML = '<option value="">Error al cargar</option>';
+                cajaSelect.disabled = true;
+            }
+        }
+    }
+
+    if (btnAbrirModalCaja && modalNuevaCaja) {
+        btnAbrirModalCaja.onclick = () => {
+            mensajeCaja.textContent = '';
+            formNuevaCaja.reset();
+            modalNuevaCaja.style.display = 'block';
+        }
+        if (cerrarModalCaja) cerrarModalCaja.onclick = () => modalNuevaCaja.style.display = 'none';
+    }
+
+    if (formNuevaCaja) {
+        formNuevaCaja.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btnSubmit = formNuevaCaja.querySelector('button[type="submit"]');
+            if (btnSubmit) btnSubmit.disabled = true;
+
+            const nombre = document.getElementById('nombreCaja').value.trim();
+            const descripcion = document.getElementById('descripcionCaja').value.trim();
+
+            if (!nombre) {
+                mensajeCaja.textContent = '❌ Nombre requerido';
+                mensajeCaja.style.color = 'red';
+                if (btnSubmit) btnSubmit.disabled = false;
+                return;
+            }
+
+            const data = {
+                nombreCaja: nombre,
+                ubicacionCaja: descripcion || null,
+                estado: 'ACTIVO'
+            };
+
+            mensajeCaja.textContent = 'Guardando...';
+            mensajeCaja.style.color = 'orange';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/cajas`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data),
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    mensajeCaja.textContent = `✅ Caja creada.`;
+                    mensajeCaja.style.color = 'green';
+                    formNuevaCaja.reset();
+                    await fetchAndPopulateCajas();
+                    setTimeout(() => modalNuevaCaja.style.display = 'none', 1500);
+                } else {
+                    const errorMsg = await response.text();
+                    mensajeCaja.textContent = `❌ ${errorMsg}`;
+                    mensajeCaja.style.color = 'red';
+                }
+            } catch (error) {
+                mensajeCaja.textContent = '❌ Error de conexión';
+                mensajeCaja.style.color = 'red';
+            } finally {
+                if (btnSubmit) btnSubmit.disabled = false;
+            }
         });
     }
 
-    // Mostrar Modal Cierre
-    // Mostrar Modal Cierre
-    if (checkOutBtn) {
-        checkOutBtn.addEventListener('click', async () => {
-            if (currentAperturaId) {
-                // Cargar el monto inicial en el modal de cierre
-                if (checkoutInitialAmountInput) checkoutInitialAmountInput.value = formatCurrency(currentMontoInicial);
+    // ======================================================
+    // LOGICA COMPARTIDA: ABRIR MODAL DE CIERRE CON HISTORIAL
+    // ======================================================
+    async function openCheckoutModalWithHistory(idApertura, montoInicial) {
+        console.log('🔓 Iniciando proceso de cierre para Apertura ID:', idApertura);
 
-                // ✅ NUEVO: Cargar total de ventas y calcular monto esperado
-                const checkoutSalesSummary = document.getElementById('checkoutSalesSummary');
-                const checkoutTotalSales = document.getElementById('checkoutTotalSales');
-                const checkoutExpectedTotal = document.getElementById('checkoutExpectedTotal');
+        currentAperturaId = idApertura;
+        currentMontoInicial = montoInicial;
 
-                try {
-                    // Mostrar "Cargando..." mientras se consulta
-                    if (checkoutTotalSales) checkoutTotalSales.textContent = 'Cargando...';
-                    if (checkoutExpectedTotal) checkoutExpectedTotal.textContent = '...';
-                    if (checkoutSalesSummary) checkoutSalesSummary.style.display = 'block';
+        if (checkoutInitialAmountInput) checkoutInitialAmountInput.value = formatCurrency(montoInicial);
+        if (checkOutModal) checkOutModal.style.display = 'block';
 
-                    const response = await fetch(`/ventas/api/total-apertura/${currentAperturaId}`, { credentials: 'include' });
-                    if (response.ok) {
-                        const data = await response.json();
-                        const totalVentas = parseFloat(data.total) || 0;
-                        const totalEsperado = currentMontoInicial + totalVentas;
+        const container = document.getElementById('checkoutSalesHistoryContainer');
+        const tbody = document.getElementById('checkoutSalesListBody');
+        const totalSpan = document.getElementById('checkoutTotalSales');
 
-                        if (checkoutTotalSales) checkoutTotalSales.textContent = formatCurrency(totalVentas);
-                        if (checkoutExpectedTotal) checkoutExpectedTotal.textContent = formatCurrency(totalEsperado);
+        if (container) container.style.display = 'block';
+        if (tbody) tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:10px;"><i class="fas fa-spinner fa-spin"></i> Cargando historial...</td></tr>';
+        if (totalSpan) totalSpan.textContent = '...';
 
-                        // ✅ Pre-llenar el campo editable con el total esperado
-                        if (finalAmountInput) finalAmountInput.value = totalEsperado.toFixed(2);
-                    } else {
-                        console.error('Error al obtener totales de venta');
-                        if (checkoutTotalSales) checkoutTotalSales.textContent = 'Error';
-                    }
-                } catch (error) {
-                    console.error('Error de conexión al obtener totales:', error);
+        try {
+            const response = await fetch(`/ventas/api/historial-apertura/${currentAperturaId}`, { credentials: 'include' });
+            if (response.ok) {
+                const ventas = await response.json();
+                if (tbody) tbody.innerHTML = '';
+                if (ventas.length === 0) {
+                    if (tbody) tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:10px; color:#777;">No hay ventas registradas.</td></tr>';
                 }
+                let totalSum = 0;
+                ventas.forEach(v => {
+                    const estadoSafe = (v.estado || '').toString();
+                    const isEmitido = estadoSafe.toLowerCase() === 'emitido';
+                    if (isEmitido) totalSum += parseFloat(v.total);
 
-                if (checkOutModal) checkOutModal.style.display = 'block';
-                // Seleccionar el texto para editar fácilmente si es necesario
+                    const dateObj = new Date(v.fecha);
+                    const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    const tr = document.createElement('tr');
+                    if (!isEmitido) {
+                        tr.style.color = '#999';
+                        tr.style.textDecoration = 'line-through';
+                    }
+                    tr.innerHTML = `
+                        <td style="padding: 8px; border-bottom: 1px solid #eee;">${timeStr}</td>
+                        <td style="padding: 8px; border-bottom: 1px solid #eee;">#${v.id} ${!isEmitido ? '<small>(' + estadoSafe + ')</small>' : ''}</td>
+                        <td style="padding: 8px; border-bottom: 1px solid #eee; text-align: right;">${formatCurrency(v.total)}</td>
+                    `;
+                    if (tbody) tbody.appendChild(tr);
+                });
+                if (totalSpan) totalSpan.textContent = formatCurrency(totalSum);
+                const totalEsperado = montoInicial + totalSum;
+                if (finalAmountInput) finalAmountInput.value = totalEsperado.toFixed(2);
                 if (finalAmountInput) finalAmountInput.select();
             } else {
-                showToast('La caja está cerrada. Debe abrirla primero.');
+                if (tbody) tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:red;">Error al cargar ventas</td></tr>';
             }
-        });
+        } catch (error) {
+            console.error('Error sales history', error);
+            if (tbody) tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:red;">Error de conexión</td></tr>';
+        }
     }
 
-    // Funciones genéricas para cerrar modales
+    // ------------------------------------------
+    // Funciones Auxiliares Modales
+    // ------------------------------------------
     function setupModalClose(closeBtnId, cancelBtnId, modalId) {
         const closeBtn = document.getElementById(closeBtnId);
         const cancelBtn = document.getElementById(cancelBtnId);
         const modal = document.getElementById(modalId);
-
         if (closeBtn) closeBtn.addEventListener('click', () => modal.style.display = 'none');
         if (cancelBtn) cancelBtn.addEventListener('click', () => modal.style.display = 'none');
     }
@@ -496,223 +771,96 @@ document.addEventListener('DOMContentLoaded', () => {
     setupModalClose('closeCheckInModal', 'cancelCheckInBtn', 'checkInModal');
     setupModalClose('closeCheckOutModal', 'cancelCheckOutBtn', 'checkOutModal');
 
-    // Cerrar modales al hacer clic fuera (incluye la modal de Nueva Caja)
     window.addEventListener('click', (event) => {
         if (event.target === checkInModal) checkInModal.style.display = 'none';
         if (event.target === checkOutModal) checkOutModal.style.display = 'none';
         if (event.target === modalNuevaCaja) modalNuevaCaja.style.display = 'none';
+        if (event.target === modalDetalles) modalDetalles.style.display = 'none';
     });
 
-
-    // ======================================================
-    // FUNCIONALIDAD DE VER DETALLES
-    // ======================================================
-
-    const modalDetalles = document.getElementById('modalDetalles');
-    const cerrarModalDetalles = document.getElementById('cerrarModalDetalles');
-    const cerrarModalDetallesBtn = document.getElementById('cerrarModalDetallesBtn');
-
-    // Función para abrir modal de detalles
+    // Función Detalles
     function abrirModalDetalles(movimiento) {
-        // Datos básicos
-        document.getElementById('detalle-id').textContent = movimiento.id;
-        document.getElementById('detalle-trabajador').textContent = movimiento.trabajador;
-        document.getElementById('detalle-fecha').textContent = formatDate(movimiento.fecha);
+        if (modalDetalles) {
+            document.getElementById('detalle-id').textContent = movimiento.id;
+            document.getElementById('detalle-trabajador').textContent = movimiento.trabajador;
+            document.getElementById('detalle-fecha').textContent = formatDate(movimiento.fecha);
+            const estadoSpan = document.getElementById('detalle-estado');
+            estadoSpan.textContent = movimiento.estado;
+            estadoSpan.className = 'status-badge ' + movimiento.estado.toLowerCase();
+            document.getElementById('detalle-hora-apertura').textContent = movimiento.horaApertura || '-';
+            document.getElementById('detalle-monto-inicial').textContent = formatCurrency(movimiento.montoInicial);
+            document.getElementById('detalle-hora-cierre').textContent = movimiento.horaCierre || '-';
+            document.getElementById('detalle-monto-final').textContent = movimiento.montoFinal ? formatCurrency(movimiento.montoFinal) : '-';
+            // Observaciones
+            const obsEl = document.getElementById('detalle-observaciones');
+            if (obsEl) obsEl.textContent = movimiento.observaciones || 'Sin observaciones';
 
-        // Estado
-        const estadoSpan = document.getElementById('detalle-estado');
-        estadoSpan.textContent = movimiento.estado;
-        estadoSpan.className = 'status-badge ' + movimiento.estado.toLowerCase();
+            modalDetalles.style.display = 'block';
+        }
+    }
 
-        // Horas y montos
-        document.getElementById('detalle-hora-apertura').textContent = movimiento.horaApertura || '-';
-        document.getElementById('detalle-monto-inicial').textContent = formatCurrency(movimiento.montoInicial);
-        document.getElementById('detalle-hora-cierre').textContent = movimiento.horaCierre || '-';
-        document.getElementById('detalle-monto-final').textContent = movimiento.montoFinal ? formatCurrency(movimiento.montoFinal) : '-';
+    if (cerrarModalDetalles) cerrarModalDetalles.onclick = () => modalDetalles.style.display = 'none';
+    if (cerrarModalDetallesBtn) cerrarModalDetallesBtn.onclick = () => modalDetalles.style.display = 'none';
 
-        // Sección de diferencia (solo si está cerrada)
-        const seccionDiferencia = document.getElementById('seccion-diferencia');
-        if (movimiento.estado.toLowerCase() === 'cerrada' && movimiento.montoFinal) {
-            seccionDiferencia.style.display = 'block';
+    // ======================================================
+    // CLICK LISTENERS (Show Modals)
+    // ======================================================
 
-            // Calcular monto esperado y diferencia (puedes ajustar esta lógica)
-            const montoEsperado = movimiento.montoInicial + 500; // Ejemplo: ventas simuladas
-            const diferencia = movimiento.montoFinal - montoEsperado;
-
-            document.getElementById('detalle-monto-esperado').textContent = formatCurrency(montoEsperado);
-
-            const diferenciaSpan = document.getElementById('detalle-diferencia');
-            diferenciaSpan.textContent = formatCurrency(Math.abs(diferencia));
-
-            // Colorear según positivo/negativo
-            if (diferencia > 0) {
-                diferenciaSpan.className = 'monto-positivo';
-                diferenciaSpan.textContent = '+ ' + formatCurrency(diferencia);
-            } else if (diferencia < 0) {
-                diferenciaSpan.className = 'monto-negativo';
-                diferenciaSpan.textContent = '- ' + formatCurrency(Math.abs(diferencia));
-            } else {
-                diferenciaSpan.className = 'monto-neutro';
-                diferenciaSpan.textContent = formatCurrency(0);
+    // 1. Botón Abrir Caja (Header)
+    if (checkInBtn) {
+        checkInBtn.addEventListener('click', () => {
+            if (checkInModal) {
+                checkInModal.style.display = 'block';
+                if (initialAmountInput) initialAmountInput.focus();
             }
-        } else {
-            seccionDiferencia.style.display = 'none';
-        }
-
-        // Observaciones (si las tienes en el backend)
-        document.getElementById('detalle-observaciones').textContent =
-            movimiento.observaciones || 'Sin observaciones registradas';
-
-        // Mostrar modal
-        modalDetalles.style.display = 'block';
+        });
     }
 
-    // Event listeners para cerrar modal de detalles
-    if (cerrarModalDetalles) {
-        cerrarModalDetalles.onclick = () => modalDetalles.style.display = 'none';
+    // 2. Botón Cerrar Caja (Header)
+    if (checkOutBtn) {
+        checkOutBtn.addEventListener('click', async () => {
+            if (!currentAperturaId) await fetchCajaStatus();
+            if (currentAperturaId) {
+                openCheckoutModalWithHistory(currentAperturaId, currentMontoInicial);
+            } else {
+                showToast('La caja está cerrada. Debe abrirla primero.');
+            }
+        });
     }
-    if (cerrarModalDetallesBtn) {
-        cerrarModalDetallesBtn.onclick = () => modalDetalles.style.display = 'none';
-    }
 
-    // Cerrar modal al hacer clic fuera
-    window.addEventListener('click', (event) => {
-        if (event.target === modalDetalles) {
-            modalDetalles.style.display = 'none';
-        }
-    });
-
-    // ======================================================
-    // DELEGACIÓN DE EVENTOS PARA BOTONES DE ACCIÓN
-    // ======================================================
-
-    // Delegación de eventos para los botones de "Ver" y "Cerrar desde tabla"
+    // 3. Tabla Delegación
     document.addEventListener('click', async (e) => {
-        // ========== BOTÓN VER DETALLES ==========
         const btnView = e.target.closest('.btn-view');
-
         if (btnView) {
             const idMovimiento = btnView.getAttribute('data-id');
-
-            // Buscar el movimiento en el historial cargado
             try {
                 const response = await fetch(`${API_BASE_URL}/historial`, { credentials: 'include' });
-                if (!response.ok) throw new Error('Error al obtener historial');
-
-                const history = await response.json();
-                const movimiento = history.find(m => m.id == idMovimiento);
-
-                if (movimiento) {
-                    abrirModalDetalles(movimiento);
-                } else {
-                    showToast('No se encontró el movimiento solicitado');
+                if (response.ok) {
+                    const history = await response.json();
+                    const movimiento = history.find(m => m.id == idMovimiento);
+                    if (movimiento) abrirModalDetalles(movimiento);
                 }
-            } catch (error) {
-                console.error('Error al cargar detalles:', error);
-                showToast('Error al cargar los detalles del movimiento');
-            }
-            return; // Importante: salir después de manejar este evento
+            } catch (error) { console.error(error); }
+            return;
         }
 
-        // ========== BOTÓN CERRAR CAJA DESDE TABLA ==========
         const btnCloseRow = e.target.closest('.btn-close-row');
-
         if (btnCloseRow) {
-            const idApertura = btnCloseRow.getAttribute('data-id');
-
-            // Buscar el movimiento para obtener el monto inicial
-            try {
-                const historyResponse = await fetch(`${API_BASE_URL}/historial`, { credentials: 'include' });
-                if (!historyResponse.ok) throw new Error('Error al obtener historial');
-
-                const history = await historyResponse.json();
-                const movimiento = history.find(m => m.id == idApertura);
-
-                if (!movimiento) {
-                    showToast('❌ No se encontró el movimiento');
-                    return;
-                }
-
-                // Verificar que esté abierta
-                if (movimiento.estado.toLowerCase() !== 'abierta') {
-                    showToast('Esta caja ya está cerrada', 'error');
-                    return;
-                }
-                // ✅ Usar el modal de cierre existente
-                currentAperturaId = idApertura;
-                currentMontoInicial = movimiento.montoInicial;
-                // Llenar datos en el modal
-                if (cashierNameCheckoutInput) cashierNameCheckoutInput.value = movimiento.trabajador;
-                if (checkoutInitialAmountInput) checkoutInitialAmountInput.value = formatCurrency(movimiento.montoInicial);
-                if (finalAmountInput) finalAmountInput.value = '';
-                // Mostrar modal
-                if (checkOutModal) {
-                    checkOutModal.style.display = 'block';
-                    finalAmountInput.focus();
-                }
-                return; // El modal manejará el cierre
-
-                console.log('🔍 DEBUG - Datos a enviar:', {
-                    idApertura: parseInt(idApertura, 10),
-                    montoFinal: parseFloat(monto.toFixed(2)),
-                    movimiento: movimiento
-                });
-
-                const response = await fetch(`${API_BASE_URL}/cerrar`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        idApertura: parseInt(idApertura, 10),
-                        montoFinal: parseFloat(monto.toFixed(2))
-                    }),
-                    credentials: 'include'
-                });
-
-                console.log('📡 Response status:', response.status);
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('❌ Error del servidor:', errorText);
-                    console.error('📋 Response completo:', {
-                        status: response.status,
-                        statusText: response.statusText,
-                        headers: response.headers
-                    });
-
-                    if (response.status === 409) {
-                        showToast('❌ Conflicto: Esta caja ya está cerrada o el ID no coincide.');
-                    } else if (response.status === 404) {
-                        showToast('❌ No se encontró la apertura de caja con ID ' + idApertura);
-                    } else if (response.status === 500) {
-                        alert('❌ Error del servidor.\n\nPosibles causas:\n' +
-                            '- La caja no existe en la base de datos\n' +
-                            '- Error de validación en el backend\n' +
-                            '- Problema con el formato de datos\n\n' +
-                            'Revisa la consola del navegador (F12) para más detalles.');
-                    } else {
-                        showToast(`❌ Error ${response.status} al cerrar la caja.\n\n${errorText.substring(0, 200)}`);
-                    }
-                    return;
-                }
-
-                // ✅ CORRECCIÓN: No intentar parsear JSON de respuesta vacía
-                console.log('✅ Cierre exitoso desde tabla');
-
-                showToast('✅ Caja cerrada exitosamente');
+            if (currentAperturaId) {
+                openCheckoutModalWithHistory(currentAperturaId, currentMontoInicial);
+            } else {
                 await fetchCajaStatus();
-                await fetchCajaHistory();
-            } catch (error) {
-                console.error('❌ Error completo:', error);
-                console.error('📋 Stack trace:', error.stack);
-                showToast(`❌ Error de conexión: ${error.message}\n\nRevisa la consola del navegador para más detalles.`);
+                if (currentAperturaId) {
+                    openCheckoutModalWithHistory(currentAperturaId, currentMontoInicial);
+                } else {
+                    showToast('Error: No se pudo identificar la apertura activa.');
+                }
             }
-            return;
         }
     });
 
-    // --- Inicializar la Aplicación ---
+    // --- Inicializar ---
     fetchCajaStatus();
     fetchCajaHistory();
     fetchAndPopulateCajas();
-
 });
