@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 09-12-2025 a las 20:10:10
+-- Tiempo de generación: 10-12-2025 a las 00:36:40
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -387,6 +387,8 @@ INSERT INTO `marcasproducto` (`id_marca`, `nombre_marca`) VALUES
 (5, 'Adidas'),
 (29, 'Aldo'),
 (10, 'Angel'),
+(57, 'Away'),
+(50, 'Bata'),
 (30, 'Birkenstock'),
 (32, 'Borcegos'),
 (7, 'Boss'),
@@ -400,11 +402,14 @@ INSERT INTO `marcasproducto` (`id_marca`, `nombre_marca`) VALUES
 (41, 'Cole Haan'),
 (43, 'Columbia'),
 (6, 'Converse'),
+(52, 'CozyPaws'),
 (9, 'Crocs'),
-(12, 'Daclay'),
 (11, 'Dearfoams'),
 (2, 'Dior'),
+(55, 'Disney'),
+(56, 'Dragon Ball'),
 (4, 'FootLoose'),
+(53, 'FuzzyFeet'),
 (15, 'Gucci'),
 (13, 'Guess'),
 (26, 'H&M'),
@@ -418,20 +423,25 @@ INSERT INTO `marcasproducto` (`id_marca`, `nombre_marca`) VALUES
 (48, 'Montblanc'),
 (21, 'New Balance'),
 (17, 'New York'),
+(58, 'Next'),
 (1, 'Nike'),
 (23, 'North Star'),
 (14, 'Oakley'),
+(51, 'Paw Patrol'),
 (28, 'Piazza'),
+(59, 'Polo Ralph Lauren'),
 (36, 'Prada'),
 (20, 'Puma'),
 (19, 'Ray-Ban'),
 (22, 'Reebok'),
+(54, 'Rider'),
 (47, 'Seiko'),
 (44, 'Skechers'),
 (42, 'Timberland'),
 (18, 'Tommy Hilfiger'),
 (49, 'Under Armour'),
 (25, 'Vans'),
+(12, 'XTI'),
 (33, 'Zara');
 
 -- --------------------------------------------------------
@@ -456,6 +466,7 @@ INSERT INTO `materialesproducto` (`id_material`, `nombre_material`) VALUES
 (5, 'Canvas'),
 (10, 'Croslite'),
 (1, 'Cuero'),
+(16, 'Felpa'),
 (11, 'Goma'),
 (8, 'Lente UV'),
 (9, 'Malla'),
@@ -495,12 +506,12 @@ INSERT INTO `modelos` (`id_modelo`, `nombre_modelo`, `id_marca`) VALUES
 (10, 'Blackepson V4972', 7),
 (11, 'Second Shift', 8),
 (12, 'Bayaband Clogs', 9),
-(13, 'Modelo 4', 5),
+(13, 'Tensaur Run Kids', 5),
 (14, 'Urbana', 10),
 (15, 'Footloose Kids', 4),
-(16, 'Clásicos', 11),
-(17, 'Crocs Kids', 9),
-(18, 'Daclay Kids', 12),
+(16, 'Snowman Cozy Kids', 11),
+(17, 'Sunray Adjust 5 Kids', 1),
+(18, 'XTI 150541', 12),
 (19, 'Laurel Slg', 13),
 (20, 'Holbrook', 14),
 (21, 'Blondie', 15),
@@ -571,7 +582,38 @@ INSERT INTO `modelos` (`id_modelo`, `nombre_modelo`, `id_marca`) VALUES
 (86, 'Smooth Leather Bifold', 38),
 (87, 'Baseball Classic', 5),
 (88, 'Essentials Cap', 20),
-(89, 'Blitzing 3.0', 49);
+(89, 'Blitzing 3.0', 49),
+(90, 'Revolution 6 Kids', 1),
+(91, 'ST Runner v3 Kids', 20),
+(92, '570 Kids', 21),
+(93, 'Rush Runner 4 Kids', 22),
+(94, 'Marvel Kids Edition', 50),
+(95, 'Urban Kids Lace', 50),
+(96, 'Minions Fun Kids', 50),
+(97, 'School Classic', 50),
+(98, 'School Comfort Kids', 50),
+(99, 'Footloose Kids School Pro', 4),
+(100, 'Paw Patrol Cozy Paws', 51),
+(101, 'Capibara Cuddles', 52),
+(102, 'Dino Adventure', 53),
+(103, 'Classic Clogs Kids', 9),
+(104, 'Adilette Kids', 5),
+(105, 'Rider R1 Kids', 54),
+(106, 'Classic 6-Inch Kids', 42),
+(107, 'Rey León Simba', 55),
+(108, 'Saiyan Power Kids', 56),
+(109, 'Mickey Fun Socks', 55),
+(110, 'Adventure Socks', 57),
+(111, 'FunStep Kids', 58),
+(112, 'Mickey Adjustable Belt', 55),
+(113, 'Classic Adjustable Belt', 59),
+(114, 'Kids Logo Belt', 45),
+(115, 'Classic Kids Cap', 5),
+(116, 'Kidsuper', 20),
+(117, 'MLB Kids 9FORTY', 17),
+(118, 'Kids Radar', 14),
+(119, 'Wayfarer Junior', 19),
+(120, 'Clubmaster Junior', 14);
 
 -- --------------------------------------------------------
 
@@ -934,12 +976,12 @@ INSERT INTO `productos` (`id_producto`, `nombre_producto`, `descripcion`, `preci
 (8, 'Zapatos Elegantes BOSS V4972 Hombre', 'Zapato formal de cuero, con cordones, forro y plantilla en cuero, suela combinada cuero con goma, ideal para traje, oficina o eventos elegantes.', 549.00, 389.99, '7898235569300', 1, 3, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 10, 1, '/img/Upload/productos/zapatos-elegantes-boss-v4972-hombre.jpg', 'HOMBRE'),
 (9, 'Botas Caterpillar Second Shift', 'Bota de trabajo resistente, con suela robusta y diseño duradero, ideal para obra o uso rudo.', 559.00, 420.00, '7898235569407', 1, 2, 1, 'Marrón', 'HOMBRE', NULL, NULL, b'1', 11, 1, '/img/Upload/productos/botas-caterpillar-second-shift.jpg', 'HOMBRE'),
 (10, 'Sandalias Crocs Classic Bayaband Clogs', 'Sandalia tipo clog ultra ligera, resistente al agua y con excelente amortiguación para uso diario.', 159.00, 110.00, '7898235569483', 1, 2, 1, 'Blanco', 'HOMBRE', NULL, NULL, b'1', 12, 10, '/img/Upload/productos/sandalias-crocs-classic-bayaband-clogs.jpg', 'HOMBRE'),
-(11, 'Zapatillas Adidas Niños', NULL, 110.00, 70.00, NULL, 1, NULL, 1, 'Blanco', 'NIÑO', NULL, NULL, b'1', 13, 1, NULL, 'NIÑO'),
-(12, 'Zapatos Derby Kids', NULL, 130.00, 109.98, NULL, 1, NULL, 1, 'Marrón', 'NIÑO', NULL, NULL, b'1', 14, 1, NULL, 'NIÑO'),
-(13, 'Zapatos Escolares Footloose Kids', NULL, 65.00, 50.00, NULL, 1, NULL, 1, 'Negro', 'NIÑO', NULL, NULL, b'1', 15, 1, NULL, 'NIÑO'),
-(14, 'Pantuflas Silenciosas', NULL, 40.00, 29.00, NULL, 1, NULL, 1, 'Gris', 'NIÑO', NULL, NULL, b'1', 16, 1, NULL, 'NIÑO'),
-(15, 'Sandalias Clogs Kids', NULL, 70.00, 50.00, NULL, 1, NULL, 1, 'Celeste', 'NIÑO', NULL, NULL, b'1', 17, 1, NULL, 'NIÑO'),
-(16, 'Botín Daclay Kids', NULL, 60.00, 40.00, NULL, 1, NULL, 1, 'Beige', 'NIÑO', NULL, NULL, b'1', 18, 1, NULL, 'NIÑO'),
+(11, 'Zapatillas New Balance 570 Kids', 'Las New Balance 570 Kids ofrecen estabilidad, comodidad y un ajuste seguro para actividades diarias. Su combinación de malla y material sintético garantiza buena ventilación y resistencia. La entresuela acolchada brinda suavidad en cada paso, ideal para juegos, deporte y uso escolar continuo.', 199.00, 120.00, '7898123450050', 1, 2, 1, 'Gris', 'NIÑO', NULL, NULL, b'1', 92, 9, '/img/Upload/productos/zapatillas-new-balance-570-kids.jpg', 'NIÑO'),
+(12, 'Zapatos Derby Kids', 'Los Angel Derby Kids son zapatos casuales de estilo clásico, elaborados en cuero genuino de alta calidad. Su suela flexible y cómoda permite libertad de movimiento, mientras que el diseño tipo Derby ofrece un ajuste seguro y elegante. Ideales para eventos formales, colegio y uso diario con un toque sofisticado.', 169.00, 100.00, '7898123450065', 1, 2, 1, 'Negro', 'NIÑO', NULL, NULL, b'1', 14, 1, '/img/Upload/productos/zapatos-derby-kids.jpg', 'NIÑO'),
+(13, 'Zapatos Escolares Footloose Kids', 'Los Footloose Kids Escolar están diseñados para brindar comodidad y resistencia durante la jornada escolar. Fabricados en cuero sintético durable, cuentan con suela antideslizante y refuerzos en la puntera para mayor protección. Su diseño clásico se adapta perfectamente a uniformes escolares, ofreciendo estilo y practicidad.', 129.00, 90.00, '7898123450078', 1, 3, 1, 'Negro', 'NIÑO', NULL, NULL, b'1', 15, 1, '/img/Upload/productos/zapatos-escolares-footloose-kids.webp', 'NIÑO'),
+(14, 'Pantuflas Dearfoams Snowman Cozy Kids', 'Las Dearfoams Snowman Cozy Kids combinan calidez y diversión con un diseño de muñeco de nieve. Fabricadas en felpa suave y suela de goma antideslizante, proporcionan comodidad y seguridad dentro del hogar. Perfectas para mantener los pies de los niños cálidos durante todo el día con un estilo divertido y atractivo.', 89.00, 60.00, '7898123450064', 1, 1, 1, 'Blanco', 'NIÑO', NULL, NULL, b'1', 16, 16, '/img/Upload/productos/pantuflas-dearfoams-snowman-cozy-kids.jpg', 'NIÑO'),
+(15, 'Sandalias Nike Sunray Adjust 5 Kids', 'Las Nike Sunray Adjust 5 Kids combinan comodidad, ligereza y soporte para los pies de los niños. Fabricadas en materiales sintéticos con suela de EVA flexible, incluyen cierre ajustable para un ajuste seguro. Ideales para actividades al aire libre, playa, piscina o uso diario, con diseño deportivo y colorido.', 149.00, 90.00, '7898123450076', 1, 2, 1, 'Azul', 'NIÑO', NULL, NULL, b'1', 17, 4, '/img/Upload/productos/sandalias-nike-sunray-adjust-5-kids.jpg', 'NIÑO'),
+(16, 'Botín Disney Rey León Simba Kids', 'Los botines Disney El Rey León Simba combinan comodidad y diversión con un diseño inspirado en Simba. Fabricados en materiales sintéticos y textil resistente, cuentan con suela antideslizante y cierre con velcro para un ajuste seguro. Ideales para uso diario y actividades al aire libre, manteniendo los pies cómodos y seguros mientras los niños lucen sus personajes favoritos.', 129.00, 110.00, '7898123250085', 1, 1, 1, 'Blanco', 'NIÑO', NULL, NULL, b'1', 107, 1, '/img/Upload/productos/botin-disney-rey-leon-simba-kids-4.jpg', 'NIÑO'),
 (17, 'Bolso Louis Vuitton Neverfull Mujer', 'Bolso de lujo icónico, espacioso y resistente, ideal para ciudad, trabajo o viajes.', 139.00, 110.00, '7898234567053', 2, 4, 1, 'Marrón', 'MUJER', '31cm x 41cm x 17cm', 300, b'1', 49, 5, '/img/Upload/productos/bolso-louis-vuitton-neverfull-mujer.jpg', 'MUJER'),
 (18, 'Billetera Laurel Slg Large Zip Around', 'Billetera moderna para mujer, con acabado en PU, cierre de cremallera, compartimientos para tarjetas, billetes y monedas, con el logo característico de Guess.', 289.00, 230.00, '7890234567068', 2, 5, 1, 'Negro', 'MUJER', '21cm x 10cm x 2.5cm', 130, b'1', 19, 4, '/img/Upload/productos/billetera-laurel-slg-large-zip-around.jpg', 'MUJER'),
 (19, 'Gafas Oakley Holbrook Polarizado', 'Gafas de sol deportivas-urbanas, ligeras y resistentes, con lentes polarizadas ideales para exteriores.', 549.00, 470.00, '7899234568022', 2, 4, 1, 'Negro', 'MUJER', '56mm x 50mm', 40, b'1', 20, 7, '/img/Upload/productos/gafas-oakley-holbrook-polarizado.jpg', 'MUJER'),
@@ -949,10 +991,10 @@ INSERT INTO `productos` (`id_producto`, `nombre_producto`, `descripcion`, `preci
 (23, 'Gafas de Sol Gucci Eyewear Hombre', 'Gafas de sol Gucci Eyewear diseñadas para un estilo moderno y sofisticado. Fabricadas en acetato de alta calidad con un acabado pulido premium. Lentes con protección UV400 que brindan máxima seguridad y claridad visual.', 1299.00, 890.00, '7898123450677', 2, 4, 1, 'Negro', 'HOMBRE', '14.5cm x 14cm x 4.8cm', 45, b'1', 24, 13, '/img/Upload/productos/gafas-de-sol-gucci-eyewear-hombre.jpg', 'HOMBRE'),
 (24, 'Billetera Boss Bifold clásica Hombre', 'La Hugo Boss Bifold Crosstown es una billetera elegante y funcional elaborada en cuero genuino de alta calidad. Su diseño clásico incluye múltiples ranuras para tarjetas, compartimento para billetes y acabado fino con detalles discretos de la marca. Ideal para quienes buscan estilo y practicidad en un formato delgado y duradero.', 459.00, 340.00, '7898123450038', 2, 4, 1, 'Negro', 'HOMBRE', '11.3cm x 9cm x 1.8cm', 75, b'1', 25, 1, '/img/Upload/productos/billetera-boss-bifold-clasica-hombre.jpg', 'HOMBRE'),
 (25, 'Gorra New York Yankess MLB Negro', 'La gorra New Era 9Forty MLB New York Yankees ofrece un diseño clásico con visera curva y estructura ligera. Fabricada en algodón resistente, incluye cierre ajustable para adaptarse cómodamente a distintos tamaños de cabeza. Su icónico logotipo bordado aporta un estilo urbano auténtico ideal para el uso diario.', 159.00, 120.00, '7898123450042', 2, 4, 1, 'Negro', 'HOMBRE', '18cm × 22cm × 12cm', 95, b'1', 26, 14, '/img/Upload/productos/gorra-new-york-yankess-mlb-negro.jpg', 'HOMBRE'),
-(26, 'Calcetín Everyday niños', NULL, 40.00, 20.00, NULL, 2, NULL, 1, 'Blanco', 'NIÑO', NULL, NULL, b'1', 27, 1, NULL, 'NIÑO'),
-(27, 'Cinturón Essential Trenzado', NULL, 120.00, 90.00, NULL, 2, NULL, 1, 'Negro', 'NIÑO', NULL, NULL, b'1', 28, 1, NULL, 'NIÑO'),
-(28, 'Gorra R86 Nike', NULL, 170.00, 130.00, NULL, 2, NULL, 1, 'Negro', 'NIÑO', NULL, NULL, b'1', 29, 1, NULL, 'NIÑO'),
-(29, 'Gafas de sol Aviator Junior', NULL, 260.00, 180.00, NULL, 2, NULL, 1, 'Negro', 'NIÑO', NULL, NULL, b'1', 30, 1, NULL, 'NIÑO'),
+(26, 'Calcetín Nike Everyday Niños', 'Los calcetines Nike Everyday ofrecen comodidad y soporte durante todo el día. Fabricados en algodón con poliéster y elastano, brindan suavidad, transpiración y ajuste flexible. Su diseño deportivo y resistente es ideal para actividades escolares, deportivas y uso diario, manteniendo los pies de los niños cómodos y frescos.', 49.00, 20.00, '7898123450380', 2, 4, 1, 'Negro', 'NIÑO', '19cm x 8cm', 30, b'1', 27, 15, '/img/Upload/productos/calcetin-nike-everyday-ninos.jpg', 'NIÑO'),
+(27, 'Cinturón Tommy Hilfiger Essential Trenzado', 'El cinturón Tommy Hilfiger Essential Trenzado Belt combina estilo y funcionalidad. Fabricado en cuero sintético resistente, cuenta con hebilla metálica ajustable y diseño trenzado que aporta un toque elegante a los uniformes escolares o ropa casual.', 89.00, 60.00, '7898123450893', 2, NULL, 1, 'Negro', 'NIÑO', '95cm x 2.5cm x 1.2cm', 65, b'1', 28, 1, '/img/Upload/productos/cinturon-tommy-hilfiger-essential-trenzado.jpg', 'NIÑO'),
+(28, 'Gorra Nike Heritage86 Kids', 'La gorra Nike Heritage86 para niños está diseñada para ofrecer comodidad y estilo diario. Fabricada en algodón suave, cuenta con cierre ajustable en la parte trasera y visera curva para protección solar. Ideal para actividades al aire libre, deporte o uso casual.', 99.00, 60.00, '7898123450796', 2, 5, 1, 'Celeste', 'NIÑO', '16cm x 20cm x 18cm', 85, b'1', 29, 14, '/img/Upload/productos/gorra-nike-heritage86-kids.jpg', 'NIÑO'),
+(29, 'Gafas Ray-Ban Aviator Junior Gold', 'Las Ray-Ban Aviator Junior combinan estilo clásico y protección ocular para niños. Fabricadas en metal resistente con lentes de policarbonato UV400, ofrecen durabilidad y seguridad frente a los rayos solares. Su diseño aviador mantiene el estilo icónico de Ray-Ban adaptado al tamaño infantil.', 139.00, 90.00, '7898123450101', 2, 4, 1, 'Dorado', 'NIÑO', '12cm x 4.5cm x 3.5cm', 18, b'1', 30, 1, '/img/Upload/productos/gafas-ray-ban-aviator-junior-gold.jpg', 'NIÑO'),
 (30, 'Zapatillas Adidas UltraBoost 22 Running Mujer', 'Zapatilla running para mujer con amortiguación reactiva Boost y ajuste tipo calcetín para largas distancias.', 599.00, 420.00, '7891234567024', 1, 1, 1, 'Blanco', 'MUJER', NULL, NULL, b'1', 2, 2, '/img/Upload/productos/zapatillas-adidas-ultraboost-22-running-mujer.jpg', 'MUJER'),
 (31, 'Zapatillas Puma Cali Court Lth Mujer', 'Zapatilla casual femenina estilo retro con suela ancha.', 399.00, 325.00, '7891234567031', 1, 1, 1, 'Blanco', 'MUJER', NULL, NULL, b'1', 31, 1, '/img/Upload/productos/zapatillas-puma-cali-court-lth-mujer.jpg', 'MUJER'),
 (32, 'Zapatillas New Balance 574 Core Mujer', 'Zapatilla lifestyle duradera y cómoda para uso diario.', 279.00, 195.00, '7891234567048', 1, 2, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 32, 3, '/img/Upload/productos/zapatillas-new-balance-574-core-mujer.jpg', 'MUJER'),
@@ -1011,7 +1053,38 @@ INSERT INTO `productos` (`id_producto`, `nombre_producto`, `descripcion`, `preci
 (85, 'Billetera Calvin Klein Smooth Leather Bifold', 'La Calvin Klein Smooth Leather Bifold presenta un diseño limpio y moderno elaborado en cuero suave de alta calidad. Ofrece ranuras para tarjetas, compartimento para billetes y un perfil delgado ideal para el bolsillo. Su estética minimalista refleja la esencia elegante y contemporánea de la marca.', 229.00, 180.00, '7898123450041', 2, 4, 1, 'Negro', 'HOMBRE', '11cm x 9.2cm x 1.8cm', 76, b'1', 86, 1, '/img/Upload/productos/billetera-calvin-klein-smooth-leather-bifold.jpg', 'HOMBRE'),
 (86, 'Gorra Adidas Baseball Classic Azul', 'La Adidas Baseball Classic combina diseño deportivo y comodidad diaria. Fabricada en poliéster ligero y resistente, incluye visera curva y paneles ventilados para mejor transpiración. Su estilo minimalista con el logo bordado la convierte en una opción versátil para cualquier ocasión.', 119.00, 80.00, '7898123450044', 2, 1, 1, 'Azul', 'HOMBRE', '18cm x 22cm x 12cm', 90, b'1', 87, 15, '/img/Upload/productos/gorra-adidas-baseball-classic-azul.jpg', 'HOMBRE'),
 (87, 'Gorra Puma Essentials Cap Hombre', 'La Puma Essentials Cap ofrece un diseño clásico y cómodo fabricado en algodón durable. Presenta visera curva, paneles con ojales de ventilación y un estilo limpio con el logo Puma bordado. Ideal para uso casual y actividades al aire libre gracias a su ligereza y ajuste natural.', 89.00, 60.00, '7898123450045', 2, 4, 1, 'Blanco', 'HOMBRE', '19cm x 23cm x 12cm', 95, b'1', 88, 14, '/img/Upload/productos/gorra-puma-essentials-cap-hombre.jpg', 'HOMBRE'),
-(88, 'Gorra Under Armour', 'La Under Armour Blitzing 3.0 está diseñada con tejido elástico transpirable que brinda comodidad y ajuste firme. Su construcción estructurada mantiene la forma, mientras que la visera curva y los paneles ventilados ofrecen frescura durante el uso. Ideal para entrenamientos y uso diario gracias a su resistencia y ergonomía.', 139.00, 90.00, '7898123450046', 2, 5, 1, 'Azul', 'HOMBRE', '19cm x 24cm x 12cm', 92, b'1', 89, 15, '/img/Upload/productos/gorra-under-armour.jpg', 'HOMBRE');
+(88, 'Gorra Under Armour', 'La Under Armour Blitzing 3.0 está diseñada con tejido elástico transpirable que brinda comodidad y ajuste firme. Su construcción estructurada mantiene la forma, mientras que la visera curva y los paneles ventilados ofrecen frescura durante el uso. Ideal para entrenamientos y uso diario gracias a su resistencia y ergonomía.', 139.00, 90.00, '7898123450046', 2, 5, 1, 'Azul', 'HOMBRE', '19cm x 24cm x 12cm', 92, b'1', 89, 15, '/img/Upload/productos/gorra-under-armour.jpg', 'HOMBRE'),
+(89, 'Zapatillas Adidas Tensaur Run Kids', 'Las Adidas Tensaur Run Kids ofrecen comodidad, ligereza y buena sujeción para el uso diario de los niños. Fabricadas en malla transpirable con refuerzos sintéticos y suela de goma de alta tracción. Su diseño resistente está pensado para acompañar actividades escolares, juegos y deporte, garantizando durabilidad y confort.', 179.00, 109.99, '7898123450047', 1, 1, 1, 'Rojo', 'NIÑO', NULL, NULL, b'1', 13, 9, '/img/Upload/productos/zapatillas-adidas-tensaur-run-kids.jpg', 'NIÑO'),
+(90, 'Zapatillas Nike Revolution 6 Kids', 'Las Nike Revolution 6 Kids están diseñadas para ofrecer suavidad, soporte y comodidad durante todo el día. Su material de malla mejora la ventilación, mientras que la media suela de espuma proporciona pisadas suaves. Perfectas para actividades escolares, juegos y deporte ligero gracias a su ligereza y flexibilidad.', 189.00, 118.00, '7898123450048', 1, 2, 1, 'Blanco', 'NIÑO', NULL, NULL, b'1', 90, 9, '/img/Upload/productos/zapatillas-nike-revolution-6-kids.jpg', 'NIÑO'),
+(92, 'Zapatillas Puma ST Runner v3 Kids', 'Las Puma ST Runner v3 Kids combinan resistencia y confort con un diseño clásico ideal para uso diario. Su capellada en cuero sintético ofrece durabilidad y fácil limpieza, mientras que la suela de goma brinda excelente tracción. Perfectas para la actividad constante de los niños, ya sea en el colegio o en juego libre.', 169.00, 110.00, '7898123450051', 1, 2, 1, 'Blanco', 'NIÑO', NULL, NULL, b'1', 91, 4, '/img/Upload/productos/zapatillas-puma-st-runner-v3-kids-1.jpg', 'NIÑO'),
+(94, 'Zapatillas Reebok Rush Runner 4 Kids', 'Las Reebok Rush Runner 4 Kids están diseñadas para brindar ligereza, comodidad y buena tracción. Su capellada en malla permite una excelente ventilación, mientras que los refuerzos sintéticos aportan soporte adicional. Ideales para el uso escolar, juegos y actividades deportivas gracias a su amortiguación suave y suela resistente.', 159.00, 90.00, '7898123450052', 1, 1, 1, 'Negro', 'NIÑO', NULL, NULL, b'1', 93, 9, '/img/Upload/productos/zapatillas-reebok-rush-runner-4-kids-1.png', 'NIÑO'),
+(95, 'Zapatillas Bata Marvel Kids Edition', 'Los Bata Marvel Kids Edition combinan comodidad con un diseño inspirado en personajes icónicos de Marvel. Fabricados en cuero sintético resistente, cuentan con interior acolchado y suela flexible ideal para el uso diario. Su estilo llamativo es perfecto para niños que disfrutan de un toque divertido en su calzado casual.', 139.00, 110.00, '7898123450053', 1, 1, 1, 'Multicolor', 'NIÑO', NULL, NULL, b'1', 94, 1, '/img/Upload/productos/zapatillas-bata-marvel-kids-edition.jpg', 'NIÑO'),
+(96, 'Zapatillas Bata Urban Kids Lace', 'Los Bata Urban Kids Lace son zapatos casuales diseñados para el día a día. Fabricados en cuero sintético resistente y de fácil limpieza, cuentan con una suela flexible que brinda comodidad durante horas. Su diseño urbano con cordones ofrece un ajuste seguro y estilo ideal para el colegio y salidas casuales.', 129.00, 90.00, '7898123450059', 1, 1, 1, 'Blanco', 'NIÑO', NULL, NULL, b'1', 95, 1, '/img/Upload/productos/zapatillas-bata-urban-kids-lace.jpg', 'NIÑO'),
+(97, 'Zapatillas Bata Minions Fun Kids', 'Los Bata Minions Fun Kids combinan diversión y comodidad para los más pequeños. Fabricados en cuero sintético resistente con suela flexible, brindan soporte y libertad de movimiento durante todo el día. Su diseño colorido con personajes de Minions los hace atractivos y prácticos para uso diario y actividades escolares.', 189.00, 110.00, '7898123450067', 1, 1, 1, 'Multicolor', 'NIÑO', NULL, NULL, b'1', 96, 1, '/img/Upload/productos/zapatillas-bata-minions-fun-kids.jpg', 'NIÑO'),
+(98, 'Zapatos Bata School Classic Kids', 'Los Bata School Classic son zapatos escolares cómodos y resistentes, fabricados en cuero sintético de fácil limpieza. Su suela flexible proporciona seguridad y estabilidad al caminar, mientras que el diseño clásico se adapta a uniformes escolares, ofreciendo durabilidad y confort durante todo el día.', 119.00, 80.00, '7898123450075', 1, 3, 1, 'Negro', 'NIÑO', NULL, NULL, b'1', 97, 1, '/img/Upload/productos/zapatos-bata-school-classic-kids.jpg', 'NIÑO'),
+(99, 'Zapatos Escolares Bata School Comfort Kids', 'Los Bata School Comfort Kids están diseñados para ofrecer comodidad y durabilidad durante la jornada escolar. Fabricados en cuero sintético resistente, cuentan con suela antideslizante y refuerzos en la puntera para mayor protección. Ideales para uso diario, combinan estilo clásico con funcionalidad.', 139.00, 90.00, '7898123450073', 1, 3, 1, 'Negro', 'NIÑO', NULL, NULL, b'1', 98, 1, '/img/Upload/productos/zapatos-escolares-bata-school-comfort-kids.jpg', 'NIÑO'),
+(100, 'Zapatos Footloose Kids School Pro', 'Los Footloose Kids School Pro ofrecen durabilidad y comodidad para la jornada escolar. Fabricados en cuero sintético resistente, incluyen suela antideslizante y refuerzos en la puntera para mayor seguridad. Su diseño clásico se adapta a uniformes escolares, brindando soporte y estilo durante todo el día.', 149.00, 100.00, '7898123450060', 1, 3, 1, 'Negro', 'NIÑO', NULL, NULL, b'1', 99, 1, '/img/Upload/productos/zapatos-footloose-kids-school-pro.jpg', 'NIÑO'),
+(101, 'Pantuflas Paw Patrol Cozy Paws Kids', 'Las Paw Patrol Cozy Paws están diseñadas para brindar comodidad y calidez a los niños. Fabricadas en felpa suave con suela de goma antideslizante, ofrecen seguridad al caminar por superficies lisas. Su diseño con los personajes de Paw Patrol las hace divertidas y llamativas para los más pequeños.', 89.00, 60.00, '7898123450066', 1, 1, 1, 'Azul', 'NIÑO', NULL, NULL, b'1', 100, 16, '/img/Upload/productos/pantuflas-paw-patrol-cozy-paws-kids.jpg', 'NIÑO'),
+(102, 'Pantuflas CozyPaws Capibara Cuddles', 'Las CozyPaws Capibara Cuddles están diseñadas para brindar calidez y comodidad a los pies de los niños. Fabricadas en felpa suave con suela de goma antideslizante, ofrecen seguridad en superficies lisas y una sensación acogedora. Su diseño divertido inspirado en capibaras las hace originales y atractivas para los pequeños.', 99.00, 60.00, '7898123450070', 1, 2, 1, 'Crema', 'NIÑO', NULL, NULL, b'1', 101, 16, '/img/Upload/productos/pantuflas-cozypaws-capibara-cuddles.jpg', 'NIÑO'),
+(103, 'Pantufla FuzzyFeet Dino Adventure', 'Las FuzzyFeet Dino Adventure combinan diversión y comodidad para los niños. Fabricadas en felpa suave con suela de goma antideslizante, brindan calidez y seguridad dentro del hogar. Su diseño colorido con dinosaurios hace que sean pantuflas llamativas y entretenidas, perfectas para pequeños aventureros.', 99.00, 70.00, '7898123450071', 1, 1, 1, 'Naranja', 'NIÑO', NULL, NULL, b'1', 102, 16, '/img/Upload/productos/pantufla-fuzzyfeet-dino-adventure.jpg', 'NIÑO'),
+(104, 'Sandalias Crocs Classic Clogs Kids', 'Las Crocs Classic Clogs Kids son sandalias ligeras y cómodas, fabricadas en material Croslite™ resistente y fácil de limpiar. Su diseño ventilado permite la transpiración de los pies, mientras que la suela antideslizante proporciona seguridad en superficies húmedas. Ideales para el uso diario, la playa o la piscina, combinando diversión y funcionalidad.', 129.00, 80.00, '7898123450072', 1, 2, 1, 'Negro', 'NIÑO', NULL, NULL, b'1', 103, 10, '/img/Upload/productos/sandalias-crocs-classic-clogs-kids.jpg', 'NIÑO'),
+(106, 'Sandalias Adidas Adilette Kids Azul', 'Las Adidas Adilette Kids son sandalias ligeras y cómodas, perfectas para uso diario y actividades al aire libre. Fabricadas en materiales sintéticos con suela de EVA flexible, ofrecen buena ventilación y comodidad. Su diseño clásico con la icónica franja de Adidas las hace atractivas y funcionales para los niños.', 139.00, 110.00, '7898123450087', 1, 2, 1, 'Azul', 'NIÑO', NULL, NULL, b'1', 104, 4, '/img/Upload/productos/sandalias-adidas-adilette-kids-azul-1.jpg', 'NIÑO'),
+(107, 'Sandalias Rider R1 Play Kids', 'Las Rider R1 Kids son sandalias ligeras y resistentes, ideales para el uso diario y actividades al aire libre. Fabricadas en EVA flexible, ofrecen comodidad, transpiración y buena adherencia gracias a su suela antideslizante. Su diseño deportivo y colorido las hace atractivas para los niños.', 129.00, 80.00, '7898123450097', 1, 2, 1, 'Negro', 'NIÑO', NULL, NULL, b'1', 105, 4, '/img/Upload/productos/sandalias-rider-r1-play-kids.jpg', 'NIÑO'),
+(108, 'Botas Timberland Classic 6-Inch Kids', 'Las Timberland Classic 6-Inch Kids están diseñadas para ofrecer protección, durabilidad y estilo. Fabricadas en cuero impermeable con suela antideslizante, brindan soporte y seguridad en todo tipo de terrenos. Ideales para actividades al aire libre y climas fríos, combinando funcionalidad con un diseño clásico y resistente.', 269.00, 160.00, '7898123450178', 1, 2, 1, 'Marrón', 'NIÑO', NULL, NULL, b'1', 106, 1, '/img/Upload/productos/botas-timberland-classic-6-inch-kids.jpg', 'NIÑO'),
+(109, 'Botín XTI Azul 150541 Niños', 'Los XTI Azul 150541 son zapatos casuales para niños, diseñados para ofrecer comodidad y estilo diario. Fabricados en material sintético resistente y de fácil limpieza, cuentan con suela flexible que proporciona seguridad y confort al caminar. Su diseño moderno en color azul los hace versátiles para el colegio, salidas y actividades cotidianas.', 149.00, 90.00, '7898123450183', 1, 2, 1, 'Azul', 'NIÑO', NULL, NULL, b'1', 18, 4, '/img/Upload/productos/botin-xti-azul-150541-ninos.jpg', 'NIÑO'),
+(110, 'Botín Dragon Ball Saiyan Power Kids', 'Los botines Dragon Ball Saiyan Power Kids están diseñados para combinar estilo y comodidad para los más pequeños. Fabricados en materiales sintéticos y textil resistente, incluyen suela antideslizante y cierre con velcro para un ajuste seguro. Su diseño inspirado en los personajes de Dragon Ball los hace llamativos y divertidos para los niños en sus actividades diarias.', 129.00, 100.00, '7898123450386', 1, 2, 1, 'Multicolor', 'NIÑO', NULL, NULL, b'1', 108, 1, '/img/Upload/productos/botin-dragon-ball-saiyan-power-kids.jpg', 'NIÑO'),
+(111, 'Calcetín Disney Mickey Mouse', 'Los calcetines Disney Mickey Fun Socks están diseñados para brindar comodidad y diversión a los niños. Fabricados en algodón suave con elastano para un ajuste flexible, ofrecen transpiración y suavidad en todo momento. Su diseño colorido con personajes de Mickey Mouse los hace atractivos para el uso diario, colegio o actividades casuales.', 39.00, 20.00, '7898123450587', 2, 2, 1, 'Gris', 'NIÑO', '18cm x 7cm', 25, b'1', 109, 14, '/img/Upload/productos/calcetin-disney-mickey-mouse.jpg', 'NIÑO'),
+(112, 'Calcetín Away Adventure Socks', 'Los calcetines Away Adventure Socks están diseñados para niños activos que buscan comodidad y durabilidad. Fabricados en algodón con poliéster y elastano, ofrecen suavidad, ajuste flexible y buena transpiración. Su diseño colorido y resistente los hace ideales para uso diario, actividades al aire libre y deporte ligero.', 39.00, 20.00, '7898123450890', 2, 4, 1, 'Blanco', 'NIÑO', '19cm x 8cm', 27, b'1', 110, 14, '/img/Upload/productos/calcetin-away-adventure-socks.jpg', 'NIÑO'),
+(113, 'Calcetín Next FunStep Kids', 'Los calcetines Next FunStep Kids están diseñados para ofrecer comodidad y diversión a los niños durante todo el día. Fabricados en algodón con elastano, proporcionan ajuste flexible, suavidad y transpiración. Su diseño colorido y llamativo es ideal para el colegio, actividades deportivas y uso diario.', 29.00, 20.00, '7898123450191', 2, 5, 1, 'Azul', 'NIÑO', '17cm x 7cm', 26, b'1', 111, 14, '/img/Upload/productos/calcetin-next-funstep-kids.jpg', 'NIÑO'),
+(114, 'Cinturón Disney Mickey Adjustable', 'El cinturón Disney Mickey Adjustable Belt está diseñado para ofrecer ajuste cómodo y durabilidad. Fabricado en material sintético resistente, cuenta con hebilla metálica segura y diseño con motivos de Mickey Mouse, ideal para complementar uniformes escolares o ropa casual.', 79.00, 39.98, '7898123450592', 2, 5, 1, 'Negro', 'NIÑO', '80cm x 2.5cm x 1.3cm', 60, b'1', 112, 1, '/img/Upload/productos/cinturon-disney-mickey-adjustable.jpg', 'NIÑO'),
+(115, 'Cinturón Polo Ralph Lauren Classic Adjustable', 'El cinturón Polo Ralph Lauren Classic Adjustable Belt está diseñado para ofrecer durabilidad y ajuste cómodo. Fabricado en material sintético resistente, cuenta con hebilla metálica segura y diseño clásico, ideal para complementar uniformes escolares o ropa casual.', 89.00, 50.00, '7898123450794', 2, 4, 1, 'Negro', 'NIÑO', '90cm x 2.5cm x 0.4cm', 64, b'1', 113, 6, '/img/Upload/productos/cinturon-polo-ralph-lauren-classic-adjustable.jpg', 'NIÑO'),
+(116, 'Cinturón Levi\'s Kids logo Belt', 'El cinturón Levi\'s Kids Logo Belt combina estilo y funcionalidad para los más pequeños. Fabricado en material sintético resistente, cuenta con hebilla metálica ajustable y detalle del logo de la marca. Perfecto para complementar uniformes escolares o looks casuales.', 79.00, 50.00, '7898123450495', 2, 5, 1, 'Multicolor', 'NIÑO', '85cm x 2.5cm x 0.3cm', 62, b'1', 114, 4, '/img/Upload/productos/cinturon-levi-s-kids-logo-belt.jpg', 'NIÑO'),
+(117, 'Gorra Adidas Classic Kids Cap', 'La gorra Adidas Classic Kids Cap combina comodidad y estilo para los más pequeños. Fabricada en algodón y poliéster, cuenta con cierre ajustable y visera curva para proteger del sol. Ideal para actividades deportivas, juegos al aire libre o uso diario.', 89.00, 60.00, '7898123450697', 2, 4, 1, 'Negro', 'NIÑO', '15cm x 19cm x 17cm', 80, b'1', 115, 14, '/img/Upload/productos/gorra-adidas-classic-kids-cap.png', 'NIÑO'),
+(118, 'Gorra Puma x Kidsuper Cap Brown', 'La gorra Puma Kidsuper está diseñada para brindar comodidad y ajuste flexible. Fabricada en algodón con elastano, cuenta con visera curva y cierre ajustable en la parte trasera. Ideal para deporte, actividades al aire libre o uso diario con estilo deportivo.', 79.00, 50.00, '7898123450718', 2, 4, 1, 'Beige', 'NIÑO', '14cm x 17cm x 15cm', NULL, b'1', 116, 14, '/img/Upload/productos/gorra-puma-x-kidsuper-cap-brown.jpg', 'NIÑO'),
+(119, 'Gorra New York Yankees Kids Stone 9Forty', 'La gorra New Era MLB Kids 9FORTY combina estilo y funcionalidad para los más pequeños. Fabricada en algodón y poliéster, cuenta con visera curva y cierre ajustable para un ajuste cómodo. Ideal para actividades deportivas, salidas al aire libre o uso diario con un diseño inspirado en la MLB.', 89.00, 60.00, '7898123450199', 2, 5, 1, 'Beige', 'NIÑO', '14cm x 18cm x 16cm', 82, b'1', 117, 15, '/img/Upload/productos/gorra-new-york-yankees-kids-stone-9forty.jpg', 'NIÑO'),
+(120, 'Gafas De Sol Oakley Kid Radar', 'Las gafas de sol Oakley Kids Radar están diseñadas para ofrecer máxima protección y comodidad a los niños. Fabricadas en plástico ligero con lentes de policarbonato UV400, brindan seguridad y resistencia a impactos. Su diseño deportivo y moderno las hace ideales para actividades al aire libre y uso diario.', 139.00, 90.00, '7898123450102', 2, 4, 1, 'Negro', 'NIÑO', '13cm x 4.5cm x 3.5cm', 17, b'1', 118, 8, '/img/Upload/productos/gafas-de-sol-oakley-kid-radar.jpg', 'NIÑO'),
+(121, 'Gafas De Sol Ray-Ban Wayfarer Junior', 'Las Ray-Ban Wayfarer Junior ofrecen estilo clásico y protección ocular para niños. Fabricadas en plástico resistente con lentes UV400 de policarbonato, brindan seguridad y durabilidad. Su diseño adaptado para niños mantiene la estética icónica de las gafas Wayfarer, siendo ideales para uso diario y actividades al aire libre.', 129.00, 100.00, '7898123450104', 2, 4, 1, 'Negro', 'NIÑO', '11cm x 4.2cm x 3.4cm', NULL, b'1', 119, 8, '/img/Upload/productos/gafas-de-sol-ray-ban-wayfarer-junior.jpg', 'NIÑO'),
+(122, 'Gafas De Sol Oakley Clubmaster Junior', 'Las Ray-Ban Clubmaster Junior combinan estilo retro y protección para niños. Fabricadas en metal y policarbonato con lentes UV400, ofrecen durabilidad y seguridad frente a los rayos solares. Su diseño icónico adaptado a niños permite un look moderno y elegante para uso diario y actividades al aire libre.', 129.00, 90.00, '7898123450107', 2, 4, 1, 'Verde Oscuro', 'NIÑO', '12.4cm x 4.4cm x 3.2cm', 18, b'1', 120, 8, '/img/Upload/productos/gafas-de-sol-oakley-clubmaster-junior.jpg', 'NIÑO');
 
 -- --------------------------------------------------------
 
@@ -1116,7 +1189,38 @@ INSERT INTO `producto_tipos` (`id_producto`, `id_tipo`) VALUES
 (85, 10),
 (86, 14),
 (87, 14),
-(88, 14);
+(88, 14),
+(89, 1),
+(90, 1),
+(92, 1),
+(94, 1),
+(95, 2),
+(96, 2),
+(97, 2),
+(98, 7),
+(99, 7),
+(100, 7),
+(101, 8),
+(102, 8),
+(103, 8),
+(104, 4),
+(106, 4),
+(107, 4),
+(108, 5),
+(109, 5),
+(110, 5),
+(111, 15),
+(112, 15),
+(113, 15),
+(114, 12),
+(115, 12),
+(116, 12),
+(117, 14),
+(118, 14),
+(119, 14),
+(120, 11),
+(121, 11),
+(122, 11);
 
 -- --------------------------------------------------------
 
@@ -1342,12 +1446,12 @@ INSERT INTO `tallas` (`id_producto`, `talla`, `precio_venta`, `costo_compra`) VA
 (8, '42', 549.00, 389.99),
 (9, '43', 559.00, 420.00),
 (10, '42', 159.00, 110.00),
-(11, '12', 110.00, 70.00),
-(12, '14', 130.00, 109.98),
-(13, '30', 65.00, 50.00),
-(14, '16', 40.00, 29.00),
-(15, '14', 70.00, 50.00),
-(16, '14', 60.00, 40.00),
+(11, '33', 199.00, 120.00),
+(12, '34', 169.00, 100.00),
+(13, '31', 129.00, 90.00),
+(14, '31', 89.00, 60.00),
+(15, '32', 149.00, 90.00),
+(16, '34', 129.00, 110.00),
 (17, 'Única', 139.00, 110.00),
 (18, 'Única', 289.00, 230.00),
 (19, 'Única', 549.00, 470.00),
@@ -1357,10 +1461,10 @@ INSERT INTO `tallas` (`id_producto`, `talla`, `precio_venta`, `costo_compra`) VA
 (23, 'Única', 1299.00, 890.00),
 (24, 'Única', 459.00, 340.00),
 (25, 'M', 159.00, 120.00),
-(26, 'S', 40.00, 20.00),
-(27, 'M', 120.00, 90.00),
-(28, 'M', 170.00, 130.00),
-(29, '50mm', 260.00, 180.00),
+(26, '30', 49.00, 20.00),
+(27, '70cm', 89.00, 60.00),
+(28, 'M', 99.00, 60.00),
+(29, 'Única', 139.00, 90.00),
 (30, '39', 599.00, 420.00),
 (31, '39', 399.00, 325.00),
 (32, '38', 279.00, 195.00),
@@ -1419,7 +1523,38 @@ INSERT INTO `tallas` (`id_producto`, `talla`, `precio_venta`, `costo_compra`) VA
 (85, 'Única', 229.00, 180.00),
 (86, 'L', 119.00, 80.00),
 (87, 'M', 89.00, 60.00),
-(88, 'L', 139.00, 90.00);
+(88, 'L', 139.00, 90.00),
+(89, '30', 179.00, 109.99),
+(90, '31', 189.00, 118.00),
+(92, '32', 169.00, 110.00),
+(94, '34', 159.00, 90.00),
+(95, '33', 139.00, 110.00),
+(96, '32', 129.00, 90.00),
+(97, '33', 189.00, 110.00),
+(98, '33', 119.00, 80.00),
+(99, '36', 139.00, 90.00),
+(100, '36', 149.00, 100.00),
+(101, '30', 89.00, 60.00),
+(102, '36', 99.00, 60.00),
+(103, '35', 99.00, 70.00),
+(104, '31', 129.00, 80.00),
+(106, '34', 139.00, 110.00),
+(107, '34', 129.00, 80.00),
+(108, '32', 269.00, 160.00),
+(109, '33', 149.00, 90.00),
+(110, '34', 129.00, 100.00),
+(111, '28', 39.00, 20.00),
+(112, '32', 39.00, 20.00),
+(113, '32', 29.00, 20.00),
+(114, '70cm', 79.00, 39.98),
+(115, '80cm', 89.00, 50.00),
+(116, '75cm', 79.00, 50.00),
+(117, 'M', 89.00, 60.00),
+(118, '0.078kg', 79.00, 50.00),
+(119, 'M', 89.00, 60.00),
+(120, 'Única', 139.00, 90.00),
+(121, 'Única', 129.00, 100.00),
+(122, 'Única', 129.00, 90.00);
 
 -- --------------------------------------------------------
 
@@ -1582,7 +1717,7 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id_usuario`, `nombres`, `apellidos`, `id_tipodocumento`, `numero_documento`, `celular`, `direccion`, `username`, `email`, `contraseña_hash`, `estado`, `fecha_creacion`, `fecha_ultima_sesion`) VALUES
-(4, 'Santiago Efrain', 'Torres Murrieta', 1, '75859114', '964983465', 'juan pablo de la cruz', 'EfrainDs3', 'santiagotorresmurrieta@gmail.com', '$2a$10$6587YGgYKDWyAywi61/cB.TFF.U6LrTWacPvzWaBZ9xoVsuGGy.4.', 1, '2025-10-08 15:17:29', '2025-12-09 16:24:12'),
+(4, 'Santiago Efrain', 'Torres Murrieta', 1, '75859114', '964983465', 'juan pablo de la cruz', 'EfrainDs3', 'santiagotorresmurrieta@gmail.com', '$2a$10$6587YGgYKDWyAywi61/cB.TFF.U6LrTWacPvzWaBZ9xoVsuGGy.4.', 1, '2025-10-08 15:17:29', '2025-12-09 19:41:20'),
 (5, 'Anggelo Lucciano', 'Urbina Espinoza', 1, '72863068', '903 171 836', 'juan pablo de la cruz', 'Ubuntu', 'anggelolucciano21@gmail.com', '$2a$10$VwIkH6380fJV0oPcQXNKiO1oU8zqQ1vKsc0uWSkm.vtCWoTPHzzMG', 1, '2025-10-08 15:46:19', '2025-11-25 01:38:39'),
 (6, 'Anlly Luz', 'Riva Yomona', 1, '72010812', '999888777', 'Calle Nueva 456', 'Anlly', 'al.rivayo@unsm.edu.pe', '$2a$10$E.7vIdGVqCYy5eoYIBjF/uYDym2.b6B6U6.TlT9uKd0tFUl4DMfJW', 1, '2025-10-08 15:57:57', '2025-11-26 17:42:14'),
 (12, 'Danny Alexander', 'Garcia Salas', 1, '98765432', '999888777', 'juan pablo de la cruz', 'Dingui', 'ia.jadrixgr26@gmail.com', '$2a$10$xKxtzv1ECV/74oi69b9hPubeUZgmSnrAUoxmjmSaz0NyeVOYE9BHW', 1, '2025-10-08 16:27:52', '2025-10-15 22:05:53'),
@@ -2059,19 +2194,19 @@ ALTER TABLE `inventario_talla`
 -- AUTO_INCREMENT de la tabla `marcasproducto`
 --
 ALTER TABLE `marcasproducto`
-  MODIFY `id_marca` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
+  MODIFY `id_marca` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
 
 --
 -- AUTO_INCREMENT de la tabla `materialesproducto`
 --
 ALTER TABLE `materialesproducto`
-  MODIFY `id_material` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id_material` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT de la tabla `modelos`
 --
 ALTER TABLE `modelos`
-  MODIFY `id_modelo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=90;
+  MODIFY `id_modelo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=121;
 
 --
 -- AUTO_INCREMENT de la tabla `movimientoscaja`
@@ -2113,7 +2248,7 @@ ALTER TABLE `permisos_auditoria`
 -- AUTO_INCREMENT de la tabla `productos`
 --
 ALTER TABLE `productos`
-  MODIFY `id_producto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=89;
+  MODIFY `id_producto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=123;
 
 --
 -- AUTO_INCREMENT de la tabla `proveedores`
