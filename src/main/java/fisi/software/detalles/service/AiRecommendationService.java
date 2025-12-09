@@ -35,7 +35,8 @@ import fisi.software.detalles.repository.InventarioTallaRepository;
 import fisi.software.detalles.repository.ProductoRepository;
 
 /**
- * Servicio dedicado a construir un contexto rico con productos reales de la base
+ * Servicio dedicado a construir un contexto rico con productos reales de la
+ * base
  * de datos para que el asistente de IA limite sus recomendaciones a artículos
  * disponibles.
  */
@@ -48,14 +49,15 @@ public class AiRecommendationService {
             "formal", List.of("formal", "gala", "boda", "terno", "oxford", "charol", "evento de noche", "salón"),
             "semiformal", List.of("semi", "reunión", "cocktail", "smart", "mocasín"),
             "casual", List.of("casual", "diario", "jean", "salida", "urbano"),
-            "deportivo", List.of("deportivo", "running", "gym", "training", "amortiguación", "sneaker"),
+            "deportivo",
+            List.of("deportivo", "running", "gym", "training", "amortiguación", "sneaker", "correr", "zapatilla"),
             "trabajo", List.of("oficina", "trabajo", "laboral", "executivo", "comodidad todo el día"));
 
     private static final Map<String, List<String>> STYLE_KEYWORDS = Map.of(
             "elegante", List.of("elegante", "formal", "charol", "oxford", "tacón"),
             "moderno", List.of("moderno", "tendencia", "minimalista", "urbano"),
             "clasico", List.of("clásico", "tradicional", "atemporal", "mocasín"),
-            "deportivo", List.of("deportivo", "running", "sport", "training", "correr"),
+            "deportivo", List.of("deportivo", "running", "sport", "training", "correr", "zapatilla"),
             "casual", List.of("casual", "diario", "relajado", "urbano"));
 
     private static final List<String> HIGH_COMFORT_KEYWORDS = List.of("amortigu", "acolch", "suela suave",
@@ -64,15 +66,22 @@ public class AiRecommendationService {
     private static final List<String> LOW_COMFORT_PRIORITY_KEYWORDS = List.of("tacón", "plataforma", "puntal",
             "brillo", "moda", "estilizado");
 
+    // Palabras clave que DESCALIFICAN un producto para ciertos tipos de evento
+    private static final Map<String, List<String>> INCOMPATIBLE_KEYWORDS = Map.of(
+            "deportivo", List.of("sandalia", "chancleta", "tacón", "taco", "formal", "gala", "charol", "oxford"),
+            "formal", List.of("deportivo", "running", "gym", "training", "sneaker", "sandalia", "chancleta"),
+            "semiformal", List.of("deportivo", "running", "gym", "sandalia", "chancleta"),
+            "trabajo", List.of("sandalia", "chancleta", "deportivo muy casual"));
+
     private final CategoriaProductoRepository categoriaProductoRepository;
     private final ProductoRepository productoRepository;
     private final InventarioRepository inventarioRepository;
     private final InventarioTallaRepository inventarioTallaRepository;
 
     public AiRecommendationService(CategoriaProductoRepository categoriaProductoRepository,
-                                   ProductoRepository productoRepository,
-                                   InventarioRepository inventarioRepository,
-                                   InventarioTallaRepository inventarioTallaRepository) {
+            ProductoRepository productoRepository,
+            InventarioRepository inventarioRepository,
+            InventarioTallaRepository inventarioTallaRepository) {
         this.categoriaProductoRepository = categoriaProductoRepository;
         this.productoRepository = productoRepository;
         this.inventarioRepository = inventarioRepository;
@@ -115,16 +124,37 @@ public class AiRecommendationService {
     }
 
     private Candidate construirCandidato(Producto producto,
-                                         String eventKey,
-                                         String styleKey,
-                                         String colorKey,
-                                         String tallaSolicitada,
-                                         String comfortPriority,
-                                         String gender) {
+            String eventKey,
+            String styleKey,
+            String colorKey,
+            String tallaSolicitada,
+            String comfortPriority,
+            String gender) {
+
+        // FILTRADO CRÍTICO: Descartar productos incompatibles con el tipo de evento
+        String textoProducto = construirTextoProducto(producto);
+
+        // Si se especificó un tipo de evento, verificar que el producto no sea
+        // incompatible
+        if (StringUtils.hasText(eventKey)) {
+            List<String> palabrasIncompatibles = INCOMPATIBLE_KEYWORDS.getOrDefault(eventKey, List.of());
+            if (esProductoIncompatible(textoProducto, palabrasIncompatibles)) {
+                return null; // Descartar este producto completamente
+            }
+        }
+
+        // Si se especificó un estilo, verificar compatibilidad
+        if (StringUtils.hasText(styleKey)) {
+            List<String> palabrasIncompatibles = INCOMPATIBLE_KEYWORDS.getOrDefault(styleKey, List.of());
+            if (esProductoIncompatible(textoProducto, palabrasIncompatibles)) {
+                return null; // Descartar este producto completamente
+            }
+        }
 
         StockDetalle stock = calcularStock(producto);
         List<ProductoTalla> tallasOrdenadas = producto.getTallas().stream()
-                .sorted(Comparator.comparing(ProductoTalla::getTalla, Comparator.nullsLast(String::compareToIgnoreCase)))
+                .sorted(Comparator.comparing(ProductoTalla::getTalla,
+                        Comparator.nullsLast(String::compareToIgnoreCase)))
                 .toList();
 
         List<TallaDisponibilidad> tallas = crearTallas(producto, stock, tallasOrdenadas);
@@ -151,13 +181,33 @@ public class AiRecommendationService {
                 producto.getImagen(),
                 matchingScore.coincidencias(),
                 matchingScore.score(),
-                matchingScore.tallaDisponible()
-        );
+                matchingScore.tallaDisponible());
 
         return new Candidate(respuesta, matchingScore.score());
     }
 
-    private List<TallaDisponibilidad> crearTallas(Producto producto, StockDetalle stock, List<ProductoTalla> tallasOrdenadas) {
+    /**
+     * Verifica si un producto contiene palabras clave incompatibles
+     */
+    private boolean esProductoIncompatible(String textoProducto, List<String> palabrasIncompatibles) {
+        if (!StringUtils.hasText(textoProducto) || palabrasIncompatibles == null || palabrasIncompatibles.isEmpty()) {
+            return false;
+        }
+
+        for (String palabraIncompatible : palabrasIncompatibles) {
+            if (!StringUtils.hasText(palabraIncompatible)) {
+                continue;
+            }
+            String palabraNormalizada = normalizarTexto(palabraIncompatible);
+            if (textoProducto.contains(palabraNormalizada)) {
+                return true; // Producto incompatible encontrado
+            }
+        }
+        return false;
+    }
+
+    private List<TallaDisponibilidad> crearTallas(Producto producto, StockDetalle stock,
+            List<ProductoTalla> tallasOrdenadas) {
         if (!tallasOrdenadas.isEmpty()) {
             return tallasOrdenadas.stream()
                     .map(t -> new TallaDisponibilidad(
@@ -184,14 +234,14 @@ public class AiRecommendationService {
     }
 
     private MatchingScore calcularScore(Producto producto,
-                                        List<ProductoTalla> tallas,
-                                        StockDetalle stock,
-                                        String eventKey,
-                                        String styleKey,
-                                        String colorKey,
-                                        String tallaSolicitada,
-                                        String comfortPriority,
-                                        String gender) {
+            List<ProductoTalla> tallas,
+            StockDetalle stock,
+            String eventKey,
+            String styleKey,
+            String colorKey,
+            String tallaSolicitada,
+            String comfortPriority,
+            String gender) {
         double score = 10d; // Base para todos los productos activos
         List<String> coincidencias = new ArrayList<>();
         boolean tallaDisponible = false;
@@ -249,7 +299,8 @@ public class AiRecommendationService {
                 score += 20;
                 coincidencias.add("Talla " + denormalizarTalla(tallaSolicitada) + " con stock");
             } else if (tallasDisponibles.isEmpty()) {
-                // Si no tenemos tallas en inventario pero el producto declara la talla, usar referencia
+                // Si no tenemos tallas en inventario pero el producto declara la talla, usar
+                // referencia
                 tallaDisponible = tallas.stream()
                         .map(ProductoTalla::getTalla)
                         .map(AiRecommendationService::normalizarTalla)
@@ -318,7 +369,8 @@ public class AiRecommendationService {
         }
 
         if (stockPorTalla.isEmpty()) {
-            // Repartir stock total de forma aproximada si existen tallas declaradas en el producto
+            // Repartir stock total de forma aproximada si existen tallas declaradas en el
+            // producto
             Set<String> tallasProducto = producto.getTallas().stream()
                     .map(ProductoTalla::getTalla)
                     .filter(StringUtils::hasText)
@@ -407,7 +459,7 @@ public class AiRecommendationService {
     }
 
     private record MatchingScore(double score, List<String> coincidencias, String estiloPrincipal,
-                                 boolean tallaDisponible) {
+            boolean tallaDisponible) {
     }
 
     private record Candidate(AiRecommendationResponse respuesta, double score) {
