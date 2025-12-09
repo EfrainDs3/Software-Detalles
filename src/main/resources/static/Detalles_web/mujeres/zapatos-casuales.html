@@ -300,24 +300,24 @@
 
         // Función principal para cargar productos
         async function cargarZapatosCasualesMujeres() {
-            try {
-                console.log('Cargando zapatos casuales para mujeres...');
-                
-                // Primero intentar con filtros específicos, si no funciona cargar todos de mujeres
-                let response = await fetch('/api/productos/buscar?categoria=mujeres&tipo=zapatos-casuales');
-                
-                if (!response.ok) {
-                    throw new Error('Error en la respuesta de la API');
-                }
-                
-                let productos = await response.json();
-                
-                // Si no hay resultados, cargar todos los productos de mujeres
-                if (!productos || productos.length === 0) {
-                    console.log('No se encontraron zapatos casuales específicos, cargando todos los productos de mujeres...');
-                    response = await fetch('/api/productos/buscar?categoria=mujeres');
-                    productos = await response.json();
-                }
+                    try {
+                    console.log('Cargando zapatos casuales para mujeres...');
+
+                    // Llamada específica por sexo + tipo (nombres exactos según detalles.sql)
+                    let response = await fetch('/api/productos/calzados?sexo=MUJER&tipo=Zapatos%20Casuales');
+
+                    if (!response.ok) {
+                        throw new Error('Error en la respuesta de la API');
+                    }
+
+                    let productos = await response.json();
+
+                    // Si no hay resultados, cargar todos los productos de mujeres (por sexo)
+                    if (!productos || productos.length === 0) {
+                        console.log('No se encontraron zapatos casuales específicos, cargando todos los productos de mujeres...');
+                        response = await fetch('/api/productos/calzados?sexo=MUJER');
+                        productos = await response.json();
+                    }
                 
                 console.log('Productos cargados:', productos);
                 
@@ -353,9 +353,9 @@
             contenedor.innerHTML = productos.map(producto => `
                 <div class="product-card-detailed" data-product-id="${producto.id}">
                     <div class="product-image-detailed">
-                        <img src="${producto.imagenUrl || 'https://via.placeholder.com/300x300'}" 
-                             alt="${producto.nombre || producto.nombre_producto}" 
-                             onerror="this.src='https://via.placeholder.com/300x300'">
+                        <img src="${producto.imagen || '/img/Upload/productos/producto-default.jpg'}" 
+                             alt="${producto.nombre}"  
+                             onerror="this.src='/img/Upload/productos/producto-default.jpg'">
                         <div class="product-overlay">
                             <button class="quick-view" onclick="vistaRapida(${producto.id})">Vista Rápida</button>
                         </div>
@@ -398,7 +398,7 @@
             
             try {
                 console.log('Buscando:', searchTerm);
-                const response = await fetch(`/api/productos/buscar?nombre=${encodeURIComponent(searchTerm)}&categoria=mujeres`);
+                const response = await fetch(`/api/productos/calzados?sexo=MUJER&tipo=Zapatos%20Casuales&nombre=${encodeURIComponent(searchTerm)}`);
                 const productos = await response.json();
                 
                 productosFiltrados = productos;

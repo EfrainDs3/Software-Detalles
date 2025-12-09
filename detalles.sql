@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 26-11-2025 a las 18:51:32
+-- Tiempo de generación: 09-12-2025 a las 04:19:37
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -61,7 +61,9 @@ CREATE TABLE `aperturascaja` (
 --
 
 INSERT INTO `aperturascaja` (`id_apertura`, `id_caja`, `id_usuario`, `fecha_apertura`, `hora_apertura`, `monto_inicial`) VALUES
-(1, 1, 4, '2025-11-26', '12:49:13', 180.00);
+(1, 1, 4, '2025-11-26', '12:49:13', 180.00),
+(2, 2, 4, '2025-12-04', '09:07:25', 200.00),
+(3, 1, 4, '2025-12-08', '18:23:13', 150.00);
 
 -- --------------------------------------------------------
 
@@ -96,7 +98,7 @@ CREATE TABLE `cajas` (
 --
 
 INSERT INTO `cajas` (`id_caja`, `nombre_caja`, `ubicacion`, `estado`) VALUES
-(1, 'Caja 1', 'del centro', 'Cerrada'),
+(1, 'Caja 1', 'del centro', 'Abierta'),
 (2, 'Caja 2', 'del costado izquierdo', 'Cerrada');
 
 -- --------------------------------------------------------
@@ -110,6 +112,13 @@ CREATE TABLE `carrito` (
   `fecha_creacion` datetime(6) DEFAULT NULL,
   `id_usuario` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `carrito`
+--
+
+INSERT INTO `carrito` (`id_carrito`, `fecha_creacion`, `id_usuario`) VALUES
+(1, '2025-11-28 21:31:05.000000', 18);
 
 -- --------------------------------------------------------
 
@@ -167,7 +176,8 @@ CREATE TABLE `cierrescaja` (
 --
 
 INSERT INTO `cierrescaja` (`id_cierre`, `id_apertura`, `id_caja`, `id_usuario`, `fecha_cierre`, `hora_cierre`, `monto_final`, `monto_esperado`, `diferencia`, `observaciones`) VALUES
-(1, 1, 1, 4, '2025-11-26', '12:50:16', 500.00, 580.00, -80.00, 'Cierre de turno manual.');
+(1, 1, 1, 4, '2025-11-26', '12:50:16', 500.00, 580.00, -80.00, 'Cierre de turno manual.'),
+(2, 2, 2, 4, '2025-12-08', '18:19:43', 499.00, 499.00, 0.00, 'Cierre de turno manual.');
 
 -- --------------------------------------------------------
 
@@ -195,7 +205,8 @@ CREATE TABLE `clientes` (
 INSERT INTO `clientes` (`id_cliente`, `nombre`, `apellido`, `id_tipodocumento`, `numero_documento`, `direccion`, `telefono`, `email`, `fecha_registro`, `estado`) VALUES
 (1, 'Santiago Efrain', 'Torres Murrieta ', 1, '75859114', 'Jr Tnaga Mandapio', '964983465', 'santiagotorresmurrieta@gmail.com', '2025-10-08 03:30:17', 1),
 (2, 'ANGGELO LUCCIANO', 'URBINA ESPINOZA', 2, '20154544667', 'JR. RICARDO PALMA 444', '-', NULL, '2025-11-11 17:39:19', 0),
-(3, 'Anlly Luz', 'Riva', 1, '72010812', '-', '-', NULL, '2025-11-26 17:48:19', 1);
+(3, 'Anlly Luz', 'Riva', 1, '72010812', '-', '-', NULL, '2025-11-26 17:48:19', 1),
+(4, 'Anggelo Lucciano', 'Urbina Espinoza', 1, '72863068', '-', '-', NULL, '2025-12-08 23:18:08', 1);
 
 -- --------------------------------------------------------
 
@@ -215,15 +226,19 @@ CREATE TABLE `comprobantespago` (
   `subtotal` decimal(10,2) NOT NULL,
   `estado` varchar(20) NOT NULL DEFAULT 'Emitido',
   `motivo_anulacion` text DEFAULT NULL,
-  `id_apertura` bigint(20) NOT NULL
+  `id_apertura` bigint(20) NOT NULL,
+  `id_venta_original` bigint(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `comprobantespago`
 --
 
-INSERT INTO `comprobantespago` (`id_comprobante`, `id_cliente`, `id_usuario`, `id_tipo_comprobante`, `numero_comprobante`, `fecha_emision`, `total`, `igv`, `subtotal`, `estado`, `motivo_anulacion`, `id_apertura`) VALUES
-(1, 3, 6, 1, 'B001-00000001', '2025-11-26 05:00:00', 400.00, 61.02, 338.98, 'Emitido', NULL, 1);
+INSERT INTO `comprobantespago` (`id_comprobante`, `id_cliente`, `id_usuario`, `id_tipo_comprobante`, `numero_comprobante`, `fecha_emision`, `total`, `igv`, `subtotal`, `estado`, `motivo_anulacion`, `id_apertura`, `id_venta_original`) VALUES
+(1, 3, 6, 1, 'B001-00000001', '2025-11-26 05:00:00', 400.00, 61.02, 338.98, 'Emitido', NULL, 1, NULL),
+(2, 4, 6, 1, 'B001-0001', '2025-12-08 23:19:09', 299.00, 0.00, 299.00, 'Modificado', NULL, 2, NULL),
+(3, 1, 6, 1, 'B001-00000003', '2025-12-08 23:24:04', 418.00, 0.00, 418.00, 'Modificado', NULL, 3, 2),
+(4, 4, 6, 1, 'B001-00000004', '2025-12-08 23:26:29', 577.00, 0.00, 577.00, 'Emitido', NULL, 3, 3);
 
 -- --------------------------------------------------------
 
@@ -246,7 +261,12 @@ CREATE TABLE `detallescomprobantepago` (
 --
 
 INSERT INTO `detallescomprobantepago` (`id_detalle_comprobante`, `id_comprobante`, `id_producto`, `cantidad`, `precio_unitario`, `descuento_aplicado`, `subtotal_linea`) VALUES
-(1, 1, 12, 2, 200.00, 0.00, 400.00);
+(1, 2, 36, 1, 299.00, 0.00, 299.00),
+(2, 3, 36, 1, 299.00, 0.00, 299.00),
+(3, 3, 5, 1, 119.00, 0.00, 119.00),
+(4, 4, 36, 1, 299.00, 0.00, 299.00),
+(5, 4, 5, 1, 119.00, 0.00, 119.00),
+(6, 4, 3, 1, 159.00, 0.00, 159.00);
 
 -- --------------------------------------------------------
 
@@ -264,16 +284,6 @@ CREATE TABLE `detallespedidocompra` (
   `cantidad_recibida` int(11) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Volcado de datos para la tabla `detallespedidocompra`
---
-
-INSERT INTO `detallespedidocompra` (`id_detalle_pedido`, `id_pedido_compra`, `id_producto`, `cantidad_pedida`, `costo_unitario`, `subtotal_linea`, `cantidad_recibida`) VALUES
-(2, 2, 1, 4, 205.00, 820.00, 0),
-(3, 2, 4, 2, 200.00, 400.00, 0),
-(4, 3, 1, 1, 205.00, 205.00, 1),
-(5, 3, 2, 3, 2000.00, 6000.00, 3);
-
 -- --------------------------------------------------------
 
 --
@@ -288,16 +298,6 @@ CREATE TABLE `detallespedidocompra_talla` (
   `cantidad_recibida` int(11) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Volcado de datos para la tabla `detallespedidocompra_talla`
---
-
-INSERT INTO `detallespedidocompra_talla` (`id_detalle_talla`, `id_detalle_pedido`, `talla`, `cantidad_pedida`, `cantidad_recibida`) VALUES
-(1, 2, '35', 4, 0),
-(2, 3, '12', 2, 0),
-(3, 4, '35', 1, 1),
-(4, 5, 'M', 3, 3);
-
 -- --------------------------------------------------------
 
 --
@@ -308,6 +308,19 @@ CREATE TABLE `etiquetas_producto_ia` (
   `id_etiqueta` int(11) NOT NULL,
   `id_producto` int(11) NOT NULL,
   `etiqueta` varchar(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `favoritos`
+--
+
+CREATE TABLE `favoritos` (
+  `id_favorito` int(11) NOT NULL,
+  `id_usuario` int(11) NOT NULL,
+  `id_producto` int(11) NOT NULL,
+  `fecha_agregado` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -340,21 +353,6 @@ CREATE TABLE `inventario` (
   `fecha_ultima_actualizacion` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Volcado de datos para la tabla `inventario`
---
-
-INSERT INTO `inventario` (`id_inventario`, `id_producto`, `id_almacen`, `cantidad_stock`, `stock_minimo`, `fecha_ultima_actualizacion`) VALUES
-(4, 1, 1, 6, 1, '2025-11-26 13:57:52'),
-(5, 2, 1, 3, 1, '2025-11-26 13:57:52'),
-(6, 5, 1, 3, 0, '2025-11-24 16:49:15'),
-(7, 9, 1, 0, 0, '2025-11-20 03:13:53'),
-(8, 10, 1, 4, 3, '2025-11-20 05:01:54'),
-(9, 4, 1, 0, 0, '2025-11-20 05:02:37'),
-(10, 12, 1, 0, 0, '2025-11-20 15:33:19'),
-(11, 6, 2, 5, 0, '2025-11-24 14:32:45'),
-(12, 11, 1, 0, 0, '2025-11-24 15:53:53');
-
 -- --------------------------------------------------------
 
 --
@@ -369,16 +367,6 @@ CREATE TABLE `inventario_talla` (
   `talla` varchar(64) DEFAULT NULL,
   `id_inventario` bigint(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Volcado de datos para la tabla `inventario_talla`
---
-
-INSERT INTO `inventario_talla` (`id_inventario_talla`, `cantidad_stock`, `fecha_ultima_actualizacion`, `stock_minimo`, `talla`, `id_inventario`) VALUES
-(1, 6, '2025-11-26 13:57:52.000000', 5, '35', 4),
-(2, 5, '2025-11-24 14:32:45.000000', 3, '42', 11),
-(3, 3, '2025-11-24 16:49:15.000000', 5, '12', 6),
-(4, 3, '2025-11-26 13:57:52.000000', 5, 'M', 5);
 
 -- --------------------------------------------------------
 
@@ -396,7 +384,44 @@ CREATE TABLE `marcasproducto` (
 --
 
 INSERT INTO `marcasproducto` (`id_marca`, `nombre_marca`) VALUES
-(1, 'Nike');
+(5, 'Adidas'),
+(29, 'Aldo'),
+(10, 'Angel'),
+(30, 'Birkenstock'),
+(32, 'Borcegos'),
+(7, 'Boss'),
+(37, 'Burberry'),
+(38, 'Calvin Klein'),
+(8, 'Caterpillar'),
+(35, 'Coach'),
+(6, 'Converse'),
+(9, 'Crocs'),
+(12, 'Daclay'),
+(11, 'Dearfoams'),
+(2, 'Dior'),
+(4, 'FootLoose'),
+(15, 'Gucci'),
+(13, 'Guess'),
+(26, 'H&M'),
+(24, 'Hush Puppies'),
+(3, 'Louis Vuitton'),
+(31, 'Mango'),
+(27, 'Massimo Dutti'),
+(34, 'Michael Kors'),
+(21, 'New Balance'),
+(17, 'New York'),
+(1, 'Nike'),
+(23, 'North Star'),
+(14, 'Oakley'),
+(28, 'Piazza'),
+(36, 'Prada'),
+(20, 'Puma'),
+(19, 'Ray-Ban'),
+(22, 'Reebok'),
+(16, 'Rolex'),
+(18, 'Tommy Hilfiger'),
+(25, 'Vans'),
+(33, 'Zara');
 
 -- --------------------------------------------------------
 
@@ -414,7 +439,14 @@ CREATE TABLE `materialesproducto` (
 --
 
 INSERT INTO `materialesproducto` (`id_material`, `nombre_material`) VALUES
-(1, 'Cuero');
+(5, 'Canvas'),
+(1, 'Cuero'),
+(8, 'Lente UV'),
+(7, 'Polarizado'),
+(4, 'Sintético'),
+(3, 'Suede'),
+(6, 'Tela'),
+(2, 'Textil');
 
 -- --------------------------------------------------------
 
@@ -433,10 +465,65 @@ CREATE TABLE `modelos` (
 --
 
 INSERT INTO `modelos` (`id_modelo`, `nombre_modelo`, `id_marca`) VALUES
-(1, 'Air Max720', 1),
-(2, 'Air Max710', 1),
-(3, 'Modelo123', 1),
-(4, 'Modelo2', 1);
+(1, 'Air Force 1', 1),
+(2, 'Ultra Boost 22', 5),
+(3, 'Air Max 270', 1),
+(4, 'Modelo2', 1),
+(5, 'J\'Adior', 2),
+(6, 'Territory', 3),
+(7, 'Fch-Rs023 Danae', 4),
+(8, 'Adidas Superstar', 5),
+(9, 'All Star', 6),
+(10, 'Derby', 7),
+(11, 'Cat', 8),
+(12, 'Bayaband Clogs', 9),
+(13, 'Modelo 4', 5),
+(14, 'Urbana', 10),
+(15, 'Footloose Kids', 4),
+(16, 'Clásicos', 11),
+(17, 'Crocs Kids', 9),
+(18, 'Daclay Kids', 12),
+(19, 'Laurel Slg', 13),
+(20, 'Holbrook', 14),
+(21, 'Blondie', 15),
+(22, 'GG Supreme', 15),
+(23, 'Sky-Dweller', 16),
+(24, 'Eyewear', 15),
+(25, 'Crosstown', 7),
+(26, '9Forty MLB', 17),
+(27, 'Everyday', 1),
+(28, 'Essential', 18),
+(29, 'Heritage86', 1),
+(30, 'Aviator Junior', 19),
+(31, 'Cali Court', 20),
+(32, '574 Core', 21),
+(33, 'Classic Leather', 22),
+(34, 'Compus', 23),
+(35, 'Memory Foam', 24),
+(36, 'Ward', 25),
+(37, 'Chuck Taylor', 6),
+(38, 'Pump', 26),
+(39, 'Destalonado', 27),
+(40, 'Pump', 28),
+(41, 'Tela Sandal', 29),
+(42, 'Arizona', 30),
+(43, 'Plana simple', 31),
+(44, 'Botín Clásico Women', 26),
+(45, 'Borcego Urbano', 32),
+(46, 'Botín Tacon Medio', 33),
+(47, 'Jet Set Travel', 34),
+(48, 'Bolso Shopping Básico', 33),
+(49, 'Neverfull', 3),
+(50, 'Tabby Shoulder Bag', 35),
+(51, 'Travel Wallet', 34),
+(52, 'Billetera Lisa', 31),
+(53, 'Accordion Zip Wallet', 35),
+(54, 'Sunglasses PR 17WS', 36),
+(55, 'Sunglasses Women', 33),
+(56, 'BE 4299', 37),
+(57, 'Leather Belt Básico', 26),
+(58, 'Belt', 38),
+(59, 'Belt Essential', 38);
 
 -- --------------------------------------------------------
 
@@ -474,36 +561,6 @@ CREATE TABLE `movimientosinventario` (
   `talla` varchar(64) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Volcado de datos para la tabla `movimientosinventario`
---
-
-INSERT INTO `movimientosinventario` (`id_movimiento_inv`, `id_producto`, `id_almacen`, `id_tipo_movimiento`, `cantidad`, `fecha_movimiento`, `id_usuario`, `observaciones`, `referencia_doc`, `talla`) VALUES
-(1, 1, 1, 2, 1, '2025-10-30 06:00:12', 4, NULL, NULL, NULL),
-(2, 2, 1, 3, 2, '2025-10-30 06:28:14', 4, NULL, NULL, NULL),
-(3, 1, 1, 1, 1, '2025-10-30 06:36:34', 4, NULL, NULL, NULL),
-(4, 1, 1, 2, 1, '2025-10-30 06:40:20', 4, NULL, NULL, NULL),
-(5, 1, 1, 2, 1, '2025-10-30 06:42:02', 4, NULL, NULL, NULL),
-(6, 1, 1, 3, 1, '2025-11-17 22:17:17', 4, NULL, NULL, '35'),
-(7, 1, 1, 2, 1, '2025-11-17 22:17:37', 4, NULL, NULL, '35'),
-(8, 5, 1, 2, 1, '2025-11-19 13:09:36', 4, NULL, NULL, NULL),
-(9, 10, 1, 2, 5, '2025-11-20 03:32:14', 4, NULL, NULL, NULL),
-(10, 10, 1, 1, 6, '2025-11-20 04:27:48', 4, NULL, NULL, NULL),
-(11, 10, 1, 2, 1, '2025-11-20 04:36:25', 4, NULL, NULL, NULL),
-(12, 10, 1, 2, 1, '2025-11-20 05:01:29', 4, NULL, NULL, NULL),
-(13, 10, 1, 2, 1, '2025-11-20 05:01:44', 4, NULL, NULL, NULL),
-(14, 10, 1, 2, 1, '2025-11-20 05:01:54', 4, NULL, NULL, NULL),
-(15, 6, 2, 2, 1, '2025-11-20 15:59:53', 4, NULL, NULL, '42'),
-(16, 6, 2, 2, 4, '2025-11-20 16:00:23', 4, NULL, NULL, '42'),
-(17, 6, 2, 1, 4, '2025-11-24 14:32:21', 4, NULL, NULL, '42'),
-(18, 6, 2, 2, 4, '2025-11-24 14:32:45', 4, NULL, NULL, '42'),
-(19, 1, 1, 2, 3, '2025-11-24 16:47:29', 4, '', '', '35'),
-(20, 5, 1, 1, 5, '2025-11-24 16:48:15', 4, '', '', '12'),
-(21, 5, 1, 2, 10, '2025-11-24 16:48:52', 4, '', '', '12'),
-(22, 5, 1, 1, 7, '2025-11-24 16:49:15', 4, NULL, NULL, '12'),
-(23, 1, 1, 5, 1, '2025-11-26 13:57:52', 4, 'Entrada por compra - Talla 35 - Proveedor: Nike', 'COMPRA-3-TALLA-35', '35'),
-(24, 2, 1, 5, 3, '2025-11-26 13:57:52', 4, 'Entrada por compra - Talla M - Proveedor: Nike', 'COMPRA-3-TALLA-M', 'M');
-
 -- --------------------------------------------------------
 
 --
@@ -534,16 +591,9 @@ CREATE TABLE `pedidoscompra` (
   `referencia` varchar(100) DEFAULT NULL,
   `observaciones` text DEFAULT NULL,
   `estado_pedido` varchar(50) NOT NULL DEFAULT 'Pendiente',
-  `total_pedido` decimal(10,2) NOT NULL DEFAULT 0.00
+  `total_pedido` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `aplica_igv` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Volcado de datos para la tabla `pedidoscompra`
---
-
-INSERT INTO `pedidoscompra` (`id_pedido_compra`, `id_proveedor`, `id_usuario`, `fecha_pedido`, `fecha_entrega_esperada`, `id_tipopago`, `referencia`, `observaciones`, `estado_pedido`, `total_pedido`) VALUES
-(2, 2, 4, '2025-11-25 21:07:11', NULL, NULL, NULL, NULL, 'Pendiente', 1220.00),
-(3, 2, 4, '2025-11-25 22:48:23', NULL, NULL, NULL, NULL, 'Completado', 6205.00);
 
 -- --------------------------------------------------------
 
@@ -817,23 +867,72 @@ CREATE TABLE `productos` (
   `estado` bit(1) NOT NULL,
   `id_modelo` int(11) DEFAULT NULL,
   `id_material` int(11) DEFAULT NULL,
-  `imagen` varchar(255) DEFAULT NULL
+  `imagen` varchar(255) DEFAULT NULL,
+  `sexo_tipo` varchar(10) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `productos`
 --
 
-INSERT INTO `productos` (`id_producto`, `nombre_producto`, `descripcion`, `precio_venta`, `costo_compra`, `codigo_barra`, `id_categoria`, `id_proveedor`, `id_unidad_medida`, `color`, `tipo`, `dimensiones`, `peso_gramos`, `estado`, `id_modelo`, `id_material`, `imagen`) VALUES
-(1, 'Zapatillas Deportivas Nike', 'ZapatillaNiker', 200.00, 205.00, NULL, 1, 2, 1, 'Blanco', 'Hombre', '30 x 20 x 12 cm', 1000, b'1', 2, 1, NULL),
-(2, 'Cinturón de Cuero', 'Cinturon de cuero', 200.00, 2000.00, NULL, 2, 2, 2, 'Blanco', 'Hombre', '120 x 4 x 0.5 cm', 11, b'1', 2, 1, NULL),
-(4, 'Zapatillas Deportivas Nike', 'Zapato123', 200.00, 200.00, NULL, 1, 2, 1, 'Blanco', 'Hombre', '30 x 20 x 12 cm', 2000, b'1', 3, 1, NULL),
-(5, 'Alexander123', NULL, 122.00, NULL, NULL, 2, 2, 2, 'Blanco', 'Hombre', '120 x 4 x 0.5 cm', 11, b'1', 3, 1, NULL),
-(6, 'Zapatilla Nike123', 'Zapatilla deportiva Nike', 250.00, 210.00, NULL, 1, 2, 1, 'Blanco y Rojo', 'Niños', '30x20', 1000, b'1', 3, 1, NULL),
-(9, 'Zapatillas1', NULL, 311.00, 313.00, NULL, 1, 2, 1, 'Blanco', 'Hombre', NULL, NULL, b'1', 4, 1, '/img/upload/productos/calzados/zapatillas1.jpg'),
-(10, 'Acc1', NULL, 200.00, 300.00, NULL, 2, 2, 1, 'Blanco', 'Hombre', '120 x 4 x 0.5 cm', 11, b'1', 2, 1, NULL),
-(11, 'Zapato1', NULL, 100.00, 200.00, NULL, 1, 2, 1, 'Negro', 'Hombre', NULL, NULL, b'1', 2, 1, '/img/upload/productos/calzados/zapato1.jpg'),
-(12, 'Zapatillas3', NULL, 200.00, 100.00, NULL, 1, 2, 1, 'Blanco', 'Hombre', NULL, NULL, b'1', 2, 1, NULL);
+INSERT INTO `productos` (`id_producto`, `nombre_producto`, `descripcion`, `precio_venta`, `costo_compra`, `codigo_barra`, `id_categoria`, `id_proveedor`, `id_unidad_medida`, `color`, `tipo`, `dimensiones`, `peso_gramos`, `estado`, `id_modelo`, `id_material`, `imagen`, `sexo_tipo`) VALUES
+(1, 'Zapatillas Nike Air Force 1 Mujer', 'Zapatilla deportiva para mujer con diseño clásico y acabado en cuero sintético, ideal para uso diario gracias a su comodidad, resistencia y estilo urbano.', 379.00, 280.00, '7891234567012', 1, 1, 1, 'Blanco', 'MUJER', NULL, NULL, b'1', 1, 1, '/img/Upload/productos/zapatillas-nike-air-force-1-mujer.jpg', 'MUJER'),
+(2, 'Zapatillas Urbanas North Star Campus Azul Mujer', 'Zapato casual cómodo con diseño minimalista y suela flexible.', 189.00, 130.00, '7892234567042', 1, 1, 1, 'Azul', 'MUJER', NULL, NULL, b'1', 34, 1, '/img/Upload/productos/zapatillas-urbanas-north-star-campus-azul-mujer.jpg', 'MUJER'),
+(3, 'Tacones Elegantes H&M Pump Negro', 'Tacón clásico femenino en color negro, elegante y versátil, ideal para oficina o eventos formales.', 159.00, 110.00, '7894234567014', 1, 3, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 38, 1, '/img/Upload/productos/tacones-elegantes-h-m-pump-negro.jpg', 'MUJER'),
+(4, 'Botín Louis Vuitton Territory Mujer', 'Estilo elegante, de corte moderno y urbano, ideal para looks sofisticados o de ciudad', 3599.00, 3100.00, '7897234567019', 1, 3, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 6, 1, '/img/Upload/productos/botin-louis-vuitton-territory-mujer.jpg', 'MUJER'),
+(5, 'Sandalias FootLoose Fch-Rs023 Danae Mujer', 'Estilo cómodo y desenfadado, con diseño sencillo ideal para el día a día, perfecta para looks informales.', 119.00, 80.00, '7895234567010', 1, 2, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 7, 4, '/img/Upload/productos/sandalias-footloose-fch-rs023-danae-mujer.jpg', 'MUJER'),
+(6, 'Zapatillas Deportiva Adidas', NULL, 410.00, 380.00, NULL, 1, NULL, 1, 'Blanco', 'HOMBRE', NULL, NULL, b'1', 8, 1, NULL, 'HOMBRE'),
+(7, 'Zapatos All Star', NULL, 250.00, 179.98, NULL, 1, NULL, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 9, 1, NULL, 'HOMBRE'),
+(8, 'Zapatos Elegantes BOSS', NULL, 370.00, 300.00, NULL, 1, NULL, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 10, 1, NULL, 'HOMBRE'),
+(9, 'Botas Caterpillar', NULL, 340.00, 290.00, NULL, 1, NULL, 1, 'Beige', 'HOMBRE', NULL, NULL, b'1', 11, 1, NULL, 'HOMBRE'),
+(10, 'Sandalias Crogs', NULL, 370.00, 350.00, NULL, 1, NULL, 1, 'Blanco', 'HOMBRE', NULL, NULL, b'1', 12, 1, NULL, 'HOMBRE'),
+(11, 'Zapatillas Adidas Niños', NULL, 110.00, 70.00, NULL, 1, NULL, 1, 'Blanco', 'NIÑO', NULL, NULL, b'1', 13, 1, NULL, 'NIÑO'),
+(12, 'Zapatos Derby Kids', NULL, 130.00, 109.98, NULL, 1, NULL, 1, 'Marrón', 'NIÑO', NULL, NULL, b'1', 14, 1, NULL, 'NIÑO'),
+(13, 'Zapatos Escolares Footloose Kids', NULL, 65.00, 50.00, NULL, 1, NULL, 1, 'Negro', 'NIÑO', NULL, NULL, b'1', 15, 1, NULL, 'NIÑO'),
+(14, 'Pantuflas Silenciosas', NULL, 40.00, 29.00, NULL, 1, NULL, 1, 'Gris', 'NIÑO', NULL, NULL, b'1', 16, 1, NULL, 'NIÑO'),
+(15, 'Sandalias Clogs Kids', NULL, 70.00, 50.00, NULL, 1, NULL, 1, 'Celeste', 'NIÑO', NULL, NULL, b'1', 17, 1, NULL, 'NIÑO'),
+(16, 'Botín Daclay Kids', NULL, 60.00, 40.00, NULL, 1, NULL, 1, 'Beige', 'NIÑO', NULL, NULL, b'1', 18, 1, NULL, 'NIÑO'),
+(17, 'Bolso Louis Vuitton Neverfull Mujer', 'Bolso de lujo icónico, espacioso y resistente, ideal para ciudad, trabajo o viajes.', 139.00, 110.00, '7898234567053', 2, 4, 1, 'Marrón', 'MUJER', '31cm x 41cm x 17cm', 300, b'1', 49, 5, '/img/Upload/productos/bolso-louis-vuitton-neverfull-mujer.jpg', 'MUJER'),
+(18, 'Billetera Laurel Slg Large Zip Around', 'Billetera moderna para mujer, con acabado en PU, cierre de cremallera, compartimientos para tarjetas, billetes y monedas, con el logo característico de Guess.', 289.00, 230.00, '7890234567068', 2, 5, 1, 'Negro', 'MUJER', '21cm x 10cm x 2.5cm', 130, b'1', 19, 4, '/img/Upload/productos/billetera-laurel-slg-large-zip-around.jpg', 'MUJER'),
+(19, 'Gafas Oakley Holbrook Polarizado', 'Gafas de sol deportivas-urbanas, ligeras y resistentes, con lentes polarizadas ideales para exteriores.', 549.00, 470.00, '7899234568022', 2, 4, 1, 'Negro', 'MUJER', '56mm x 50mm', 40, b'1', 20, 7, '/img/Upload/productos/gafas-oakley-holbrook-polarizado.jpg', 'MUJER'),
+(20, 'Cinturón Gucci Blondie Negro Mujer', 'Cinturón elegante y delgado con hebilla doble G, ideal para outfits formales o casual-chic.', 1599.00, 1199.99, '7898235567097', 2, 5, 1, 'Negro', 'MUJER', '110cm x 2.5cm', 150, b'1', 21, 1, '/img/Upload/productos/cinturon-gucci-blondie-negro-mujer.png', 'MUJER'),
+(21, 'Cinturón Doble G', NULL, 620.00, 570.00, NULL, 2, NULL, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 22, 1, NULL, 'HOMBRE'),
+(22, 'Reloj Rolex de Oro', NULL, 730.00, 650.00, NULL, 2, NULL, 1, 'Dorado', 'HOMBRE', NULL, NULL, b'1', 23, 1, NULL, 'HOMBRE'),
+(23, 'Gafas de Sol Gucci', NULL, 670.00, 589.99, NULL, 2, NULL, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 24, 1, NULL, 'HOMBRE'),
+(24, 'Billetera Bifold clásica', NULL, 780.00, 650.00, NULL, 2, NULL, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 25, 1, NULL, 'HOMBRE'),
+(25, 'Gorra New York Yankess MLB', NULL, 160.00, 120.00, NULL, 2, NULL, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 26, 1, NULL, 'HOMBRE'),
+(26, 'Calcetín Everyday niños', NULL, 40.00, 20.00, NULL, 2, NULL, 1, 'Blanco', 'NIÑO', NULL, NULL, b'1', 27, 1, NULL, 'NIÑO'),
+(27, 'Cinturón Essential Trenzado', NULL, 120.00, 90.00, NULL, 2, NULL, 1, 'Negro', 'NIÑO', NULL, NULL, b'1', 28, 1, NULL, 'NIÑO'),
+(28, 'Gorra R86 Nike', NULL, 170.00, 130.00, NULL, 2, NULL, 1, 'Negro', 'NIÑO', NULL, NULL, b'1', 29, 1, NULL, 'NIÑO'),
+(29, 'Gafas de sol Aviator Junior', NULL, 260.00, 180.00, NULL, 2, NULL, 1, 'Negro', 'NIÑO', NULL, NULL, b'1', 30, 1, NULL, 'NIÑO'),
+(30, 'Zapatillas Adidas UltraBoost 22 Running Mujer', 'Zapatilla running para mujer con amortiguación reactiva Boost y ajuste tipo calcetín para largas distancias.', 599.00, 420.00, '7891234567024', 1, 1, 1, 'Blanco', 'MUJER', NULL, NULL, b'1', 2, 2, '/img/Upload/productos/zapatillas-adidas-ultraboost-22-running-mujer.jpg', 'MUJER'),
+(31, 'Zapatillas Puma Cali Court Lth Mujer', 'Zapatilla casual femenina estilo retro con suela ancha.', 399.00, 325.00, '7891234567031', 1, 1, 1, 'Blanco', 'MUJER', NULL, NULL, b'1', 31, 1, '/img/Upload/productos/zapatillas-puma-cali-court-lth-mujer.jpg', 'MUJER'),
+(32, 'Zapatillas New Balance 574 Core Mujer', 'Zapatilla lifestyle duradera y cómoda para uso diario.', 279.00, 195.00, '7891234567048', 1, 2, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 32, 3, '/img/Upload/productos/zapatillas-new-balance-574-core-mujer.jpg', 'MUJER'),
+(33, 'Zapatillas Rebook Classic Leather Mujer', 'Zapatilla atemporal, cómoda y versátil para outfit diario.', 249.00, 170.00, '7891234567055', 1, 2, 1, 'Crema', 'MUJER', NULL, NULL, b'1', 33, 1, '/img/Upload/productos/zapatillas-rebook-classic-leather-mujer.jpg', 'MUJER'),
+(34, 'Zapatillas Casuales Hush Puppies Lens Mujer Beige', 'Zapatilla mujer con plantilla de memory foam que absorbe el impacto al caminar otorgando mayor amortiguación y confort.', 159.00, 109.99, '7892234567035', 1, 2, 1, 'Beige', 'MUJER', NULL, NULL, b'1', 35, 4, '/img/Upload/productos/zapatillas-casuales-hush-puppies-lens-mujer-beige.jpg', 'MUJER'),
+(35, 'Zapatillas Urbanas Vans Ward Mujer', 'Zapatilla casual clásica con plataforma y estilo skate.', 149.00, 115.00, '7892234567059', 1, 1, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 36, 4, '/img/Upload/productos/zapatillas-urbanas-vans-ward-mujer.jpg', 'MUJER'),
+(36, 'Zapatillas Converse Chuck Taylor All Star Mujer', 'Zapatilla casual femenina con plataforma y diseño icónico.', 299.00, 210.00, '7892234567018', 1, 2, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 37, 5, '/img/Upload/productos/zapatillas-converse-chuck-taylor-all-star-mujer.jpg', 'MUJER'),
+(37, 'Tacones Elegantes Mujer J\'Adior Negro', 'Tacón femenino negro estilo slingback con punta fina y detalle J\'Adior, elegante y sofisticado, ideal para eventos formales.', 2499.00, 2100.00, '7893234567023', 1, 3, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 5, 1, '/img/Upload/productos/tacones-elegantes-mujer-j-adior-negro.jpg', 'MUJER'),
+(38, 'Tacones Elegantes Massimo Dutti  Negro', 'Tacón sofisticado, textura suave y look refinado para outfits casual-elegantes.', 299.00, 220.00, '7893234567020', 1, 3, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 39, 1, '/img/Upload/productos/tacones-elegantes-massimo-dutti-negro.jpg', 'MUJER'),
+(39, 'Tacones de Vestir Rojos Piazza', 'Un zapato que se convierte en el aliado perfecto para un look sofisticado y femenino. Ideal tanto para eventos especiales como para acompañar tu estilo en el día a día.', 179.00, 140.00, '7893234567039', 1, 3, 1, 'Rojo', 'MUJER', NULL, NULL, b'1', 40, 1, '/img/Upload/productos/tacones-de-vestir-rojos-piazza.jpg', 'MUJER'),
+(40, 'Sandalias Casuales Aldo Tela Mujer', 'Sandalia de tiras cómoda y versátil.', 199.00, 135.00, '7896234567017', 1, 1, 1, 'Beige', 'MUJER', NULL, NULL, b'1', 41, 6, '/img/Upload/productos/sandalias-casuales-aldo-tela-mujer.jpg', 'MUJER'),
+(41, 'Sandalias Birkenstock Arizona Mujer', 'Sandalias de doble tira ajustable, máxima comodidad para todo el día.', 319.00, 220.00, '7896234567031', 1, 1, 1, 'Gris', 'MUJER', NULL, NULL, b'1', 42, 1, '/img/Upload/productos/sandalias-birkenstock-arizona-mujer.jpg', 'MUJER'),
+(42, 'Sandalia Mango Plana Simple Mujer', 'Minimalista y ligera, ideal para verano.', 149.00, 100.00, '7896234567048', 1, 1, 1, 'Marrón', 'MUJER', NULL, NULL, b'1', 43, 4, '/img/Upload/productos/sandalia-mango-plana-simple-mujer.jpg', 'MUJER'),
+(43, 'Botín H&M Clásico Mujer', 'Botín económico, básico y versátil para uso diario en ciudad.', 169.00, 110.00, '7897234567027', 1, 3, 1, 'Marrón', 'MUJER', NULL, NULL, b'1', 44, 1, '/img/Upload/productos/botin-h-m-clasico-mujer.jpg', 'MUJER'),
+(44, 'Botín Borcego Altos Con Plataforma Mujer', 'Botín robusto con plataforma, ideal para estilo urbano, resistente y duradero.', 259.00, 175.00, '7897234567041', 1, 3, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 45, 1, '/img/Upload/productos/botin-borcego-altos-con-plataforma-mujer.jpg', 'MUJER'),
+(45, 'Botín Tacón Zara Beige Mujer', 'Botín con tacón medio, ideal para outfits casual-elegantes.', 219.00, 150.00, '7897234567034', 1, 3, 1, 'Beige', 'MUJER', NULL, NULL, b'1', 46, 4, '/img/Upload/productos/botin-tacon-zara-beige-mujer.jpg', 'MUJER'),
+(46, 'Cartera Michael Kors Jet Set Travel Marrón', 'Cartera elegante y funcional, ideal para diario o trabajo, con compartimentos internos y estilo clásico.', 699.00, 479.96, '7898234567015', 2, 4, 1, 'Marrón', 'MUJER', '20cm x 25cm x 7cm', 600, b'1', 47, 1, '/img/Upload/productos/cartera-michael-kors-jet-set-travel-marron.jpg', 'MUJER'),
+(47, 'Bolso Mano Shopping Básico Zara', 'Bolso de mano compacto y elegante, con acabado en piel sintética, ideal para salidas o eventos cuando llevas lo esencial.', 179.00, 120.00, '7899234567018', 2, 5, 1, 'Blanco', 'MUJER', '25cm x 30cm x 10cm', 400, b'1', 48, 4, '/img/Upload/productos/bolso-mano-shopping-basico-zara.jpg', 'MUJER'),
+(48, 'Bolso Coach Tabby Shoulder Bag', 'Bolso de cuero femenino, sofisticado y versátil, ideal para salidas o uso urbano.', 1899.00, 1200.00, '7898234567022', 2, 4, 1, 'Crema', 'MUJER', '35cm x 42cm x 13cm', 450, b'1', 50, 1, '/img/Upload/productos/bolso-coach-tabby-shoulder-bag.jpg', 'MUJER'),
+(49, 'Billetera Travel Wallet Michael Kors Double Zip', 'Billetera elegante y funcional, con múltiples compartimentos para tarjetas, efectivo y monedas.', 249.00, 170.00, '7890234567079', 2, 5, 1, 'Azul', 'MUJER', '10cm x 19cm x 2cm', 120, b'1', 51, 1, '/img/Upload/productos/billetera-travel-wallet-michael-kors-double-zip.jpg', 'MUJER'),
+(50, 'Billetera Mango Logo Relieve Mujer', 'Billetera discreta y práctica, con diseño minimalista y espacio suficiente para lo esencial.', 89.00, 60.00, '7890234567041', 2, 4, 1, 'Negro', 'MUJER', '9cm x 14cm x 3cm', 110, b'1', 52, 4, '/img/Upload/productos/billetera-mango-logo-relieve-mujer.jpg', 'MUJER'),
+(51, 'Billetera Coach Accordion Zip Wallet Mujer', 'Billetera resistente, con cierre seguro y espacio amplio para tarjetas, billetes y monedas.', 329.00, 225.00, '7890234567027', 2, 4, 1, 'Negro', 'MUJER', '11cm x 19cm x 2.5cm', 120, b'1', 53, 1, '/img/Upload/productos/billetera-coach-accordion-zip-wallet-mujer.jpg', 'MUJER'),
+(52, 'Gafas de Sol Prada PR 17WS Mujer', 'Gafas de sol de lujo con diseño femenino y sofisticado, ideales para look elegante.', 1299.00, 890.00, '7899234568046', 2, 5, 1, 'Negro', 'MUJER', '54mm x 48mm', 50, b'1', 54, 8, '/img/Upload/productos/gafas-de-sol-prada-pr-17ws-mujer.jpg', 'MUJER'),
+(53, 'Gafas de Sol Rectangulares Zara Mujer', 'Gafas de sol económicas y modernas, con diseño rectangular sencillo, para uso diario urbano.', 129.00, 75.00, '7899234568053', 2, 5, 1, 'Verde Oscuro', 'MUJER', '52mm x 46mm', 35, b'1', 55, 8, '/img/Upload/productos/gafas-de-sol-rectangulares-zara-mujer.jpg', 'MUJER'),
+(54, 'Gafas de Sol Burberry BE4299 Mujer', 'Gafas de sol elegantes de diseñador, con estilo clásico británico, ideales para outfits sofisticados.', 659.00, 540.00, '7899234568084', 2, 5, 1, 'Marrón', 'MUJER', '54mm x 50mm', 50, b'1', 56, 8, '/img/Upload/productos/gafas-de-sol-burberry-be4299-mujer.jpg', 'MUJER'),
+(55, 'Cinturón H&M Leather Belt Ladies', 'Cinturón versátil y económico, ideal para jeans o ropa casual.', 109.00, 55.00, '7898235567027', 2, 4, 1, 'Marrón', 'MUJER', '105cm x 3cm', 100, b'1', 57, 1, '/img/Upload/productos/cinturon-h-m-leather-belt-ladies.jpg', 'MUJER'),
+(56, 'Cinturón Calvin Klein CK Belt Mujer', 'Cinturón sobrio y refinado, ideal para pantalones formales o faldas.', 159.00, 110.00, '7898235567041', 2, 5, 1, 'Negro', 'MUJER', '115cm x 3cm', 130, b'1', 58, 1, '/img/Upload/productos/cinturon-calvin-klein-ck-belt-mujer.jpg', 'MUJER'),
+(57, 'Cinturón Tommy Hilfiger Essential Mujer', 'Cinturón clásico con hebilla discreta, versátil para estilos casual o semi-formales.', 199.00, 160.00, '7898235567058', 2, 4, 1, 'Negro', 'MUJER', '115cm x 3cm', 130, b'1', 28, 1, '/img/Upload/productos/cinturon-tommy-hilfiger-essential-mujer.jpg', 'MUJER');
 
 -- --------------------------------------------------------
 
@@ -852,14 +951,62 @@ CREATE TABLE `producto_tipos` (
 
 INSERT INTO `producto_tipos` (`id_producto`, `id_tipo`) VALUES
 (1, 1),
-(2, 1),
-(4, 1),
-(5, 1),
+(2, 2),
+(3, 3),
+(4, 5),
+(5, 4),
 (6, 1),
-(9, 1),
-(10, 1),
+(7, 2),
+(8, 6),
+(9, 5),
+(10, 4),
 (11, 1),
-(12, 1);
+(12, 2),
+(13, 7),
+(14, 8),
+(15, 4),
+(16, 5),
+(17, 9),
+(18, 10),
+(19, 11),
+(20, 12),
+(21, 12),
+(22, 13),
+(23, 11),
+(24, 10),
+(25, 14),
+(26, 15),
+(27, 12),
+(28, 14),
+(29, 11),
+(30, 1),
+(31, 1),
+(32, 1),
+(33, 1),
+(34, 2),
+(35, 2),
+(36, 2),
+(37, 3),
+(38, 3),
+(39, 3),
+(40, 4),
+(41, 4),
+(42, 4),
+(43, 5),
+(44, 5),
+(45, 5),
+(46, 9),
+(47, 9),
+(48, 9),
+(49, 10),
+(50, 10),
+(51, 10),
+(52, 11),
+(53, 11),
+(54, 11),
+(55, 12),
+(56, 12),
+(57, 12);
 
 -- --------------------------------------------------------
 
@@ -884,7 +1031,11 @@ CREATE TABLE `proveedores` (
 --
 
 INSERT INTO `proveedores` (`id_proveedor`, `razon_social`, `nombre_comercial`, `ruc`, `rubro`, `direccion`, `telefono`, `email`, `estado`) VALUES
-(2, 'Zapatos', 'Nike', '12345678911', 'C', '1defefeffe', '999999999', 'dokiperrosisurro12@gmail.com', 1);
+(1, 'Comercializadora Zapatería Andina S.A.C.', 'AndinaFoot', '20658743921', 'Distribución de calzado deportivo y casual', 'Av. Los Frutales 155 – La Molina, Lima', '942576392', 'contacto@andinafoot.pe', 1),
+(2, 'Importaciones Nova Shoes E.I.R.L.', 'Nova Shoes', '20574398216', 'Venta de zapatillas y más', 'Av. Benavides 842 – Surco, Lima', '902876141', 'contacto@novashoes.pe', 1),
+(3, 'Global Footwear Trading S.A.C.', 'Global Footwear', '20639481274', 'Importación de calzado formal y de vestir', 'Calle Montecarlo 229 – San Isidro, Lima', '942785026', 'info@globalfootwear.pe', 1),
+(4, 'Accesorios y Estilos del Pacífico S.A.C.', 'EstiloPacífico', '20658247391', 'Accesorios de moda', 'Av. Del Ejército 380 – Miraflores, Lima', '942547390', 'ventas@estilopacifico.pe', 1),
+(5, 'TrendLine Import S.A.C.', 'TrendLine', '20659123870', 'Importación de accesorios', 'Av. La Marina 1259 – San Miguel, Lima', '903489201', 'contacto@trendline.pe', 1);
 
 -- --------------------------------------------------------
 
@@ -1071,15 +1222,63 @@ CREATE TABLE `tallas` (
 --
 
 INSERT INTO `tallas` (`id_producto`, `talla`, `precio_venta`, `costo_compra`) VALUES
-(1, '35', 200.00, 205.00),
-(2, 'M', 200.00, 2000.00),
-(4, '12', 200.00, 200.00),
-(5, '12', 122.00, NULL),
-(6, '42', 250.00, 210.00),
-(9, '31', 311.00, 313.00),
-(11, '20', 100.00, 200.00),
-(12, '30', 200.00, 100.00),
-(12, '31', 200.00, 100.00);
+(1, '38', 379.00, 280.00),
+(2, '38', 189.00, 130.00),
+(3, '38', 159.00, 110.00),
+(4, '38', 3599.00, 3100.00),
+(5, '38', 119.00, 80.00),
+(6, '42', 410.00, 380.00),
+(7, '42', 250.00, 179.98),
+(8, '42', 370.00, 300.00),
+(9, '43', 340.00, 290.00),
+(10, '40', 370.00, 350.00),
+(11, '12', 110.00, 70.00),
+(12, '14', 130.00, 109.98),
+(13, '30', 65.00, 50.00),
+(14, '16', 40.00, 29.00),
+(15, '14', 70.00, 50.00),
+(16, '14', 60.00, 40.00),
+(17, 'Única', 139.00, 110.00),
+(18, 'Única', 289.00, 230.00),
+(19, 'Única', 549.00, 470.00),
+(20, '90cm', 1599.00, 1199.99),
+(21, '100cm', 620.00, 570.00),
+(22, '42mm', 730.00, 650.00),
+(23, 'Única', 670.00, 589.99),
+(24, 'Única', 780.00, 650.00),
+(25, 'M', 160.00, 120.00),
+(26, 'S', 40.00, 20.00),
+(27, 'M', 120.00, 90.00),
+(28, 'M', 170.00, 130.00),
+(29, '50mm', 260.00, 180.00),
+(30, '39', 599.00, 420.00),
+(31, '39', 399.00, 325.00),
+(32, '38', 279.00, 195.00),
+(33, '39', 249.00, 170.00),
+(34, '38', 159.00, 109.99),
+(35, '38', 149.00, 115.00),
+(36, '38', 299.00, 210.00),
+(37, '38', 2499.00, 2100.00),
+(38, '37', 299.00, 220.00),
+(39, '38', 179.00, 140.00),
+(40, '37', 199.00, 135.00),
+(41, '38', 319.00, 220.00),
+(42, '38', 149.00, 100.00),
+(43, '39', 169.00, 110.00),
+(44, '39', 259.00, 175.00),
+(45, '38', 219.00, 150.00),
+(46, 'Única', 699.00, 479.96),
+(47, 'Única', 179.00, 120.00),
+(48, 'Única', 1899.00, 1200.00),
+(49, 'Única', 249.00, 170.00),
+(50, 'Única', 89.00, 60.00),
+(51, 'Única', 329.00, 225.00),
+(52, 'Única', 1299.00, 890.00),
+(53, 'Única', 129.00, 75.00),
+(54, 'Única', 659.00, 540.00),
+(55, '90cm', 109.00, 55.00),
+(56, '95cm', 159.00, 110.00),
+(57, '95', 199.00, 160.00);
 
 -- --------------------------------------------------------
 
@@ -1179,7 +1378,21 @@ CREATE TABLE `tiposproducto` (
 --
 
 INSERT INTO `tiposproducto` (`id_tipo`, `nombre_tipo`) VALUES
-(1, 'Deportivo');
+(10, 'Billeteras'),
+(9, 'Bolsos'),
+(5, 'Botas'),
+(15, 'Calcetines'),
+(12, 'Cinturones'),
+(11, 'Gafas de sol'),
+(14, 'Gorros'),
+(8, 'Pantuflas'),
+(13, 'Relojes'),
+(4, 'Sandalias'),
+(3, 'Tacones'),
+(1, 'Zapatillas Deportivas'),
+(2, 'Zapatos Casuales'),
+(7, 'Zapatos Escolares'),
+(6, 'Zapatos Formales');
 
 -- --------------------------------------------------------
 
@@ -1228,11 +1441,13 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id_usuario`, `nombres`, `apellidos`, `id_tipodocumento`, `numero_documento`, `celular`, `direccion`, `username`, `email`, `contraseña_hash`, `estado`, `fecha_creacion`, `fecha_ultima_sesion`) VALUES
-(4, 'Santiago Efrain', 'Torres Murrieta', 1, '75859114', '964983465', 'juan pablo de la cruz', 'EfrainDs3', 'santiagotorresmurrieta@gmail.com', '$2a$10$6587YGgYKDWyAywi61/cB.TFF.U6LrTWacPvzWaBZ9xoVsuGGy.4.', 1, '2025-10-08 15:17:29', '2025-11-26 13:57:34'),
+(4, 'Santiago Efrain', 'Torres Murrieta', 1, '75859114', '964983465', 'juan pablo de la cruz', 'EfrainDs3', 'santiagotorresmurrieta@gmail.com', '$2a$10$6587YGgYKDWyAywi61/cB.TFF.U6LrTWacPvzWaBZ9xoVsuGGy.4.', 1, '2025-10-08 15:17:29', '2025-12-08 23:53:33'),
 (5, 'Anggelo Lucciano', 'Urbina Espinoza', 1, '72863068', '903 171 836', 'juan pablo de la cruz', 'Ubuntu', 'anggelolucciano21@gmail.com', '$2a$10$VwIkH6380fJV0oPcQXNKiO1oU8zqQ1vKsc0uWSkm.vtCWoTPHzzMG', 1, '2025-10-08 15:46:19', '2025-11-25 01:38:39'),
 (6, 'Anlly Luz', 'Riva Yomona', 1, '72010812', '999888777', 'Calle Nueva 456', 'Anlly', 'al.rivayo@unsm.edu.pe', '$2a$10$E.7vIdGVqCYy5eoYIBjF/uYDym2.b6B6U6.TlT9uKd0tFUl4DMfJW', 1, '2025-10-08 15:57:57', '2025-11-26 17:42:14'),
 (12, 'Danny Alexander', 'Garcia Salas', 1, '98765432', '999888777', 'juan pablo de la cruz', 'Dingui', 'ia.jadrixgr26@gmail.com', '$2a$10$xKxtzv1ECV/74oi69b9hPubeUZgmSnrAUoxmjmSaz0NyeVOYE9BHW', 1, '2025-10-08 16:27:52', '2025-10-15 22:05:53'),
-(17, 'Alex', 'Pezo', 1, '73325101', '999999999', 'Jr. Trapoto', 'arxse', 'da.pezoin@unsm.edu.pe', '$2a$10$u6dftyj8BINK8/zY5GG.TO36M86byX5s8aWraTFHw4Zit3AiA2YSi', 1, '2025-10-15 22:08:21', '2025-10-15 22:12:18');
+(17, 'Alex', 'Pezo', 1, '73325101', '999999999', 'Jr. Trapoto', 'arxse', 'da.pezoin@unsm.edu.pe', '$2a$10$u6dftyj8BINK8/zY5GG.TO36M86byX5s8aWraTFHw4Zit3AiA2YSi', 1, '2025-10-15 22:08:21', '2025-10-15 22:12:18'),
+(18, 'Jose Santiago', 'Ponce Riveros', NULL, NULL, NULL, NULL, 'sant10', 'ponceriverosjosesantiago@gmail.com', '$2a$10$zoYYcxBzDIxuMt3JZZGgS.clUtW43gnYdx6gzrQzjzJSYmxzd3GK.', 1, '2025-11-27 08:14:29', '2025-11-29 13:17:39'),
+(20, 'Juan', 'Ponce Riveros', 1, '72129866', '918341898', NULL, 'san11', 'santi@gmail.com', '$2a$10$rAjmOHae2X3fxALc9iHdeeGEOtdbLQ1hPvr0db9MxX.srT5.4GjyK', 1, '2025-11-29 08:53:33', '2025-11-29 20:43:43');
 
 -- --------------------------------------------------------
 
@@ -1334,7 +1549,8 @@ ALTER TABLE `comprobantespago`
   ADD UNIQUE KEY `id_tipo_comprobante` (`id_tipo_comprobante`,`numero_comprobante`),
   ADD KEY `id_cliente` (`id_cliente`),
   ADD KEY `id_usuario` (`id_usuario`),
-  ADD KEY `FKi9x21nkc57r4an9bqagc3lh9u` (`id_apertura`);
+  ADD KEY `FKi9x21nkc57r4an9bqagc3lh9u` (`id_apertura`),
+  ADD KEY `FKd46g8t6xjnl4i922nywtpccee` (`id_venta_original`);
 
 --
 -- Indices de la tabla `detallescomprobantepago`
@@ -1365,6 +1581,15 @@ ALTER TABLE `detallespedidocompra_talla`
 ALTER TABLE `etiquetas_producto_ia`
   ADD PRIMARY KEY (`id_etiqueta`),
   ADD UNIQUE KEY `id_producto` (`id_producto`,`etiqueta`);
+
+--
+-- Indices de la tabla `favoritos`
+--
+ALTER TABLE `favoritos`
+  ADD PRIMARY KEY (`id_favorito`),
+  ADD UNIQUE KEY `unique_user_product` (`id_usuario`,`id_producto`),
+  ADD KEY `fk_favoritos_usuario` (`id_usuario`),
+  ADD KEY `fk_favoritos_producto` (`id_producto`);
 
 --
 -- Indices de la tabla `historial_recomendaciones`
@@ -1591,7 +1816,7 @@ ALTER TABLE `almacenes`
 -- AUTO_INCREMENT de la tabla `aperturascaja`
 --
 ALTER TABLE `aperturascaja`
-  MODIFY `id_apertura` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_apertura` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `bitacora`
@@ -1609,7 +1834,7 @@ ALTER TABLE `cajas`
 -- AUTO_INCREMENT de la tabla `carrito`
 --
 ALTER TABLE `carrito`
-  MODIFY `id_carrito` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_carrito` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `carrito_detalle`
@@ -1627,43 +1852,49 @@ ALTER TABLE `categoriasproducto`
 -- AUTO_INCREMENT de la tabla `cierrescaja`
 --
 ALTER TABLE `cierrescaja`
-  MODIFY `id_cierre` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_cierre` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `clientes`
 --
 ALTER TABLE `clientes`
-  MODIFY `id_cliente` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_cliente` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `comprobantespago`
 --
 ALTER TABLE `comprobantespago`
-  MODIFY `id_comprobante` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_comprobante` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `detallescomprobantepago`
 --
 ALTER TABLE `detallescomprobantepago`
-  MODIFY `id_detalle_comprobante` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_detalle_comprobante` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `detallespedidocompra`
 --
 ALTER TABLE `detallespedidocompra`
-  MODIFY `id_detalle_pedido` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_detalle_pedido` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `detallespedidocompra_talla`
 --
 ALTER TABLE `detallespedidocompra_talla`
-  MODIFY `id_detalle_talla` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_detalle_talla` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `etiquetas_producto_ia`
 --
 ALTER TABLE `etiquetas_producto_ia`
   MODIFY `id_etiqueta` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `favoritos`
+--
+ALTER TABLE `favoritos`
+  MODIFY `id_favorito` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `historial_recomendaciones`
@@ -1675,31 +1906,31 @@ ALTER TABLE `historial_recomendaciones`
 -- AUTO_INCREMENT de la tabla `inventario`
 --
 ALTER TABLE `inventario`
-  MODIFY `id_inventario` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id_inventario` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `inventario_talla`
 --
 ALTER TABLE `inventario_talla`
-  MODIFY `id_inventario_talla` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_inventario_talla` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `marcasproducto`
 --
 ALTER TABLE `marcasproducto`
-  MODIFY `id_marca` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_marca` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
 
 --
 -- AUTO_INCREMENT de la tabla `materialesproducto`
 --
 ALTER TABLE `materialesproducto`
-  MODIFY `id_material` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_material` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT de la tabla `modelos`
 --
 ALTER TABLE `modelos`
-  MODIFY `id_modelo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_modelo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
 
 --
 -- AUTO_INCREMENT de la tabla `movimientoscaja`
@@ -1711,7 +1942,7 @@ ALTER TABLE `movimientoscaja`
 -- AUTO_INCREMENT de la tabla `movimientosinventario`
 --
 ALTER TABLE `movimientosinventario`
-  MODIFY `id_movimiento_inv` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id_movimiento_inv` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `pagoscomprobante`
@@ -1723,7 +1954,7 @@ ALTER TABLE `pagoscomprobante`
 -- AUTO_INCREMENT de la tabla `pedidoscompra`
 --
 ALTER TABLE `pedidoscompra`
-  MODIFY `id_pedido_compra` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_pedido_compra` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `permisos`
@@ -1741,13 +1972,13 @@ ALTER TABLE `permisos_auditoria`
 -- AUTO_INCREMENT de la tabla `productos`
 --
 ALTER TABLE `productos`
-  MODIFY `id_producto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id_producto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
 
 --
 -- AUTO_INCREMENT de la tabla `proveedores`
 --
 ALTER TABLE `proveedores`
-  MODIFY `id_proveedor` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_proveedor` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de la tabla `roles`
@@ -1783,7 +2014,7 @@ ALTER TABLE `tipospago`
 -- AUTO_INCREMENT de la tabla `tiposproducto`
 --
 ALTER TABLE `tiposproducto`
-  MODIFY `id_tipo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_tipo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT de la tabla `unidadesmedida`
@@ -1795,7 +2026,7 @@ ALTER TABLE `unidadesmedida`
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id_usuario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- Restricciones para tablas volcadas
@@ -1844,6 +2075,7 @@ ALTER TABLE `clientes`
 -- Filtros para la tabla `comprobantespago`
 --
 ALTER TABLE `comprobantespago`
+  ADD CONSTRAINT `FKd46g8t6xjnl4i922nywtpccee` FOREIGN KEY (`id_venta_original`) REFERENCES `comprobantespago` (`id_comprobante`),
   ADD CONSTRAINT `FKi9x21nkc57r4an9bqagc3lh9u` FOREIGN KEY (`id_apertura`) REFERENCES `aperturascaja` (`id_apertura`),
   ADD CONSTRAINT `comprobantespago_ibfk_1` FOREIGN KEY (`id_cliente`) REFERENCES `clientes` (`id_cliente`),
   ADD CONSTRAINT `comprobantespago_ibfk_2` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`),
@@ -1874,6 +2106,13 @@ ALTER TABLE `detallespedidocompra_talla`
 --
 ALTER TABLE `etiquetas_producto_ia`
   ADD CONSTRAINT `etiquetas_producto_ia_ibfk_1` FOREIGN KEY (`id_producto`) REFERENCES `productos` (`id_producto`) ON DELETE CASCADE;
+
+--
+-- Filtros para la tabla `favoritos`
+--
+ALTER TABLE `favoritos`
+  ADD CONSTRAINT `fk_favoritos_producto` FOREIGN KEY (`id_producto`) REFERENCES `productos` (`id_producto`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_favoritos_usuario` FOREIGN KEY (`id_usuario`) REFERENCES `usuarios` (`id_usuario`) ON DELETE CASCADE;
 
 --
 -- Filtros para la tabla `historial_recomendaciones`

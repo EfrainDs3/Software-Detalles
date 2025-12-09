@@ -17,23 +17,24 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 
-import com.itextpdf.text.DocumentException; 
-import java.io.IOException; 
+import com.itextpdf.text.DocumentException;
+import java.io.IOException;
 
 import fisi.software.detalles.controller.dto.VentaRequestDTO;
 import fisi.software.detalles.service.VentaService;
+import java.math.BigDecimal;
 
 @Controller
 @RequestMapping("/ventas")
 public class VentasController {
 
     @Autowired
-    private VentaService ventaService; 
-    
+    private VentaService ventaService;
+
     // ======================================================================
     // MÉTODOS DE VISTA HTML (Devuelven el nombre de la plantilla)
     // ======================================================================
-    
+
     @GetMapping
     @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).REGISTRAR_VENTAS, T(fisi.software.detalles.security.Permisos).VER_VENTAS, T(fisi.software.detalles.security.Permisos).MODULO_VENTAS)")
     public String showVentas() {
@@ -45,6 +46,7 @@ public class VentasController {
     public String showCaja() {
         return "software/ventas/caja";
     }
+
     /**
      * PUT /ventas/api
      * Edita una venta existente
@@ -65,8 +67,8 @@ public class VentasController {
     // ======================================================================
     // MÉTODOS DE API REST (Devuelven JSON o Archivos)
     // ======================================================================
-    
-    @GetMapping("/api/lista") 
+
+    @GetMapping("/api/lista")
     @ResponseBody
     @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).REGISTRAR_VENTAS, T(fisi.software.detalles.security.Permisos).VER_VENTAS, T(fisi.software.detalles.security.Permisos).MODULO_VENTAS)")
     public ResponseEntity<List<?>> listarVentasAPI() {
@@ -79,11 +81,41 @@ public class VentasController {
         }
     }
 
+    @GetMapping("/api/total-apertura/{id}")
+    @ResponseBody
+    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).VER_VENTAS, T(fisi.software.detalles.security.Permisos).MODULO_CAJA)")
+    public ResponseEntity<Map<String, BigDecimal>> getTotalVentasPorApertura(@PathVariable Long id) {
+        try {
+            BigDecimal total = ventaService.calcularTotalVentasPorApertura(id);
+            return ResponseEntity.ok(Map.of("total", total));
+        } catch (Exception e) {
+            System.err.println("Error calculating total for aperture " + id + ": " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/api/historial-apertura/{id}")
+    @ResponseBody
+    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).VER_VENTAS, T(fisi.software.detalles.security.Permisos).MODULO_CAJA)")
+    public ResponseEntity<List<fisi.software.detalles.controller.dto.VentaListDTO>> getHistorialPorApertura(
+            @PathVariable Long id) {
+        try {
+            System.out.println("Solicitando historial para apertura ID: " + id);
+            List<fisi.software.detalles.controller.dto.VentaListDTO> ventas = ventaService.listarVentasPorApertura(id);
+            return ResponseEntity.ok(ventas);
+        } catch (Exception e) {
+            System.err.println("Error calculating history for aperture " + id + ": " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
     /**
      * POST /ventas/api
-     * 💡 CORRECCIÓN: Se añade @Valid para que se ejecute la validación de los DTOs anidados.
+     * 💡 CORRECCIÓN: Se añade @Valid para que se ejecute la validación de los DTOs
+     * anidados.
      */
-    @PostMapping("/api") 
+    @PostMapping("/api")
     @ResponseBody
     @PreAuthorize("hasAuthority(T(fisi.software.detalles.security.Permisos).REGISTRAR_VENTAS)")
     public ResponseEntity<Map<String, Object>> createVenta(@Valid @RequestBody VentaRequestDTO ventaDTO) {
@@ -97,9 +129,10 @@ public class VentasController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
-    
+
     /**
-     * 💡 NUEVO MÉTODO: Maneja errores de validación (@Valid) y devuelve un JSON claro (400 Bad Request).
+     * 💡 NUEVO MÉTODO: Maneja errores de validación (@Valid) y devuelve un JSON
+     * claro (400 Bad Request).
      */
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -107,34 +140,55 @@ public class VentasController {
     public Map<String, String> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
         // Recorre todos los errores de campo y los agrega al mapa de errores
-        ex.getBindingResult().getFieldErrors().forEach(error -> 
-            errors.put(error.getField(), error.getDefaultMessage()));
-        
+        ex.getBindingResult().getFieldErrors()
+                .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
+
         return Map.of(
-            "message", "Error de Validación en la Solicitud",
-            "errors", errors.toString() 
-        );
+                "message", "Error de Validación en la Solicitud",
+                "errors", errors.toString());
     }
-    
-    @GetMapping("/{id}/pdf") 
+
+    @GetMapping("/{id}/pdf")
     @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).REGISTRAR_VENTAS, T(fisi.software.detalles.security.Permisos).VER_VENTAS, T(fisi.software.detalles.security.Permisos).MODULO_VENTAS)")
     public ResponseEntity<ByteArrayResource> exportarPDF(@PathVariable Long id) {
         try {
-            byte[] pdfBytes = ventaService.generarComprobantePDF(id); 
-            
+            byte[] pdfBytes = ventaService.generarComprobantePDF(id);
+
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_PDF);
-            headers.setContentDispositionFormData("inline", "comprobante_venta_" + id + ".pdf"); 
+            headers.setContentDispositionFormData("inline", "comprobante_venta_" + id + ".pdf");
             headers.setContentLength(pdfBytes.length);
 
             ByteArrayResource resource = new ByteArrayResource(pdfBytes);
 
             return new ResponseEntity<>(resource, headers, HttpStatus.OK);
-            
+
         } catch (DocumentException | IOException e) {
             System.err.println("Error al generar PDF para la venta " + id + ": " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(null);
+                    .body(null);
+        }
+    }
+
+    @GetMapping("/reporte/apertura/{id}/pdf")
+    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).REGISTRAR_VENTAS, T(fisi.software.detalles.security.Permisos).VER_VENTAS, T(fisi.software.detalles.security.Permisos).MODULO_VENTAS)")
+    public ResponseEntity<ByteArrayResource> exportarReporteAperturaPDF(@PathVariable Long id) {
+        try {
+            byte[] pdfBytes = ventaService.generarReporteVentasPorAperturaPDF(id);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("inline", "reporte_apertura_" + id + ".pdf");
+            headers.setContentLength(pdfBytes.length);
+
+            ByteArrayResource resource = new ByteArrayResource(pdfBytes);
+
+            return new ResponseEntity<>(resource, headers, HttpStatus.OK);
+
+        } catch (DocumentException | IOException e) {
+            System.err.println("Error al generar Reporte PDF para la apertura " + id + ": " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
         }
     }
 }

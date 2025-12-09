@@ -256,7 +256,7 @@
 
         grid.innerHTML = favoritos.map(fav => `
             <div class="favorito-card">
-                <img src="${fav.producto.imagen || '/img/calzado-default.jpg'}" 
+                <img src="${fav.producto.imagen || '/img/Upload/productos/producto-default.jpg'}" 
                      alt="${fav.producto.nombre}" class="favorito-image">
                 <div class="favorito-info">
                     <div class="favorito-name">${fav.producto.nombre}</div>

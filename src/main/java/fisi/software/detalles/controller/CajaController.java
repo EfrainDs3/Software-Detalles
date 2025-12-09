@@ -101,6 +101,9 @@ public class CajaController {
                     request.getNombreCaja(),
                     request.getUbicacionCaja());
             return ResponseEntity.ok(nuevaCaja);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("Error: Ya existe una caja con ese nombre.");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error al crear caja: " + e.getMessage());

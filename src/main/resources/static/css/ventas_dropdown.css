@@ -1,0 +1,85 @@
+/* ========================================
+   CUSTOM PRODUCT DROPDOWN
+   ======================================== */
+.custom-dropdown-container {
+    position: relative;
+    width: 100%;
+}
+
+.product-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    margin-top: 5px;
+    max-height: 250px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dropdown-item {
+    padding: 12px 15px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.2s ease;
+}
+
+.dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+}
+
+.dropdown-item-name {
+    font-size: 14px;
+    color: #333;
+    font-weight: 500;
+}
+
+.dropdown-item-price {
+    font-size: 14px;
+    color: #28a745;
+    font-weight: 600;
+}
+
+.dropdown-item.no-results {
+    color: #999;
+    justify-content: center;
+    cursor: default;
+}
+
+.dropdown-item.no-results:hover {
+    background-color: white;
+}
+
+.product-search-wrapper {
+    position: relative;
+}
+
+/* Scrollbar personalizado para la lista */
+.product-dropdown::-webkit-scrollbar {
+    width: 8px;
+}
+
+.product-dropdown::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 8px;
+}
+
+.product-dropdown::-webkit-scrollbar-thumb {
+    background: #b30000;
+    border-radius: 8px;
+}
+
+.product-dropdown::-webkit-scrollbar-thumb:hover {
+    background: #800000;
+}

@@ -2,7 +2,7 @@
   const PRODUCT_API = '/api/productos/calzados';
   const PROVIDER_API = '/api/proveedores';
   const CATALOG_BASE = '/api/catalogos';
-  const PLACEHOLDER_IMG = '/img/calzado-default.jpg';
+  const PLACEHOLDER_IMG = '/img/Upload/productos/producto-default.jpg';
 
   const state = {
     items: [],
@@ -23,6 +23,33 @@
       material: ''
     },
     editandoId: null
+  };
+
+  // Mapear tiposProducto válidos por sexo. Los nombres deben coincidir EXACTAMENTE
+  // con los registrados en detalles.sql
+  const TIPOS_POR_SEXO = {
+    MUJER: [
+      'Zapatillas Deportivas',
+      'Zapatos Casuales',
+      'Tacones',
+      'Sandalias',
+      'Botas'
+    ],
+    HOMBRE: [
+      'Zapatillas Deportivas',
+      'Zapatos Casuales',
+      'Zapatos Formales',
+      'Sandalias',
+      'Botas'
+    ],
+    NIÑO: [
+      'Zapatillas Deportivas',
+      'Zapatos Casuales',
+      'Zapatos Escolares',
+      'Pantuflas',
+      'Sandalias',
+      'Botas'
+    ]
   };
 
   document.addEventListener('DOMContentLoaded', init);
@@ -147,6 +174,15 @@
       });
     }
 
+    // Cuando cambie el sexo/tipo (HOMBRE/MUJER/NIÑO) -> filtrar tipos de producto
+    const sexoSelect = document.getElementById('calzadoType');
+    if (sexoSelect){
+      sexoSelect.addEventListener('change', ()=>{
+        filtrarTiposPorSexo(sexoSelect.value);
+        actualizarPreview();
+      });
+    }
+
     const brandSelect = document.getElementById('calzadoBrand');
     if (brandSelect){
       brandSelect.addEventListener('change', ()=>{
@@ -168,6 +204,39 @@
 
     document.getElementById('calzadosTableBody')?.addEventListener('click', manejarAccionesTabla);
     actualizarEstadoSelectorImagen();
+  }
+
+  function filtrarTiposPorSexo(sexo){
+    const select = document.getElementById('calzadoCategory');
+    if (!select) return;
+    const opcionesDisponibles = Array.isArray(state.combos.tipos) ? state.combos.tipos : [];
+    const allowed = sexo ? TIPOS_POR_SEXO[sexo] || [] : [];
+    const current = select.value;
+    select.innerHTML = '<option value="">Seleccionar opción</option>';
+    if (!allowed.length){
+      // Si no hay sexo seleccionado, no mostrar opciones filtradas (mostrar todas)
+      opcionesDisponibles.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.id;
+        option.textContent = item.nombre;
+        select.appendChild(option);
+      });
+      select.value = current || '';
+      return;
+    }
+    // Agregar sólo los tipos cuyo nombre coincide exactamente
+    opcionesDisponibles.filter(t => allowed.includes(t.nombre)).forEach(item => {
+      const option = document.createElement('option');
+      option.value = item.id;
+      option.textContent = item.nombre;
+      select.appendChild(option);
+    });
+    // Restaurar selección si aún existe
+    if (current && Array.from(select.options).some(o => o.value === current)){
+      select.value = current;
+    } else {
+      select.value = '';
+    }
   }
 
   function abrirSelectorImagen(){
@@ -263,6 +332,11 @@
     poblarSelect('calzadoMaterial', state.combos.materiales, { value: 'id', label: 'nombre' });
     poblarSelect('calzadoUnidad', state.combos.unidades, { value: 'id', label: 'nombre', extra: 'abreviatura' });
     poblarSelect('calzadoCategory', state.combos.tipos, { value: 'id', label: 'nombre' });
+    // Aplicar filtro inicial según sexo si ya está seleccionado
+    const sexoInicial = obtenerValor('calzadoType');
+    if (sexoInicial){
+      filtrarTiposPorSexo(sexoInicial);
+    }
     poblarSelect('calzadoProveedor', state.combos.proveedores, { value: 'idProveedor', label: 'razonSocial', extra: 'nombreComercial' });
     actualizarImagenDesdeModelo();
     actualizarPreview();
@@ -609,7 +683,7 @@
     const colorSelect = document.getElementById('calzadoColor');
     if (colorSelect) colorSelect.value = item.color || '';
     const tipoSelect = document.getElementById('calzadoType');
-    if (tipoSelect) tipoSelect.value = item.tipo || '';
+    if (tipoSelect) tipoSelect.value = item.tipo ? String(item.tipo).toUpperCase() : '';
     const proveedorSelect = document.getElementById('calzadoProveedor');
     if (proveedorSelect) proveedorSelect.value = item.proveedor?.id || '';
     const materialSelect = document.getElementById('calzadoMaterial');
@@ -709,7 +783,9 @@
     const unidadId = convertirEntero(obtenerValor('calzadoUnidad'));
     const tipoProductoId = convertirEntero(obtenerValor('calzadoCategory'));
     const color = obtenerValor('calzadoColor');
-    const tipo = obtenerValor('calzadoType');
+    // Guardar sexo/tipo en mayúsculas (HOMBRE, MUJER, NIÑO)
+    const rawTipo = obtenerValor('calzadoType');
+    const tipo = rawTipo ? String(rawTipo).toUpperCase() : '';
     const descripcion = obtenerValor('calzadoDescription');
     const codigoBarra = obtenerValor('calzadoCodigoBarra');
     const imagen = obtenerImagenParaEnvio();

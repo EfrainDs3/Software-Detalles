@@ -1,11 +1,5 @@
 package fisi.software.detalles.service.storage;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-import org.springframework.web.server.ResponseStatusException;
-
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
@@ -15,6 +9,12 @@ import java.text.Normalizer;
 import java.util.Base64;
 import java.util.UUID;
 import java.util.regex.Pattern;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class ProductoImageStorageService {
@@ -75,7 +75,8 @@ public class ProductoImageStorageService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La imagen proporcionada no es válida");
         }
 
-        Path targetDirectory = ensureCategoriaDirectory(categoriaCarpeta);
+        // Store all product images in the single configured storageDirectory (no subfolders per category)
+        Path targetDirectory = this.storageDirectory;
         String extension = resolveExtension(mimeType);
         String fileName = buildUniqueFileName(productoNombre, extension, targetDirectory);
         Path target = targetDirectory.resolve(fileName).normalize();
@@ -84,18 +85,13 @@ public class ProductoImageStorageService {
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo guardar la imagen", e);
         }
-        return publicPathPrefix + "/" + categoriaCarpeta + "/" + fileName;
+        // Public URL points directly to the unified public path prefix + filename
+        return publicPathPrefix + "/" + fileName;
     }
 
-    private Path ensureCategoriaDirectory(String categoriaCarpeta) {
-        Path directory = storageDirectory.resolve(categoriaCarpeta).normalize();
-        try {
-            Files.createDirectories(directory);
-        } catch (IOException e) {
-            throw new IllegalStateException("No se pudo crear el directorio para la categoría " + categoriaCarpeta, e);
-        }
-        return directory;
-    }
+    // Note: we intentionally keep a single storageDirectory for all product images.
+    // The previous implementation created subfolders per category; that behaviour
+    // is removed to centralize image storage under the configured path.
 
     private String buildUniqueFileName(String productoNombre, String extension, Path directory) {
         String slugBase = slugify(productoNombre);

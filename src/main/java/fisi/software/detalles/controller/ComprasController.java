@@ -2,12 +2,14 @@ package fisi.software.detalles.controller;
 
 import fisi.software.detalles.controller.dto.CompraRequestDTO;
 import fisi.software.detalles.controller.dto.CompraResponseDTO;
+import fisi.software.detalles.controller.dto.RecepcionCompraRequest;
 import fisi.software.detalles.entity.Producto;
 import fisi.software.detalles.entity.Proveedor;
 import fisi.software.detalles.repository.ProductoRepository;
 import fisi.software.detalles.repository.TipoPagoRepository;
 import fisi.software.detalles.service.CompraService;
 import fisi.software.detalles.service.ProveedorService;
+import fisi.software.detalles.exception.RecepcionInvalidaException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -107,6 +109,32 @@ public class ComprasController {
         } catch (Exception e) {
             Map<String, String> error = new HashMap<>();
             error.put("error", "Error al crear la compra: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
+
+    /**
+     * Registrar una recepción (parcial o total) para una compra existente
+     * POST /compras/api/{id}/recepciones
+     */
+    @PostMapping("/api/{id}/recepciones")
+    @PreAuthorize("hasAuthority(T(fisi.software.detalles.security.Permisos).GESTIONAR_COMPRAS)")
+    @ResponseBody
+    public ResponseEntity<?> registrarRecepcion(@PathVariable Long id, @RequestBody RecepcionCompraRequest request) {
+        try {
+            CompraResponseDTO compra = compraService.registrarRecepcion(id, request);
+            return ResponseEntity.ok(compra);
+        } catch (RecepcionInvalidaException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        } catch (RuntimeException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Error al registrar la recepción de la compra");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }

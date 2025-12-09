@@ -1,343 +1,947 @@
+/*
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width,initial-scale=1">
-	<title>Asistente IA - Detalles</title>
+	<title>Asistente de Calzado IA - Detalles</title>
 	<link rel="stylesheet" href="../styles.css">
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-	<base href="/src/main/resources/templates/Detalles_web/">
+	<base href="/Detalles_web/">
 
 	<style>
-		:root{--accent:#921212;--muted:#6b6f76;--bg:#f6f8fb;--card:#fff;--radius:12px;--max-width:1100px}
-		body{font-family:Inter,system-ui,Roboto,Arial;background:var(--bg);margin:0;color:#222;-webkit-font-smoothing:antialiased}
-		.container{max-width:var(--max-width);margin:0 auto;padding:2rem}
-		.hero{background:linear-gradient(90deg,rgba(233,30,99,0.06),rgba(33,150,243,0.03));border-radius:var(--radius);padding:1.2rem;margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;box-shadow:0 8px 30px rgba(16,24,40,0.04)}
-		.hero h1{margin:0;color:var(--accent);font-size:1.4rem} .hero p{margin:0;color:var(--muted)}
-		.assistant-grid{display:grid;grid-template-columns: 1fr 340px;gap:1rem}
-		.card{background:var(--card);border-radius:10px;padding:1rem;box-shadow:0 6px 20px rgba(16,24,40,0.03)}
-		.profile-row{display:flex;gap:.6rem;align-items:center;margin-bottom:.6rem}
-		.profile-row label{font-weight:700;font-size:.95rem;color:#333}
-		.select, .input {padding:.5rem .7rem;border:1px solid #eef2f6;border-radius:8px;background:#fff}
-		.chat-window{height:520px;overflow:auto;border-radius:8px;padding:1rem;background:linear-gradient(#fff,#fbfdff);display:flex;flex-direction:column;gap:.6rem}
-		.msg{max-width:78%;padding:.6rem .75rem;border-radius:12px}
-		.msg.user{align-self:flex-end;background:linear-gradient(180deg,#e9e9ff,#dcdcff);font-weight:600}
-		.msg.ai{align-self:flex-start;background:#f1f5fb;color:#0b2b47}
-		.input-row{display:flex;gap:.5rem;margin-top:.75rem}
-		.btn{background:var(--accent);color:#fff;border:0;padding:.55rem .9rem;border-radius:10px;cursor:pointer}
-		.suggestions{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.6rem}
-		.tag{background:#f1f3f5;padding:6px 10px;border-radius:999px;font-weight:600;cursor:pointer}
-		.muted{color:var(--muted)}
-		@media (max-width:920px){.assistant-grid{grid-template-columns:1fr;}.chat-window{height:420px}}
+		:root {
+			--accent: #921212;
+			--accent-light: #b91c1c;
+			--muted: #6b6f76;
+			--bg: #f6f8fb;
+			--card: #fff;
+			--radius: 12px;
+			--max-width: 1200px;
+		}
+
+		.hidden {
+			display: none !important;
+		}
+
+		body.admin-mode .admin-panel {
+			display: block !important;
+		}
+
+		.admin-panel {
+			display: none;
+		}
+
+		* {
+			box-sizing: border-box
+		}
+
+		body {
+			font-family: 'Inter', system-ui, -apple-system, Roboto, Arial, sans-serif;
+			background: var(--bg);
+			margin: 0;
+			color: #222;
+			-webkit-font-smoothing: antialiased;
+			line-height: 1.6;
+		}
+
+		.container {
+			max-width: var(--max-width);
+			margin: 0 auto;
+			padding: 2rem 1.5rem
+		}
+
+		/* Hero Section */
+		.hero {
+			background: linear-gradient(135deg, rgba(146, 18, 18, 0.08), rgba(185, 28, 28, 0.04));
+			border-radius: var(--radius);
+			padding: 1.5rem;
+			margin-bottom: 1.5rem;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			gap: 1.5rem;
+			box-shadow: 0 8px 30px rgba(16, 24, 40, 0.06);
+			border: 1px solid rgba(146, 18, 18, 0.1);
+		}
+
+		.hero h1 {
+			margin: 0;
+			color: var(--accent);
+			font-size: 1.75rem;
+			font-weight: 700;
+		}
+
+		.hero p {
+			margin: .5rem 0 0 0;
+			color: var(--muted);
+			font-size: 1rem;
+		}
+
+		/* API Key Config */
+		.api-config {
+			background: linear-gradient(135deg, #fef3c7, #fde68a);
+			border-radius: var(--radius);
+			padding: 1rem;
+			margin-bottom: 1rem;
+			border: 2px solid #fbbf24;
+		}
+
+		.api-config.configured {
+			background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+			border-color: #10b981;
+		}
+
+		.api-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			cursor: pointer;
+			user-select: none;
+		}
+
+		.api-header h3 {
+			margin: 0;
+			font-size: 1rem;
+			display: flex;
+			align-items: center;
+			gap: .5rem
+		}
+
+		.api-body {
+			margin-top: 1rem;
+			display: none;
+		}
+
+		.api-body.open {
+			display: block
+		}
+
+		.api-input-row {
+			display: flex;
+			gap: .5rem;
+			margin-top: .5rem
+		}
+
+		.api-input {
+			flex: 1;
+			padding: .6rem;
+			border: 1px solid #d1d5db;
+			border-radius: 8px;
+			font-family: monospace
+		}
+
+		/* Grid Layout */
+		.assistant-grid {
+			display: grid;
+			grid-template-columns: 1fr 360px;
+			gap: 1.5rem;
+		}
+
+		body:not(.admin-mode) .assistant-grid {
+			grid-template-columns: 1fr;
+		}
+
+		/* Card Styling */
+		.card {
+			background: var(--card);
+			border-radius: 12px;
+			padding: 1.25rem;
+			box-shadow: 0 4px 20px rgba(16, 24, 40, 0.04);
+			border: 1px solid rgba(0, 0, 0, 0.04);
+		}
+
+		/* Profile Section */
+		.profile-row {
+			display: flex;
+			flex-direction: column;
+			gap: .4rem;
+			margin-bottom: 1rem;
+		}
+
+		.profile-row label {
+			font-weight: 600;
+			font-size: .9rem;
+			color: #374151;
+		}
+
+		.select,
+		.input {
+			padding: .6rem .8rem;
+			border: 1px solid #e5e7eb;
+			border-radius: 8px;
+			background: #fff;
+			font-size: .95rem;
+			transition: all .2s;
+			width: 100%;
+		}
+
+		.select:focus,
+		.input:focus {
+			outline: none;
+			border-color: var(--accent);
+			box-shadow: 0 0 0 3px rgba(146, 18, 18, 0.1);
+		}
+
+		/* Chat Window */
+		.chat-window {
+			height: 520px;
+			overflow-y: auto;
+			border-radius: 10px;
+			padding: 1rem;
+			background: linear-gradient(180deg, #ffffff, #f9fafb);
+			display: flex;
+			flex-direction: column;
+			gap: .8rem;
+			border: 1px solid #e5e7eb;
+		}
+
+		.chat-window::-webkit-scrollbar {
+			width: 6px
+		}
+
+		.chat-window::-webkit-scrollbar-track {
+			background: #f1f3f5;
+			border-radius: 10px
+		}
+
+		.chat-window::-webkit-scrollbar-thumb {
+			background: #cbd5e1;
+			border-radius: 10px
+		}
+
+		/* Messages */
+		.msg {
+			max-width: 85%;
+			padding: .75rem 1rem;
+			border-radius: 12px;
+			animation: slideIn .3s ease-out;
+			line-height: 1.5;
+		}
+
+		@keyframes slideIn {
+			from {
+				opacity: 0;
+				transform: translateY(10px)
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0)
+			}
+		}
+
+		.msg.user {
+			align-self: flex-end;
+			background: linear-gradient(135deg, #667eea, #764ba2);
+			color: #fff;
+			font-weight: 500;
+			box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+		}
+
+		.msg.ai {
+			align-self: flex-start;
+			background: #f8fafc;
+			color: #1e293b;
+			border: 1px solid #e2e8f0;
+			box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+		}
+
+		.msg.system {
+			align-self: center;
+			background: linear-gradient(135deg, #fef3c7, #fde68a);
+			color: #92400e;
+			font-size: .85rem;
+			max-width: 90%;
+			text-align: center;
+		}
+
+		.assistant-cards {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 1rem;
+			align-self: flex-start;
+			width: 100%;
+		}
+
+		.assistant-card {
+			position: relative;
+			background: #fff;
+			border: 1px solid #e2e8f0;
+			border-radius: 14px;
+			padding: 1rem;
+			box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08);
+			display: flex;
+			flex-direction: column;
+			gap: .65rem;
+			flex: 1 1 240px;
+			max-width: 280px;
+			min-width: 220px;
+		}
+
+		.assistant-card__image {
+			width: 100%;
+			height: 160px;
+			object-fit: cover;
+			border-radius: 10px;
+			border: 1px solid #f1f5f9;
+		}
+
+		.assistant-card__badge {
+			position: absolute;
+			top: 1rem;
+			left: 1rem;
+			background: rgba(79, 70, 229, 0.95);
+			color: #fff;
+			padding: .25rem .6rem;
+			border-radius: 999px;
+			font-size: .75rem;
+			font-weight: 600;
+		}
+
+		.assistant-card__title {
+			margin: 0;
+			font-size: 1.05rem;
+			font-weight: 700;
+			color: #1f2937;
+		}
+
+		.assistant-card__subtitle {
+			margin: 0;
+			color: #6b7280;
+			font-size: .85rem;
+		}
+
+		.assistant-card__features {
+			list-style: none;
+			margin: 0;
+			padding: 0;
+			display: flex;
+			flex-direction: column;
+			gap: .35rem;
+			font-size: .85rem;
+			color: #374151;
+		}
+
+		.assistant-card__features li {
+			position: relative;
+			padding-left: 1.1rem;
+		}
+
+		.assistant-card__features li::before {
+			content: '\2022';
+			position: absolute;
+			left: 0;
+			color: var(--accent);
+			font-weight: 700;
+		}
+
+		.assistant-card__price {
+			margin: 0;
+			font-size: 1.1rem;
+			font-weight: 700;
+			color: #111827;
+		}
+
+		.assistant-card__cta {
+			align-self: flex-start;
+			margin-top: auto;
+			background: var(--accent);
+			color: #fff;
+			text-decoration: none;
+			padding: .5rem .9rem;
+			border-radius: 10px;
+			font-weight: 600;
+			transition: background .2s ease;
+		}
+
+		.assistant-card__cta:hover {
+			background: var(--accent-light);
+		}
+
+		.assistant-card__info {
+			margin: 0;
+			font-size: .8rem;
+			color: #4b5563;
+		}
+
+		@media (max-width: 768px) {
+			.assistant-cards {
+				flex-direction: column;
+				gap: .75rem;
+			}
+
+			.assistant-card {
+				max-width: 100%;
+				min-width: 100%;
+			}
+		}
+
+		/* Typing Indicator */
+		.typing-indicator {
+			align-self: flex-start;
+			background: #f1f5f9;
+			padding: .75rem 1rem;
+			border-radius: 12px;
+			display: flex;
+			gap: .3rem;
+			align-items: center;
+		}
+
+		.typing-indicator span {
+			width: 8px;
+			height: 8px;
+			border-radius: 50%;
+			background: #94a3b8;
+			animation: bounce 1.4s infinite;
+		}
+
+		.typing-indicator span:nth-child(2) {
+			animation-delay: .2s
+		}
+
+		.typing-indicator span:nth-child(3) {
+			animation-delay: .4s
+		}
+
+		@keyframes bounce {
+
+			0%,
+			60%,
+			100% {
+				transform: translateY(0)
+			}
+
+			30% {
+				transform: translateY(-10px)
+			}
+		}
+
+		/* Input Row */
+		.input-row {
+			display: flex;
+			gap: .6rem;
+			margin-top: 1rem;
+		}
+
+		.input-row .input {
+			flex: 1;
+			margin: 0;
+		}
+
+		/* Buttons */
+		.btn {
+			background: var(--accent);
+			color: #fff;
+			border: 0;
+			padding: .65rem 1.1rem;
+			border-radius: 10px;
+			cursor: pointer;
+			font-weight: 600;
+			font-size: .95rem;
+			transition: all .2s;
+			display: inline-flex;
+			align-items: center;
+			gap: .5rem;
+		}
+
+		.btn:hover {
+			background: var(--accent-light);
+			transform: translateY(-1px);
+			box-shadow: 0 4px 12px rgba(146, 18, 18, 0.3);
+		}
+
+		.btn:active {
+			transform: translateY(0)
+		}
+
+		.btn:disabled {
+			opacity: .5;
+			cursor: not-allowed;
+			transform: none;
+		}
+
+		.btn-secondary {
+			background: #6b7280;
+		}
+
+		.btn-secondary:hover {
+			background: #4b5563;
+			box-shadow: 0 4px 12px rgba(107, 114, 128, 0.3);
+		}
+
+		/* Suggestions */
+		.suggestions {
+			display: flex;
+			flex-wrap: wrap;
+			gap: .5rem;
+			margin-top: .8rem;
+		}
+
+		.tag {
+			background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+			padding: .5rem .9rem;
+			border-radius: 20px;
+			font-weight: 500;
+			font-size: .85rem;
+			cursor: pointer;
+			transition: all .2s;
+			border: 1px solid #d1d5db;
+		}
+
+		.tag:hover {
+			background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+			border-color: #3b82f6;
+			transform: translateY(-2px);
+			box-shadow: 0 4px 8px rgba(59, 130, 246, 0.2);
+		}
+
+		/* Utility */
+		.muted {
+			color: var(--muted)
+		}
+
+		.text-center {
+			text-align: center
+		}
+
+		.hero-actions {
+			display: flex;
+			gap: 0.75rem;
+			flex-wrap: wrap;
+			justify-content: flex-end;
+		}
+
+		.history-drawer {
+			position: fixed;
+			top: 110px;
+			right: -420px;
+			width: 360px;
+			height: calc(100% - 110px);
+			background: #ffffff;
+			box-shadow: -6px 0 20px rgba(15, 23, 42, 0.2);
+			transition: right 0.25s ease;
+			z-index: 900;
+			display: flex;
+			flex-direction: column;
+		}
+
+		.history-drawer.open {
+			right: 0;
+		}
+
+		.history-header {
+			padding: 1.25rem 1.5rem 1rem;
+			border-bottom: 1px solid #e5e7eb;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		.history-header h3 {
+			margin: 0;
+			font-size: 1rem;
+		}
+
+		.history-list {
+			flex: 1;
+			overflow-y: auto;
+			padding: 1rem 1.5rem;
+			display: flex;
+			flex-direction: column;
+			gap: 0.75rem;
+		}
+
+		.history-item {
+			border: 1px solid #e5e7eb;
+			border-radius: 10px;
+			padding: 0.75rem;
+			cursor: pointer;
+			transition: border-color 0.2s ease, box-shadow 0.2s ease;
+		}
+
+		.history-item:hover {
+			border-color: var(--accent);
+			box-shadow: 0 6px 18px rgba(146, 18, 18, 0.15);
+		}
+
+		.history-item-title {
+			font-weight: 600;
+			margin-bottom: 0.25rem;
+		}
+
+		.history-empty {
+			padding: 1rem 1.5rem;
+			color: #6b7280;
+			font-size: 0.9rem;
+		}
+
+		.history-footer {
+			padding: 1rem 1.5rem;
+			border-top: 1px solid #e5e7eb;
+			font-size: 0.85rem;
+			color: #6b7280;
+		}
+
+		/* Responsive */
+		@media (max-width:920px) {
+			.assistant-grid {
+				grid-template-columns: 1fr
+			}
+
+			.chat-window {
+				height: 400px
+			}
+
+			.hero {
+				flex-direction: column;
+				align-items: flex-start
+			}
+		}
+
+		@media (max-width:768px) {
+			.history-drawer {
+				width: 100%;
+				right: -100%;
+				top: 96px;
+				height: calc(100% - 96px);
+			}
+		}
 	</style>
 </head>
+
 <body>
-<header>
-    <nav class="navbar">
-        <div class="nav-container">
+	<header>
+		<nav class="navbar">
+			<div class="nav-container">
 
-            <div class="logo">
-                <a href="/index" class="logo-link">
-                    <img src="/Detalles_web/img/logo-detalles.jpg"
-                         alt="Detalles - Calzados y Accesorios"
-                         style="height: 65px; width: auto;">
-                </a>
-            </div>
-            <ul class="nav-menu">
-                <li><a href="/index">Inicio</a></li>
-                    
-                 <!-- Submenú Mujeres -->
-                <li class="menu-item-has-children">
-                    <a href="#">Mujeres <i class="fas fa-chevron-down"></i></a>
-                    <div class="submenu">
-                        <div class="submenu-content">
-                            <div class="submenu-column">
-                                <h3>Calzado</h3>
-                                <ul>
-                                    <li><a href="/Detalles_web/mujeres/zapatillas-deportivas.html">Zapatillas Deportivas</a></li>
-                                    <li><a href="/Detalles_web/mujeres/zapatos-casuales.html">Zapatos Casuales</a></li>
-                                    <li><a href="/Detalles_web/mujeres/tacones.html">Tacones</a></li>
-                                    <li><a href="/Detalles_web/mujeres/sandalias.html">Sandalias</a></li>
-                                    <li><a href="/Detalles_web/mujeres/botas.html">Botas</a></li>
-                                </ul>
-                            </div>
+				<div class="logo">
+					<a href="/index" class="logo-link">
+						<img src="/Detalles_web/img/logo-detalles.jpg" alt="Detalles - Calzados y Accesorios"
+							style="height: 65px; width: auto;">
+					</a>
+				</div>
+				<ul class="nav-menu">
+					<li><a href="/index">Inicio</a></li>
 
-                            <div class="submenu-column">
-                                <h3>Accesorios</h3>
-                                <ul>
-                                    <li><a href="/Detalles_web/mujeres-accesorios/bolsos.html">Bolsos</a></li>
-                                    <li><a href="/Detalles_web/mujeres-accesorios/billeteras.html">Billeteras</a></li>
-                                    <li><a href="/Detalles_web/mujeres-accesorios/gafas-de-sol.html">Gafas de Sol</a></li>
-                                    <li><a href="/Detalles_web/mujeres-accesorios/cinturones.html">Cinturones</a></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </li>
+					<!-- Submenú Mujeres -->
+					<li class="menu-item-has-children">
+						<a href="#">Mujeres <i class="fas fa-chevron-down"></i></a>
+						<div class="submenu">
+							<div class="submenu-content">
+								<div class="submenu-column">
+									<h3>Calzado</h3>
+									<ul>
+										<li><a href="/Detalles_web/mujeres/zapatillas-deportivas.html">Zapatillas
+												Deportivas</a></li>
+										<li><a href="/Detalles_web/mujeres/zapatos-casuales.html">Zapatos Casuales</a>
+										</li>
+										<li><a href="/Detalles_web/mujeres/tacones.html">Tacones</a></li>
+										<li><a href="/Detalles_web/mujeres/sandalias.html">Sandalias</a></li>
+										<li><a href="/Detalles_web/mujeres/botas.html">Botas</a></li>
+									</ul>
+								</div>
 
-                <!-- Submenú Hombres -->
-                <li class="menu-item-has-children">
-                    <a href="#">Hombres <i class="fas fa-chevron-down"></i></a>
-                    <div class="submenu">
-                        <div class="submenu-content">
-                            <div class="submenu-column">
-                                <h3>Calzado</h3>
-                                <ul>
-                                    <li><a href="/Detalles_web/hombres/zapatillas-deportivas-h.html">Zapatillas Deportivas</a></li>
-                                    <li><a href="/Detalles_web/hombres/zapatos-casuales-h.html">Zapatos Casuales</a></li>
-                                    <li><a href="/Detalles_web/hombres/zapatos-formales-h.html">Zapatos Formales</a></li>
-                                    <li><a href="/Detalles_web/hombres/botas-h.html">Botas</a></li>
-                                    <li><a href="/Detalles_web/hombres/sandalias-h.html">Sandalias</a></li>
-                                </ul>
-                            </div>
+								<div class="submenu-column">
+									<h3>Accesorios</h3>
+									<ul>
+										<li><a href="/Detalles_web/mujeres-accesorios/bolsos.html">Bolsos</a></li>
+										<li><a href="/Detalles_web/mujeres-accesorios/billeteras.html">Billeteras</a>
+										</li>
+										<li><a href="/Detalles_web/mujeres-accesorios/gafas-de-sol.html">Gafas de
+												Sol</a></li>
+										<li><a href="/Detalles_web/mujeres-accesorios/cinturones.html">Cinturones</a>
+										</li>
+									</ul>
+								</div>
+							</div>
+						</div>
+					</li>
 
-                            <div class="submenu-column">
-                                <h3>Accesorios</h3>
-                                <ul>
-                                    <li><a href="/Detalles_web/hombres-accesorios/cinturones-h.html">Cinturones</a></li>
-                                    <li><a href="/Detalles_web/hombres-accesorios/relojes-h.html">Relojes</a></li>
-                                    <li><a href="/Detalles_web/hombres-accesorios/gafas-de-sol-h.html">Gafas de Sol</a></li>
-                                    <li><a href="/Detalles_web/hombres-accesorios/billeteras-h.html">Billeteras</a></li>
-                                    <li><a href="/Detalles_web/hombres-accesorios/gorros-h.html">Gorros</a></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </li>
+					<!-- Submenú Hombres -->
+					<li class="menu-item-has-children">
+						<a href="#">Hombres <i class="fas fa-chevron-down"></i></a>
+						<div class="submenu">
+							<div class="submenu-content">
+								<div class="submenu-column">
+									<h3>Calzado</h3>
+									<ul>
+										<li><a href="/Detalles_web/hombres/zapatillas-deportivas-h.html">Zapatillas
+												Deportivas</a></li>
+										<li><a href="/Detalles_web/hombres/zapatos-casuales-h.html">Zapatos Casuales</a>
+										</li>
+										<li><a href="/Detalles_web/hombres/zapatos-formales-h.html">Zapatos Formales</a>
+										</li>
+										<li><a href="/Detalles_web/hombres/botas-h.html">Botas</a></li>
+										<li><a href="/Detalles_web/hombres/sandalias-h.html">Sandalias</a></li>
+									</ul>
+								</div>
 
-                <!-- Submenú niños -->
-                <li class="menu-item-has-children">
-                    <a href="#">Niños <i class="fas fa-chevron-down"></i></a>
-                    <div class="submenu">
-                        <div class="submenu-content">
-                            <div class="submenu-column">
-                                <h3>Calzado</h3>
-                                <ul>
-                                    <li><a href="/Detalles_web/niños/zapatillas-deportivas.html">Zapatillas Deportivas</a></li>
-                                    <li><a href="/Detalles_web/niños/zapatos-casuales.html">Zapatos Casuales</a></li>
-                                    <li><a href="/Detalles_web/niños/zapatos-escolares.html">Zapatos Escolares</a></li>
-                                    <li><a href="/Detalles_web/niños/pantuflas.html">Pantuflas</a></li>
-                                    <li><a href="/Detalles_web/niños/sandalias.html">Sandalias</a></li>
-                                    <li><a href="/Detalles_web/niños/botas.html">Botas</a></li>
-                                </ul>
-                            </div>
+								<div class="submenu-column">
+									<h3>Accesorios</h3>
+									<ul>
+										<li><a href="/Detalles_web/hombres-accesorios/cinturones-h.html">Cinturones</a>
+										</li>
+										<li><a href="/Detalles_web/hombres-accesorios/relojes-h.html">Relojes</a></li>
+										<li><a href="/Detalles_web/hombres-accesorios/gafas-de-sol-h.html">Gafas de
+												Sol</a></li>
+										<li><a href="/Detalles_web/hombres-accesorios/billeteras-h.html">Billeteras</a>
+										</li>
+										<li><a href="/Detalles_web/hombres-accesorios/gorros-h.html">Gorros</a></li>
+									</ul>
+								</div>
+							</div>
+						</div>
+					</li>
 
-                            <div class="submenu-column">
-                                <h3>Accesorios</h3>
-                                <ul>
-                                    <li><a href="/Detalles_web/niños-accesorios/calcetines.html">Calcetines</a></li>
-                                    <li><a href="/Detalles_web/niños-accesorios/cinturones.html">Cinturones</a></li>
-                                    <li><a href="/Detalles_web/niños-accesorios/gorras.html">Gorras</a></li>
-                                    <li><a href="/Detalles_web/niños-accesorios/lentes-sol.html">Lentes</a></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </li>
-            </ul>
+					<!-- Submenú niños -->
+					<li class="menu-item-has-children">
+						<a href="#">Niños <i class="fas fa-chevron-down"></i></a>
+						<div class="submenu">
+							<div class="submenu-content">
+								<div class="submenu-column">
+									<h3>Calzado</h3>
+									<ul>
+										<li><a href="/Detalles_web/niños/zapatillas-deportivas.html">Zapatillas
+												Deportivas</a></li>
+										<li><a href="/Detalles_web/niños/zapatos-casuales.html">Zapatos Casuales</a>
+										</li>
+										<li><a href="/Detalles_web/niños/zapatos-escolares.html">Zapatos Escolares</a>
+										</li>
+										<li><a href="/Detalles_web/niños/pantuflas.html">Pantuflas</a></li>
+										<li><a href="/Detalles_web/niños/sandalias.html">Sandalias</a></li>
+										<li><a href="/Detalles_web/niños/botas.html">Botas</a></li>
+									</ul>
+								</div>
 
-            <div class="nav-icons">
-                <a href="#" class="nav-icon search-icon"><i class="fas fa-search"></i></a>
-                <a href="/Detalles_web/login/logueo.html" class="nav-icon"><i class="fas fa-user"></i></a>
-                <a href="/Detalles_web/carrito/carritos.html" class="nav-icon cart-icon">
-                    <i class="fas fa-shopping-bag"></i>
-                    <span class="cart-count">0</span>
-                </a>
-            </div>
+								<div class="submenu-column">
+									<h3>Accesorios</h3>
+									<ul>
+										<li><a href="/Detalles_web/niños-accesorios/calcetines.html">Calcetines</a></li>
+										<li><a href="/Detalles_web/niños-accesorios/cinturones.html">Cinturones</a></li>
+										<li><a href="/Detalles_web/niños-accesorios/gorras.html">Gorras</a></li>
+										<li><a href="/Detalles_web/niños-accesorios/lentes-sol.html">Lentes</a></li>
+									</ul>
+								</div>
+							</div>
+						</div>
+					</li>
+				</ul>
 
-            <div class="hamburger">
-                <span></span><span></span><span></span>
-            </div>
-        </div>
-    </nav>
-</header>
+				<div class="nav-icons">
+					<a href="#" class="nav-icon search-icon"><i class="fas fa-search"></i></a>
+					<a href="/Detalles_web/login/logueo.html" class="nav-icon"><i class="fas fa-user"></i></a>
+					<a href="/Detalles_web/carrito/carritos.html" class="nav-icon cart-icon">
+						<i class="fas fa-shopping-bag"></i>
+						<span class="cart-count">0</span>
+					</a>
+				</div>
+
+				<div class="hamburger">
+					<span></span><span></span><span></span>
+				</div>
+			</div>
+		</nav>
+	</header>
 	<!-- Breadcrumb -->
-	<div class="breadcrumb"><div class="breadcrumb-content"><span>Asistente IA</span></div></div>
+	<div class="breadcrumb">
+		<div class="breadcrumb-content"><span>Asistente de Calzado IA</span></div>
+	</div>
 
 	<main class="container">
+		<!-- API Key Configuration -->
+		<div class="api-config admin-panel" id="apiConfig">
+			<div class="api-header" id="apiHeader">
+				<h3>
+					<i class="fas fa-key"></i>
+					<span id="apiStatusText">Configuración de API Key (Groq)</span>
+				</h3>
+				<i class="fas fa-chevron-down" id="apiChevron"></i>
+			</div>
+			<div class="api-body" id="apiBody">
+				<p class="muted" style="margin:0 0 .5rem 0;font-size:.9rem">
+					Ingresa tu API Key de Groq para activar el asistente.
+					<a href="https://console.groq.com/keys" target="_blank" style="color:var(--accent)">Obtener API
+						Key</a>
+				</p>
+				<form id="apiKeyForm" class="api-input-row">
+					<input type="password" id="apiKeyInput" class="api-input" placeholder="gsk_..." autocomplete="off" />
+					<button id="saveApiKey" type="submit" class="btn"><i class="fas fa-save"></i> Guardar</button>
+					<button id="clearApiKey" type="button" class="btn btn-secondary" style="display:none"><i
+							class="fas fa-trash"></i></button>
+				</form>
+				<small class="muted" style="display:block;margin-top:.5rem">
+					La API Key se guarda localmente en tu navegador y nunca se comparte.
+				</small>
+				<div class="profile-row" style="margin-top:1rem">
+					<label for="apiModelSelect"><i class="fas fa-microchip"></i> Modelo de IA (Groq)</label>
+					<select id="apiModelSelect" class="select">
+						<option value="openai/gpt-oss-120b">GPT OSS 120B (OpenAI)</option>
+						<option value="llama-3.3-70b-instruct">Llama 3.3 70B Instruct</option>
+						<option value="llama-4-scout">Llama 4 Scout</option>
+						<option value="gpt-oss-20b">GPT OSS 20B</option>
+						<option value="gpt-oss-120b">GPT OSS 120B</option>
+						<option value="kimi-k2">Kimi K2</option>
+					</select>
+				</div>
+				<small id="modelStatus" class="muted" style="display:block;margin-top:.4rem;font-size:.85rem"></small>
+			</div>
+		</div>
+
 		<section class="hero">
 			<div>
-				<h1>Asistente IA</h1>
-				<p class="muted">Recibe recomendaciones de accesorios y colores según tono de piel, ocasión y gustos. Prueba con una pregunta.</p>
+				<h1>Asistente de Selección de Calzado</h1>
+				<p class="muted">Encuentra el par perfecto para tu evento. Recomendaciones personalizadas basadas en tus
+					necesidades y preferencias.</p>
 			</div>
-			<div>
-				<button id="resetProfile" class="btn">Nuevo perfil</button>
+			<div class="hero-actions">
+				<button id="historyBtn" class="btn btn-secondary"><i class="fas fa-history"></i> Historial</button>
+				<button id="resetChat" class="btn"><i class="fas fa-redo"></i> Nueva Conversación</button>
 			</div>
 		</section>
 
 		<section class="assistant-grid">
 			<!-- Chat principal -->
 			<div class="card">
-				<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem">
-					<strong>Chat con Asistente</strong>
-					<small class="muted">Respuestas rápidas</small>
+				<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+					<strong style="font-size:1.1rem">Chat con Asistente</strong>
+					<small class="muted"><i class="fas fa-robot"></i> Especialista en Calzado</small>
 				</div>
 
 				<div id="chat" class="chat-window" role="log" aria-live="polite">
-					<div class="msg ai">Hola — soy tu asistente. Dime para qué ocasión y tu preferencia de colores.</div>
+					<!-- Messages will be added here dynamically -->
 				</div>
 
-				<div class="suggestions muted">Sugerencias:
-					<span class="tag" data-q="Recomiendame accesorios para piel morena y evento formal">Evento formal</span>
-					<span class="tag" data-q="¿Qué colores combinan con piel clara?">Colores para piel clara</span>
-					<span class="tag" data-q="Accesorios casuales para primavera">Casual primavera</span>
+				<div class="suggestions" id="suggestions">
+					<span class="tag" data-q="Necesito zapatos para una boda formal">Boda formal</span>
+					<span class="tag" data-q="Busco zapatos cómodos para uso diario">Uso diario</span>
+					<span class="tag" data-q="Quiero tacones elegantes para una fiesta">Fiesta elegante</span>
+					<span class="tag" data-q="Necesito zapatos deportivos">Deportivos</span>
 				</div>
 
-				<div class="input-row" style="margin-top:.6rem">
-					<input id="query" class="input" placeholder="Escribe tu consulta..." aria-label="Mensaje al asistente" />
-					<button id="sendBtn" class="btn"><i class="fas fa-paper-plane"></i></button>
+				<div class="input-row">
+					<input id="userInput" class="input" placeholder="Escribe tu mensaje..."
+						aria-label="Mensaje al asistente" />
+					<button id="sendBtn" class="btn" disabled><i class="fas fa-paper-plane"></i></button>
 				</div>
 			</div>
 
 			<!-- Panel lateral: perfil y opciones -->
-			<aside class="card">
-				<div style="margin-bottom:.6rem"><strong>Perfil y Preferencias</strong></div>
-
-				<div class="profile-row">
-					<label for="skinTone">Tono de piel</label>
-					<select id="skinTone" class="select" aria-label="Tono de piel">
-						<option value="clara">Clara</option>
-						<option value="media">Media</option>
-						<option value="morena">Morena</option>
-						<option value="oscura">Oscura</option>
-					</select>
+			<aside class="card admin-panel" id="preferencesPanel">
+				<div style="margin-bottom:1rem">
+					<strong style="font-size:1.1rem">Preferencias del Cliente</strong>
+					<p class="muted" style="font-size:.85rem;margin:.3rem 0 0 0">
+						Estos datos ayudan al asistente a personalizar las recomendaciones
+					</p>
 				</div>
 
 				<div class="profile-row">
-					<label for="stylePref">Estilo</label>
-					<select id="stylePref" class="select" aria-label="Estilo preferido">
-						<option value="casual">Casual</option>
-						<option value="formal">Formal</option>
+					<label for="eventType"><i class="fas fa-calendar"></i> Tipo de Evento</label>
+					<select id="eventType" class="select" aria-label="Tipo de evento">
+						<option value="">Seleccionar...</option>
+						<option value="formal">Formal (Boda, Gala)</option>
+						<option value="semiformal">Semi-formal (Reunión)</option>
+						<option value="casual">Casual (Salida)</option>
 						<option value="deportivo">Deportivo</option>
-						<option value="elegante">Elegante</option>
+						<option value="trabajo">Trabajo/Oficina</option>
 					</select>
 				</div>
 
-				<div style="margin-top:.6rem">
-					<label class="muted" style="font-weight:700">Presupuesto aproximado</label>
-					<input id="budget" class="input" placeholder="$ - opcional" />
+				<div class="profile-row">
+					<label for="stylePreference"><i class="fas fa-palette"></i> Estilo Preferido</label>
+					<select id="stylePreference" class="select" aria-label="Estilo preferido">
+						<option value="">Seleccionar...</option>
+						<option value="elegante">Elegante</option>
+						<option value="moderno">Moderno</option>
+						<option value="clasico">Clásico</option>
+						<option value="deportivo">Deportivo</option>
+						<option value="casual">Casual</option>
+					</select>
 				</div>
 
-				<hr style="margin:1rem 0;border-color:#f1f3f5">
+				<div class="profile-row">
+					<label for="colorPreference"><i class="fas fa-fill-drip"></i> Color Preferido</label>
+					<input id="colorPreference" class="input" placeholder="Ej: Negro, Beige, Café..." />
+				</div>
+
+				<div class="profile-row">
+					<label for="shoeSize"><i class="fas fa-ruler"></i> Talla de Calzado</label>
+					<input id="shoeSize" type="number" class="input" placeholder="Ej: 38, 42..." step="0.5" />
+				</div>
+
+				<div class="profile-row">
+					<label for="comfortPriority"><i class="fas fa-heart"></i> Prioridad de Comodidad</label>
+					<select id="comfortPriority" class="select" aria-label="Prioridad de comodidad">
+						<option value="high">Alta - Máxima comodidad</option>
+						<option value="medium">Media - Balance</option>
+						<option value="low">Baja - Priorizo estilo</option>
+					</select>
+				</div>
+
+				<hr style="margin:1.5rem 0;border:0;border-top:1px solid #e5e7eb">
 
 				<div>
-					<strong>Cómo funciona</strong>
-					<p class="muted" style="font-size:.95rem">El asistente usa tus preferencias para dar recomendaciones. En producción debes conectar /api/assistant a un servicio IA.</p>
+					<strong style="font-size:.95rem"><i class="fas fa-info-circle"></i> Estado del Asistente</strong>
+					<div id="assistantStatus"
+						style="margin-top:.5rem;padding:.6rem;background:#f9fafb;border-radius:8px;font-size:.85rem">
+						<span class="muted">Esperando configuración de API Key...</span>
+					</div>
 				</div>
 			</aside>
 		</section>
 	</main>
 
-	   <footer>
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3>Detalles</h3>
-                    <p>Tu destino para calzados y accesorios de calidad.</p>
-                    <div class="social-links">
-                        <a href="#"><i class="fab fa-facebook"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-whatsapp"></i></a>
-                    </div>
-                </div>
-                <div class="footer-section">
-                    <h3>Servicios</h3>
-                    <ul>
-                        <li><a href="/detalles_web/Servicios/guia_tallas.html">Guía de Tallas</a></li>
-                        <li><a href="/Detalles_web/Servicios/preguntas.html">Preguntas Frecuentes</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h3>Newsletter</h3>
-                    <p>Suscríbete para recibir ofertas exclusivas</p>
-                    <form class="newsletter-form">
-                        <input type="email" placeholder="Tu email" required>
-                        <button type="submit">Suscribirse</button>
-                    </form>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2025 Detalles. Todos los derechos reservados.</p>
-            </div>
-        </div>
-    </footer>
+	<footer>
+		<div class="container">
+			<div class="footer-content">
+				<div class="footer-section">
+					<h3>Detalles</h3>
+					<p>Tu destino para calzados y accesorios de calidad.</p>
+					<div class="social-links">
+						<a href="#"><i class="fab fa-facebook"></i></a>
+						<a href="#"><i class="fab fa-instagram"></i></a>
+						<a href="#"><i class="fab fa-whatsapp"></i></a>
+					</div>
+				</div>
+				<div class="footer-section">
+					<h3>Servicios</h3>
+					<ul>
+						<li><a href="/detalles_web/Servicios/guia_tallas.html">Guía de Tallas</a></li>
+						<li><a href="/Detalles_web/Servicios/preguntas.html">Preguntas Frecuentes</a></li>
+					</ul>
+				</div>
+				<div class="footer-section">
+					<h3>Newsletter</h3>
+					<p>Suscríbete para recibir ofertas exclusivas</p>
+					<form class="newsletter-form">
+						<input type="email" placeholder="Tu email" required>
+						<button type="submit">Suscribirse</button>
+					</form>
+				</div>
+			</div>
+			<div class="footer-bottom">
+				<p>&copy; 2025 Detalles. Todos los derechos reservados.</p>
+			</div>
+		</div>
+	</footer>
 
-	<script src="../js/script.js"></script>
-	<script src="../js/user-link-fix.js"></script>
+	<div id="historyDrawer" class="history-drawer" role="dialog" aria-modal="true" aria-labelledby="historyTitle" aria-hidden="true">
+		<div class="history-header">
+			<h3 id="historyTitle">Historial de chats</h3>
+			<button id="closeHistory" class="btn btn-secondary" style="padding:.45rem .8rem">Cerrar</button>
+		</div>
+		<div id="historyList" class="history-list"></div>
+		<div id="historyEmpty" class="history-empty hidden">Aún no guardamos conversaciones anteriores. Inicia una conversación, luego usa "Nueva conversación" para archivarla aquí.</div>
+		<div class="history-footer">Los chats archivados se guardan solo en este navegador. Usa Ctrl+Shift+A para mostrar los paneles de configuración internos.</div>
+	</div>
+
 	<script>
-		(function(){
-			// helpers UI
-			var chat = document.getElementById('chat');
-			var queryInput = document.getElementById('query');
-			var sendBtn = document.getElementById('sendBtn');
-			var suggestions = document.querySelectorAll('.tag');
-			var skinTone = document.getElementById('skinTone');
-			var stylePref = document.getElementById('stylePref');
-			var budget = document.getElementById('budget');
-			var resetBtn = document.getElementById('resetProfile');
-
-			function appendMessage(text, cls){
-				var d = document.createElement('div');
-				d.className = 'msg ' + cls;
-				d.textContent = text;
-				chat.appendChild(d);
-				chat.scrollTop = chat.scrollHeight;
-			}
-
-			function buildProfile(){
-				return {
-					skinTone: skinTone.value,
-					style: stylePref.value,
-					budget: budget.value || null
-				};
-			}
-
-			function sendQuery(q){
-				if(!q) return;
-				appendMessage(q, 'user');
-				queryInput.value = '';
-				// payload para backend
-				var payload = { query: q, profile: buildProfile(), sessionId: null };
-
-				// intenta enviar a /api/assistant (backend necesario). Si falla, respuesta simulada.
-				fetch('/api/assistant', {
-					method:'POST',
-					headers:{'Content-Type':'application/json'},
-					body: JSON.stringify(payload)
-				})
-				.then(function(res){ return res.ok ? res.json() : Promise.reject(); })
-				.then(function(data){
-					// se espera {reply: "...", suggestions: [...]}
-					if(data && data.reply) appendMessage(data.reply, 'ai');
-					else appendMessage('Lo siento, no obtuve respuesta válida del servicio IA.', 'ai');
-				})
-				.catch(function(){
-					// respuesta simulada para testing sin backend
-					var sim = 'Respuesta simulada — según tu perfil (' + buildProfile().skinTone + ', ' + buildProfile().style + '): prueba combinar tonos neutros con un accesorio en contraste.';
-					appendMessage(sim, 'ai');
-				});
-			}
-
-			// enviar por botón o Enter
-			sendBtn.addEventListener('click', function(){ sendQuery(queryInput.value.trim()); });
-			queryInput.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); sendQuery(queryInput.value.trim()); } });
-
-			// sugerencias rápidas
-			suggestions.forEach(function(s){ s.addEventListener('click', function(){ sendQuery(s.getAttribute('data-q')); }); });
-
-			// reset perfil
-			resetBtn.addEventListener('click', function(){
-				skinTone.value = 'clara'; stylePref.value = 'casual'; budget.value = '';
-				chat.innerHTML = '<div class="msg ai">Perfil reiniciado. Cuéntame tus preferencias.</div>';
-			});
-
-			// prevenir navegación del icono de búsqueda si existe
-			var searchToggle = document.getElementById('searchToggle');
-			var overlay = document.getElementById('searchOverlay');
-			if(searchToggle){
-				searchToggle.addEventListener('click', function(e){ e.preventDefault(); if(overlay){ overlay.classList.add('open'); document.body.classList.add('no-scroll'); } });
-			}
-		})();
+		window.DETALLES_GROQ_API_KEY = 'COLOCA_TU_API_KEY_GROQ_AQUI';
+		window.DETALLES_GROQ_MODEL = 'openai/gpt-oss-120b';
 	</script>
+	<script src="/Detalles_web/Servicios/preguntas.js" type="module"></script>
 </body>
+
 </html>
+*/

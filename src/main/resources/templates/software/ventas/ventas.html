@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,13 +8,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/css/dashboard.css">
     <link rel="stylesheet" href="/css/ventas.css">
+    <link rel="stylesheet" href="/css/ventas_dropdown.css">
 </head>
+
 <body>
 
     <div class="toast-container" id="toastContainer"></div>
 
     <div id="sidebar-container"></div>
- 
+
     <main class="main-content">
 
         <div class="top-bar">
@@ -67,7 +70,7 @@
                     </tr>
                 </thead>
                 <tbody id="ventasTableBody">
-                    </tbody>
+                </tbody>
             </table>
         </div>
 
@@ -97,27 +100,29 @@
             </div>
             <form id="ventaForm" class="modal-body">
                 <input type="hidden" id="ventaId" name="id">
-                
+
                 <div class="form-section">
                     <h4 class="section-title">
                         <i class="fas fa-file-invoice"></i>
                         Detalles de la Venta
                     </h4>
-                    
+
                     <div class="">
-                        <div class="form-section full-width" >
+                        <div class="form-section full-width">
                             <h4 class="section-title"><i class="fas fa-user"></i> Datos del Cliente</h4>
 
                             <div class="form-group mb-3">
                                 <label for="clienteTipoDoc">Tipo y Número de Documento</label>
                                 <div class="input-group">
-                                    <select id="clienteTipoDoc" name="clienteTipoDoc" class="form-control" style="max-width: 190px;" required>
-                                        
-                                        <option value="1">DNI</option> 
+                                    <select id="clienteTipoDoc" name="clienteTipoDoc" class="form-control" required>
+                                        <option value="">Seleccionar Tipo</option>
+                                        <option value="1">DNI</option>
                                         <option value="2">RUC</option>
                                     </select>
-                                    <input type="text" id="clienteNumDoc" name="clienteNumDoc" class="form-control" placeholder="Ingrese DNI/RUC" maxlength="11">
-                                    <button type="button" id="buscarClienteBtn" class="btn btn-primary" title="Buscar Cliente">
+                                    <input type="text" id="clienteNumDoc" name="clienteNumDoc" class="form-control"
+                                        placeholder="Ingrese DNI/RUC" maxlength="11">
+                                    <button type="button" id="buscarClienteBtn" class="btn btn-primary"
+                                        title="Buscar Cliente">
                                         <i class="fas fa-search"></i>
                                     </button>
                                 </div>
@@ -125,22 +130,24 @@
 
                             <div id="clienteInfo" class="alert mt-2" style="display: none;">
                                 <p class="mb-0">
-                                    <strong>Cliente:</strong> 
+                                    <strong>Cliente:</strong>
                                     <span id="nombreClienteResultado" class="font-weight-bold">Público General</span>
                                 </p>
-                                <button type="button" id="registrarClienteBtn" class="btn btn-sm btn-success mt-2" style="display: none;">
+                                <button type="button" id="registrarClienteBtn" class="btn btn-sm btn-success mt-2"
+                                    style="display: none;">
                                     <i class="fas fa-user-plus"></i> Registrar Nuevo Cliente
                                 </button>
                             </div>
 
                             <!-- Campo oculto para guardar el ID del cliente seleccionado -->
-                            <input type="hidden" id="idClienteVenta" name="idClienteVenta" value="1"> 
+                            <input type="hidden" id="idClienteVenta" name="idClienteVenta" value="1">
                         </div>
                     </div>
-                    <div  class="form-row">
+                    <div class="form-row">
                         <div class="form-group">
                             <label for="ventaCliente">Cliente *</label>
-                            <input type="text" id="ventaCliente" name="cliente" required placeholder="Ej: Juan Pérez / RUC: 1045...">
+                            <input type="text" id="ventaCliente" name="cliente" required
+                                placeholder="Ej: Juan Pérez / RUC: 1045...">
                         </div>
                         <div class="form-group">
                             <label for="ventaTipoComprobante">Tipo de Comprobante *</label>
@@ -151,10 +158,10 @@
                                 <option value="3">Ticket / Venta Rápida</option>
                             </select>
                         </div>
-                    </div>   
-                    
+                    </div>
 
-                    
+
+
 
 
                     <div id="clienteModal" class="modal" style="display: none;">
@@ -168,7 +175,7 @@
                                     <div class="form-group">
                                         <label for="modalClienteTipoDoc">Tipo de Documento *</label>
                                         <select id="modalClienteTipoDoc" class="form-control">
-                                            <option value="1">DNI</option> 
+                                            <option value="1">DNI</option>
                                             <option value="2">RUC</option>
                                         </select>
                                     </div>
@@ -186,24 +193,27 @@
                                     </div>
                                 </div>
                                 <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" id="cerrarModalClienteBtn">Cancelar</button>
-                                    <button type="button" class="btn btn-primary" id="guardarClienteBtn">Guardar y Seleccionar</button>
+                                    <button type="button" class="btn btn-secondary"
+                                        id="cerrarModalClienteBtn">Cancelar</button>
+                                    <button type="button" class="btn btn-primary" id="guardarClienteBtn">Guardar y
+                                        Seleccionar</button>
                                 </div>
                             </form>
                         </div>
                     </div>
 
-                    <div id="facturaFields" class="form-row hidden-fields"> 
+                    <div id="facturaFields" class="form-row hidden-fields">
                         <div class="form-group">
                             <label for="ventaRUC">RUC</label>
                             <input type="text" id="ventaRUC" name="ruc" placeholder="RUC del Cliente">
                         </div>
                         <div class="form-group">
                             <label for="ventaRazonSocial">Razón Social</label>
-                            <input type="text" id="ventaRazonSocial" name="razonSocial" placeholder="Razón Social del Cliente">
+                            <input type="text" id="ventaRazonSocial" name="razonSocial"
+                                placeholder="Razón Social del Cliente">
                         </div>
                     </div>
-                    
+
                     <div class="form-row">
                         <div class="form-group">
                             <label for="ventaFecha">Fecha *</label>
@@ -219,7 +229,7 @@
                             </select>
                         </div>
                     </div>
-                    
+
                 </div>
 
                 <div class="form-section">
@@ -267,13 +277,13 @@
                     <p><strong>Estado:</strong> <span id="detalleVentaEstado"></span></p>
                     <p><strong>Total:</strong> <span id="detalleVentaTotal"></span></p>
                 </div>
-                
+
                 <hr class="detalle-divider">
 
                 <div class="detalle-productos-container">
                     <h4><i class="fas fa-shopping-cart"></i> Productos Incluidos</h4>
                     <ul id="detalleProductosList" class="detalle-productos-list">
-                        </ul>
+                    </ul>
                 </div>
             </div>
             <div class="modal-footer">
@@ -285,9 +295,63 @@
         </div>
     </div>
 
+    <!-- ✅ MODAL DE FILTROS AVANZADOS -->
+    <div id="filterModal" class="modal">
+        <div class="modal-content filter-modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>Filtros Avanzados</h3>
+                <button class="modal-close" id="closeFilterModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="filterVendedor">Vendedor</label>
+                        <select id="filterVendedor" class="form-control">
+                            <option value="">Seleccionar opción</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filterFecha">Fecha</label>
+                        <select id="filterFecha" class="form-control">
+                            <option value="">Seleccionar opción</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="filterCliente">Cliente</label>
+                        <select id="filterCliente" class="form-control">
+                            <option value="">Seleccionar opción</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filterCosto">Costo (Total)</label> <!-- Mapping user request 'Costo' -->
+                        <select id="filterCosto" class="form-control">
+                            <option value="">Seleccionar opción</option>
+                            <!-- Will populate with ranges or unique values -->
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="justify-content: space-between;">
+                <button type="button" class="btn btn-secondary btn-outline" id="clearFiltersBtn"
+                    style="border: 1px solid #ccc;">
+                    Limpiar Filtros
+                </button>
+                <button type="button" class="btn btn-primary" id="applyFiltersBtn"
+                    style="background-color: #b30000; border-color: #b30000;">
+                    Aplicar Filtros
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="/js/sidebar.js"></script>
     <script src="/js/logout.js"></script>
     <script src="/js/ventas.js"></script>
     <script src="/js/caja.js"></script>
 </body>
+
 </html>

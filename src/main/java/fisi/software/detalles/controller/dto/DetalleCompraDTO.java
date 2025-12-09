@@ -5,12 +5,14 @@ import java.util.List;
 
 public class DetalleCompraDTO {
 
+    private Long idDetallePedido;
     private Long idProducto;
     private String nombreProducto;
     private Integer cantidad;
     private BigDecimal costoUnitario;
     private BigDecimal subtotal;
     private Integer cantidadRecibida;
+    private Integer cantidadPendiente;
 
     // Soporte para tallas
     private Boolean tieneTallas;
@@ -18,6 +20,8 @@ public class DetalleCompraDTO {
 
     // Constructores
     public DetalleCompraDTO() {
+        this.cantidadRecibida = 0;
+        this.cantidadPendiente = 0;
     }
 
     public DetalleCompraDTO(Long idProducto, Integer cantidad, BigDecimal costoUnitario) {
@@ -25,6 +29,7 @@ public class DetalleCompraDTO {
         this.cantidad = cantidad;
         this.costoUnitario = costoUnitario;
         this.cantidadRecibida = 0;
+        this.cantidadPendiente = cantidad != null ? cantidad : 0;
         calcularSubtotal();
     }
 
@@ -38,6 +43,14 @@ public class DetalleCompraDTO {
     }
 
     // Getters y Setters
+    public Long getIdDetallePedido() {
+        return idDetallePedido;
+    }
+
+    public void setIdDetallePedido(Long idDetallePedido) {
+        this.idDetallePedido = idDetallePedido;
+    }
+
     public Long getIdProducto() {
         return idProducto;
     }
@@ -86,6 +99,14 @@ public class DetalleCompraDTO {
 
     public void setCantidadRecibida(Integer cantidadRecibida) {
         this.cantidadRecibida = cantidadRecibida;
+    }
+
+    public Integer getCantidadPendiente() {
+        return cantidadPendiente;
+    }
+
+    public void setCantidadPendiente(Integer cantidadPendiente) {
+        this.cantidadPendiente = cantidadPendiente;
     }
 
     public Boolean getTieneTallas() {

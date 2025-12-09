@@ -279,6 +279,67 @@
         </div>
     </div>
 
+    <div id="recepcionModal" class="modal">
+        <div class="modal-content recepcion-modal-content">
+            <div class="modal-header">
+                <h3 id="recepcionModalTitle">Registrar recepción</h3>
+                <button class="modal-close" id="closeRecepcionModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="recepcion-resumen">
+                    <div>
+                        <p><strong>Compra:</strong> <span id="recepcionCompraId">-</span></p>
+                        <p><strong>Proveedor:</strong> <span id="recepcionProveedor">-</span></p>
+                    </div>
+                    <div>
+                        <p><strong>Estado actual:</strong> <span id="recepcionEstado">-</span></p>
+                        <p><strong>Total pendiente:</strong> <span id="recepcionPendienteTotal">0</span></p>
+                    </div>
+                </div>
+                <div class="recepcion-modo">
+                    <label>
+                        <input type="radio" name="recepcionModo" value="parcial" checked>
+                        Recepción parcial
+                    </label>
+                    <label>
+                        <input type="radio" name="recepcionModo" value="total">
+                        Recepción total (recibir todo lo pendiente)
+                    </label>
+                </div>
+                <div class="recepcion-tabla-container">
+                    <table class="detalle-productos-table recepcion-table">
+                        <thead>
+                            <tr>
+                                <th>Producto / Talla</th>
+                                <th>Pedida</th>
+                                <th>Recibida</th>
+                                <th>Pendiente</th>
+                                <th>Recibir ahora</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recepcionTableBody">
+                        </tbody>
+                    </table>
+                    <div id="recepcionSinPendientes" class="recepcion-sin-pendientes" hidden>
+                        Todos los productos fueron recibidos.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelRecepcionBtn">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </button>
+                <button type="button" class="btn btn-primary" id="confirmRecepcionBtn">
+                    <i class="fas fa-truck-loading"></i>
+                    Registrar recepción
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="/js/sidebar.js"></script>
     <script src="/js/logout.js"></script>
     <script src="/js/compras.js"></script>

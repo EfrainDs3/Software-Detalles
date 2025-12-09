@@ -51,8 +51,9 @@
                                 <div class="submenu-column">
                                     <h3>Calzado</h3>
                                     <ul>
-                                        <li><a href="../hombres/zapatillas-h.html">Zapatillas</a></li>
+                                        <li><a href="../hombres/zapatillas-deportivas-h.html">Zapatillas Deportivas</a></li>
                                         <li><a href="../hombres/zapatos-casuales-h.html">Zapatos Casuales</a></li>
+                                        <li><a href="../hombres/zapatos-formales-h.html">Zapatos Formales</a></li>
                                         <li><a href="../hombres/botas-h.html">Botas</a></li>
                                         <li><a href="../hombres/sandalias-h.html">Sandalias</a></li>
                                     </ul>
@@ -61,9 +62,10 @@
                                     <h3>Accesorios</h3>
                                     <ul>
                                         <li><a href="../hombres-accesorios/cinturones-h.html">Cinturones</a></li>
-                                        <li><a href="../hombres-accesorios/gorras-h.html">Gorras</a></li>
-                                        <li><a href="../hombres-accesorios/mochilas-h.html">Mochilas</a></li>
-                                        <li><a href="../hombres-accesorios/lentes-h.html">Lentes</a></li>
+                                        <li><a href="../hombres-accesorios/relojes-h.html">Relojes</a></li>
+                                        <li><a href="../hombres-accesorios/gafas-de-sol-h.html">Gafas de Sol</a></li>
+                                        <li><a href="../hombres-accesorios/billeteras-h.html">Billeteras</a></li>
+                                        <li><a href="../hombres-accesorios/gorros-h.html">Gorros</a></li>
                                     </ul>
                                 </div>
                             </div>
@@ -287,7 +289,7 @@
             try {
                 console.log('Cargando sandalias para mujeres...');
                 // Primero intentar con filtros específicos, si no funciona cargar todos de mujeres
-                let response = await fetch('/api/productos/buscar?categoria=mujeres&tipo=sandalias');
+                let response = await fetch('/api/productos/calzados?sexo=MUJER&tipo=Sandalias');
                 if (!response.ok) {
                     throw new Error('Error en la respuesta de la API');
                 }
@@ -295,7 +297,7 @@
                 // Si no hay resultados, cargar todos los productos de mujeres
                 if (!productos || productos.length === 0) {
                     console.log('No se encontraron sandalias específicas, cargando todos los productos de mujeres...');
-                    response = await fetch('/api/productos/buscar?categoria=mujeres');
+                    response = await fetch('/api/productos/calzados?sexo=MUJER');
                     productos = await response.json();
                 }
                 console.log('Productos cargados:', productos);
@@ -327,9 +329,9 @@
             contenedor.innerHTML = productos.map(producto => `
                 <div class="product-card-detailed" data-product-id="${producto.id}">
                     <div class="product-image-detailed">
-                        <img src="${producto.imagenUrl || 'https://via.placeholder.com/300x300'}" 
-                             alt="${producto.nombre || producto.nombre_producto}" 
-                             onerror="this.src='https://via.placeholder.com/300x300'">
+                        <img src="${producto.imagen || '/img/Upload/productos/producto-default.jpg'}" 
+                             alt="${producto.nombre}" 
+                             onerror="this.src='/img/Upload/productos/producto-default.jpg'">
                         <div class="product-overlay">
                             <button class="quick-view" onclick="vistaRapida(${producto.id})">Vista Rápida</button>
                         </div>
@@ -370,7 +372,7 @@
             }
             try {
                 console.log('Buscando:', searchTerm);
-                const response = await fetch(`/api/productos/buscar?nombre=${encodeURIComponent(searchTerm)}&categoria=mujeres`);
+                const response = await fetch(`/api/productos/calzados?sexo=MUJER&tipo=Sandalias&nombre=${encodeURIComponent(searchTerm)}`);
                 const productos = await response.json();
                 productosFiltrados = productos;
                 mostrarProductos(productos);

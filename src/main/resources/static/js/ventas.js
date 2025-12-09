@@ -198,19 +198,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // ✅ VALIDACIÓN MANUAL
         if (!idTipoDoc || idTipoDoc === '0') {
-            alert("❌ Debe seleccionar un Tipo de Documento.");
+            showToast("❌ Debe seleccionar un Tipo de Documento.", "error");
             modalClienteTipoDoc.focus();
             return;
         }
 
         if (!numDoc) {
-            alert("❌ El Número de Documento es obligatorio.");
+            showToast("❌ El Número de Documento es obligatorio.", "error");
             modalClienteNumDoc.focus();
             return;
         }
 
         if (!nombres) {
-            alert("❌ El campo Nombres/Razón Social es obligatorio.");
+            showToast("❌ El campo Nombres/Razón Social es obligatorio.", "error");
             modalClienteNombres.focus();
             return;
         }
@@ -247,14 +247,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 // 4. Ejecuta la búsqueda para actualizar el estado
                 await buscarClientePorDocumento();
 
-                alert("✅ Cliente registrado y seleccionado correctamente.");
+                showToast("✅ Cliente registrado y seleccionado correctamente.", "success");
             } else {
                 const error = await response.json();
-                alert(`❌ Error al registrar el cliente: ${error.error || 'Datos inválidos o ya existe un cliente con ese documento.'}`);
+                showToast(`❌ Error al registrar el cliente: ${error.error || 'Datos inválidos o ya existe un cliente con ese documento.'}`, "error");
             }
         } catch (error) {
             console.error('Error de conexión en registro de cliente:', error);
-            alert("❌ Error de conexión con el servidor al registrar cliente.");
+            showToast("❌ Error de conexión con el servidor al registrar cliente.", "error");
         }
     }
 
@@ -263,7 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ======================================================
 
     function resetClienteForm() {
-        clienteTipoDocInput.value = '0';
+        clienteTipoDocInput.value = '';
         clienteNumDocInput.value = '';
         idClienteVentaInput.value = '1';
         nombreClienteResultado.textContent = 'Público General';
@@ -313,23 +313,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Funciones del Dashboard (Mantenemos la lógica de manipulación) ---
 
-    // Función para renderizar la tabla (Ahora usa 'ventasData' llenada por la API)
-    function renderVentas() {
+    // Función para renderizar la tabla (Ahora usa 'ventasData' llenada por la API o datos filtrados)
+    function renderVentas(dataToRender = ventasData) {
         ventasTableBody.innerHTML = '';
 
-        if (ventasData.length === 0) {
+        if (!dataToRender || dataToRender.length === 0) {
             ventasTableBody.innerHTML = '<tr><td colspan="8" class="text-center">No hay ventas registradas</td></tr>';
             return;
         }
 
-        ventasData.forEach(venta => {
+        dataToRender.forEach(venta => {
             // ✅ ACCESO CORRECTO A LAS PROPIEDADES DEL DTO
             const id = venta.id;
-            const cliente = venta.cliente || 'Público General'; // ✅ Ya viene como string del backend
+            const cliente = venta.cliente || 'Público General';
             const fecha = venta.fecha ? new Date(venta.fecha).toLocaleDateString('es-PE') : '';
             const metodoPago = venta.metodoPago || 'N/A';
             const estado = venta.estado || 'Emitido';
             const total = venta.total || 0;
+            const isModificado = estado === 'Modificado';
+
+            // Opcional: Estilo visual para ventas modificadas
+            const rowClass = isModificado ? 'text-muted' : '';
 
             const row = document.createElement('tr');
             row.innerHTML = `
@@ -342,12 +346,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td><span class="price">S/ ${total.toFixed(2)}</span></td>
                 <td>
                     <div class="action-buttons-cell">
-                        <button class="btn-icon btn-edit" data-id="${id}" title="Editar">
+                        <button class="btn-icon btn-edit" data-id="${id}" title="Editar" ${isModificado ? 'disabled' : ''}>
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="btn-icon btn-delete" data-id="${id}" title="Eliminar">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                        <!-- Botón Eliminar REMOVIDO -->
                         <button class="btn-icon btn-view" data-id="${id}" title="Ver detalles">
                             <i class="fas fa-eye"></i>
                         </button>
@@ -382,23 +384,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const itemDiv = document.createElement('div');
         itemDiv.classList.add('product-item');
 
-        // ✅ Generar ID único para el datalist
-        const uniqueId = `productos-list-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        // ✅ Generar ID único para la lista desplegable
+        const uniqueId = `productos-dropdown-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
         itemDiv.innerHTML = `
-            <div class="form-group">
+            <div class="form-group product-search-wrapper">
                 <label>Nombre del Producto</label>
-                <input type="text" 
-                       class="product-name-input" 
-                       value="${product.nombre}" 
-                       placeholder="Buscar producto..." 
-                       list="${uniqueId}"
-                       autocomplete="off">
-                <datalist id="${uniqueId}">
-                    ${productosDisponibles.map(p =>
-            `<option value="${p.nombre}">${p.nombre} - S/ ${(p.precioVenta || 0).toFixed(2)}</option>`
-        ).join('')}
-                </datalist>
+                <div class="custom-dropdown-container">
+                    <input type="text" 
+                           class="product-name-input" 
+                           value="${product.nombre}" 
+                           placeholder="Buscar producto..." 
+                           autocomplete="off"
+                           data-dropdown-id="${uniqueId}">
+                    <div class="product-dropdown" id="${uniqueId}" style="display: none;"></div>
+                </div>
             </div>
             <div class="form-group">
                 <label>Cantidad</label>
@@ -413,21 +413,80 @@ document.addEventListener('DOMContentLoaded', () => {
             </button>
         `;
         productosContainer.appendChild(itemDiv);
-        // ✅ NUEVO: Detectar selección de producto y auto-rellenar precio
+
+        // Referencias a los elementos
         const nameInput = itemDiv.querySelector('.product-name-input');
         const priceInput = itemDiv.querySelector('.product-price-input');
+        const dropdown = itemDiv.querySelector('.product-dropdown');
 
+        // Función para renderizar la lista de productos
+        function renderProductDropdown(filteredProducts) {
+            if (filteredProducts.length === 0) {
+                dropdown.innerHTML = '<div class="dropdown-item no-results">No se encontraron productos</div>';
+                dropdown.style.display = 'block';
+                return;
+            }
+
+            dropdown.innerHTML = filteredProducts.map(p => `
+                <div class="dropdown-item" data-producto='${JSON.stringify(p)}'>
+                    <div class="dropdown-item-name">${p.nombre}</div>
+                    <div class="dropdown-item-price">S/ ${(p.precioVenta || 0).toFixed(2)}</div>
+                </div>
+            `).join('');
+            dropdown.style.display = 'block';
+        }
+
+        // Evento de búsqueda en tiempo real
         nameInput.addEventListener('input', () => {
-            const selectedProduct = productosDisponibles.find(p => p.nombre === nameInput.value);
-            if (selectedProduct && selectedProduct.precioVenta) {
-                priceInput.value = selectedProduct.precioVenta.toFixed(2);
+            const searchTerm = nameInput.value.toLowerCase().trim();
+
+            if (searchTerm === '') {
+                renderProductDropdown(productosDisponibles);
+            } else {
+                const filtered = productosDisponibles.filter(p =>
+                    p.nombre.toLowerCase().includes(searchTerm)
+                );
+                renderProductDropdown(filtered);
+            }
+        });
+
+        // Evento de focus para mostrar la lista
+        nameInput.addEventListener('focus', () => {
+            const searchTerm = nameInput.value.toLowerCase().trim();
+            if (searchTerm === '') {
+                renderProductDropdown(productosDisponibles);
+            } else {
+                const filtered = productosDisponibles.filter(p =>
+                    p.nombre.toLowerCase().includes(searchTerm)
+                );
+                renderProductDropdown(filtered);
+            }
+        });
+
+        // Evento de clic en los items de la lista
+        dropdown.addEventListener('click', (e) => {
+            const item = e.target.closest('.dropdown-item');
+            if (item && item.dataset.producto) {
+                const selectedProduct = JSON.parse(item.dataset.producto);
+                nameInput.value = selectedProduct.nombre;
+                priceInput.value = (selectedProduct.precioVenta || 0).toFixed(2);
+                dropdown.style.display = 'none';
                 calculateTotal();
             }
         });
+
+        // Cerrar dropdown al hacer clic fuera
+        document.addEventListener('click', (e) => {
+            if (!itemDiv.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+
         // Actualizar el total en cada cambio de input
         itemDiv.querySelectorAll('input').forEach(input => {
             input.addEventListener('input', calculateTotal);
         });
+
         // Eliminar producto
         itemDiv.querySelector('.remove-product-btn').addEventListener('click', () => {
             itemDiv.remove();
@@ -468,13 +527,58 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showDetalleModal(venta) {
-        // ✅ ACCESO CORRECTO A LAS PROPIEDADES
-        detalleVentaId.textContent = venta.id;
-        detalleVentaCliente.textContent = venta.cliente || 'Público General';
-        detalleVentaFecha.textContent = venta.fecha ? new Date(venta.fecha).toLocaleDateString('es-PE') : '';
-        detalleVentaMetodoPago.textContent = venta.metodoPago || 'N/A';
-        detalleVentaEstado.textContent = venta.estado || 'Emitido';
-        detalleVentaTotal.textContent = `S/ ${(venta.total || 0).toFixed(2)}`;
+        if (venta.idVentaOriginal) {
+            const infoDiv = document.createElement('div');
+            infoDiv.id = 'infoEdicionVenta';
+            infoDiv.className = 'alert alert-info mt-3';
+            infoDiv.innerHTML = `
+                <i class="fas fa-info-circle"></i> Esta venta es una edición de la Venta #${venta.idVentaOriginal}.
+                <button class="btn btn-sm btn-outline-primary ml-2" onclick="window.open('/ventas/${venta.idVentaOriginal}/pdf', '_blank')">
+                    <i class="fas fa-file-download"></i> Descargar Boleta Original
+                </button>
+            `;
+            // Insertar después de la información del detalle
+            const detalleInfo = document.querySelector('.detalle-venta-info');
+            if (detalleInfo) {
+                // Eliminar alerta previa si existe
+                const existingAlert = document.getElementById('infoEdicionVenta');
+                if (existingAlert) existingAlert.remove();
+
+                detalleInfo.parentNode.insertBefore(infoDiv, detalleInfo.nextSibling);
+            }
+        } else {
+            // Limpiar si no es edición
+            const existingAlert = document.getElementById('infoEdicionVenta');
+            if (existingAlert) existingAlert.remove();
+        }
+
+        // ✅ POPULATE HEADER FIELDS (Fix for missing details)
+        const idSpan = document.getElementById('detalleVentaId');
+        const clienteSpan = document.getElementById('detalleVentaCliente');
+        const fechaSpan = document.getElementById('detalleVentaFecha');
+        const metodoSpan = document.getElementById('detalleVentaMetodoPago');
+        const estadoSpan = document.getElementById('detalleVentaEstado');
+        const totalSpan = document.getElementById('detalleVentaTotal');
+
+        if (idSpan) idSpan.textContent = venta.id || venta.idComprobante || '-'; // Handle DTO variations
+        if (clienteSpan) clienteSpan.textContent = venta.cliente || 'Público General';
+
+        if (fechaSpan && venta.fecha) {
+            // Handle both ISO string and array if needed, but DTO usually sends string/null
+            fechaSpan.textContent = venta.fecha;
+        } else if (fechaSpan) {
+            fechaSpan.textContent = '-';
+        }
+
+        if (metodoSpan) metodoSpan.textContent = venta.metodoPago || '-';
+        if (estadoSpan) {
+            estadoSpan.textContent = venta.estado || 'Emitido';
+            // Optional: Add color styling based on status
+            estadoSpan.className = ''; // Reset
+            if (venta.estado === 'Anulado') estadoSpan.classList.add('text-danger');
+            else if (venta.estado === 'Emitido') estadoSpan.classList.add('text-success');
+        }
+        if (totalSpan) totalSpan.textContent = 'S/ ' + (venta.total ? parseFloat(venta.total).toFixed(2) : '0.00');
 
         detalleProductosList.innerHTML = '';
         const productosDetalle = venta.detalles || [];
@@ -507,14 +611,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const year = fecha.getFullYear();
             const mes = String(fecha.getMonth() + 1).padStart(2, '0');
             const dia = String(fecha.getDate()).padStart(2, '0');
-            ventaFechaInput.value = `${year}-${mes}-${dia}`;
+
+            if (ventaFechaInput) {
+                ventaFechaInput.value = `${year}-${mes}-${dia}`;
+            } else {
+                console.error("Error: Elemento 'ventaFecha' no encontrado en el DOM.");
+            }
         }
 
-        ventaMetodoPagoSelect.value = venta.metodoPago || '';
-        ventaEstadoSelect.value = venta.estado || 'Emitido';
+        if (ventaMetodoPagoSelect) ventaMetodoPagoSelect.value = venta.metodoPago || '';
+        if (ventaEstadoSelect) ventaEstadoSelect.value = venta.estado || 'Emitido';
 
         // Cargar tipo de comprobante si existe
-        if (venta.id_tipo_comprobante) {
+        if (venta.id_tipo_comprobante && ventaTipoComprobanteSelect) {
             ventaTipoComprobanteSelect.value = venta.id_tipo_comprobante.toString();
         }
 
@@ -525,8 +634,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Cargar productos
         if (productosContainer) {
             productosContainer.innerHTML = '';
+            // Limpia los productos anteriores
             const productosDetalle = venta.detalles || [];
-            
+
             productosDetalle.forEach(product => {
                 addProductInput({
                     nombre: product.nombre_producto || '',
@@ -534,7 +644,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     precio: product.precio_unitario || 0
                 });
             });
-            calculateTotal(); 
+            calculateTotal();
         } else {
             console.error('❌ No se pueden cargar productos: productosContainer es null');
             showToast('Error: No se puede editar la venta. Recarga la página', 'error');
@@ -651,12 +761,33 @@ document.addEventListener('DOMContentLoaded', () => {
             detalles: detalles
         };
         console.log('📦 Payload de venta:', ventaPayload);
-        const success = await saveVenta(ventaPayload);
-        if (success) {
+        const successId = await saveVenta(ventaPayload);
+        if (successId) {
             await fetchAndRenderVentas();
             closeModal();
+            // ✅ AUTO-PRINT via Hidden Iframe (Better than window.open)
+            printPDF(`/ventas/${successId}/pdf`);
         }
     });
+
+    function printPDF(url) {
+        let iframe = document.getElementById('print-iframe');
+        if (!iframe) {
+            iframe = document.createElement('iframe');
+            iframe.id = 'print-iframe';
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+        }
+        iframe.src = url;
+        // Wait for PDF to load then print
+        iframe.onload = function () {
+            setTimeout(() => {
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+            }, 500);
+        };
+    }
+
     // Función Asíncrona para guardar/actualizar la venta
     async function saveVenta(payload) {
         const isUpdate = payload.id_comprobante && payload.id_comprobante !== '0';
@@ -677,23 +808,219 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!response.ok) {
                 const errorMessage = data.error || `Error ${response.status}: Fallo en el ${method} de la venta.`;
                 showToast(`Error: ${errorMessage}`);
-                return false;
+                return null;
             }
 
-            showToast(`Venta ${isUpdate ? 'actualizada' : 'registrada'} exitosamente. ID: ${data.id_comprobante || data.id}`);
-            return true;
+            // ✅ FIX: Backend returns 'id_venta', 'id_comprobante' or 'id' depending on DTO
+            const newId = data.id_venta || data.id_comprobante || data.id;
+            console.log('✅ Venta guardada. ID obtenido:', newId);
+
+            showToast(`Venta ${isUpdate ? 'actualizada' : 'registrada'} exitosamente. ID: ${newId}`);
+            return newId;
         } catch (error) {
             console.error('Error al guardar la venta:', error);
             showToast('Hubo un error de conexión al guardar la venta.');
-            return false;
+            return null;
         }
     }
 
-
     // Agregar nuevo producto al formulario de venta
-    addProductBtn.addEventListener('click', () => {
-        addProductInput();
-    });
+    if (addProductBtn) {
+        addProductBtn.addEventListener('click', () => {
+            addProductInput();
+        });
+    }
+
+    // ======================================================
+    // 🔍 LÓGICA DE FILTROS AVANZADOS (Añadido)
+    // ======================================================
+    const filterBtn = document.getElementById('filterBtn');
+    const filterModal = document.getElementById('filterModal');
+    const closeFilterModalBtn = document.getElementById('closeFilterModal');
+    const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+    const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+
+    // Selects del Filtro
+    const filterVendedor = document.getElementById('filterVendedor');
+    const filterFecha = document.getElementById('filterFecha');
+    const filterCliente = document.getElementById('filterCliente');
+    const filterCosto = document.getElementById('filterCosto');
+
+    // Estado del Filtro
+    let currentFilters = {
+        vendedor: '',
+        fecha: '',
+        cliente: '',
+        costo: ''
+    };
+
+    // 1. Abrir Modal y Poblar Opciones
+    if (filterBtn) {
+        filterBtn.addEventListener('click', () => {
+            populateAdvancedFilters();
+            restoreFilterState();
+            filterModal.style.display = 'block';
+        });
+    }
+
+    if (closeFilterModalBtn) {
+        closeFilterModalBtn.addEventListener('click', () => {
+            filterModal.style.display = 'none';
+        });
+    }
+
+    // 2. Poblar Selects con Datos Únicos
+    function populateAdvancedFilters() {
+        if (!ventasData || ventasData.length === 0) return;
+
+        // Extraer valores únicos (Set)
+        const vendedores = new Set();
+        const clientes = new Set();
+        const fechas = new Set();
+        // Costo será estático (Rango)
+
+        ventasData.forEach(v => {
+            // Asumiendo que v.usuario o v.trabajador existe, si no, usar placeholder
+            const vendedor = v.trabajador || (v.usuario ? v.usuario.nombre : 'Sistema');
+            const cliente = v.cliente || 'Público General';
+            const fecha = v.fecha || ''; // Formato DD/MM/YYYY
+
+            vendedores.add(vendedor);
+            clientes.add(cliente);
+            if (fecha) fechas.add(fecha);
+        });
+
+        // Helper para llenar select
+        function fillSelect(selectElement, valuesSet) {
+            const currentVal = selectElement.value;
+            selectElement.innerHTML = '<option value="">Seleccionar opción</option>';
+            Array.from(valuesSet).sort().forEach(val => {
+                const option = document.createElement('option');
+                option.value = val;
+                option.textContent = val;
+                selectElement.appendChild(option);
+            });
+            selectElement.value = currentVal;
+        }
+
+        fillSelect(filterVendedor, vendedores);
+        fillSelect(filterCliente, clientes);
+        fillSelect(filterFecha, fechas);
+
+        // Llenar Costo (Rango) si está vacío
+        if (filterCosto.options.length <= 1) {
+            filterCosto.innerHTML = '<option value="">Seleccionar opción</option>';
+            const rangos = [
+                { val: '0-100', label: 'Menor a S/ 100' },
+                { val: '100-500', label: 'S/ 100 - S/ 500' },
+                { val: '500-1000', label: 'S/ 500 - S/ 1000' },
+                { val: '1000-max', label: 'Mayor a S/ 1000' }
+            ];
+            rangos.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r.val;
+                opt.textContent = r.label;
+                filterCosto.appendChild(opt);
+            });
+        }
+    }
+
+    // 3. Restaurar Selección Previa
+    function restoreFilterState() {
+        filterVendedor.value = currentFilters.vendedor;
+        filterFecha.value = currentFilters.fecha;
+        filterCliente.value = currentFilters.cliente;
+        filterCosto.value = currentFilters.costo;
+    }
+
+    // 4. Aplicar Filtros
+    if (applyFiltersBtn) {
+        applyFiltersBtn.addEventListener('click', () => {
+            currentFilters = {
+                vendedor: filterVendedor.value,
+                fecha: filterFecha.value,
+                cliente: filterCliente.value,
+                costo: filterCosto.value
+            };
+
+            applyAllFilters();
+            filterModal.style.display = 'none';
+        });
+    }
+
+    // 5. Limpiar Filtros
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', () => {
+            currentFilters = { vendedor: '', fecha: '', cliente: '', costo: '' };
+            filterVendedor.value = '';
+            filterFecha.value = '';
+            filterCliente.value = '';
+            filterCosto.value = '';
+            applyAllFilters();
+            // No cerramos el modal, solo limpiamos
+        });
+    }
+
+    // 6. Buscador en Tiempo Real (Search Input)
+    const searchInput = document.getElementById('searchInput');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.trim().toLowerCase();
+            applyAllFilters(term);
+        });
+    }
+
+    // Lógica Central de Filtrado Unificada
+    function applyAllFilters(searchTerm = '') {
+        if (!ventasData) return;
+
+        // Si no se pasa argumento (ej. desde botón Aplicar), usar el valor actual del input
+        if (typeof searchTerm !== 'string') {
+            searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
+        }
+
+        const filtered = ventasData.filter(venta => {
+            // 1. Filtros Avanzados
+            // Filtro Vendedor
+            if (currentFilters.vendedor) {
+                const vVend = venta.trabajador || (venta.usuario ? venta.usuario.nombre : 'Sistema');
+                if (vVend !== currentFilters.vendedor) return false;
+            }
+            // Filtro Fecha
+            if (currentFilters.fecha && venta.fecha !== currentFilters.fecha) return false;
+
+            // Filtro Cliente
+            if (currentFilters.cliente && venta.cliente !== currentFilters.cliente) return false;
+
+            // Filtro Costo (Rango)
+            if (currentFilters.costo) {
+                const total = parseFloat(venta.total) || 0;
+                const [minStr, maxStr] = currentFilters.costo.split('-');
+                const min = parseFloat(minStr);
+                const max = maxStr === 'max' ? Infinity : parseFloat(maxStr);
+
+                if (total < min || total >= max) return false;
+            }
+
+            // 2. Filtro de Búsqueda (ID o Cliente)
+            if (searchTerm) {
+                // Check ID
+                const idMatch = venta.id.toString().toLowerCase().includes(searchTerm);
+                // Check Cliente Name
+                const clienteMatch = (venta.cliente || '').toLowerCase().includes(searchTerm);
+
+                if (!idMatch && !clienteMatch) return false;
+            }
+
+            return true;
+        });
+
+        renderVentas(filtered);
+    }
+
+    // Alias para compatibilidad
+    // const applyAdvancedFiltering = () => applyAllFilters();
 
     // Delegación de eventos para los botones de la tabla
     ventasTableBody.addEventListener('click', async (e) => {
@@ -706,6 +1033,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (btn.classList.contains('btn-edit')) {
             if (venta) {
+                await cargarProductosDisponibles();
                 fillForm(venta);
                 modalTitle.textContent = 'Editar Venta';
                 openModal();

@@ -4,7 +4,31 @@
   const PRODUCT_API = '/api/productos/accesorios';
   const PROVIDER_API = '/api/proveedores';
   const CATALOG_BASE = '/api/catalogos';
-  const PLACEHOLDER_IMG = '/img/calzado-default.jpg';
+  const PLACEHOLDER_IMG = '/img/Upload/productos/producto-default.jpg';
+
+  // Mapear tiposProducto válidos por sexo. Los nombres deben coincidir EXACTAMENTE
+  // con los registrados en detalles.sql
+  const TIPOS_POR_SEXO = {
+    MUJER: [
+      'Bolsos',
+      'Billeteras',
+      'Gafas de sol',
+      'Cinturones'
+    ],
+    HOMBRE: [
+      'Billeteras',
+      'Cinturones',
+      'Gafas de sol',
+      'Gorros',
+      'Relojes'
+    ],
+    NIÑO: [
+      'Calcetines',
+      'Cinturones',
+      'Gorros',
+      'Gafas de sol'
+    ]
+  };
 
   const state = {
     items: [],
@@ -132,6 +156,15 @@
     if (modelSelect){
       modelSelect.addEventListener('change', ()=>{
         actualizarImagenDesdeModelo();
+        actualizarPreview();
+      });
+    }
+
+    // Cuando cambie el sexo/tipo (HOMBRE/MUJER/NIÑO) -> filtrar tipos de producto
+    const sexoSelect = document.getElementById('accesorioType');
+    if (sexoSelect){
+      sexoSelect.addEventListener('change', ()=>{
+        filtrarTiposPorSexo(sexoSelect.value);
         actualizarPreview();
       });
     }
@@ -280,8 +313,46 @@
     poblarSelect('accesorioUnidad', state.combos.unidades, { value: 'id', label: 'nombre', extra: 'abreviatura' }, 'Sin unidades');
     poblarSelect('accesorioCategory', state.combos.tipos, { value: 'id', label: 'nombre' }, 'Sin tipos');
     poblarSelect('accesorioProveedor', state.combos.proveedores, { value: 'idProveedor', label: 'razonSocial', extra: 'nombreComercial' }, 'Sin proveedores');
+    // Aplicar filtro inicial según sexo si ya está seleccionado
+    const sexoInicial = obtenerValor('accesorioType');
+    if (sexoInicial){
+      filtrarTiposPorSexo(sexoInicial);
+    }
     actualizarImagenDesdeModelo();
     actualizarPreview();
+  }
+
+  function filtrarTiposPorSexo(sexo){
+    const select = document.getElementById('accesorioCategory');
+    if (!select) return;
+    const opcionesDisponibles = Array.isArray(state.combos.tipos) ? state.combos.tipos : [];
+    const allowed = sexo ? TIPOS_POR_SEXO[sexo] || [] : [];
+    const current = select.value;
+    select.innerHTML = '<option value="">Seleccionar opción</option>';
+    if (!allowed.length){
+      // Si no hay sexo seleccionado, mostrar todas las opciones
+      opcionesDisponibles.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.id;
+        option.textContent = item.nombre;
+        select.appendChild(option);
+      });
+      select.value = current || '';
+      return;
+    }
+    // Agregar sólo los tipos cuyo nombre coincide exactamente
+    opcionesDisponibles.filter(t => allowed.includes(t.nombre)).forEach(item => {
+      const option = document.createElement('option');
+      option.value = item.id;
+      option.textContent = item.nombre;
+      select.appendChild(option);
+    });
+    // Restaurar selección si aún existe
+    if (current && Array.from(select.options).some(o => o.value === current)){
+      select.value = current;
+    } else {
+      select.value = '';
+    }
   }
 
   function poblarSelect(id, items, { value, label, extra } = {}, emptyText = 'Sin opciones disponibles'){
@@ -730,7 +801,8 @@
     const materialId = convertirEntero(obtenerValor('accesorioMaterial'));
     const unidadId = convertirEntero(obtenerValor('accesorioUnidad'));
   const tipoProductoId = convertirEntero(obtenerValor('accesorioCategory'));
-  const tipoSeleccionado = obtenerValor('accesorioType');
+  const rawTipo = obtenerValor('accesorioType');
+  const tipoSeleccionado = rawTipo ? String(rawTipo).toUpperCase() : '';
     const color = obtenerValor('accesorioColor');
     const dimensiones = obtenerValor('accesorioDimensions');
     const descripcion = obtenerValor('accesorioDescription');
@@ -768,7 +840,7 @@
       tipoProductoId,
       precioVenta: manejaTallas ? null : precioVentaGeneral,
       costoCompra: manejaTallas ? null : costoCompraGeneral,
-  color,
+    color,
   tipo: tipoSeleccionado || 'Accesorio',
       dimensiones,
       pesoGramos,

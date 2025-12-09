@@ -730,3 +730,9 @@
         transform: translateX(100%);
     }
 }
+
+/* Filter Modal */
+.filter-modal-content {
+    max-width: 600px;
+    border-radius: 12px;
+}

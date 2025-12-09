@@ -273,7 +273,7 @@
     <script src="../js/script.js"></script>
     <script src="../js/carrito.js"></script>
 
-    <!-- JavaScript para búsqueda y filtros dinámicos -->
+    <!-- JavaScript para búsqueda y filtros dinámicos (adaptado a endpoint de accesorios por sexo/tipo) -->
     <script>
         // Variables globales
         let todosLosProductos = [];
@@ -285,35 +285,35 @@
             configurarFiltros();
         });
 
-        // Función principal para cargar productos
+        // Función principal para cargar productos (usa endpoint de accesorios filtrado por sexo y tipo)
         async function cargarGafasMujeres() {
             try {
-                console.log('Cargando gafas de sol para mujeres...');
-                
-                // Primero intentar con filtros específicos, si no funciona cargar todos de mujeres
-                let response = await fetch('/api/productos/buscar?categoria=mujeres-accesorios&tipo=gafas-de-sol');
-                
+                console.log('Cargando Gafas de sol para MUJER...');
+
+                // Intentar carga específica por sexo + tipo (nombres exactos del catálogo)
+                let response = await fetch('/api/productos/accesorios?sexo=MUJER&tipo=Gafas%20de%20sol');
+
                 if (!response.ok) {
                     throw new Error('Error en la respuesta de la API');
                 }
-                
+
                 let productos = await response.json();
-                
-                // Si no hay resultados, cargar todos los productos de mujeres accesorios
+
+                // Si no hay resultados, cargar todos los accesorios para MUJER
                 if (!productos || productos.length === 0) {
-                    console.log('No se encontraron gafas de sol específicas, cargando todos los accesorios de mujeres...');
-                    response = await fetch('/api/productos/buscar?categoria=mujeres-accesorios');
+                    console.log('No se encontraron ``Gafas de sol`` específicas, cargando todos los accesorios para MUJER...');
+                    response = await fetch('/api/productos/accesorios?sexo=MUJER');
                     productos = await response.json();
                 }
-                
+
                 console.log('Productos cargados:', productos);
-                
+
                 todosLosProductos = productos;
                 productosFiltrados = [...productos];
-                
+
                 mostrarProductos(productos);
                 actualizarContadorProductos(productos.length);
-                
+
             } catch (error) {
                 console.error('Error cargando productos:', error);
                 document.getElementById('productosContainer').innerHTML = 
@@ -324,7 +324,7 @@
         // Función para mostrar productos en la página
         function mostrarProductos(productos) {
             const contenedor = document.getElementById('productosContainer');
-            
+
             if (!productos || productos.length === 0) {
                 contenedor.innerHTML = `
                     <div class="no-products">
@@ -337,24 +337,33 @@
             }
 
             // Generar HTML para cada producto
-            contenedor.innerHTML = productos.map(function(producto){
-                return '' +
-                    '<div class="product-card-detailed" data-product-id="' + (producto.id || '') + '">' +
-                        '<div class="product-image-detailed">' +
-                            '<img src="' + (producto.imagenUrl || 'https://via.placeholder.com/300x300') + '" alt="' + (producto.nombre || producto.nombre_producto || '') + '" onerror="this.src=\'https://via.placeholder.com/300x300\'">' +
-                            '<div class="product-overlay"><button class="quick-view" onclick="vistaRapida(\'' + (producto.id || '') + '\')">Vista Rápida</button></div>' +
-                        '</div>' +
-                        '<div class="product-info-detailed">' +
-                            '<div class="product-brand">' + obtenerMarcaProducto(producto) + '</div>' +
-                            '<h3 class="product-title-detailed">' + (producto.nombre || producto.nombre_producto || 'Producto') + '</h3>' +
-                            '<div class="product-price"><span class="current-price">S/ ' + (producto.precio_venta || producto.precioVenta || producto.precio || '0.00') + '</span></div>' +
-                            '<div class="product-actions">' +
-                                '<button class="btn-add-cart" onclick="agregarAlCarrito(\'' + (producto.id || '') + '\')">Añadir al Carrito</button>' +
-                                '<button class="btn-wishlist" onclick="agregarFavoritos(\'' + (producto.id || '') + '\')"><i class="far fa-heart"></i></button>' +
-                            '</div>' +
-                        '</div>' +
-                    '</div>';
-            }).join('');
+            contenedor.innerHTML = productos.map(producto => `
+                <div class="product-card-detailed" data-product-id="${producto.id}">
+                    <div class="product-image-detailed">
+                        <img src="${producto.imagen || '/img/Upload/productos/producto-default.jpg'}" 
+                             alt="${producto.nombre}" 
+                             onerror="this.src='/img/Upload/productos/producto-default.jpg'">
+                        <div class="product-overlay">
+                            <button class="quick-view" onclick="vistaRapida(${producto.id})">Vista Rápida</button>
+                        </div>
+                    </div>
+                    <div class="product-info-detailed">
+                        <div class="product-brand">${obtenerMarcaProducto(producto)}</div>
+                        <h3 class="product-title-detailed">${producto.nombre || producto.nombre_producto || 'Producto'}</h3>
+                        <div class="product-price">
+                            <span class="current-price">S/ ${producto.precio_venta || producto.precioVenta || producto.precio || '0.00'}</span>
+                        </div>
+                        <div class="product-actions">
+                            <button class="btn-add-cart" onclick="agregarAlCarrito(${producto.id})">
+                                Añadir al Carrito
+                            </button>
+                            <button class="btn-wishlist" onclick="agregarFavoritos(${producto.id})">
+                                <i class="far fa-heart"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
         }
 
         // Función para extraer marca del nombre del producto
@@ -364,25 +373,25 @@
             return nombre.split(' ')[0] || 'MARCA';
         }
 
-        // Función para búsqueda desde el navbar
+        // Función para búsqueda desde el navbar (ahora usa endpoint de accesorios filtrado por sexo/tipo)
         async function buscarProductos() {
             const searchTerm = document.getElementById('searchInput').value.trim();
-            
+
             if (!searchTerm) {
                 // Si no hay término de búsqueda, recargar productos originales
                 cargarGafasMujeres();
                 return;
             }
-            
+
             try {
                 console.log('Buscando:', searchTerm);
-                const response = await fetch(`/api/productos/buscar?nombre=${encodeURIComponent(searchTerm)}&categoria=mujeres-accesorios`);
+                const response = await fetch(`/api/productos/accesorios?sexo=MUJER&tipo=Gafas%20de%20sol&nombre=${encodeURIComponent(searchTerm)}`);
                 const productos = await response.json();
-                
+
                 productosFiltrados = productos;
                 mostrarProductos(productos);
                 actualizarContadorProductos(productos.length);
-                
+
             } catch (error) {
                 console.error('Error en búsqueda:', error);
             }
@@ -394,17 +403,17 @@
             const precioRange = document.querySelector('.price-range');
             const precioMin = document.querySelector('.price-inputs input[placeholder="Mín"]');
             const precioMax = document.querySelector('.price-inputs input[placeholder="Máx"]');
-            
+
             if (precioRange && precioMin && precioMax) {
                 precioRange.addEventListener('input', function() {
                     precioMax.value = this.value;
                     aplicarFiltros();
                 });
-                
+
                 precioMin.addEventListener('change', aplicarFiltros);
                 precioMax.addEventListener('change', aplicarFiltros);
             }
-            
+
             // Filtro de colores
             const colores = document.querySelectorAll('.color-option');
             colores.forEach(color => {
@@ -413,19 +422,19 @@
                     aplicarFiltros();
                 });
             });
-            
+
             // Filtro de marcas
             const marcas = document.querySelectorAll('.brand-option input[type="checkbox"]');
             marcas.forEach(marca => {
                 marca.addEventListener('change', aplicarFiltros);
             });
-            
+
             // Filtro de materiales
             const materiales = document.querySelectorAll('.brand-option input[type="checkbox"]');
             materiales.forEach(material => {
                 material.addEventListener('change', aplicarFiltros);
             });
-            
+
             // Botón aplicar filtros
             const btnAplicar = document.querySelector('.btn-add-cart[style*="width: 100%"]');
             if (btnAplicar) {
@@ -436,20 +445,20 @@
         // Función para aplicar todos los filtros
         function aplicarFiltros() {
             console.log('🎯 Aplicando filtros...');
-            
+
             let productos = [...todosLosProductos];
-            
+
             // 1. FILTRAR POR PRECIO
             const precioMin = parseInt(document.querySelector('.price-inputs input[placeholder="Mín"]')?.value) || 0;
             const precioMax = parseInt(document.querySelector('.price-inputs input[placeholder="Máx"]')?.value) || 9999;
-            
+
             console.log('💰 Filtro precio:', { precioMin, precioMax });
-            
+
             productos = productos.filter(producto => {
                 const precio = producto.precio_venta || producto.precioVenta || producto.precio || 0;
                 return precio >= precioMin && precio <= precioMax;
             });
-            
+
             // 2. FILTRAR POR COLORES SELECCIONADOS
             const coloresSeleccionados = Array.from(document.querySelectorAll('.color-option.selected'))
                 .map(color => {
@@ -457,24 +466,24 @@
                     return title ? title.toLowerCase() : '';
                 })
                 .filter(color => color !== '');
-            
+
             console.log('🎨 Colores seleccionados:', coloresSeleccionados);
-            
+
             if (coloresSeleccionados.length > 0) {
                 productos = productos.filter(producto => 
                     producto.color && coloresSeleccionados.includes(producto.color.toLowerCase())
                 );
             }
-            
+
             // 3. FILTRAR POR MARCAS SELECCIONADAS (extraer marca del nombre)
             const marcasSeleccionadas = Array.from(document.querySelectorAll('.brand-option input[type="checkbox"]:checked'))
                 .map(cb => {
                     const label = cb.parentElement.querySelector('label') || cb.parentElement;
                     return label.textContent.trim().toLowerCase();
                 });
-            
+
             console.log('🏷️ Marcas seleccionadas:', marcasSeleccionadas);
-            
+
             if (marcasSeleccionadas.length > 0) {
                 productos = productos.filter(producto => {
                     // Extraer marca del nombre del producto (primera palabra)
@@ -482,9 +491,9 @@
                     return marcaProducto && marcasSeleccionadas.includes(marcaProducto);
                 });
             }
-            
+
             console.log('✅ Productos después de filtros:', productos);
-            
+
             productosFiltrados = productos;
             mostrarProductos(productos);
             actualizarContadorProductos(productos.length);
