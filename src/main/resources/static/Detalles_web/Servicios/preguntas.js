@@ -15,26 +15,35 @@
     { value: 'kimi-k2', label: 'Kimi K2' }
   ];
   const AI_RECOMMENDATIONS_URL = '/api/ai/recommendations';
+  const AI_CONTEXT_URL = '/api/ai/context';
   const MAX_RECOMMENDATIONS_FOR_PROMPT = 5;
+  const MAX_PRODUCT_CARDS = 4;
   const MAX_HISTORY_SESSIONS = 25;
+  const CONTEXT_CACHE_MS = 15 * 60 * 1000; // 15 minutos
   const SERVER_KEY_ENDPOINT = '/api/config/groq-key';
   const MASKED_VALUE = '••••••••••••••••';
+  const TOPIC_RESET_KEYWORDS = [
+    'olvida',
+    'olvídate',
+    'cambio de plan',
+    'cambié de opinión',
+    'nuevo tema',
+    'otra cosa',
+    'ya no quiero',
+    'ahora quiero',
+    'reiniciemos'
+  ];
   const SYSTEM_PROMPT = [
-    'Eres el asistente virtual de selección de calzado de la marca Detalles y debes seguir este flujo sin utilizar respuestas de relleno ni "fallbacks":',
-    '1) Inicia con un saludo cálido, profesional y directo. Pregunta de inmediato el tipo de evento o reunión.',
-    '2) Profundiza para clasificar el evento (formal, semi-formal, casual, deportivo, trabajo).',
-    '3) Indaga por el estilo y tipo de calzado que prefiere la persona (elegante, moderno, clásico, deportivo, casual).',
-    '4) Pide colores y materiales preferidos.',
-    '5) Evalúa la prioridad de comodidad y el tiempo de uso previsto.',
-    '6) Confirma la talla habitual para filtrar opciones disponibles.',
-    '7) Recomienda modelos concretos del catálogo Detalles con descripciones breves, ocasión ideal, beneficios y disponibilidad.',
-    '8) Sugiere accesorios o complementos que combinen con el calzado recomendado.',
-    '9) Facilita la acción final: añadir al carrito, ver más opciones o continuar explorando.',
-    'Redacta siempre en párrafos cortos separados por una línea en blanco. Cuando debas listar preguntas o pasos, utiliza una línea por elemento con numeración natural o emojis numéricos (1️⃣, 2️⃣, 3️⃣, ...). No uses formato Markdown (negritas, encabezados, tablas, guiones decorativos) ni emojis ajenos a la numeración solicitada.',
-    'Divide la respuesta en partes claras: Introducción breve, lista numerada de ideas/pasos, conclusión corta. Cada punto debe ocupar su propia línea y frase, separados por punto final. A partir de ahora, responde siempre con frases separadas por puntos y párrafos independientes; no combines todo en un solo bloque.',
-    'Mantén todo en español neutro, con tono experto y cordial, pide detalles cuando falte información, conserva contexto en toda la conversación y nunca recurras a respuestas genéricas o ambiguas.',
-    'Formatea cada recomendación dentro de la lista numerada como texto corrido: inicia con "Nombre (ID X)" y continúa con precio, tallas, stock y motivo en frases naturales. Evita el uso de formato Markdown (negritas, encabezados, tablas o separadores) y limita los emojis a los numéricos (1️⃣, 2️⃣, 3️⃣...). Cierra con un punto final y pasa al siguiente elemento.'
+    'Eres el asistente virtual de Detalles, tienda de calzado ubicada en Tarapoto, Perú. Debes recomendar productos reales del catálogo de Detalles.',
+    'Redacta siempre en español neutro y muestra importes con el formato "S/ 0.00". Evita IDs, códigos internos o campos técnicos.',
+    'Incorpora la información de clima y festividades disponible cuando ayude a justificar recomendaciones, alertar sobre condiciones especiales o proponer accesorios y planificación.',
+    'Si un producto no tiene stock, dilo explícitamente y ofrece alternativas como reservar, avisar o elegir otra opción similar.',
+    'Haz preguntas breves, evita repeticiones y respeta los cambios de tema: si el cliente indica que ya no le interesa lo anterior, olvida las solicitudes previas y continúa con el nuevo objetivo.',
+    'Estructura cada respuesta con: introducción breve, lista numerada (1., 2., 3. o emojis numéricos permitidos) y un cierre corto. No utilices formato Markdown (negritas, tablas, listas con guiones) ni emojis adicionales.',
+    'En cada elemento de la lista menciona nombre comercial del producto, precio en S/., tallas disponibles o agotadas, estado de stock y un motivo claro para la recomendación. Sugiere accesorios complementarios cuando sea oportuno y cierra invitando a la acción (añadir al carrito, reservar, explorar más).'
   ].join(' ');
+
+  const PRODUCT_IMG_PLACEHOLDER = '/img/Upload/productos/producto-default.jpg';
 
   const elements = {};
   let apiKey = '';
@@ -44,6 +53,10 @@
   let currentModel = '';
   let adminModeEnabled = false;
   let hasServerKey = false;
+  let situationalContext = null;
+  let contextLastFetch = 0;
+  let contextErrorMessage = '';
+  let contextErrorShown = false;
 
   document.addEventListener('DOMContentLoaded', () => {
     void init();
@@ -60,6 +73,11 @@
     renderConversation();
     renderHistoryList();
     setupEventListeners();
+    try {
+      await refreshSituationalContext(true);
+    } catch (error) {
+      console.error('No se pudo inicializar el contexto situacional:', error);
+    }
     updateUIState();
 
     if (apiKey && conversationHistory.length === 0) {
@@ -157,6 +175,139 @@
     }
 
     document.addEventListener('keydown', handleGlobalKeydown);
+  }
+
+  async function refreshSituationalContext(force = false) {
+    const now = Date.now();
+    if (!force && situationalContext && now - contextLastFetch < CONTEXT_CACHE_MS) {
+      return situationalContext;
+    }
+
+    try {
+      const response = await fetch(AI_CONTEXT_URL, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        let message = `HTTP ${response.status}`;
+        try {
+          const payload = await response.json();
+          message = payload?.message || payload?.detail || message;
+        } catch (parseError) {
+          // Ignorar errores de parsing, usamos el mensaje por defecto.
+        }
+        throw new Error(message);
+      }
+
+      const data = await response.json();
+      situationalContext = data;
+      contextLastFetch = now;
+      contextErrorMessage = '';
+      contextErrorShown = false;
+      return situationalContext;
+    } catch (error) {
+      situationalContext = null;
+      contextLastFetch = now;
+      contextErrorMessage = error?.message || 'No se pudo recuperar el contexto local.';
+      throw new Error(contextErrorMessage);
+    }
+  }
+
+  function buildSituationalContextPrompt(context) {
+    if (!context || typeof context !== 'object') {
+      return '';
+    }
+
+    const segments = [];
+    const weather = context.weather || {};
+    const holidays = context.holidays || {};
+    const forecast = context.forecast || {};
+
+    const weatherParts = [];
+    if (weather.description) {
+      weatherParts.push(`Condiciones: ${weather.description}`);
+    }
+    if (typeof weather.temperatureC === 'number') {
+      weatherParts.push(`Temperatura ${weather.temperatureC.toFixed(1)} °C`);
+    }
+    if (typeof weather.feelsLikeC === 'number') {
+      weatherParts.push(`Sensación ${weather.feelsLikeC.toFixed(1)} °C`);
+    }
+    if (typeof weather.humidity === 'number') {
+      weatherParts.push(`Humedad ${weather.humidity}%`);
+    }
+    if (weatherParts.length) {
+      segments.push(`Clima actual en Tarapoto: ${weatherParts.join(', ')}.`);
+    }
+
+    const todayHoliday = holidays.today || null;
+    const upcomingHoliday = holidays.upcoming || null;
+    const longWeekend = holidays.longWeekend || null;
+
+    if (todayHoliday) {
+      segments.push(`Hoy se celebra ${todayHoliday.localName || todayHoliday.englishName}.`);
+    }
+    if (upcomingHoliday) {
+      const upcomingParts = [];
+      upcomingParts.push(upcomingHoliday.localName || upcomingHoliday.englishName);
+      upcomingParts.push(`fecha ${upcomingHoliday.date}`);
+      if (typeof upcomingHoliday.daysUntil === 'number') {
+        upcomingParts.push(`faltan ${upcomingHoliday.daysUntil} día${upcomingHoliday.daysUntil === 1 ? '' : 's'}`);
+      }
+      segments.push(`Próximo feriado en Perú: ${upcomingParts.join(', ')}.`);
+    }
+    if (longWeekend && (!upcomingHoliday || longWeekend.date !== upcomingHoliday.date)) {
+      segments.push(`Fin de semana largo: ${longWeekend.localName || longWeekend.englishName} el ${longWeekend.date}.`);
+    }
+
+    if (Array.isArray(forecast.nextDays) && forecast.nextDays.length) {
+      const daysSummary = forecast.nextDays.slice(0, 3).map(day => {
+        const dateLabel = day.date || '';
+        const description = day.description ? day.description.toLowerCase() : '';
+        const tempRange = typeof day.minTemperatureC === 'number' && typeof day.maxTemperatureC === 'number'
+          ? `min ${Math.round(day.minTemperatureC)} °C, max ${Math.round(day.maxTemperatureC)} °C`
+          : '';
+        const rainText = typeof day.precipitationProbability === 'number'
+          ? `lluvia ${Math.round(day.precipitationProbability)}%`
+          : '';
+        return [dateLabel, description, tempRange, rainText].filter(Boolean).join(' · ');
+      }).filter(Boolean);
+      if (daysSummary.length) {
+        segments.push(`Pronóstico próximos días: ${daysSummary.join(' | ')}.`);
+      }
+    }
+
+    if (Array.isArray(forecast.nextHours) && forecast.nextHours.length) {
+      const nextHour = forecast.nextHours[0];
+      if (nextHour && nextHour.timestamp && typeof nextHour.temperatureC === 'number') {
+        const hourLabel = new Date(nextHour.timestamp).toLocaleTimeString('es-PE', {
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        const desc = nextHour.description ? nextHour.description.toLowerCase() : '';
+        const rainProbability = typeof nextHour.precipitationProbability === 'number'
+          ? `lluvia ${Math.round(nextHour.precipitationProbability)}%`
+          : '';
+        segments.push(`Próximas horas (${hourLabel}): ${desc} ${Math.round(nextHour.temperatureC)} °C ${rainProbability}`.trim());
+      }
+    }
+
+    if (typeof context.narrative === 'string' && context.narrative.trim()) {
+      segments.push(context.narrative.trim());
+    }
+
+    return segments.join(' ').trim();
+  }
+
+  function notifyContextError(message) {
+    if (!message || contextErrorShown) {
+      return;
+    }
+    appendMessage(`Error al recuperar clima/festividades: ${message}.`, 'system');
+    contextErrorShown = true;
   }
 
   function toggleApiConfig() {
@@ -507,7 +658,11 @@
       if (entry.role === 'system') {
         return;
       }
-      appendMessage(entry.content, entry.role === 'user' ? 'user' : 'ai');
+      const type = entry.role === 'user' ? 'user' : entry.role === 'assistant' ? 'ai' : 'system';
+      appendMessage(entry.content, type);
+      if (type === 'ai' && Array.isArray(entry.cards) && entry.cards.length) {
+        appendProductCards(entry.cards);
+      }
     });
   }
 
@@ -570,6 +725,85 @@
     elements.chat.scrollTop = elements.chat.scrollHeight;
   }
 
+  function appendProductCards(cards) {
+    if (!elements.chat) {
+      return;
+    }
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'assistant-cards';
+
+    cards.forEach(card => {
+      const cardEl = document.createElement('article');
+      cardEl.className = 'assistant-card';
+
+      const title = document.createElement('h4');
+      title.className = 'assistant-card__title';
+      title.textContent = card?.title || 'Producto sugerido';
+      cardEl.appendChild(title);
+
+      if (card?.subtitle) {
+        const subtitle = document.createElement('p');
+        subtitle.className = 'assistant-card__subtitle';
+        subtitle.textContent = card.subtitle;
+        cardEl.appendChild(subtitle);
+      }
+
+      const image = document.createElement('img');
+      image.className = 'assistant-card__image';
+      image.src = card?.imageUrl || PRODUCT_IMG_PLACEHOLDER;
+      image.alt = card?.title || 'Imagen del producto sugerido';
+      cardEl.appendChild(image);
+
+      if (card?.badge) {
+        const badge = document.createElement('span');
+        badge.className = 'assistant-card__badge';
+        badge.textContent = card.badge;
+        cardEl.appendChild(badge);
+      }
+
+      if (Array.isArray(card?.features) && card.features.length) {
+        const list = document.createElement('ul');
+        list.className = 'assistant-card__features';
+        card.features.forEach(feature => {
+          const item = document.createElement('li');
+          item.textContent = feature;
+          list.appendChild(item);
+        });
+        cardEl.appendChild(list);
+      }
+
+      if (card?.price) {
+        const price = document.createElement('p');
+        price.className = 'assistant-card__price';
+        price.textContent = card.price;
+        cardEl.appendChild(price);
+      }
+
+      if (card?.cta && card?.ctaUrl) {
+        const link = document.createElement('a');
+        link.className = 'assistant-card__cta';
+        link.href = card.ctaUrl;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = card.cta;
+        cardEl.appendChild(link);
+      }
+
+      if (card?.additionalInfo) {
+        const info = document.createElement('p');
+        info.className = 'assistant-card__info';
+        info.textContent = card.additionalInfo;
+        cardEl.appendChild(info);
+      }
+
+      wrapper.appendChild(cardEl);
+    });
+
+    elements.chat.appendChild(wrapper);
+    elements.chat.scrollTop = elements.chat.scrollHeight;
+  }
+
   function showTypingIndicator() {
     if (!elements.chat) {
       return;
@@ -604,6 +838,8 @@
       return;
     }
 
+    applyConversationPivotIfNeeded(message);
+
     conversationHistory.push({
       role: 'user',
       content: message
@@ -633,8 +869,20 @@
     showTypingIndicator();
 
     try {
+      let situationalPrompt = '';
+      try {
+        const context = await refreshSituationalContext(false);
+        situationalPrompt = buildSituationalContextPrompt(context);
+      } catch (contextError) {
+        console.error('Contexto situacional no disponible:', contextError);
+        notifyContextError(contextError.message || contextError);
+      }
+
       const profile = getProfileContext();
-      const messages = [...conversationHistory];
+      const messages = conversationHistory.map(entry => ({
+        role: entry.role,
+        content: entry.content
+      }));
       let contextualRecommendations = Array.isArray(recommendations) ? recommendations : [];
 
       if (!isInitial && contextualRecommendations.length === 0) {
@@ -649,6 +897,13 @@
         messages.push({
           role: 'system',
           content: `Información del perfil del cliente: ${profile}.`
+        });
+      }
+
+      if (situationalPrompt) {
+        messages.push({
+          role: 'system',
+          content: situationalPrompt
         });
       }
 
@@ -702,13 +957,19 @@
         throw new Error('La respuesta del asistente llegó vacía.');
       }
 
+      const productCards = buildProductCardsFromRecommendations(contextualRecommendations);
+
       conversationHistory.push({
         role: 'assistant',
-        content: aiMessage
+        content: aiMessage,
+        cards: productCards
       });
 
       hideTypingIndicator();
       appendMessage(aiMessage, 'ai');
+      if (productCards.length) {
+        appendProductCards(productCards);
+      }
       saveConversation();
     } catch (error) {
       hideTypingIndicator();
@@ -761,6 +1022,24 @@
       comfortPriority: snapshot.comfortPriority || 'high',
       gender: inferGenderFromConversation()
     };
+  }
+
+  function applyConversationPivotIfNeeded(message) {
+    if (!message) {
+      return;
+    }
+    const normalized = message.toLowerCase();
+    const shouldReset = TOPIC_RESET_KEYWORDS.some(keyword => normalized.includes(keyword));
+    if (!shouldReset) {
+      return;
+    }
+
+    conversationHistory = conversationHistory.filter(entry => entry.role === 'system');
+    conversationHistory.push({
+      role: 'system',
+      content: 'El cliente indicó que cambia de tema; ignora las solicitudes anteriores y enfócate únicamente en el nuevo pedido.'
+    });
+    saveConversation();
   }
 
   function collectSelectValue(selectEl) {
@@ -859,7 +1138,7 @@
       'Opciones reales disponibles en Detalles (usa solo estos productos; si nada encaja dilo explícitamente).',
       'Datos JSON de referencia:',
       dataBlock,
-      'Instrucciones de estilo: redacta la respuesta con una introducción breve, luego una lista numerada (1., 2., 3. o 1️⃣, 2️⃣, 3️⃣) donde cada elemento describe un producto en frases corridas (Nombre (ID X), precio, tallas, stock, motivo) y finaliza con una conclusión corta. No utilices formato Markdown (negritas, tablas, listas con guiones) ni bloques extensos de texto.'
+        'Instrucciones de estilo: redacta la respuesta con una introducción breve, luego una lista numerada (1., 2., 3. o 1️⃣, 2️⃣, 3️⃣) donde cada elemento describe un producto en frases corridas y agrega valor sin repetir datos visibles en las tarjetas (precio, stock, talla, color). Enfócate en cómo se ajusta al evento solicitado, el confort, las ventajas comparativas y siguientes pasos recomendados. Prefiere artículos con stock disponible; si todos están agotados, indícalo, ofrece reservas o alternativas cercanas (incluyendo cambio de estilo o accesorios). Descarta productos que no encajen con el tipo de evento o preferencias informadas. Finaliza con una conclusión corta orientada a la acción. Nunca menciones IDs internos ni códigos. No utilices formato Markdown (negritas, tablas, listas con guiones) ni bloques extensos de texto.'
     ].join('\n');
   }
 
@@ -914,9 +1193,83 @@
       const parsed = JSON.parse(raw);
       conversationHistorySessions = Array.isArray(parsed) ? parsed : [];
     } catch (error) {
-      console.error('No se pudo interpretar el historial almacenado:', error);
+      console.error('No se pudo interpretar el historial de conversaciones archivadas:', error);
       conversationHistorySessions = [];
     }
+  }
+
+  function buildProductCardsFromRecommendations(recommendations) {
+    if (!Array.isArray(recommendations) || recommendations.length === 0) {
+      return [];
+    }
+
+    return recommendations.slice(0, MAX_PRODUCT_CARDS).map(item => {
+      const subtitleParts = [];
+      if (item?.categoria) {
+        subtitleParts.push(item.categoria);
+      }
+      if (item?.publicoObjetivo) {
+        subtitleParts.push(capitalizeFirst(item.publicoObjetivo));
+      }
+      if (item?.estiloSugerido) {
+        subtitleParts.push(item.estiloSugerido);
+      }
+
+      const features = [];
+      const tallas = Array.isArray(item?.tallas) ? item.tallas.filter(Boolean).slice(0, 3).map(formatTallaSummary) : [];
+      if (tallas.length) {
+        features.push(`Tallas destacadas: ${tallas.join(' · ')}`);
+      }
+
+      const stockTotal = safeNumber(item?.stockTotal);
+      if (stockTotal !== null) {
+        features.push(stockTotal <= 0 ? 'Sin stock general disponible' : `Stock total: ${stockTotal} pares`);
+      }
+
+      if (item?.color) {
+        features.push(`Color: ${capitalizeFirst(item.color)}`);
+      }
+
+      const coincidencias = Array.isArray(item?.coincidencias) ? item.coincidencias.filter(Boolean) : [];
+      if (coincidencias.length) {
+        features.push(`Motivos: ${coincidencias.slice(0, 2).join(' · ')}`);
+      }
+
+      const additionalInfo = buildCardAdditionalInfo(item, coincidencias);
+
+      return {
+        title: item?.nombre || 'Producto sugerido',
+        subtitle: subtitleParts.filter(Boolean).join(' · '),
+        imageUrl: item?.imagen || PRODUCT_IMG_PLACEHOLDER,
+        price: formatPrice(item?.precioReferencia),
+        features,
+        additionalInfo,
+        badge: item?.tallaSolicitadaDisponible ? 'Talla solicitada disponible' : ''
+      };
+    });
+  }
+
+  function buildCardAdditionalInfo(item, coincidencias) {
+    const description = typeof item?.descripcion === 'string' ? item.descripcion.trim() : '';
+    if (description) {
+      return description.length > 200 ? `${description.slice(0, 197)}…` : description;
+    }
+    if (Array.isArray(coincidencias) && coincidencias.length) {
+      return coincidencias.slice(0, 3).join(' · ');
+    }
+    return '';
+  }
+
+  function capitalizeFirst(text) {
+    if (!text || typeof text !== 'string') {
+      return '';
+    }
+    const trimmed = text.trim();
+    if (!trimmed) {
+      return '';
+    }
+    const lower = trimmed.toLowerCase();
+    return lower.charAt(0).toUpperCase() + lower.slice(1);
   }
 
   function saveHistory() {
