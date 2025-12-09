@@ -544,6 +544,17 @@
 			font-size: 1rem;
 		}
 
+		.history-actions {
+			display: flex;
+			gap: .5rem;
+			align-items: center;
+		}
+
+		.history-actions .btn {
+			font-size: .82rem;
+			padding: .45rem .75rem;
+		}
+
 		.history-list {
 			flex: 1;
 			overflow-y: auto;
@@ -556,19 +567,133 @@
 		.history-item {
 			border: 1px solid #e5e7eb;
 			border-radius: 10px;
-			padding: 0.75rem;
-			cursor: pointer;
+			padding: 0.6rem;
+			display: flex;
+			gap: 0.6rem;
+			align-items: stretch;
 			transition: border-color 0.2s ease, box-shadow 0.2s ease;
+			background: #fff;
 		}
 
 		.history-item:hover {
 			border-color: var(--accent);
-			box-shadow: 0 6px 18px rgba(146, 18, 18, 0.15);
+			box-shadow: 0 6px 18px rgba(146, 18, 18, 0.12);
+		}
+
+		.history-item-load {
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+			gap: 0.35rem;
+			border: none;
+			background: transparent;
+			text-align: left;
+			cursor: pointer;
+			padding: 0;
+			color: inherit;
+			font: inherit;
+		}
+
+		.history-item-load:focus {
+			outline: 2px solid rgba(146, 18, 18, 0.3);
+			outline-offset: 2px;
+		}
+
+		.history-item-info {
+			display: flex;
+			flex-direction: column;
+			gap: 0.2rem;
 		}
 
 		.history-item-title {
 			font-weight: 600;
-			margin-bottom: 0.25rem;
+			margin: 0;
+			color: #111827;
+		}
+
+		.history-item-meta {
+			font-size: 0.8rem;
+			color: #6b7280;
+		}
+
+		.history-item-delete {
+			align-self: center;
+			border: 1px solid #fecaca;
+			background: #fee2e2;
+			color: #b91c1c;
+			padding: 0.4rem 0.65rem;
+			border-radius: 8px;
+			font-weight: 600;
+			cursor: pointer;
+			transition: background 0.2s ease, border-color 0.2s ease;
+		}
+
+		.history-item-delete:hover {
+			background: #fecaca;
+			border-color: #fca5a5;
+		}
+
+		.history-item-delete:focus {
+			outline: 2px solid rgba(220, 38, 38, 0.35);
+			outline-offset: 2px;
+		}
+
+		.modal-backdrop {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(15, 23, 42, 0.45);
+			backdrop-filter: blur(2px);
+			z-index: 950;
+			display: none;
+		}
+
+		.modal-backdrop.visible {
+			display: block;
+		}
+
+		.confirm-modal {
+			position: fixed;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			background: #fff;
+			border-radius: 16px;
+			box-shadow: 0 25px 60px rgba(15, 23, 42, 0.25);
+			width: min(420px, calc(100% - 2rem));
+			padding: 1.5rem;
+			z-index: 960;
+			display: none;
+		}
+
+		.confirm-modal.visible {
+			display: block;
+		}
+
+		.confirm-modal h3 {
+			margin-top: 0;
+			margin-bottom: .75rem;
+			font-size: 1.1rem;
+			color: #111827;
+		}
+
+		.confirm-modal p {
+			margin: 0 0 1.25rem 0;
+			color: #4b5563;
+			line-height: 1.5;
+		}
+
+		.confirm-actions {
+			display: flex;
+			justify-content: flex-end;
+			gap: .75rem;
+		}
+
+		.confirm-actions .btn {
+			padding: .5rem 1rem;
+			font-size: .9rem;
 		}
 
 		.history-empty {
@@ -929,11 +1054,24 @@
 	<div id="historyDrawer" class="history-drawer" role="dialog" aria-modal="true" aria-labelledby="historyTitle" aria-hidden="true">
 		<div class="history-header">
 			<h3 id="historyTitle">Historial de chats</h3>
-			<button id="closeHistory" class="btn btn-secondary" style="padding:.45rem .8rem">Cerrar</button>
+			<div class="history-actions">
+				<button id="clearHistory" class="btn btn-secondary" style="background:#ef4444;border-color:#ef4444">Eliminar historial</button>
+				<button id="closeHistory" class="btn btn-secondary" style="padding:.45rem .8rem">Cerrar</button>
+			</div>
 		</div>
 		<div id="historyList" class="history-list"></div>
 		<div id="historyEmpty" class="history-empty hidden">Aún no guardamos conversaciones anteriores. Inicia una conversación, luego usa "Nueva conversación" para archivarla aquí.</div>
 		<div class="history-footer">Los chats archivados se guardan solo en este navegador. Usa Ctrl+Shift+A para mostrar los paneles de configuración internos.</div>
+	</div>
+
+	<div id="confirmBackdrop" class="modal-backdrop" aria-hidden="true"></div>
+	<div id="confirmModal" class="confirm-modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle" aria-hidden="true">
+		<h3 id="confirmTitle">Confirmación</h3>
+		<p id="confirmMessage">¿Deseas continuar con esta acción?</p>
+		<div class="confirm-actions">
+			<button id="confirmCancel" class="btn btn-secondary">Cancelar</button>
+			<button id="confirmAccept" class="btn">Aceptar</button>
+		</div>
 	</div>
 
 	<script>

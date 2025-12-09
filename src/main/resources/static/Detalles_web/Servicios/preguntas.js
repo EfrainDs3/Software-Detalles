@@ -57,6 +57,10 @@
   let contextLastFetch = 0;
   let contextErrorMessage = '';
   let contextErrorShown = false;
+  let confirmResolver = null;
+  let confirmFocusableElements = [];
+  let confirmPreviousFocus = null;
+  const FOCUSABLE_SELECTOR = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
   document.addEventListener('DOMContentLoaded', () => {
     void init();
@@ -108,6 +112,7 @@
     elements.historyList = document.getElementById('historyList');
     elements.historyEmpty = document.getElementById('historyEmpty');
     elements.closeHistory = document.getElementById('closeHistory');
+    elements.clearHistory = document.getElementById('clearHistory');
     elements.suggestions = Array.from(document.querySelectorAll('#suggestions .tag'));
     elements.eventType = document.getElementById('eventType');
     elements.stylePreference = document.getElementById('stylePreference');
@@ -115,6 +120,12 @@
     elements.shoeSize = document.getElementById('shoeSize');
     elements.comfortPriority = document.getElementById('comfortPriority');
     elements.preferencesPanel = document.getElementById('preferencesPanel');
+    elements.confirmBackdrop = document.getElementById('confirmBackdrop');
+    elements.confirmModal = document.getElementById('confirmModal');
+    elements.confirmTitle = document.getElementById('confirmTitle');
+    elements.confirmMessage = document.getElementById('confirmMessage');
+    elements.confirmAccept = document.getElementById('confirmAccept');
+    elements.confirmCancel = document.getElementById('confirmCancel');
   }
 
   function setupEventListeners() {
@@ -130,7 +141,9 @@
     }
     if (!hasServerKey && elements.saveApiKey && elements.clearApiKey) {
       elements.saveApiKey.addEventListener('click', saveApiKeyHandler);
-      elements.clearApiKey.addEventListener('click', () => clearApiKey(true));
+      elements.clearApiKey.addEventListener('click', () => {
+        void clearApiKey(true);
+      });
     }
     if (elements.apiModelSelect) {
       elements.apiModelSelect.addEventListener('change', handleModelChange);
@@ -158,7 +171,9 @@
     });
 
     if (elements.resetChat) {
-      elements.resetChat.addEventListener('click', () => resetConversation(true, true));
+      elements.resetChat.addEventListener('click', () => {
+        void promptNewConversation(true);
+      });
     }
 
     if (elements.historyBtn) {
@@ -172,6 +187,24 @@
     if (elements.historyList) {
       elements.historyList.addEventListener('click', handleHistoryListClick);
       elements.historyList.addEventListener('keydown', handleHistoryListKeydown);
+    }
+
+    if (elements.clearHistory) {
+      elements.clearHistory.addEventListener('click', () => {
+        void promptClearHistory();
+      });
+    }
+
+    if (elements.confirmAccept) {
+      elements.confirmAccept.addEventListener('click', () => finalizeConfirmation(true));
+    }
+
+    if (elements.confirmCancel) {
+      elements.confirmCancel.addEventListener('click', () => finalizeConfirmation(false));
+    }
+
+    if (elements.confirmBackdrop) {
+      elements.confirmBackdrop.addEventListener('click', () => finalizeConfirmation(false));
     }
 
     document.addEventListener('keydown', handleGlobalKeydown);
@@ -570,14 +603,23 @@
     startConversation();
   }
 
-  function clearApiKey(showConfirmation = true) {
+  async function clearApiKey(showConfirmation = true) {
     if (hasServerKey) {
       alert('La API Key está administrada por el servidor. Ajusta la configuración backend para modificarla.');
       return;
     }
 
-    if (showConfirmation && !confirm('¿Estás seguro de que deseas eliminar la API Key guardada?')) {
-      return;
+    if (showConfirmation) {
+      const confirmed = await showConfirmation({
+        title: 'Eliminar API Key',
+        message: '¿Estás seguro de que deseas eliminar la API Key guardada?',
+        confirmText: 'Eliminar',
+        cancelText: 'Cancelar'
+      });
+
+      if (!confirmed) {
+        return;
+      }
     }
 
     apiKey = '';
@@ -682,8 +724,29 @@
     getAIResponse({ isInitial: true });
   }
 
+  async function promptNewConversation(autoRestart = false) {
+    const hasInteraction = conversationHistory.some(entry => entry.role === 'user' || entry.role === 'assistant');
+    const message = hasInteraction
+      ? '¿Deseas iniciar una nueva conversación? El chat actual se guardará en el historial y comenzaremos uno nuevo.'
+      : '¿Deseas iniciar una nueva conversación?';
+
+    const confirmed = await showConfirmation({
+      title: 'Nueva conversación',
+      message,
+      confirmText: 'Iniciar',
+      cancelText: 'Cancelar'
+    });
+
+    if (!confirmed) {
+      return;
+    }
+
+    resetConversation(false, autoRestart);
+  }
+
   function resetConversation(askConfirmation = true, autoRestart = false) {
-    if (askConfirmation && !confirm('¿Deseas iniciar una nueva conversación? El chat actual se guardará en el historial y comenzaremos uno nuevo.')) {
+    if (askConfirmation) {
+      void promptNewConversation(autoRestart);
       return;
     }
 
@@ -1198,6 +1261,130 @@
     }
   }
 
+  function showConfirmation(options = {}) {
+    if (!elements.confirmModal || !elements.confirmAccept || !elements.confirmCancel) {
+      const fallbackMessage = options.message || '¿Deseas continuar?';
+      return Promise.resolve(window.confirm(fallbackMessage));
+    }
+
+    if (confirmResolver) {
+      finalizeConfirmation(false);
+    }
+
+    return new Promise(resolve => {
+      confirmResolver = resolve;
+      const mergedOptions = {
+        title: options.title || 'Confirmación',
+        message: options.message || '¿Deseas continuar? Esta acción no se puede deshacer.',
+        confirmText: options.confirmText || 'Aceptar',
+        cancelText: options.cancelText || 'Cancelar'
+      };
+
+      if (elements.confirmTitle) {
+        elements.confirmTitle.textContent = mergedOptions.title;
+      }
+      if (elements.confirmMessage) {
+        elements.confirmMessage.textContent = mergedOptions.message;
+      }
+      if (elements.confirmAccept) {
+        elements.confirmAccept.textContent = mergedOptions.confirmText;
+      }
+      if (elements.confirmCancel) {
+        elements.confirmCancel.textContent = mergedOptions.cancelText;
+      }
+
+      confirmPreviousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
+      if (elements.confirmBackdrop) {
+        elements.confirmBackdrop.classList.add('visible');
+        elements.confirmBackdrop.setAttribute('aria-hidden', 'false');
+      }
+      if (elements.confirmModal) {
+        elements.confirmModal.classList.add('visible');
+        elements.confirmModal.setAttribute('aria-hidden', 'false');
+      }
+
+      confirmFocusableElements = Array.from(elements.confirmModal.querySelectorAll(FOCUSABLE_SELECTOR)).filter(el => !el.hasAttribute('disabled'));
+      const firstFocusable = confirmFocusableElements.find(el => typeof el.focus === 'function');
+      if (firstFocusable) {
+        setTimeout(() => {
+          firstFocusable.focus();
+        }, 0);
+      }
+
+      document.addEventListener('keydown', handleConfirmationKeydown, true);
+    });
+  }
+
+  function finalizeConfirmation(result) {
+    if (!confirmResolver) {
+      return;
+    }
+
+    if (elements.confirmBackdrop) {
+      elements.confirmBackdrop.classList.remove('visible');
+      elements.confirmBackdrop.setAttribute('aria-hidden', 'true');
+    }
+    if (elements.confirmModal) {
+      elements.confirmModal.classList.remove('visible');
+      elements.confirmModal.setAttribute('aria-hidden', 'true');
+    }
+
+    document.removeEventListener('keydown', handleConfirmationKeydown, true);
+
+    const resolve = confirmResolver;
+    confirmResolver = null;
+    confirmFocusableElements = [];
+
+    if (confirmPreviousFocus && typeof confirmPreviousFocus.focus === 'function') {
+      setTimeout(() => {
+        confirmPreviousFocus.focus();
+      }, 0);
+    }
+    confirmPreviousFocus = null;
+
+    resolve(Boolean(result));
+  }
+
+  function handleConfirmationKeydown(event) {
+    if (!confirmResolver || !elements.confirmModal?.classList.contains('visible')) {
+      return;
+    }
+
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      finalizeConfirmation(false);
+      return;
+    }
+
+    if (event.key !== 'Tab') {
+      return;
+    }
+
+    if (confirmFocusableElements.length === 0) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
+    const currentIndex = confirmFocusableElements.indexOf(document.activeElement);
+    let nextIndex = currentIndex;
+
+    if (event.shiftKey) {
+      nextIndex = currentIndex <= 0 ? confirmFocusableElements.length - 1 : currentIndex - 1;
+    } else {
+      nextIndex = currentIndex === confirmFocusableElements.length - 1 ? 0 : currentIndex + 1;
+    }
+
+    const target = confirmFocusableElements[nextIndex];
+    if (target && typeof target.focus === 'function') {
+      event.preventDefault();
+      event.stopPropagation();
+      target.focus();
+    }
+  }
+
   function buildProductCardsFromRecommendations(recommendations) {
     if (!Array.isArray(recommendations) || recommendations.length === 0) {
       return [];
@@ -1272,9 +1459,108 @@
     return lower.charAt(0).toUpperCase() + lower.slice(1);
   }
 
+  function performHistoryClear({ clearArchived, clearConversation }) {
+    if (clearArchived) {
+      conversationHistorySessions = [];
+      try {
+        localStorage.removeItem(STORAGE_KEY_HISTORY);
+      } catch (error) {
+        console.error('No se pudo limpiar el historial archivado:', error);
+      }
+      saveHistory();
+      renderHistoryList();
+    }
+
+    if (clearConversation) {
+      conversationHistory = conversationHistory.filter(entry => entry.role === 'system');
+      if (!conversationHistory.some(entry => entry.role === 'system')) {
+        conversationHistory.push({
+          role: 'system',
+          content: SYSTEM_PROMPT
+        });
+      }
+      try {
+        localStorage.removeItem(STORAGE_KEY_CONVERSATION);
+      } catch (error) {
+        console.error('No se pudo limpiar la conversación actual:', error);
+      }
+      saveConversation();
+      renderConversation();
+      appendMessage('Historial eliminado. Puedes iniciar una nueva conversación cuando lo desees.', 'system');
+    }
+
+    updateUIState();
+    toggleHistoryDrawer(false);
+  }
+
+  async function promptClearHistory() {
+    const hasArchived = conversationHistorySessions.length > 0;
+    const hasConversation = conversationHistory.some(entry => entry.role !== 'system');
+
+    if (!hasArchived && !hasConversation) {
+      alert('No hay historial para eliminar.');
+      return;
+    }
+
+    let message = '¿Deseas eliminar el historial? Esta acción no se puede deshacer.';
+    if (hasArchived && hasConversation) {
+      message = '¿Deseas eliminar todas las conversaciones archivadas y la conversación actual? Esta acción no se puede deshacer.';
+    } else if (hasArchived) {
+      message = '¿Deseas eliminar todas las conversaciones archivadas? Esta acción no se puede deshacer.';
+    } else if (hasConversation) {
+      message = '¿Deseas limpiar la conversación actual? Esta acción no se puede deshacer.';
+    }
+
+    const confirmed = await showConfirmation({
+      title: 'Eliminar historial',
+      message,
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar'
+    });
+
+    if (!confirmed) {
+      return;
+    }
+
+    performHistoryClear({
+      clearArchived: hasArchived,
+      clearConversation: hasConversation
+    });
+  }
+
+  function deleteHistorySession(sessionId) {
+    if (!sessionId) {
+      return;
+    }
+    const session = conversationHistorySessions.find(item => item.id === sessionId);
+    if (!session) {
+      return;
+    }
+
+    const preview = session.title || 'esta conversación';
+    void showConfirmation({
+      title: 'Eliminar conversación',
+      message: `¿Eliminar la conversación "${preview}"? Esta acción no se puede deshacer.`,
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar'
+    }).then(confirmed => {
+      if (!confirmed) {
+        return;
+      }
+
+      conversationHistorySessions = conversationHistorySessions.filter(item => item.id !== sessionId);
+      saveHistory();
+      renderHistoryList();
+    });
+  }
+
   function saveHistory() {
     try {
-      localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(conversationHistorySessions));
+      if (conversationHistorySessions.length === 0) {
+        localStorage.removeItem(STORAGE_KEY_HISTORY);
+      } else {
+        localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(conversationHistorySessions));
+      }
     } catch (error) {
       console.error('No se pudo guardar el historial de conversaciones archivadas:', error);
     }
@@ -1325,55 +1611,89 @@
     conversationHistorySessions.forEach(session => {
       const item = document.createElement('div');
       item.className = 'history-item';
-      item.dataset.id = session.id;
-      item.setAttribute('role', 'button');
-      item.setAttribute('tabindex', '0');
 
-      const primary = document.createElement('div');
-      primary.className = 'history-item-title';
-      primary.textContent = session.title;
+      const loadButton = document.createElement('button');
+      loadButton.type = 'button';
+      loadButton.className = 'history-item-load';
+      loadButton.dataset.sessionId = session.id;
+      loadButton.setAttribute('aria-label', `Abrir conversación ${session.title}`);
+
+      const info = document.createElement('div');
+      info.className = 'history-item-info';
+
+      const title = document.createElement('div');
+      title.className = 'history-item-title';
+      title.textContent = session.title;
 
       const meta = document.createElement('div');
-      meta.className = 'muted';
-      meta.style.fontSize = '0.8rem';
+      meta.className = 'history-item-meta';
       const userTurns = Array.isArray(session.messages)
         ? session.messages.filter(message => message.role === 'user').length
         : 0;
       meta.textContent = `${formatTimestamp(session.timestamp)} · ${userTurns} mensaje${userTurns === 1 ? '' : 's'} del cliente`;
 
-      item.append(primary, meta);
+      info.append(title, meta);
+
+      if (session.preferences?.eventType) {
+        const eventMeta = document.createElement('div');
+        eventMeta.className = 'history-item-meta';
+        eventMeta.textContent = `Evento: ${capitalizeFirst(session.preferences.eventType)}`;
+        info.append(eventMeta);
+      }
+
+      loadButton.appendChild(info);
+
+      const deleteButton = document.createElement('button');
+      deleteButton.type = 'button';
+      deleteButton.className = 'history-item-delete';
+      deleteButton.dataset.sessionId = session.id;
+      deleteButton.setAttribute('aria-label', `Eliminar la conversación ${session.title}`);
+      deleteButton.textContent = 'Eliminar';
+
+      item.append(loadButton, deleteButton);
       elements.historyList.appendChild(item);
     });
   }
 
   function handleHistoryListClick(event) {
-    const target = event.target.closest('.history-item');
-    if (!target) {
+    const deleteButton = event.target.closest('.history-item-delete');
+    if (deleteButton) {
+      event.preventDefault();
+      event.stopPropagation();
+      const { sessionId } = deleteButton.dataset;
+      if (sessionId) {
+        deleteHistorySession(sessionId);
+      }
       return;
     }
 
-    const { id } = target.dataset;
-    if (!id) {
+    const loadButton = event.target.closest('.history-item-load');
+    if (!loadButton) {
       return;
     }
 
-    restoreConversationFromHistory(id);
+    const { sessionId } = loadButton.dataset;
+    if (!sessionId) {
+      return;
+    }
+
+    restoreConversationFromHistory(sessionId);
   }
 
   function handleHistoryListKeydown(event) {
     if (event.key !== 'Enter' && event.key !== ' ') {
       return;
     }
-    const target = event.target.closest('.history-item');
-    if (!target) {
+    const loadButton = event.target.closest('.history-item-load');
+    if (!loadButton) {
       return;
     }
     event.preventDefault();
-    const { id } = target.dataset;
-    if (!id) {
+    const { sessionId } = loadButton.dataset;
+    if (!sessionId) {
       return;
     }
-    restoreConversationFromHistory(id);
+    restoreConversationFromHistory(sessionId);
   }
 
   function restoreConversationFromHistory(sessionId) {
