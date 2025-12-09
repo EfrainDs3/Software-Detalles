@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 09-12-2025 a las 04:19:37
+-- Tiempo de generación: 09-12-2025 a las 20:10:10
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -390,10 +390,15 @@ INSERT INTO `marcasproducto` (`id_marca`, `nombre_marca`) VALUES
 (30, 'Birkenstock'),
 (32, 'Borcegos'),
 (7, 'Boss'),
+(39, 'Bruno Marc'),
 (37, 'Burberry'),
 (38, 'Calvin Klein'),
+(16, 'Casio'),
 (8, 'Caterpillar'),
+(46, 'Citizen'),
 (35, 'Coach'),
+(41, 'Cole Haan'),
+(43, 'Columbia'),
 (6, 'Converse'),
 (9, 'Crocs'),
 (12, 'Daclay'),
@@ -404,10 +409,13 @@ INSERT INTO `marcasproducto` (`id_marca`, `nombre_marca`) VALUES
 (13, 'Guess'),
 (26, 'H&M'),
 (24, 'Hush Puppies'),
+(40, 'Johnston & Murphy'),
+(45, 'Levi\'s'),
 (3, 'Louis Vuitton'),
 (31, 'Mango'),
 (27, 'Massimo Dutti'),
 (34, 'Michael Kors'),
+(48, 'Montblanc'),
 (21, 'New Balance'),
 (17, 'New York'),
 (1, 'Nike'),
@@ -418,8 +426,11 @@ INSERT INTO `marcasproducto` (`id_marca`, `nombre_marca`) VALUES
 (20, 'Puma'),
 (19, 'Ray-Ban'),
 (22, 'Reebok'),
-(16, 'Rolex'),
+(47, 'Seiko'),
+(44, 'Skechers'),
+(42, 'Timberland'),
 (18, 'Tommy Hilfiger'),
+(49, 'Under Armour'),
 (25, 'Vans'),
 (33, 'Zara');
 
@@ -439,10 +450,17 @@ CREATE TABLE `materialesproducto` (
 --
 
 INSERT INTO `materialesproducto` (`id_material`, `nombre_material`) VALUES
+(12, 'Acero Inoxidable'),
+(13, 'Acetato'),
+(14, 'Algodón'),
 (5, 'Canvas'),
+(10, 'Croslite'),
 (1, 'Cuero'),
+(11, 'Goma'),
 (8, 'Lente UV'),
+(9, 'Malla'),
 (7, 'Polarizado'),
+(15, 'Poliéster'),
 (4, 'Sintético'),
 (3, 'Suede'),
 (6, 'Tela'),
@@ -468,14 +486,14 @@ INSERT INTO `modelos` (`id_modelo`, `nombre_modelo`, `id_marca`) VALUES
 (1, 'Air Force 1', 1),
 (2, 'Ultra Boost 22', 5),
 (3, 'Air Max 270', 1),
-(4, 'Modelo2', 1),
+(4, 'Downshifter 13', 1),
 (5, 'J\'Adior', 2),
 (6, 'Territory', 3),
 (7, 'Fch-Rs023 Danae', 4),
 (8, 'Adidas Superstar', 5),
 (9, 'All Star', 6),
-(10, 'Derby', 7),
-(11, 'Cat', 8),
+(10, 'Blackepson V4972', 7),
+(11, 'Second Shift', 8),
 (12, 'Bayaband Clogs', 9),
 (13, 'Modelo 4', 5),
 (14, 'Urbana', 10),
@@ -487,7 +505,7 @@ INSERT INTO `modelos` (`id_modelo`, `nombre_modelo`, `id_marca`) VALUES
 (20, 'Holbrook', 14),
 (21, 'Blondie', 15),
 (22, 'GG Supreme', 15),
-(23, 'Sky-Dweller', 16),
+(23, 'Edifice EFV-550', 16),
 (24, 'Eyewear', 15),
 (25, 'Crosstown', 7),
 (26, '9Forty MLB', 17),
@@ -523,7 +541,37 @@ INSERT INTO `modelos` (`id_modelo`, `nombre_modelo`, `id_marca`) VALUES
 (56, 'BE 4299', 37),
 (57, 'Leather Belt Básico', 26),
 (58, 'Belt', 38),
-(59, 'Belt Essential', 38);
+(59, 'Belt Essential', 38),
+(60, 'Galaxar Run', 5),
+(61, '574 Classic', 21),
+(62, 'Softride Frequence', 20),
+(63, 'Pegasus 40', 1),
+(64, 'Samba Classic', 5),
+(65, 'Slip-on Loafer Casual', 39),
+(66, 'Derby Formal Hombre', 26),
+(67, 'Melton Cap Toe Oxford', 40),
+(68, 'Grand Oxford', 41),
+(69, '6 Inch Premium', 42),
+(70, 'Newton Ridge Plus', 43),
+(71, 'Reel-Pleat Boot', 44),
+(72, 'Adilette Aqua', 5),
+(73, 'Victori One', 1),
+(74, 'Cool Cat 2.0', 20),
+(75, 'Classic Leather Belt', 45),
+(76, 'New Denton', 18),
+(77, 'Calderwood Leather Belt', 8),
+(78, 'Eco-Drive BM7100', 46),
+(79, 'SRPD55', 47),
+(80, 'Blake 1710384', 18),
+(81, 'Aviator Classic RB3025', 19),
+(82, 'Holbrook OO9102', 14),
+(83, 'Linea Rossa PS 53NS', 36),
+(84, 'Sartorial Wallet 6cc', 48),
+(85, 'Modern Leather Bifold', 18),
+(86, 'Smooth Leather Bifold', 38),
+(87, 'Baseball Classic', 5),
+(88, 'Essentials Cap', 20),
+(89, 'Blitzing 3.0', 49);
 
 -- --------------------------------------------------------
 
@@ -881,11 +929,11 @@ INSERT INTO `productos` (`id_producto`, `nombre_producto`, `descripcion`, `preci
 (3, 'Tacones Elegantes H&M Pump Negro', 'Tacón clásico femenino en color negro, elegante y versátil, ideal para oficina o eventos formales.', 159.00, 110.00, '7894234567014', 1, 3, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 38, 1, '/img/Upload/productos/tacones-elegantes-h-m-pump-negro.jpg', 'MUJER'),
 (4, 'Botín Louis Vuitton Territory Mujer', 'Estilo elegante, de corte moderno y urbano, ideal para looks sofisticados o de ciudad', 3599.00, 3100.00, '7897234567019', 1, 3, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 6, 1, '/img/Upload/productos/botin-louis-vuitton-territory-mujer.jpg', 'MUJER'),
 (5, 'Sandalias FootLoose Fch-Rs023 Danae Mujer', 'Estilo cómodo y desenfadado, con diseño sencillo ideal para el día a día, perfecta para looks informales.', 119.00, 80.00, '7895234567010', 1, 2, 1, 'Negro', 'MUJER', NULL, NULL, b'1', 7, 4, '/img/Upload/productos/sandalias-footloose-fch-rs023-danae-mujer.jpg', 'MUJER'),
-(6, 'Zapatillas Deportiva Adidas', NULL, 410.00, 380.00, NULL, 1, NULL, 1, 'Blanco', 'HOMBRE', NULL, NULL, b'1', 8, 1, NULL, 'HOMBRE'),
-(7, 'Zapatos All Star', NULL, 250.00, 179.98, NULL, 1, NULL, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 9, 1, NULL, 'HOMBRE'),
-(8, 'Zapatos Elegantes BOSS', NULL, 370.00, 300.00, NULL, 1, NULL, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 10, 1, NULL, 'HOMBRE'),
-(9, 'Botas Caterpillar', NULL, 340.00, 290.00, NULL, 1, NULL, 1, 'Beige', 'HOMBRE', NULL, NULL, b'1', 11, 1, NULL, 'HOMBRE'),
-(10, 'Sandalias Crogs', NULL, 370.00, 350.00, NULL, 1, NULL, 1, 'Blanco', 'HOMBRE', NULL, NULL, b'1', 12, 1, NULL, 'HOMBRE'),
+(6, 'Zapatillas Nike Air Zoom Pegasus 40', 'Zapatilla versátil para correr o caminar, cómoda y con buena amortiguación, ideal para entrenamientos o uso diario activo.', 599.00, 380.00, '7893235568097', 1, 1, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 63, 9, '/img/Upload/productos/zapatillas-nike-air-zoom-pegasus-40.jpg', 'HOMBRE'),
+(7, 'Zapatillas Adidas Samba Classic Hombre', 'Zapatilla casual clásica, versátil y atemporal, combina con ropa casual o jeans.', 249.00, 180.00, '7899235569065', 1, 2, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 64, 1, '/img/Upload/productos/zapatillas-adidas-samba-classic-hombre.jpg', 'HOMBRE'),
+(8, 'Zapatos Elegantes BOSS V4972 Hombre', 'Zapato formal de cuero, con cordones, forro y plantilla en cuero, suela combinada cuero con goma, ideal para traje, oficina o eventos elegantes.', 549.00, 389.99, '7898235569300', 1, 3, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 10, 1, '/img/Upload/productos/zapatos-elegantes-boss-v4972-hombre.jpg', 'HOMBRE'),
+(9, 'Botas Caterpillar Second Shift', 'Bota de trabajo resistente, con suela robusta y diseño duradero, ideal para obra o uso rudo.', 559.00, 420.00, '7898235569407', 1, 2, 1, 'Marrón', 'HOMBRE', NULL, NULL, b'1', 11, 1, '/img/Upload/productos/botas-caterpillar-second-shift.jpg', 'HOMBRE'),
+(10, 'Sandalias Crocs Classic Bayaband Clogs', 'Sandalia tipo clog ultra ligera, resistente al agua y con excelente amortiguación para uso diario.', 159.00, 110.00, '7898235569483', 1, 2, 1, 'Blanco', 'HOMBRE', NULL, NULL, b'1', 12, 10, '/img/Upload/productos/sandalias-crocs-classic-bayaband-clogs.jpg', 'HOMBRE'),
 (11, 'Zapatillas Adidas Niños', NULL, 110.00, 70.00, NULL, 1, NULL, 1, 'Blanco', 'NIÑO', NULL, NULL, b'1', 13, 1, NULL, 'NIÑO'),
 (12, 'Zapatos Derby Kids', NULL, 130.00, 109.98, NULL, 1, NULL, 1, 'Marrón', 'NIÑO', NULL, NULL, b'1', 14, 1, NULL, 'NIÑO'),
 (13, 'Zapatos Escolares Footloose Kids', NULL, 65.00, 50.00, NULL, 1, NULL, 1, 'Negro', 'NIÑO', NULL, NULL, b'1', 15, 1, NULL, 'NIÑO'),
@@ -896,11 +944,11 @@ INSERT INTO `productos` (`id_producto`, `nombre_producto`, `descripcion`, `preci
 (18, 'Billetera Laurel Slg Large Zip Around', 'Billetera moderna para mujer, con acabado en PU, cierre de cremallera, compartimientos para tarjetas, billetes y monedas, con el logo característico de Guess.', 289.00, 230.00, '7890234567068', 2, 5, 1, 'Negro', 'MUJER', '21cm x 10cm x 2.5cm', 130, b'1', 19, 4, '/img/Upload/productos/billetera-laurel-slg-large-zip-around.jpg', 'MUJER'),
 (19, 'Gafas Oakley Holbrook Polarizado', 'Gafas de sol deportivas-urbanas, ligeras y resistentes, con lentes polarizadas ideales para exteriores.', 549.00, 470.00, '7899234568022', 2, 4, 1, 'Negro', 'MUJER', '56mm x 50mm', 40, b'1', 20, 7, '/img/Upload/productos/gafas-oakley-holbrook-polarizado.jpg', 'MUJER'),
 (20, 'Cinturón Gucci Blondie Negro Mujer', 'Cinturón elegante y delgado con hebilla doble G, ideal para outfits formales o casual-chic.', 1599.00, 1199.99, '7898235567097', 2, 5, 1, 'Negro', 'MUJER', '110cm x 2.5cm', 150, b'1', 21, 1, '/img/Upload/productos/cinturon-gucci-blondie-negro-mujer.png', 'MUJER'),
-(21, 'Cinturón Doble G', NULL, 620.00, 570.00, NULL, 2, NULL, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 22, 1, NULL, 'HOMBRE'),
-(22, 'Reloj Rolex de Oro', NULL, 730.00, 650.00, NULL, 2, NULL, 1, 'Dorado', 'HOMBRE', NULL, NULL, b'1', 23, 1, NULL, 'HOMBRE'),
-(23, 'Gafas de Sol Gucci', NULL, 670.00, 589.99, NULL, 2, NULL, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 24, 1, NULL, 'HOMBRE'),
-(24, 'Billetera Bifold clásica', NULL, 780.00, 650.00, NULL, 2, NULL, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 25, 1, NULL, 'HOMBRE'),
-(25, 'Gorra New York Yankess MLB', NULL, 160.00, 120.00, NULL, 2, NULL, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 26, 1, NULL, 'HOMBRE'),
+(21, 'Cinturón Gucci Supreme Doble G Hombre', 'Cinturón de lujo con patrón “GG” emblemático, hebilla metálica interlocking-G, ideal para outfits formales o casuales de alto nivel.', 1399.00, 1099.99, '7898123450033', 2, NULL, 1, 'Marrón', 'HOMBRE', '120cm x 3cm', 200, b'1', 22, 1, '/img/Upload/productos/cinturon-gucci-supreme-doble-g-hombre.jpg', 'HOMBRE'),
+(22, 'Reloj Casio Edifice EFV-550 Hombre', 'Cronógrafo deportivo con diseño robusto y funcional, perfecto para uso diario.', 429.00, 330.00, '7898123490002', 2, 5, 1, 'Plata', 'HOMBRE', '47mm', 155, b'1', 23, 12, '/img/Upload/productos/reloj-casio-edifice-efv-550-hombre.jpg', 'HOMBRE'),
+(23, 'Gafas de Sol Gucci Eyewear Hombre', 'Gafas de sol Gucci Eyewear diseñadas para un estilo moderno y sofisticado. Fabricadas en acetato de alta calidad con un acabado pulido premium. Lentes con protección UV400 que brindan máxima seguridad y claridad visual.', 1299.00, 890.00, '7898123450677', 2, 4, 1, 'Negro', 'HOMBRE', '14.5cm x 14cm x 4.8cm', 45, b'1', 24, 13, '/img/Upload/productos/gafas-de-sol-gucci-eyewear-hombre.jpg', 'HOMBRE'),
+(24, 'Billetera Boss Bifold clásica Hombre', 'La Hugo Boss Bifold Crosstown es una billetera elegante y funcional elaborada en cuero genuino de alta calidad. Su diseño clásico incluye múltiples ranuras para tarjetas, compartimento para billetes y acabado fino con detalles discretos de la marca. Ideal para quienes buscan estilo y practicidad en un formato delgado y duradero.', 459.00, 340.00, '7898123450038', 2, 4, 1, 'Negro', 'HOMBRE', '11.3cm x 9cm x 1.8cm', 75, b'1', 25, 1, '/img/Upload/productos/billetera-boss-bifold-clasica-hombre.jpg', 'HOMBRE'),
+(25, 'Gorra New York Yankess MLB Negro', 'La gorra New Era 9Forty MLB New York Yankees ofrece un diseño clásico con visera curva y estructura ligera. Fabricada en algodón resistente, incluye cierre ajustable para adaptarse cómodamente a distintos tamaños de cabeza. Su icónico logotipo bordado aporta un estilo urbano auténtico ideal para el uso diario.', 159.00, 120.00, '7898123450042', 2, 4, 1, 'Negro', 'HOMBRE', '18cm × 22cm × 12cm', 95, b'1', 26, 14, '/img/Upload/productos/gorra-new-york-yankess-mlb-negro.jpg', 'HOMBRE'),
 (26, 'Calcetín Everyday niños', NULL, 40.00, 20.00, NULL, 2, NULL, 1, 'Blanco', 'NIÑO', NULL, NULL, b'1', 27, 1, NULL, 'NIÑO'),
 (27, 'Cinturón Essential Trenzado', NULL, 120.00, 90.00, NULL, 2, NULL, 1, 'Negro', 'NIÑO', NULL, NULL, b'1', 28, 1, NULL, 'NIÑO'),
 (28, 'Gorra R86 Nike', NULL, 170.00, 130.00, NULL, 2, NULL, 1, 'Negro', 'NIÑO', NULL, NULL, b'1', 29, 1, NULL, 'NIÑO'),
@@ -932,7 +980,38 @@ INSERT INTO `productos` (`id_producto`, `nombre_producto`, `descripcion`, `preci
 (54, 'Gafas de Sol Burberry BE4299 Mujer', 'Gafas de sol elegantes de diseñador, con estilo clásico británico, ideales para outfits sofisticados.', 659.00, 540.00, '7899234568084', 2, 5, 1, 'Marrón', 'MUJER', '54mm x 50mm', 50, b'1', 56, 8, '/img/Upload/productos/gafas-de-sol-burberry-be4299-mujer.jpg', 'MUJER'),
 (55, 'Cinturón H&M Leather Belt Ladies', 'Cinturón versátil y económico, ideal para jeans o ropa casual.', 109.00, 55.00, '7898235567027', 2, 4, 1, 'Marrón', 'MUJER', '105cm x 3cm', 100, b'1', 57, 1, '/img/Upload/productos/cinturon-h-m-leather-belt-ladies.jpg', 'MUJER'),
 (56, 'Cinturón Calvin Klein CK Belt Mujer', 'Cinturón sobrio y refinado, ideal para pantalones formales o faldas.', 159.00, 110.00, '7898235567041', 2, 5, 1, 'Negro', 'MUJER', '115cm x 3cm', 130, b'1', 58, 1, '/img/Upload/productos/cinturon-calvin-klein-ck-belt-mujer.jpg', 'MUJER'),
-(57, 'Cinturón Tommy Hilfiger Essential Mujer', 'Cinturón clásico con hebilla discreta, versátil para estilos casual o semi-formales.', 199.00, 160.00, '7898235567058', 2, 4, 1, 'Negro', 'MUJER', '115cm x 3cm', 130, b'1', 28, 1, '/img/Upload/productos/cinturon-tommy-hilfiger-essential-mujer.jpg', 'MUJER');
+(57, 'Cinturón Tommy Hilfiger Essential Mujer', 'Cinturón clásico con hebilla discreta, versátil para estilos casual o semi-formales.', 199.00, 160.00, '7898235567058', 2, 4, 1, 'Negro', 'MUJER', '115cm x 3cm', 130, b'1', 28, 1, '/img/Upload/productos/cinturon-tommy-hilfiger-essential-mujer.jpg', 'MUJER'),
+(58, 'Zapatillas Adidas Galaxar Run Hombre', 'Deportiva versátil, ideal para correr o caminar, con buen soporte y ligereza.', 259.00, 175.00, '7893235568035', 1, 1, 1, 'Blanco', 'HOMBRE', NULL, NULL, b'1', 60, 2, '/img/Upload/productos/zapatillas-adidas-galaxar-run-hombre.jpg', 'HOMBRE'),
+(59, 'Zapatillas New Balance 574 Classic Hombre', 'Zapatilla lifestyle-deportivo, cómoda para uso diario, con diseño clásico y buena', 359.00, 270.00, '7893235568042', 1, 2, 1, 'Gris', 'HOMBRE', NULL, NULL, b'1', 61, 2, '/img/Upload/productos/zapatillas-new-balance-574-classic-hombre.jpg', 'HOMBRE'),
+(60, 'Zapatillas Puma Softride Frequence Hombre', 'Zapatilla deportiva-casual, cómoda y con diseño moderno para uso diario.', 279.00, 210.00, '7893235568028', 1, 1, 1, 'Rojo', 'HOMBRE', NULL, NULL, b'1', 62, 4, '/img/Upload/productos/zapatillas-puma-softride-frequence-hombre.jpg', 'HOMBRE'),
+(61, 'Zapatillas Nike Downshifter 13 Hombre', 'Zapatilla ligera y económica para correr o caminar, cómoda y con buena ventilación.', 239.00, 170.00, '7893235568021', 1, 2, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 4, 9, '/img/Upload/productos/zapatillas-nike-downshifter-13-hombre.jpg', 'HOMBRE'),
+(62, 'Zapatillas Urbanas Converse Hombre', 'Zapatilla casual-icónica de lona, estilo urbano clásico, versátil para uso diario con jeans o atuendos informales.', 279.00, 230.00, '7899235569010', 1, 2, 1, 'Blanco', 'HOMBRE', NULL, NULL, b'1', 9, 5, '/img/Upload/productos/zapatillas-urbanas-converse-hombre.jpg', 'HOMBRE'),
+(63, 'Mocasines Bruno Marc Casual Hombre', 'Zapato liviano tipo mocasín casual, ideal para clima cálido o verano, fácil de calzar.', 89.00, 50.00, '7899235569034', 1, 2, 1, 'Azul Oscuro', 'HOMBRE', NULL, NULL, b'1', 65, 2, '/img/Upload/productos/mocasines-bruno-marc-casual-hombre.jpg', 'HOMBRE'),
+(64, 'Zapatillas Adidas Superstar Hombre', 'Zapatilla urbana clásica con un estilo icónico que combina mirada retro con comodidad actual, es ideal para uso diario, urbano o casual. Su diseño legendario viene del uso en básquet y hoy es símbolo de moda urbana.', 359.00, 240.00, '7893235568120', 1, 1, 1, 'Blanco', 'HOMBRE', NULL, NULL, b'1', 8, 4, '/img/Upload/productos/zapatillas-adidas-superstar-hombre.jpg', 'HOMBRE'),
+(65, 'Zapatos Derby Formal Hombre', 'Zapato formal básico y accesible, opción económica para oficina o eventos formales.', 159.00, 110.00, '7898235569277', 1, 3, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 66, 1, '/img/Upload/productos/zapatos-derby-formal-hombre.jpg', 'HOMBRE'),
+(66, 'Zapatos Johnston & Murphy Melton Cap Toe Oxford', 'Oxford elegante, acabado refinado, ideal para eventos formales, oficina o reuniones importantes.', 539.00, 480.00, '7898235569253', 1, 3, 1, 'Marrón', 'HOMBRE', NULL, NULL, b'1', 67, 1, '/img/Upload/productos/zapatos-johnston-murphy-melton-cap-toe-oxford.jpg', 'HOMBRE'),
+(67, 'Zapatos Cole Haan Grand Oxford Hombre', 'Zapato de vestir elegante con acabado sofisticado, ideal para trajes o looks formales.', 449.00, 310.00, '7898235569215', 1, 3, 1, 'Marrón', 'HOMBRE', NULL, NULL, b'1', 68, 1, '/img/Upload/productos/zapatos-cole-haan-grand-oxford-hombre.jpg', 'HOMBRE'),
+(68, 'Botas Timberland 6 Inch Premium', 'Bota resistente al clima, impermeable, ideal para exteriores, ciudad o clima lluvioso.', 799.00, 640.00, '7898235569421', 1, 2, 1, 'Beige', 'HOMBRE', NULL, NULL, b'1', 69, 1, '/img/Upload/productos/botas-timberland-6-inch-premium.jpg', 'HOMBRE'),
+(69, 'Botas Columbia Newton Ridge Plus', 'Bota outdoor-casual, impermeable, ideal para caminatas, clima lluvioso o uso en campo/ciudad.', 389.00, 270.00, '7898235569476', 1, 2, 1, 'Beige', 'HOMBRE', NULL, NULL, b'1', 70, 1, '/img/Upload/productos/botas-columbia-newton-ridge-plus.jpg', 'HOMBRE'),
+(70, 'Botas Skechers Reel-Pleat Boot Hombre', 'Bota casual-urbana cómoda, ligera y versátil, ideal para uso diario.', 299.00, 190.00, '7898235569469', 1, 1, 1, 'Beige', 'HOMBRE', NULL, NULL, b'1', 71, 4, '/img/Upload/productos/botas-skechers-reel-pleat-boot-hombre.jpg', 'HOMBRE'),
+(71, 'Sandalias Adidas Adilette Aqua Hombre', 'Sandalia ligera y cómoda para playa o ducha, con plantilla suave y diseño de tres franjas.', 99.00, 60.00, '7898235569438', 1, 1, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 72, 4, '/img/Upload/productos/sandalias-adidas-adilette-aqua-hombre.jpg', 'HOMBRE'),
+(72, 'Sandalias Nike Victori One Hombre', 'Sandalia deportiva con suela de alta tracción, ideal para uso diario.', 119.00, 80.00, '7898235569284', 1, 2, 1, 'Negro', 'HOMBRE', NULL, NULL, b'1', 73, 11, '/img/Upload/productos/sandalias-nike-victori-one-hombre.jpg', 'HOMBRE'),
+(73, 'Sandalias Puma Cool Cat 2.0 Hombre', 'Sandalia con diseño clásico y suela cómoda para largas caminatas.', 99.00, 60.00, '7898235569247', 1, 1, 1, 'Azul', 'HOMBRE', NULL, NULL, b'1', 74, 4, '/img/Upload/productos/sandalias-puma-cool-cat-2-0-hombre.jpg', 'HOMBRE'),
+(74, 'Cinturón Levi\'s Classic Leather Belt', 'Cinturón clásico de cuero para uso diario.', 129.00, 80.00, '7898123450012', 2, 4, 1, 'Negro', 'HOMBRE', '120cm x 3.5cm', 180, b'1', 75, 1, '/img/Upload/productos/cinturon-levi-s-classic-leather-belt.jpg', 'HOMBRE'),
+(75, 'Cinturón Tommy Hilfiger Delton', 'Cinturón casual de cuero con detalles icónicos de la marca, ideal para combinar con outfits.', 159.00, 110.00, '7898123450016', 2, 1, 1, 'Marrón', 'HOMBRE', '125cm x 3.4cm', 175, b'1', 76, 1, '/img/Upload/productos/cinturon-tommy-hilfiger-delton.jpg', 'HOMBRE'),
+(76, 'Cinturón Caterpillar Calderwood Leather Belt', 'Cinturón robusto y resistente, diseñado para brindar soporte y durabilidad en actividades exigentes.', 189.00, 130.00, '7898123450017', 2, 5, 1, 'Negro', 'HOMBRE', '125cm x 4cm', 400, b'1', 77, 1, '/img/Upload/productos/cinturon-caterpillar-calderwood-leather-belt.jpg', 'HOMBRE'),
+(77, 'Reloj Citizen Eco-Drive BM7100 Hombre', 'Reloj Eco-Drive sin batería que funciona con luz, elegante y confiable.', 1049.00, 870.00, '7898123490005', 2, 4, 1, 'Dorado', 'HOMBRE', '42mm', 150, b'1', 78, 12, '/img/Upload/productos/reloj-citizen-eco-drive-bm7100-hombre.jpg', 'HOMBRE'),
+(78, 'Reloj Seiko 5 Sports SRPD55 Hombre', 'Automático resistente y deportivo con gran durabilidad, estética utilitaria y rendimiento fiable para el día a día.', 1029.00, 910.00, '7898123450049', 2, 5, 1, 'Plata', 'HOMBRE', '42.5mm', 105, b'1', 79, 12, '/img/Upload/productos/reloj-seiko-5-sports-srpd55-hombre.jpg', 'HOMBRE'),
+(79, 'Reloj Tommy Hilfiger Blake 1710384 Hombre', 'Pieza de moda con líneas limpias, presencia moderna en la muñeca y buen acabado para looks casual-elegantes.', 529.00, 380.00, '7898123490006', 2, 5, 1, 'Dorado', 'HOMBRE', '46mm', 145, b'1', 80, 12, '/img/Upload/productos/reloj-tommy-hilfiger-blake-1710384-hombre.jpg', 'HOMBRE'),
+(80, 'Gafas Ray-Ban Aviator Classic RB3025 Hombre', 'Las Ray-Ban Aviator Classic RB3025 son un ícono del diseño atemporal. Fabricadas en metal resistente y ultraligero, cuentan con lentes con protección UV400 y un puente doble característico.', 589.00, 360.00, '7898123450034', 2, 4, 1, 'Negro', 'HOMBRE', '14cm x 14.5cm x 5cm', 33, b'1', 81, 8, '/img/Upload/productos/gafas-ray-ban-aviator-classic-rb3025-hombre.jpg', 'HOMBRE'),
+(81, 'Gafas Oakley Holbrook OO9102 Hombre', 'Las Oakley Holbrook combinan estilo clásico con tecnología moderna. Fabricadas en O Matter, un material ultraligero y resistente a impactos, ofrecen una comodidad excepcional. Sus lentes con protección UV400 garantizan claridad visual y protección total frente a rayos ultravioletas. Ideales para actividades al aire libre y uso urbano.', 629.00, 395.00, '7898123450035', 2, 4, 1, 'Negro', 'HOMBRE', '14.2cm x 13.7cm x 4.8cm', 28, b'1', 82, 8, '/img/Upload/productos/gafas-oakley-holbrook-oo9102-hombre.jpg', 'HOMBRE'),
+(82, 'Gafas De Sol Prada Linea Rossa PS 53NS Hombre', 'Las Prada Linea Rossa PS 53NS presentan un diseño deportivo y elegante con una estructura ligera de metal. Sus lentes de alta definición con protección UV400 brindan una visión nítida y protección total.', 899.00, 560.00, '7898123450036', 2, 4, 1, 'Negro', 'HOMBRE', '14cm x 14.2cm x 4.6cm', 30, b'1', 83, 7, '/img/Upload/productos/gafas-de-sol-prada-linea-rossa-ps-53ns-hombre.jpg', 'HOMBRE'),
+(83, 'Billetera Montblanc Sartorial Wallet 6cc Hombre', 'La Montblanc Sartorial Wallet 6cc destaca por su cuero saffiano de acabado refinado y alta resistencia. Incluye seis ranuras para tarjetas, compartimento para billetes y un diseño elegante que combina lujo y funcionalidad.', 899.00, 680.00, '7898123450039', 2, 4, 1, 'Negro', 'HOMBRE', '11.5cm x 9.5cm x 2cm', 82, b'1', 84, 1, '/img/Upload/productos/billetera-montblanc-sartorial-wallet-6cc-hombre.jpg', 'HOMBRE'),
+(84, 'Billetera Tommy Hilfiger Modern Leather Bifold', 'La Tommy Hilfiger Modern Leather Bifold está diseñada en cuero genuino suave al tacto con detalles distintivos de la marca. Incluye múltiples ranuras para tarjetas, un compartimento amplio para billetes y acabado minimalista que combina perfectamente con cualquier estilo. Ligera, práctica y duradera.', 259.00, 180.00, '7898123450040', 2, 5, 1, 'Negro', 'HOMBRE', '11.2cm x 9cm x 1.7cm', 78, b'1', 85, 1, '/img/Upload/productos/billetera-tommy-hilfiger-modern-leather-bifold.jpg', 'HOMBRE'),
+(85, 'Billetera Calvin Klein Smooth Leather Bifold', 'La Calvin Klein Smooth Leather Bifold presenta un diseño limpio y moderno elaborado en cuero suave de alta calidad. Ofrece ranuras para tarjetas, compartimento para billetes y un perfil delgado ideal para el bolsillo. Su estética minimalista refleja la esencia elegante y contemporánea de la marca.', 229.00, 180.00, '7898123450041', 2, 4, 1, 'Negro', 'HOMBRE', '11cm x 9.2cm x 1.8cm', 76, b'1', 86, 1, '/img/Upload/productos/billetera-calvin-klein-smooth-leather-bifold.jpg', 'HOMBRE'),
+(86, 'Gorra Adidas Baseball Classic Azul', 'La Adidas Baseball Classic combina diseño deportivo y comodidad diaria. Fabricada en poliéster ligero y resistente, incluye visera curva y paneles ventilados para mejor transpiración. Su estilo minimalista con el logo bordado la convierte en una opción versátil para cualquier ocasión.', 119.00, 80.00, '7898123450044', 2, 1, 1, 'Azul', 'HOMBRE', '18cm x 22cm x 12cm', 90, b'1', 87, 15, '/img/Upload/productos/gorra-adidas-baseball-classic-azul.jpg', 'HOMBRE'),
+(87, 'Gorra Puma Essentials Cap Hombre', 'La Puma Essentials Cap ofrece un diseño clásico y cómodo fabricado en algodón durable. Presenta visera curva, paneles con ojales de ventilación y un estilo limpio con el logo Puma bordado. Ideal para uso casual y actividades al aire libre gracias a su ligereza y ajuste natural.', 89.00, 60.00, '7898123450045', 2, 4, 1, 'Blanco', 'HOMBRE', '19cm x 23cm x 12cm', 95, b'1', 88, 14, '/img/Upload/productos/gorra-puma-essentials-cap-hombre.jpg', 'HOMBRE'),
+(88, 'Gorra Under Armour', 'La Under Armour Blitzing 3.0 está diseñada con tejido elástico transpirable que brinda comodidad y ajuste firme. Su construcción estructurada mantiene la forma, mientras que la visera curva y los paneles ventilados ofrecen frescura durante el uso. Ideal para entrenamientos y uso diario gracias a su resistencia y ergonomía.', 139.00, 90.00, '7898123450046', 2, 5, 1, 'Azul', 'HOMBRE', '19cm x 24cm x 12cm', 92, b'1', 89, 15, '/img/Upload/productos/gorra-under-armour.jpg', 'HOMBRE');
 
 -- --------------------------------------------------------
 
@@ -1006,7 +1085,38 @@ INSERT INTO `producto_tipos` (`id_producto`, `id_tipo`) VALUES
 (54, 11),
 (55, 12),
 (56, 12),
-(57, 12);
+(57, 12),
+(58, 1),
+(59, 1),
+(60, 1),
+(61, 1),
+(62, 2),
+(63, 2),
+(64, 2),
+(65, 6),
+(66, 6),
+(67, 6),
+(68, 5),
+(69, 5),
+(70, 5),
+(71, 4),
+(72, 4),
+(73, 4),
+(74, 12),
+(75, 12),
+(76, 12),
+(77, 13),
+(78, 13),
+(79, 13),
+(80, 11),
+(81, 11),
+(82, 11),
+(83, 10),
+(84, 10),
+(85, 10),
+(86, 14),
+(87, 14),
+(88, 14);
 
 -- --------------------------------------------------------
 
@@ -1227,11 +1337,11 @@ INSERT INTO `tallas` (`id_producto`, `talla`, `precio_venta`, `costo_compra`) VA
 (3, '38', 159.00, 110.00),
 (4, '38', 3599.00, 3100.00),
 (5, '38', 119.00, 80.00),
-(6, '42', 410.00, 380.00),
-(7, '42', 250.00, 179.98),
-(8, '42', 370.00, 300.00),
-(9, '43', 340.00, 290.00),
-(10, '40', 370.00, 350.00),
+(6, '43', 599.00, 380.00),
+(7, '42', 249.00, 180.00),
+(8, '42', 549.00, 389.99),
+(9, '43', 559.00, 420.00),
+(10, '42', 159.00, 110.00),
 (11, '12', 110.00, 70.00),
 (12, '14', 130.00, 109.98),
 (13, '30', 65.00, 50.00),
@@ -1242,11 +1352,11 @@ INSERT INTO `tallas` (`id_producto`, `talla`, `precio_venta`, `costo_compra`) VA
 (18, 'Única', 289.00, 230.00),
 (19, 'Única', 549.00, 470.00),
 (20, '90cm', 1599.00, 1199.99),
-(21, '100cm', 620.00, 570.00),
-(22, '42mm', 730.00, 650.00),
-(23, 'Única', 670.00, 589.99),
-(24, 'Única', 780.00, 650.00),
-(25, 'M', 160.00, 120.00),
+(21, '100cm', 1399.00, 1099.99),
+(22, '42mm', 429.00, 330.00),
+(23, 'Única', 1299.00, 890.00),
+(24, 'Única', 459.00, 340.00),
+(25, 'M', 159.00, 120.00),
 (26, 'S', 40.00, 20.00),
 (27, 'M', 120.00, 90.00),
 (28, 'M', 170.00, 130.00),
@@ -1278,7 +1388,38 @@ INSERT INTO `tallas` (`id_producto`, `talla`, `precio_venta`, `costo_compra`) VA
 (54, 'Única', 659.00, 540.00),
 (55, '90cm', 109.00, 55.00),
 (56, '95cm', 159.00, 110.00),
-(57, '95', 199.00, 160.00);
+(57, '95', 199.00, 160.00),
+(58, '42', 259.00, 175.00),
+(59, '44', 359.00, 270.00),
+(60, '43', 279.00, 210.00),
+(61, '42', 239.00, 170.00),
+(62, '43', 279.00, 230.00),
+(63, '42', 89.00, 50.00),
+(64, '43', 359.00, 240.00),
+(65, '43', 159.00, 110.00),
+(66, '43', 539.00, 480.00),
+(67, '42', 449.00, 310.00),
+(68, '43', 799.00, 640.00),
+(69, '42', 389.00, 270.00),
+(70, '43', 299.00, 190.00),
+(71, '41', 99.00, 60.00),
+(72, '42', 119.00, 80.00),
+(73, '42', 99.00, 60.00),
+(74, '100cm', 129.00, 80.00),
+(75, '110cm', 159.00, 110.00),
+(76, '110cm', 189.00, 130.00),
+(77, '42mm', 1049.00, 870.00),
+(78, '42.5mm', 1029.00, 910.00),
+(79, '46mm', 529.00, 380.00),
+(80, 'Única', 589.00, 360.00),
+(81, 'Única', 629.00, 395.00),
+(82, 'Única', 899.00, 560.00),
+(83, 'Única', 899.00, 680.00),
+(84, 'Única', 259.00, 180.00),
+(85, 'Única', 229.00, 180.00),
+(86, 'L', 119.00, 80.00),
+(87, 'M', 89.00, 60.00),
+(88, 'L', 139.00, 90.00);
 
 -- --------------------------------------------------------
 
@@ -1441,7 +1582,7 @@ CREATE TABLE `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id_usuario`, `nombres`, `apellidos`, `id_tipodocumento`, `numero_documento`, `celular`, `direccion`, `username`, `email`, `contraseña_hash`, `estado`, `fecha_creacion`, `fecha_ultima_sesion`) VALUES
-(4, 'Santiago Efrain', 'Torres Murrieta', 1, '75859114', '964983465', 'juan pablo de la cruz', 'EfrainDs3', 'santiagotorresmurrieta@gmail.com', '$2a$10$6587YGgYKDWyAywi61/cB.TFF.U6LrTWacPvzWaBZ9xoVsuGGy.4.', 1, '2025-10-08 15:17:29', '2025-12-08 23:53:33'),
+(4, 'Santiago Efrain', 'Torres Murrieta', 1, '75859114', '964983465', 'juan pablo de la cruz', 'EfrainDs3', 'santiagotorresmurrieta@gmail.com', '$2a$10$6587YGgYKDWyAywi61/cB.TFF.U6LrTWacPvzWaBZ9xoVsuGGy.4.', 1, '2025-10-08 15:17:29', '2025-12-09 16:24:12'),
 (5, 'Anggelo Lucciano', 'Urbina Espinoza', 1, '72863068', '903 171 836', 'juan pablo de la cruz', 'Ubuntu', 'anggelolucciano21@gmail.com', '$2a$10$VwIkH6380fJV0oPcQXNKiO1oU8zqQ1vKsc0uWSkm.vtCWoTPHzzMG', 1, '2025-10-08 15:46:19', '2025-11-25 01:38:39'),
 (6, 'Anlly Luz', 'Riva Yomona', 1, '72010812', '999888777', 'Calle Nueva 456', 'Anlly', 'al.rivayo@unsm.edu.pe', '$2a$10$E.7vIdGVqCYy5eoYIBjF/uYDym2.b6B6U6.TlT9uKd0tFUl4DMfJW', 1, '2025-10-08 15:57:57', '2025-11-26 17:42:14'),
 (12, 'Danny Alexander', 'Garcia Salas', 1, '98765432', '999888777', 'juan pablo de la cruz', 'Dingui', 'ia.jadrixgr26@gmail.com', '$2a$10$xKxtzv1ECV/74oi69b9hPubeUZgmSnrAUoxmjmSaz0NyeVOYE9BHW', 1, '2025-10-08 16:27:52', '2025-10-15 22:05:53'),
@@ -1918,19 +2059,19 @@ ALTER TABLE `inventario_talla`
 -- AUTO_INCREMENT de la tabla `marcasproducto`
 --
 ALTER TABLE `marcasproducto`
-  MODIFY `id_marca` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
+  MODIFY `id_marca` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
 
 --
 -- AUTO_INCREMENT de la tabla `materialesproducto`
 --
 ALTER TABLE `materialesproducto`
-  MODIFY `id_material` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id_material` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT de la tabla `modelos`
 --
 ALTER TABLE `modelos`
-  MODIFY `id_modelo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
+  MODIFY `id_modelo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=90;
 
 --
 -- AUTO_INCREMENT de la tabla `movimientoscaja`
@@ -1972,7 +2113,7 @@ ALTER TABLE `permisos_auditoria`
 -- AUTO_INCREMENT de la tabla `productos`
 --
 ALTER TABLE `productos`
-  MODIFY `id_producto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
+  MODIFY `id_producto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=89;
 
 --
 -- AUTO_INCREMENT de la tabla `proveedores`
