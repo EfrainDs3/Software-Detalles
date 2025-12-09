@@ -247,8 +247,25 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpSession session) {
-        session.invalidate();
-        return ResponseEntity.ok(Map.of("ok", true));
+    public ResponseEntity<?> logout(HttpSession session, HttpServletRequest request) {
+        try {
+            // Limpiar el SecurityContext
+            SecurityContextHolder.clearContext();
+
+            // Invalidar la sesión HTTP
+            if (session != null) {
+                session.invalidate();
+            }
+
+            // Limpiar sesión del request también
+            if (request.getSession(false) != null) {
+                request.getSession(false).invalidate();
+            }
+
+            return ResponseEntity.ok(Map.of("success", true, "message", "Logout exitoso"));
+        } catch (Exception e) {
+            log.error("Error durante logout", e);
+            return ResponseEntity.ok(Map.of("success", true, "message", "Logout completado"));
+        }
     }
 }

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,9 +8,10 @@
     <link rel="stylesheet" href="../styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
+
 <body>
     <header>
-<nav class="navbar">
+        <nav class="navbar">
             <div class="nav-container">
                 <div class="logo">
                     <a href="../index.html" class="logo-link">
@@ -18,7 +20,7 @@
                 </div>
                 <ul class="nav-menu">
                     <li><a href="../index.html">Inicio</a></li>
-                    
+
                     <!-- Submenú Mujeres -->
                     <li class="menu-item-has-children">
                         <a href="#mujeres">Mujeres <i class="fas fa-chevron-down"></i></a>
@@ -27,7 +29,8 @@
                                 <div class="submenu-column">
                                     <h3>Calzado</h3>
                                     <ul>
-                                        <li><a href="../mujeres/zapatillas-deportivas.html">Zapatillas Deportivas</a></li>
+                                        <li><a href="../mujeres/zapatillas-deportivas.html">Zapatillas Deportivas</a>
+                                        </li>
                                         <li><a href="../mujeres/zapatos-casuales.html">Zapatos Casuales</a></li>
                                         <li><a href="../mujeres/tacones.html">Tacones</a></li>
                                         <li><a href="../mujeres/sandalias.html">Sandalias</a></li>
@@ -46,7 +49,7 @@
                             </div>
                         </div>
                     </li>
-                    
+
                     <!-- Submenú Hombres -->
                     <li class="menu-item-has-children">
                         <a href="#hombres">Hombres <i class="fas fa-chevron-down"></i></a>
@@ -55,7 +58,8 @@
                                 <div class="submenu-column">
                                     <h3>Calzado</h3>
                                     <ul>
-                                        <li><a href="../hombres/zapatillas-deportivas-h.html">Zapatillas Deportivas</a></li>
+                                        <li><a href="../hombres/zapatillas-deportivas-h.html">Zapatillas Deportivas</a>
+                                        </li>
                                         <li><a href="../hombres/zapatos-casuales-h.html">Zapatos Casuales</a></li>
                                         <li><a href="../hombres/zapatos-formales-h.html">Zapatos Formales</a></li>
                                         <li><a href="../hombres/botas-h.html">Botas</a></li>
@@ -102,7 +106,7 @@
                             </div>
                         </div>
                     </li>
-                </ul> 
+                </ul>
                 <div class="nav-icons">
                     <a href="#" class="nav-icon search-icon"><i class="fas fa-search"></i></a>
                     <a href="../login/logueo.html" class="nav-icon"><i class="fas fa-user"></i></a>
@@ -127,10 +131,10 @@
     <section class="cart-page">
         <div class="cart-container">
             <h1>Tu Carrito</h1>
-            
+
             <div class="cart-content">
                 <div class="cart-items-list">
-                    </div>
+                </div>
 
                 <div class="order-summary">
                     <h2>Resumen del Pedido</h2>
@@ -146,7 +150,9 @@
                         <span>Total</span>
                         <span id="cart-total">S/0.00</span>
                     </div>
-                    <button class="btn-checkout">Finalizar Compra</button>
+                    <button onclick="window.location.href='/Detalles_web/checkout/checkout.html'">
+                        <i class="fas fa-credit-card"></i> Proceder al Pago
+                    </button>
                 </div>
             </div>
 
@@ -201,8 +207,9 @@
     <!-- DESPUÉS: usa USER_ID -->
     <script src="/Detalles_web/js/cart-count.js"></script>
     <script src="/Detalles_web/js/cart-page.js"></script>
-    <script src="/Detalles_web/js/carrito.js"></script>
+    <!-- <script src="/Detalles_web/js/carrito.js"></script> -->
     <script src="/Detalles_web/js/script.js"></script>
 
 </body>
+
 </html>
