@@ -1193,8 +1193,15 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
 
   function collectPreferences() {
     const snapshot = collectPreferencesSnapshot();
+    
+    // Detectar automáticamente tipo de evento y estilo desde la conversación
+    const autoEventType = inferEventTypeFromConversation();
+    const autoStyle = inferStyleFromConversation();
+    
     return {
       ...snapshot,
+      eventType: snapshot.eventType || autoEventType, // Usar detección automática si no está configurado
+      stylePreference: snapshot.stylePreference || autoStyle, // Usar detección automática si no está configurado
       comfortPriority: snapshot.comfortPriority || 'high',
       gender: inferGenderFromConversation()
     };
@@ -1227,6 +1234,64 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
       return '';
     }
     return value;
+  }
+  
+  /**
+   * Detecta automáticamente el tipo de evento desde la conversación
+   */
+  function inferEventTypeFromConversation() {
+    const lastUserMessage = [...conversationHistory].reverse().find(entry => entry.role === 'user');
+    if (!lastUserMessage || !lastUserMessage.content) {
+      return '';
+    }
+    const content = lastUserMessage.content.toLowerCase();
+    
+    // Palabras clave para cada tipo de evento
+    const eventPatterns = {
+      'deportivo': ['correr', 'running', 'gym', 'gimnasio', 'deporte', 'entrenar', 'training', 'fitness', 'ejercicio', 'trotar', 'zapatilla deportiva'],
+      'formal': ['boda', 'gala', 'formal', 'elegante', 'evento', 'ceremonia', 'fiesta elegante'],
+      'semiformal': ['reunión', 'semiformal', 'cocktail', 'semi formal'],
+      'casual': ['casual', 'diario', 'día a día', 'salir', 'paseo'],
+      'trabajo': ['oficina', 'trabajo', 'laboral']
+    };
+    
+    // Buscar coincidencias
+    for (const [eventType, keywords] of Object.entries(eventPatterns)) {
+      if (keywords.some(keyword => content.includes(keyword))) {
+        return eventType;
+      }
+    }
+    
+    return '';
+  }
+  
+  /**
+   * Detecta automáticamente el estilo desde la conversación
+   */
+  function inferStyleFromConversation() {
+    const lastUserMessage = [...conversationHistory].reverse().find(entry => entry.role === 'user');
+    if (!lastUserMessage || !lastUserMessage.content) {
+      return '';
+    }
+    const content = lastUserMessage.content.toLowerCase();
+    
+    // Palabras clave para cada estilo
+    const stylePatterns = {
+      'deportivo': ['deportivo', 'running', 'sport', 'training', 'correr', 'zapatilla'],
+      'elegante': ['elegante', 'formal', 'fino', 'sofisticado'],
+      'moderno': ['moderno', 'actual', 'tendencia', 'moda'],
+      'clasico': ['clásico', 'tradicional', 'atemporal'],
+      'casual': ['casual', 'cómodo', 'relajado']
+    };
+    
+    // Buscar coincidencias
+    for (const [style, keywords] of Object.entries(stylePatterns)) {
+      if (keywords.some(keyword => content.includes(keyword))) {
+        return style;
+      }
+    }
+    
+    return '';
   }
 
   function inferGenderFromConversation() {
