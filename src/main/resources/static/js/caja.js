@@ -69,6 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let currentAperturaId = null; // ID de la apertura activa para el cierre
     let currentMontoInicial = null; // Monto inicial de la caja activa
+    let historialCajaData = []; // ✅ VARIABLE GLOBAL PARA HISTORIAL
 
     // --- Funciones de Utilidad ---
 
@@ -87,6 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Función para renderizar la tabla del historial de caja
     function renderCajaHistory(history) {
+        historialCajaData = history || []; // ✅ ACTUALIZAR DATOS GLOBALES
         if (!cajaTableBody) return;
         cajaTableBody.innerHTML = '';
         if (history.length === 0) {
@@ -114,6 +116,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         <button class="btn-icon btn-view" data-id="${movimiento.id}" title="Ver detalles">
                             <i class="fas fa-eye"></i>
                         </button>
+                        <!-- ✅ Botón PDF Reporte Apertura -->
+                        <button class="btn-icon btn-pdf-report" data-id="${movimiento.id}" title="Ver Reporte de Ventas PDF" style="background-color: #17a2b8; color: white;">
+                            <i class="fas fa-file-pdf"></i>
+                        </button>
                         ${estaAbierta ? `
                             <button class="btn-icon btn-close-row" 
                                     data-id="${movimiento.id}" 
@@ -129,13 +135,35 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Delegación de eventos para la tabla de caja (View Details / PDF / Close)
+    if (cajaTableBody) {
+        cajaTableBody.addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-icon');
+            if (!btn) return;
+            const id = btn.dataset.id;
+
+            if (btn.classList.contains('btn-view')) {
+                // Lógica existente para ver detalles
+                const movimiento = historialCajaData.find(m => m.id == id); // Asegúrate de tener acceso a historialCajaData
+                if (movimiento) abrirModalDetalles(movimiento);
+            } else if (btn.classList.contains('btn-pdf-report')) {
+                // ✅ Abrir Reporte PDF
+                window.open(`/ventas/reporte/apertura/${id}/pdf`, '_blank');
+            } else if (btn.classList.contains('btn-close-row')) {
+                // Lógica para cerrar caja desde la fila (si existe)
+                // Se podría implementar abrir el modal de cierre pre-cargado
+            }
+        });
+    }
+
     // Función para actualizar el estado de la caja en la interfaz
     function updateCajaStatusUI(estado) {
         const isAbierta = estado.abierta;
-        cashierStatusText.textContent = isAbierta ? 'Abierta' : 'Cerrada';
-
-        cashierStatusText.classList.remove('cerrada', 'abierta');
-        cashierStatusText.classList.add(isAbierta ? 'abierta' : 'cerrada');
+        if (cashierStatusText) {
+            cashierStatusText.textContent = isAbierta ? 'Abierta' : 'Cerrada';
+            cashierStatusText.classList.remove('cerrada', 'abierta');
+            cashierStatusText.classList.add(isAbierta ? 'abierta' : 'cerrada');
+        }
 
         // Controlar visibilidad de botones (Abrir vs Cerrar)
         if (checkInBtn) checkInBtn.style.display = isAbierta ? 'none' : 'block';
@@ -771,11 +799,16 @@ document.addEventListener('DOMContentLoaded', () => {
     setupModalClose('closeCheckInModal', 'cancelCheckInBtn', 'checkInModal');
     setupModalClose('closeCheckOutModal', 'cancelCheckOutBtn', 'checkOutModal');
 
+    // Referencia al modal de detalles (puede no existir en todas las páginas)
+    const modalDetalles = document.getElementById('modalDetalles');
+    const cerrarModalDetalles = document.getElementById('cerrarModalDetalles');
+    const cerrarModalDetallesBtn = document.getElementById('cerrarModalDetallesBtn');
+
     window.addEventListener('click', (event) => {
-        if (event.target === checkInModal) checkInModal.style.display = 'none';
-        if (event.target === checkOutModal) checkOutModal.style.display = 'none';
-        if (event.target === modalNuevaCaja) modalNuevaCaja.style.display = 'none';
-        if (event.target === modalDetalles) modalDetalles.style.display = 'none';
+        if (checkInModal && event.target === checkInModal) checkInModal.style.display = 'none';
+        if (checkOutModal && event.target === checkOutModal) checkOutModal.style.display = 'none';
+        if (modalNuevaCaja && event.target === modalNuevaCaja) modalNuevaCaja.style.display = 'none';
+        if (modalDetalles && event.target === modalDetalles) modalDetalles.style.display = 'none';
     });
 
     // Función Detalles

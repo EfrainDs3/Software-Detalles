@@ -313,16 +313,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Funciones del Dashboard (Mantenemos la lógica de manipulación) ---
 
-    // Función para renderizar la tabla (Ahora usa 'ventasData' llenada por la API)
-    function renderVentas() {
+    // Función para renderizar la tabla (Ahora usa 'ventasData' llenada por la API o datos filtrados)
+    function renderVentas(dataToRender = ventasData) {
         ventasTableBody.innerHTML = '';
 
-        if (ventasData.length === 0) {
+        if (!dataToRender || dataToRender.length === 0) {
             ventasTableBody.innerHTML = '<tr><td colspan="8" class="text-center">No hay ventas registradas</td></tr>';
             return;
         }
 
-        ventasData.forEach(venta => {
+        dataToRender.forEach(venta => {
             // ✅ ACCESO CORRECTO A LAS PROPIEDADES DEL DTO
             const id = venta.id;
             const cliente = venta.cliente || 'Público General';
@@ -761,12 +761,33 @@ document.addEventListener('DOMContentLoaded', () => {
             detalles: detalles
         };
         console.log('📦 Payload de venta:', ventaPayload);
-        const success = await saveVenta(ventaPayload);
-        if (success) {
+        const successId = await saveVenta(ventaPayload);
+        if (successId) {
             await fetchAndRenderVentas();
             closeModal();
+            // ✅ AUTO-PRINT via Hidden Iframe (Better than window.open)
+            printPDF(`/ventas/${successId}/pdf`);
         }
     });
+
+    function printPDF(url) {
+        let iframe = document.getElementById('print-iframe');
+        if (!iframe) {
+            iframe = document.createElement('iframe');
+            iframe.id = 'print-iframe';
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+        }
+        iframe.src = url;
+        // Wait for PDF to load then print
+        iframe.onload = function () {
+            setTimeout(() => {
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+            }, 500);
+        };
+    }
+
     // Función Asíncrona para guardar/actualizar la venta
     async function saveVenta(payload) {
         const isUpdate = payload.id_comprobante && payload.id_comprobante !== '0';
@@ -787,23 +808,219 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!response.ok) {
                 const errorMessage = data.error || `Error ${response.status}: Fallo en el ${method} de la venta.`;
                 showToast(`Error: ${errorMessage}`);
-                return false;
+                return null;
             }
 
-            showToast(`Venta ${isUpdate ? 'actualizada' : 'registrada'} exitosamente. ID: ${data.id_comprobante || data.id}`);
-            return true;
+            // ✅ FIX: Backend returns 'id_venta', 'id_comprobante' or 'id' depending on DTO
+            const newId = data.id_venta || data.id_comprobante || data.id;
+            console.log('✅ Venta guardada. ID obtenido:', newId);
+
+            showToast(`Venta ${isUpdate ? 'actualizada' : 'registrada'} exitosamente. ID: ${newId}`);
+            return newId;
         } catch (error) {
             console.error('Error al guardar la venta:', error);
             showToast('Hubo un error de conexión al guardar la venta.');
-            return false;
+            return null;
         }
     }
 
-
     // Agregar nuevo producto al formulario de venta
-    addProductBtn.addEventListener('click', () => {
-        addProductInput();
-    });
+    if (addProductBtn) {
+        addProductBtn.addEventListener('click', () => {
+            addProductInput();
+        });
+    }
+
+    // ======================================================
+    // 🔍 LÓGICA DE FILTROS AVANZADOS (Añadido)
+    // ======================================================
+    const filterBtn = document.getElementById('filterBtn');
+    const filterModal = document.getElementById('filterModal');
+    const closeFilterModalBtn = document.getElementById('closeFilterModal');
+    const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+    const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+
+    // Selects del Filtro
+    const filterVendedor = document.getElementById('filterVendedor');
+    const filterFecha = document.getElementById('filterFecha');
+    const filterCliente = document.getElementById('filterCliente');
+    const filterCosto = document.getElementById('filterCosto');
+
+    // Estado del Filtro
+    let currentFilters = {
+        vendedor: '',
+        fecha: '',
+        cliente: '',
+        costo: ''
+    };
+
+    // 1. Abrir Modal y Poblar Opciones
+    if (filterBtn) {
+        filterBtn.addEventListener('click', () => {
+            populateAdvancedFilters();
+            restoreFilterState();
+            filterModal.style.display = 'block';
+        });
+    }
+
+    if (closeFilterModalBtn) {
+        closeFilterModalBtn.addEventListener('click', () => {
+            filterModal.style.display = 'none';
+        });
+    }
+
+    // 2. Poblar Selects con Datos Únicos
+    function populateAdvancedFilters() {
+        if (!ventasData || ventasData.length === 0) return;
+
+        // Extraer valores únicos (Set)
+        const vendedores = new Set();
+        const clientes = new Set();
+        const fechas = new Set();
+        // Costo será estático (Rango)
+
+        ventasData.forEach(v => {
+            // Asumiendo que v.usuario o v.trabajador existe, si no, usar placeholder
+            const vendedor = v.trabajador || (v.usuario ? v.usuario.nombre : 'Sistema');
+            const cliente = v.cliente || 'Público General';
+            const fecha = v.fecha || ''; // Formato DD/MM/YYYY
+
+            vendedores.add(vendedor);
+            clientes.add(cliente);
+            if (fecha) fechas.add(fecha);
+        });
+
+        // Helper para llenar select
+        function fillSelect(selectElement, valuesSet) {
+            const currentVal = selectElement.value;
+            selectElement.innerHTML = '<option value="">Seleccionar opción</option>';
+            Array.from(valuesSet).sort().forEach(val => {
+                const option = document.createElement('option');
+                option.value = val;
+                option.textContent = val;
+                selectElement.appendChild(option);
+            });
+            selectElement.value = currentVal;
+        }
+
+        fillSelect(filterVendedor, vendedores);
+        fillSelect(filterCliente, clientes);
+        fillSelect(filterFecha, fechas);
+
+        // Llenar Costo (Rango) si está vacío
+        if (filterCosto.options.length <= 1) {
+            filterCosto.innerHTML = '<option value="">Seleccionar opción</option>';
+            const rangos = [
+                { val: '0-100', label: 'Menor a S/ 100' },
+                { val: '100-500', label: 'S/ 100 - S/ 500' },
+                { val: '500-1000', label: 'S/ 500 - S/ 1000' },
+                { val: '1000-max', label: 'Mayor a S/ 1000' }
+            ];
+            rangos.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r.val;
+                opt.textContent = r.label;
+                filterCosto.appendChild(opt);
+            });
+        }
+    }
+
+    // 3. Restaurar Selección Previa
+    function restoreFilterState() {
+        filterVendedor.value = currentFilters.vendedor;
+        filterFecha.value = currentFilters.fecha;
+        filterCliente.value = currentFilters.cliente;
+        filterCosto.value = currentFilters.costo;
+    }
+
+    // 4. Aplicar Filtros
+    if (applyFiltersBtn) {
+        applyFiltersBtn.addEventListener('click', () => {
+            currentFilters = {
+                vendedor: filterVendedor.value,
+                fecha: filterFecha.value,
+                cliente: filterCliente.value,
+                costo: filterCosto.value
+            };
+
+            applyAllFilters();
+            filterModal.style.display = 'none';
+        });
+    }
+
+    // 5. Limpiar Filtros
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', () => {
+            currentFilters = { vendedor: '', fecha: '', cliente: '', costo: '' };
+            filterVendedor.value = '';
+            filterFecha.value = '';
+            filterCliente.value = '';
+            filterCosto.value = '';
+            applyAllFilters();
+            // No cerramos el modal, solo limpiamos
+        });
+    }
+
+    // 6. Buscador en Tiempo Real (Search Input)
+    const searchInput = document.getElementById('searchInput');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.trim().toLowerCase();
+            applyAllFilters(term);
+        });
+    }
+
+    // Lógica Central de Filtrado Unificada
+    function applyAllFilters(searchTerm = '') {
+        if (!ventasData) return;
+
+        // Si no se pasa argumento (ej. desde botón Aplicar), usar el valor actual del input
+        if (typeof searchTerm !== 'string') {
+            searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
+        }
+
+        const filtered = ventasData.filter(venta => {
+            // 1. Filtros Avanzados
+            // Filtro Vendedor
+            if (currentFilters.vendedor) {
+                const vVend = venta.trabajador || (venta.usuario ? venta.usuario.nombre : 'Sistema');
+                if (vVend !== currentFilters.vendedor) return false;
+            }
+            // Filtro Fecha
+            if (currentFilters.fecha && venta.fecha !== currentFilters.fecha) return false;
+
+            // Filtro Cliente
+            if (currentFilters.cliente && venta.cliente !== currentFilters.cliente) return false;
+
+            // Filtro Costo (Rango)
+            if (currentFilters.costo) {
+                const total = parseFloat(venta.total) || 0;
+                const [minStr, maxStr] = currentFilters.costo.split('-');
+                const min = parseFloat(minStr);
+                const max = maxStr === 'max' ? Infinity : parseFloat(maxStr);
+
+                if (total < min || total >= max) return false;
+            }
+
+            // 2. Filtro de Búsqueda (ID o Cliente)
+            if (searchTerm) {
+                // Check ID
+                const idMatch = venta.id.toString().toLowerCase().includes(searchTerm);
+                // Check Cliente Name
+                const clienteMatch = (venta.cliente || '').toLowerCase().includes(searchTerm);
+
+                if (!idMatch && !clienteMatch) return false;
+            }
+
+            return true;
+        });
+
+        renderVentas(filtered);
+    }
+
+    // Alias para compatibilidad
+    // const applyAdvancedFiltering = () => applyAllFilters();
 
     // Delegación de eventos para los botones de la tabla
     ventasTableBody.addEventListener('click', async (e) => {

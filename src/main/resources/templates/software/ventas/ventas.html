@@ -295,6 +295,59 @@
         </div>
     </div>
 
+    <!-- ✅ MODAL DE FILTROS AVANZADOS -->
+    <div id="filterModal" class="modal">
+        <div class="modal-content filter-modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>Filtros Avanzados</h3>
+                <button class="modal-close" id="closeFilterModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="filterVendedor">Vendedor</label>
+                        <select id="filterVendedor" class="form-control">
+                            <option value="">Seleccionar opción</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filterFecha">Fecha</label>
+                        <select id="filterFecha" class="form-control">
+                            <option value="">Seleccionar opción</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="filterCliente">Cliente</label>
+                        <select id="filterCliente" class="form-control">
+                            <option value="">Seleccionar opción</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filterCosto">Costo (Total)</label> <!-- Mapping user request 'Costo' -->
+                        <select id="filterCosto" class="form-control">
+                            <option value="">Seleccionar opción</option>
+                            <!-- Will populate with ranges or unique values -->
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="justify-content: space-between;">
+                <button type="button" class="btn btn-secondary btn-outline" id="clearFiltersBtn"
+                    style="border: 1px solid #ccc;">
+                    Limpiar Filtros
+                </button>
+                <button type="button" class="btn btn-primary" id="applyFiltersBtn"
+                    style="background-color: #b30000; border-color: #b30000;">
+                    Aplicar Filtros
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="/js/sidebar.js"></script>
     <script src="/js/logout.js"></script>
     <script src="/js/ventas.js"></script>

@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
@@ -285,18 +285,39 @@ public class VentaService {
         ventaMap.put("tipoComprobante",
                 venta.getTipoComprobante() != null ? venta.getTipoComprobante().getNombreTipo() : "");
         ventaMap.put("cliente", obtenerNombreCliente(venta));
-        // Formato de fecha con HORA
+
         java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter
                 .ofPattern("dd/MM/yyyy hh:mm a");
         ventaMap.put("fechaEmision", venta.getFechaEmision() != null ? venta.getFechaEmision().format(formatter) : "");
-
-        // Usar numero de comprobante real
         ventaMap.put("numeroComprobante", venta.getNumeroComprobante() != null ? venta.getNumeroComprobante() : "");
-
-        // Mantener Fix: Subtotal = Total, IGV = 0
-        ventaMap.put("subtotal", venta.getTotal());
-        ventaMap.put("igv", BigDecimal.ZERO);
         ventaMap.put("total", venta.getTotal());
+
+        // Obtener DNI y Nombre por separado si es posible (Parsing simple del string
+        // "cliente" actual o mejorando la logica)
+        // Por ahora usaremos el string "cliente" formateado.
+        String clienteFull = obtenerNombreCliente(venta);
+        String tipoDoc = "DNI"; // Default
+        String numDoc = "-";
+        String nombreCliente = clienteFull;
+
+        if (clienteFull.startsWith("Doc: ")) {
+            String[] parts = clienteFull.split(" ", 2); // "Doc:", "12345678"
+            if (parts.length > 1)
+                numDoc = parts[1];
+            nombreCliente = ""; // Si solo tenemos doc, el nombre está vacío o tendríamos que buscarlo
+        }
+        // Mejor aproximación: Usar los datos de la entidad Cliente si existe
+        if (venta.getCliente() != null) {
+            numDoc = venta.getCliente().getNumeroDocumento();
+            nombreCliente = (venta.getCliente().getNombre() + " " + venta.getCliente().getApellido()).trim();
+            // Asumir RUC si tiene 11 digitos
+            if (numDoc != null && numDoc.length() == 11)
+                tipoDoc = "RUC";
+        }
+
+        ventaMap.put("clienteTipoDoc", tipoDoc);
+        ventaMap.put("clienteNumDoc", numDoc != null ? numDoc : "-");
+        ventaMap.put("clienteNombre", nombreCliente);
 
         List<Map<String, Object>> detalles = new ArrayList<>();
         if (venta.getDetalles() != null) {
@@ -317,15 +338,83 @@ public class VentaService {
         try {
             PdfWriter.getInstance(document, baos);
             document.open();
-            Paragraph titulo = new Paragraph("COMPROBANTE DE PAGO", FONT_TITULO);
-            titulo.setAlignment(Element.ALIGN_CENTER);
-            titulo.setSpacingAfter(15f);
-            document.add(titulo);
-            addVentaHeader(document, ventaMap);
+
+            // 1. HEADER (Logo + RUC + Título)
+            PdfPTable headerTable = new PdfPTable(3);
+            headerTable.setWidthPercentage(100);
+            headerTable.setWidths(new float[] { 2.5f, 4.5f, 3f }); // Logo, Titulo, Empty/RUC
+
+            // Logo
+            try {
+                String logoPath = "src/main/resources/static/img/detalles-logo.png";
+                // Fix path for production/different envs if needed, assuming run from root
+                Image logo = Image.getInstance(logoPath);
+                logo.scaleToFit(100, 50);
+                PdfPCell logoCell = new PdfPCell(logo);
+                logoCell.setBorder(Rectangle.NO_BORDER);
+                logoCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+                headerTable.addCell(logoCell);
+            } catch (Exception e) {
+                PdfPCell empty = new PdfPCell(new Phrase("DETALLES", FONT_NORMAL_BOLD));
+                empty.setBorder(Rectangle.NO_BORDER);
+                headerTable.addCell(empty);
+            }
+
+            // Título
+            Paragraph titleP = new Paragraph("COMPROBANTE DE PAGO", FONT_TITULO);
+            titleP.setAlignment(Element.ALIGN_CENTER);
+            PdfPCell titleCell = new PdfPCell(titleP);
+            titleCell.setBorder(Rectangle.NO_BORDER);
+            titleCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+            titleCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            headerTable.addCell(titleCell);
+
+            // RUC (Right side usually, but user asked specifically "en ruc: solo pones
+            // 0000000000")
+            // Reference image has RUC under logo. Let's put a simplified RUC cell.
+            PdfPCell rucCell = new PdfPCell(new Phrase("RUC: 20531588119", FONT_NORMAL));
+            rucCell.setBorder(Rectangle.NO_BORDER);
+            rucCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+            rucCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            headerTable.addCell(rucCell);
+
+            document.add(headerTable);
+            document.add(new Paragraph(" ")); // Spacer
+
+            // 2. TICKET INFO (Nro Ticket | Fecha Operacion)
+            PdfPTable infoTable = new PdfPTable(2);
+            infoTable.setWidthPercentage(100);
+            infoTable.addCell(createNoBorderCell("NRO. TICKET: " + ventaMap.get("numeroComprobante"),
+                    Element.ALIGN_LEFT, FONT_NORMAL_BOLD));
+            infoTable.addCell(createNoBorderCell("FECHA DE OPERACIÓN: " + ventaMap.get("fechaEmision"),
+                    Element.ALIGN_RIGHT, FONT_NORMAL_BOLD));
+            document.add(infoTable);
             document.add(new Paragraph(" "));
-            addDetallesTable(document, ventaMap);
+
+            // 3. BOX: DATOS DE LA OPERACIÓN
+            addBoxSection(document, "Datos de la Empresa:", new String[][] {
+                    { "ENTIDAD:", "DETALLES ZAPATERÍA S.A.C." },
+                    { "Razón Social:", "Detalles Shoes & Accessories" },
+                    { "Dirección:", "Jr. Lima 303, Tarapoto - Perú" }
+
+            });
             document.add(new Paragraph(" "));
-            addTotalesSection(document, ventaMap);
+
+            // 4. BOX: DATOS DEL CLIENTE
+            addBoxSection(document, "Datos del Cliente :", new String[][] {
+                    { "TIPO DE DOCUMENTO:", (String) ventaMap.get("clienteTipoDoc") },
+                    { "NRO. DE DOCUMENTO:", (String) ventaMap.get("clienteNumDoc") },
+                    { "NOMBRE:", (String) ventaMap.get("clienteNombre") }
+            });
+            document.add(new Paragraph(" "));
+
+            // 5. BOX: DATOS DE LA VENTA (Tabla de productos)
+            addDetallesBox(document, "Datos de la venta :", ventaMap);
+            document.add(new Paragraph(" "));
+
+            // 6. FOOTER: TOTAL A PAGAR
+            addTotalFooter(document, (BigDecimal) ventaMap.get("total"));
+
             document.close();
             return baos.toByteArray();
         } catch (DocumentException e) {
@@ -333,69 +422,210 @@ public class VentaService {
         }
     }
 
-    private void addVentaHeader(Document document, Map<String, Object> venta) throws DocumentException {
-        PdfPTable headerTable = new PdfPTable(2);
-        headerTable.setWidthPercentage(100);
-        headerTable.setWidths(new float[] { 3f, 7f });
-        headerTable.getDefaultCell().setBorder(Rectangle.NO_BORDER);
-        headerTable.addCell(new Paragraph("Tipo:", FONT_NORMAL_BOLD));
-        headerTable.addCell(new Paragraph((String) venta.get("tipoComprobante"), FONT_NORMAL));
-        // ... Logica de RUC omitida por brevedad si no es critica, pero se mantiene
-        // genérica:
-        headerTable.addCell(new Paragraph("Cliente:", FONT_NORMAL_BOLD));
-        headerTable.addCell(new Paragraph((String) venta.get("cliente"), FONT_NORMAL));
-        headerTable.addCell(new Paragraph("Fecha:", FONT_NORMAL_BOLD));
-        headerTable.addCell(new Paragraph((String) venta.get("fechaEmision"), FONT_NORMAL));
-        headerTable.addCell(new Paragraph("N° Doc:", FONT_NORMAL_BOLD));
-        headerTable.addCell(new Paragraph((String) venta.get("numeroComprobante"), FONT_NORMAL));
-        document.add(headerTable);
+    // Helper para celdas sin borde
+    private PdfPCell createNoBorderCell(String text, int align, Font font) {
+        PdfPCell cell = new PdfPCell(new Phrase(text, font));
+        cell.setBorder(Rectangle.NO_BORDER);
+        cell.setHorizontalAlignment(align);
+        return cell;
     }
 
-    private void addDetallesTable(Document document, Map<String, Object> venta) throws DocumentException {
-        PdfPTable table = new PdfPTable(5);
+    // Helper para secciones en "caja" (Box)
+    private void addBoxSection(Document document, String title, String[][] content) throws DocumentException {
+        // Título de la sección
+        document.add(new Paragraph(title, FONT_NORMAL_BOLD));
+
+        // Tabla con borde exterior
+        PdfPTable table = new PdfPTable(2);
         table.setWidthPercentage(100);
-        table.setSpacingBefore(10f);
-        table.setWidths(new float[] { 1.5f, 4f, 1.5f, 2f, 2f });
-        String[] headers = { "CÓDIGO", "DESCRIPCIÓN", "CANT.", "P. UNITARIO", "SUBTOTAL" };
-        for (String header : headers) {
-            PdfPCell cell = new PdfPCell(new Phrase(header, FONT_HEADER_TABLE));
-            cell.setBackgroundColor(BaseColor.DARK_GRAY);
-            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-            cell.setPadding(5);
-            table.addCell(cell);
-        }
-        List<Map<String, Object>> detalles = (List<Map<String, Object>>) venta.get("detalles");
-        for (Map<String, Object> detalle : detalles) {
-            table.addCell(new Paragraph((String) detalle.get("codigo"), FONT_NORMAL));
-            table.addCell(new Paragraph((String) detalle.get("descripcion"), FONT_NORMAL));
-            table.addCell(createAlignedCell(detalle.get("cantidad").toString(), Element.ALIGN_RIGHT, FONT_NORMAL));
-            table.addCell(createAlignedCell("S/ " + detalle.get("precioUnitario").toString(), Element.ALIGN_RIGHT,
-                    FONT_NORMAL));
-            table.addCell(createAlignedCell("S/ " + detalle.get("subtotalLinea").toString(), Element.ALIGN_RIGHT,
-                    FONT_NORMAL));
+        table.setWidths(new float[] { 3f, 7f });
+
+        for (String[] row : content) {
+            PdfPCell key = new PdfPCell(new Phrase(row[0], FONT_NORMAL_BOLD));
+            key.setBorder(Rectangle.BOX);
+            key.setPadding(5);
+            table.addCell(key);
+
+            PdfPCell val = new PdfPCell(new Phrase(row[1], FONT_NORMAL));
+            val.setBorder(Rectangle.BOX);
+            val.setPadding(5);
+            table.addCell(val);
         }
         document.add(table);
     }
 
-    private void addTotalesSection(Document document, Map<String, Object> venta) throws DocumentException {
+    private void addDetallesBox(Document document, String title, Map<String, Object> venta) throws DocumentException {
+        document.add(new Paragraph(title, FONT_NORMAL_BOLD));
+
+        PdfPTable table = new PdfPTable(4); // Removed Subtotal, combined or simplified as per "Cuadro" request?
+        // User said: "pones tal cual el cuadro, agregando el subtotal". The Banco
+        // receipt has less columns.
+        // But user likely wants their product list: Cantidad, Descripcion, P.Unit,
+        // Subtotal. (4 cols is standard)
+        table.setWidthPercentage(100);
+        table.setWidths(new float[] { 1.5f, 4.5f, 2f, 2f }); // Qty, Desc, Unit, Sub
+
+        String[] headers = { "CANT.", "DESCRIPCIÓN", "P. UNITARIO", "SUBTOTAL" };
+        for (String h : headers) {
+            PdfPCell cell = new PdfPCell(new Phrase(h, FONT_NORMAL_BOLD));
+            cell.setBackgroundColor(BaseColor.LIGHT_GRAY);
+            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            table.addCell(cell);
+        }
+
+        List<Map<String, Object>> detalles = (List<Map<String, Object>>) venta.get("detalles");
+        for (Map<String, Object> d : detalles) {
+            // Cantidad
+            PdfPCell cellQ = new PdfPCell(new Phrase(d.get("cantidad").toString(), FONT_NORMAL));
+            cellQ.setHorizontalAlignment(Element.ALIGN_CENTER);
+            table.addCell(cellQ);
+
+            // Descripción
+            table.addCell(new Paragraph(d.get("descripcion").toString(), FONT_NORMAL));
+
+            // P. Unit
+            PdfPCell cellP = new PdfPCell(new Phrase("S/ " + d.get("precioUnitario").toString(), FONT_NORMAL));
+            cellP.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            table.addCell(cellP);
+
+            // Subtotal
+            PdfPCell cellS = new PdfPCell(new Phrase("S/ " + d.get("subtotalLinea").toString(), FONT_NORMAL));
+            cellS.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            table.addCell(cellS);
+        }
+        document.add(table);
+    }
+
+    private void addTotalFooter(Document document, BigDecimal total) throws DocumentException {
         PdfPTable totalTable = new PdfPTable(2);
-        totalTable.setWidthPercentage(40);
-        totalTable.setHorizontalAlignment(Element.ALIGN_RIGHT);
-        totalTable.setWidths(new float[] { 6f, 4f });
-        totalTable.getDefaultCell().setBorder(Rectangle.NO_BORDER);
-        totalTable.addCell(createAlignedCell("SUBTOTAL:", Element.ALIGN_RIGHT, FONT_NORMAL_BOLD));
-        totalTable
-                .addCell(createAlignedCell("S/ " + venta.get("subtotal").toString(), Element.ALIGN_RIGHT, FONT_NORMAL));
-        totalTable.addCell(createAlignedCell("TOTAL A PAGAR:", Element.ALIGN_RIGHT, FONT_TITULO));
-        totalTable.addCell(createAlignedCell("S/ " + venta.get("total").toString(), Element.ALIGN_RIGHT, FONT_TITULO));
+        totalTable.setWidthPercentage(100);
+        totalTable.setWidths(new float[] { 7f, 3f });
+
+        // Empty left cell with label "IMPORTE TOTAL:" (or "TOTAL A PAGAR:" based on
+        // user)
+        // User said: "donde dice importe total, ahí lo reemplazas con total a pagar,
+        // esa parte roja"
+
+        PdfPCell labelCell = new PdfPCell(new Phrase("TOTAL A PAGAR:", FONT_TITULO)); // Using Red Title Font
+        labelCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        labelCell.setBorder(Rectangle.BOX);
+        labelCell.setPadding(5);
+        totalTable.addCell(labelCell);
+
+        PdfPCell totalCell = new PdfPCell(new Phrase("S/ " + total.toString(), FONT_TITULO));
+        totalCell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+        totalCell.setBorder(Rectangle.BOX);
+        totalCell.setPadding(5);
+        totalTable.addCell(totalCell);
+
         document.add(totalTable);
     }
 
+    // Helper obsoleto para esta version, pero mantenido si es necesario por otros
+    // metodos no tocados
     private PdfPCell createAlignedCell(String text, int alignment, Font font) {
         PdfPCell cell = new PdfPCell(new Phrase(text, font));
         cell.setHorizontalAlignment(alignment);
         cell.setBorder(Rectangle.NO_BORDER);
         cell.setPadding(5);
         return cell;
+    }
+
+    public byte[] generarReporteVentasPorAperturaPDF(Long idApertura) throws DocumentException, IOException {
+        Document document = new Document(PageSize.A4, 30, 30, 30, 30);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        PdfWriter.getInstance(document, out);
+
+        document.open();
+
+        // 1. Header
+        Paragraph title = new Paragraph("REPORTE DE VENTAS - APERTURA #" + idApertura, FONT_TITULO);
+        title.setAlignment(Element.ALIGN_CENTER);
+        document.add(title);
+        document.add(new Paragraph(
+                "Fecha de Reporte: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")),
+                FONT_NORMAL));
+        document.add(new Paragraph(" "));
+
+        // 2. Fetch Data
+        List<ComprobantePago> ventas = ventaRepository.findByApertura_IdAperturaOrderByFechaEmisionDesc(idApertura);
+
+        if (ventas.isEmpty()) {
+            document.add(new Paragraph("No se encontraron ventas para esta apertura.", FONT_NORMAL_BOLD));
+        } else {
+            // 3. Table
+            PdfPTable table = new PdfPTable(5); // ID, Fecha, Cliente, Estado, Total
+            table.setWidthPercentage(100);
+            table.setWidths(new float[] { 2f, 3f, 5f, 2f, 2f });
+
+            // Headers
+            String[] headers = { "ID", "FECHA/HORA", "CLIENTE", "ESTADO", "TOTAL" };
+            for (String h : headers) {
+                PdfPCell cell = new PdfPCell(new Phrase(h, FONT_NORMAL_BOLD));
+                cell.setBackgroundColor(BaseColor.LIGHT_GRAY);
+                cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                table.addCell(cell);
+            }
+
+            BigDecimal granTotal = BigDecimal.ZERO;
+            int countEmitidos = 0;
+
+            DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("dd/MM HH:mm");
+
+            for (ComprobantePago v : ventas) {
+                // ID Column
+                table.addCell(createAlignedCell(v.getNumeroComprobante() != null ? v.getNumeroComprobante()
+                        : String.valueOf(v.getIdComprobante()), Element.ALIGN_CENTER, FONT_NORMAL));
+
+                // Date Column
+                String fechaStr = v.getFechaEmision() != null ? v.getFechaEmision().format(timeFormatter) : "-";
+                table.addCell(createAlignedCell(fechaStr, Element.ALIGN_CENTER, FONT_NORMAL));
+
+                // Client Column
+                String cliente = obtenerNombreCliente(v);
+                table.addCell(createAlignedCell(cliente, Element.ALIGN_LEFT, FONT_NORMAL));
+
+                // Status Column
+                table.addCell(createAlignedCell(v.getEstado(), Element.ALIGN_CENTER, FONT_NORMAL));
+
+                // Total Column
+                table.addCell(createAlignedCell("S/ " + v.getTotal().toString(), Element.ALIGN_RIGHT, FONT_NORMAL));
+
+                if ("Emitido".equalsIgnoreCase(v.getEstado())) {
+                    granTotal = granTotal.add(v.getTotal());
+                    countEmitidos++;
+                }
+            }
+            document.add(table);
+
+            document.add(new Paragraph(" "));
+
+            // 4. Summary
+            PdfPTable summary = new PdfPTable(2);
+            summary.setWidthPercentage(40);
+            summary.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            summary.setWidths(new float[] { 5f, 5f });
+
+            PdfPCell c1 = createAlignedCell("Ventas Emitidas:", Element.ALIGN_RIGHT, FONT_NORMAL_BOLD);
+            c1.setBorder(Rectangle.NO_BORDER);
+            summary.addCell(c1);
+
+            PdfPCell c2 = createAlignedCell(String.valueOf(countEmitidos), Element.ALIGN_RIGHT, FONT_NORMAL);
+            c2.setBorder(Rectangle.NO_BORDER);
+            summary.addCell(c2);
+
+            PdfPCell c3 = createAlignedCell("TOTAL RECAUDADO:", Element.ALIGN_RIGHT, FONT_TITULO);
+            c3.setBorder(Rectangle.NO_BORDER);
+            summary.addCell(c3);
+
+            PdfPCell c4 = createAlignedCell("S/ " + granTotal.toString(), Element.ALIGN_RIGHT, FONT_TITULO);
+            c4.setBorder(Rectangle.NO_BORDER);
+            summary.addCell(c4);
+
+            document.add(summary);
+        }
+
+        document.close();
+        return out.toByteArray();
     }
 }

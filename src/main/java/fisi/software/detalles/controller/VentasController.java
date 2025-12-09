@@ -169,4 +169,26 @@ public class VentasController {
                     .body(null);
         }
     }
+
+    @GetMapping("/reporte/apertura/{id}/pdf")
+    @PreAuthorize("hasAnyAuthority(T(fisi.software.detalles.security.Permisos).REGISTRAR_VENTAS, T(fisi.software.detalles.security.Permisos).VER_VENTAS, T(fisi.software.detalles.security.Permisos).MODULO_VENTAS)")
+    public ResponseEntity<ByteArrayResource> exportarReporteAperturaPDF(@PathVariable Long id) {
+        try {
+            byte[] pdfBytes = ventaService.generarReporteVentasPorAperturaPDF(id);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("inline", "reporte_apertura_" + id + ".pdf");
+            headers.setContentLength(pdfBytes.length);
+
+            ByteArrayResource resource = new ByteArrayResource(pdfBytes);
+
+            return new ResponseEntity<>(resource, headers, HttpStatus.OK);
+
+        } catch (DocumentException | IOException e) {
+            System.err.println("Error al generar Reporte PDF para la apertura " + id + ": " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
+        }
+    }
 }
