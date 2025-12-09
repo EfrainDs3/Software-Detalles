@@ -1,5 +1,6 @@
 ﻿<!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="../styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
+
 <body>
     <header>
         <nav class="navbar">
@@ -16,7 +18,7 @@
                         <img src="../../img/detalles-logo.png" alt="Detalles - Calzados y Accesorios">
                     </a>
                 </div>
-                
+
                 <ul class="nav-menu">
                     <li><a href="../../index.html">Inicio</a></li>
                     <li class="menu-item-has-children">
@@ -26,7 +28,8 @@
                                 <div class="submenu-column">
                                     <h3>Calzado</h3>
                                     <ul>
-                                        <li><a href="../mujeres/zapatillas-deportivas.html">Zapatillas Deportivas</a></li>
+                                        <li><a href="../mujeres/zapatillas-deportivas.html">Zapatillas Deportivas</a>
+                                        </li>
                                         <li><a href="../mujeres/zapatos-casuales.html">Zapatos Casuales</a></li>
                                         <li><a href="../mujeres/tacones.html">Tacones</a></li>
                                         <li><a href="../mujeres/sandalias.html">Sandalias</a></li>
@@ -52,7 +55,8 @@
                                 <div class="submenu-column">
                                     <h3>Calzado</h3>
                                     <ul>
-                                        <li><a href="../hombres/zapatillas-deportivas-h.html">Zapatillas Deportivas</a></li>
+                                        <li><a href="../hombres/zapatillas-deportivas-h.html">Zapatillas Deportivas</a>
+                                        </li>
                                         <li><a href="../hombres/zapatos-casuales-h.html">Zapatos Casuales</a></li>
                                         <li><a href="../hombres/zapatos-formales-h.html">Zapatos Formales</a></li>
                                         <li><a href="../hombres/botas-h.html">Botas</a></li>
@@ -100,7 +104,7 @@
                         </div>
                     </li>
                 </ul>
-                
+
                 <div class="nav-icons">
                     <div class="search-container">
                         <div class="search-form">
@@ -110,7 +114,7 @@
                             </button>
                         </div>
                     </div>
-                    
+
                     <a href="#" class="nav-icon" onclick="irAPerfil(event)"><i class="fas fa-user"></i></a>
                     <a href="../carrito/carritos.html" class="nav-icon cart-icon">
                         <i class="fas fa-shopping-bag"></i>
@@ -169,7 +173,7 @@
                     </div>
                 </div>
 
-                
+
 
                 <div class="filter-section">
                     <h3>Color</h3>
@@ -177,7 +181,8 @@
                         <div class="color-option" style="background: #000;" title="Negro"></div>
                         <div class="color-option" style="background: #795548;" title="Marrón"></div>
                         <div class="color-option" style="background: #FFD700;" title="Dorado"></div>
-                        <div class="color-option" style="background: #fff; border: 1px solid #ddd;" title="Blanco"></div>
+                        <div class="color-option" style="background: #fff; border: 1px solid #ddd;" title="Blanco">
+                        </div>
                         <div class="color-option" style="background: #c5a992;" title="Beige"></div>
                         <div class="color-option" style="background: #8B4513;" title="Café"></div>
                     </div>
@@ -197,10 +202,14 @@
                 <div class="filter-section">
                     <h3>Material</h3>
                     <div class="brand-filter">
-                        <div class="brand-option"><input type="checkbox" id="cuero-c"> <label for="cuero-c">Cuero</label></div>
-                        <div class="brand-option"><input type="checkbox" id="sintetico-c"> <label for="sintetico-c">Sintético</label></div>
-                        <div class="brand-option"><input type="checkbox" id="tela-c"> <label for="tela-c">Tela</label></div>
-                        <div class="brand-option"><input type="checkbox" id="ecocuero-c"> <label for="ecocuero-c">Ecocuero</label></div>
+                        <div class="brand-option"><input type="checkbox" id="cuero-c"> <label
+                                for="cuero-c">Cuero</label></div>
+                        <div class="brand-option"><input type="checkbox" id="sintetico-c"> <label
+                                for="sintetico-c">Sintético</label></div>
+                        <div class="brand-option"><input type="checkbox" id="tela-c"> <label for="tela-c">Tela</label>
+                        </div>
+                        <div class="brand-option"><input type="checkbox" id="ecocuero-c"> <label
+                                for="ecocuero-c">Ecocuero</label></div>
                     </div>
                 </div>
 
@@ -212,7 +221,7 @@
                     <h1>Cinturones</h1>
                     <div class="sort-options">
                         <span class="products-count" id="productsCount">Cargando...</span>
-                        
+
                     </div>
                 </div>
 
@@ -220,7 +229,7 @@
                     <!-- Los productos se cargarán dinámicamente desde la API -->
                     <div class="loading-message">Cargando cinturones...</div>
                 </div>
-                
+
                 <div class="pagination">
                     <!-- Paginación si es necesaria -->
                 </div>
@@ -281,7 +290,7 @@
         let productosFiltrados = [];
 
         // Cargar productos al iniciar la página
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             cargarCinturonesMujeres();
             configurarFiltros();
         });
@@ -317,7 +326,7 @@
 
             } catch (error) {
                 console.error('Error cargando productos:', error);
-                document.getElementById('productosContainer').innerHTML = 
+                document.getElementById('productosContainer').innerHTML =
                     '<p class="error-message">Error al cargar los productos. Intenta nuevamente.</p>';
             }
         }
@@ -406,7 +415,7 @@
             const precioMax = document.querySelector('.price-inputs input[placeholder="Máx"]');
 
             if (precioRange && precioMin && precioMax) {
-                precioRange.addEventListener('input', function() {
+                precioRange.addEventListener('input', function () {
                     precioMax.value = this.value;
                     aplicarFiltros();
                 });
@@ -418,7 +427,7 @@
             // Filtro de colores
             const colores = document.querySelectorAll('.color-option');
             colores.forEach(color => {
-                color.addEventListener('click', function() {
+                color.addEventListener('click', function () {
                     this.classList.toggle('selected');
                     aplicarFiltros();
                 });
@@ -471,7 +480,7 @@
             console.log('🎨 Colores seleccionados:', coloresSeleccionados);
 
             if (coloresSeleccionados.length > 0) {
-                productos = productos.filter(producto => 
+                productos = productos.filter(producto =>
                     producto.color && coloresSeleccionados.includes(producto.color.toLowerCase())
                 );
             }
@@ -523,10 +532,10 @@
         }
 
         // Permitir búsqueda con Enter
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const searchInput = document.getElementById('searchInput');
             if (searchInput) {
-                searchInput.addEventListener('keypress', function(e) {
+                searchInput.addEventListener('keypress', function (e) {
                     if (e.key === 'Enter') {
                         buscarProductos();
                     }
@@ -534,6 +543,11 @@
             }
         });
     </script>
+    <script src="../js/auth-status.js"></script>
+    <script src="../js/cart-count.js"></script>
+    <script src="../js/index-add-to-cart.js"></script>
+    <script src="../js/favorites-handler.js"></script>
     <script src="../js/user-nav.js"></script>
 </body>
+
 </html>

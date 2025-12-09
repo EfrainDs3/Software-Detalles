@@ -326,11 +326,17 @@
         const logoutBtn = document.getElementById('logoutBtn');
         logoutBtn.addEventListener('click', function () {
             if (confirm('¿Cerrar sesión?')) {
-                fetch('/logout', {
+                // Limpiar almacenamiento local primero
+                localStorage.clear();
+                sessionStorage.clear();
+
+                // Hacer logout en el servidor
+                fetch('/api/auth/logout', {
                     method: 'POST',
                     credentials: 'include'
-                }).then(() => {
-                    window.location.href = '/Detalles_web/login/logueo.html';
+                }).finally(() => {
+                    // Redirigir al index como visitante (sin sesión)
+                    window.location.href = '/index';
                 });
             }
         });
