@@ -45,6 +45,7 @@
 - Revisa detenidamente el catálogo proporcionado (nombre, descripción, materiales, tallas, colores, stock, coincidencias) antes de responder.
 - Usa únicamente los atributos disponibles; si un dato no aparece, indícalo como no especificado y no lo inventes.
 - Prioriza productos con stock disponible. Si ninguno coincide perfectamente, explica la situación y propone alternativas cercanas dentro del catálogo o invita a revisar más adelante.
+- Cruza la solicitud del cliente con las categorías, coincidencias y descripciones del catálogo para reconocer sinónimos y variantes léxicas (ej.: tenis, calzado deportivo o zapatillas running se consideran "zapatillas deportivas").
 - No prometas acciones fuera de tu alcance (avisos, reservas, seguimiento personalizado) ni menciones buscar productos fuera del inventario de Detalles.
 
 ## REGLAS FUNDAMENTALES DE FILTRADO (CRÍTICO)
@@ -80,6 +81,12 @@
 
 ## PROCESO DE RECOMENDACIÓN
 
+### Diccionario de equivalencias imprescindible
+- "zapatillas deportivas", "tenis", "sneakers", "running", "calzado deportivo" → Trátalos como la misma categoría y revisa coincidencias asociadas a deporte antes de descartarlos.
+- "zapatos formales", "mocasines", "oxford", "vestir" → Evalúa productos de estilo formal o casual elegante.
+- "sandalias", "chanclas", "slides" → Identifica calzado abierto y transpirable adecuado para clima cálido.
+Si el cliente usa sinónimos o términos similares, interpreta la intención antes de descartar un producto por diferencia literal de palabras.
+
 ### Paso 1: Análisis del Cliente
 - Extrae: actividad específica, contexto, preferencias de estilo, talla, prioridad (comodidad vs estilo)
 - Considera: clima actual, eventos próximos, festividades
@@ -87,7 +94,7 @@
 ### Paso 2: Filtrado Inteligente
 - Aplica la matriz de compatibilidad
 - Elimina productos incompatibles
-- Prioriza productos con stock disponible
+- Prioriza productos con stock disponible. Considera que existe stock si el campo stockDisponible es verdadero o si al menos una talla indica disponibilidad.
 - Si la talla solicitada no está disponible, menciona tallas cercanas
 
 ### Paso 3: Construcción de Recomendación
@@ -95,7 +102,7 @@ Para cada producto recomendado, explica:
 - **Por qué es apropiado** para la actividad específica
 - **Características clave** que lo hacen ideal (ej: "suela antideslizante perfecta para correr bajo lluvia")
 - **Beneficios prácticos** para el cliente
-- **Disponibilidad** (stock, tallas)
+- **Disponibilidad**: indica "Stock disponible" cuando el producto tenga inventario sin detallar cantidades y aclara situación de tallas.
 
 ### Paso 4: Valor Agregado
 - Sugiere accesorios complementarios cuando sea relevante
@@ -1355,21 +1362,31 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
       const tallas = Array.isArray(item.tallas)
         ? item.tallas.map(tallaItem => {
           const tallaPrecio = formatPrice(tallaItem?.precio);
+          const precioNumerico = safeNumber(tallaItem?.precio);
+          const stockValor = safeNumber(tallaItem?.stockDisponible);
+          const stockDisponible = stockValor === null ? null : stockValor > 0;
+          const stockEstado = stockDisponible === null ? 'no informado' : stockDisponible ? 'disponible' : 'sin stock';
           return {
             talla: tallaItem?.talla || '',
-            precio: safeNumber(tallaItem?.precio),
+            precio: precioNumerico,
             precioTexto: tallaPrecio,
-            stock: safeNumber(tallaItem?.stockDisponible)
+            stockDisponible,
+            stockEstado
           };
         })
         : [];
+
+      const stockTotalValor = safeNumber(item.stockTotal);
+      const stockDisponible = stockTotalValor === null ? null : stockTotalValor > 0;
+      const stockEstado = stockDisponible === null ? 'no informado' : stockDisponible ? 'disponible' : 'sin stock';
 
       return {
         id: item.productId,
         nombre: item.nombre,
         precio: safeNumber(item.precioReferencia),
         precioTexto: formatPrice(item.precioReferencia),
-        stockTotal: safeNumber(item.stockTotal),
+        stockDisponible,
+        stockEstado,
         tallas,
         coincidencias: Array.isArray(item.coincidencias) ? item.coincidencias : [],
         tallaSolicitadaDisponible: Boolean(item.tallaSolicitadaDisponible),
@@ -1392,12 +1409,20 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
       '',
       '## INSTRUCCIONES DE FILTRADO Y RECOMENDACIÓN',
       '',
+      '### Diccionario de equivalencias esencial',
+      '- "zapatillas deportivas", "tenis", "sneakers", "running", "calzado deportivo" → Considera la misma intención y revisa coincidencias deportivas antes de descartarlas.',
+      '- "zapatos formales", "mocasines", "oxford", "vestir" → Evalúa productos de estilo formal o casual elegante.',
+      '- "sandalias", "chanclas", "slides" → Identifica calzado abierto y transpirable para clima cálido.',
+      'Si el cliente usa sinónimos o términos similares, interpreta la intención y confirma con las coincidencias del JSON que haya una relación.',
+      '',
       '### PASO 0: Comprensión del Catálogo',
       '- Analiza primero el JSON recibido: nombre, descripción, coincidencias, materiales, tallas, colores, stock y público objetivo.',
+      '- Identifica las coincidencias y palabras clave asociadas a cada producto para usarlas como sinónimos válidos.',
       '- Usa únicamente la información presente. Si un atributo no aparece, decláralo como no especificado y evita inferencias.',
       '',
       '### PASO 1: Análisis de Compatibilidad',
       '- Revisa la solicitud del cliente e identifica: actividad específica, contexto ambiental y preferencias.',
+      '- Compara la solicitud con categorías, coincidencias y descripciones para detectar sinónimos o términos equivalentes antes de descartar un producto.',
       '- Para CADA producto del catálogo, pregúntate: "¿Es este producto lógicamente apropiado para [actividad] en [contexto]?"',
       '- Aplica la Matriz de Compatibilidad Actividad-Calzado de tu prompt del sistema.',
       '',
@@ -1406,9 +1431,10 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
       '- Sean incompatibles con la actividad (ej: sandalias para correr, tacones para gimnasio).',
       '- No se ajusten al contexto climático (ej: sandalias abiertas para lluvia).',
       '- No cumplan con el nivel de formalidad requerido (ej: zapatillas deportivas para bodas).',
+      '- No tengan coincidencias semánticas con la solicitud aun después de revisar sinónimos y categorías relacionadas.',
       '',
       '### PASO 3: Selección y Priorización',
-      '- De los productos compatibles, prioriza aquellos con stock disponible.',
+      '- De los productos compatibles, prioriza aquellos con stock disponible. Considera que hay disponibilidad si el campo stockDisponible es verdadero o si al menos una talla reporta disponibilidad.',
       '- Si la talla solicitada no está disponible, menciona tallas cercanas si existen e indica que la talla exacta está agotada.',
       '- Selecciona máximo 3-4 productos que mejor se ajusten.',
       '',
@@ -1417,7 +1443,7 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
       '- Nombre comercial del producto.',
       '- Precio en formato S/ XX.XX.',
       '- Tallas disponibles (destaca si la talla solicitada está disponible o agotada).',
-      '- Stock actual.',
+      '- Disponibilidad: afirma "Stock disponible" cuando el producto cuente con inventario y evita mencionar cantidades exactas.',
       '- **RAZÓN ESPECÍFICA**: Explica POR QUÉ este producto es apropiado para la actividad/contexto mencionado apoyándote en la descripción y coincidencias del JSON.',
       '  Ejemplo BUENO: "Ideal para correr bajo lluvia gracias a su suela antideslizante y materiales resistentes al agua."',
       '  Ejemplo MALO: "Buen producto, cómodo y bonito."',
@@ -1434,13 +1460,14 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
       '- Sin IDs o códigos internos.',
       '- Enfocado en el VALOR para el cliente.',
       '- Nunca prometas avisos, reservas ni búsquedas fuera del inventario de Detalles.',
+      '- No reveles cifras exactas de stock; describe solo la disponibilidad.',
       '',
       '### CASOS ESPECIALES',
       '**Si NO hay productos apropiados:**',
-      'Sé honesto: "Lamentablemente no tenemos productos que cumplan exactamente lo que necesitas dentro del catálogo disponible. Podemos revisar opciones cercanas o volver a consultar más adelante."',
+      'Sé honesto: "Lamentablemente no tenemos productos que cumplan exactamente lo que necesitas dentro del catálogo disponible. Podemos revisar opciones cercanas o volver a consultar más adelante." Solo concluye esto después de revisar sinónimos, coincidencias y variaciones relevantes.',
       '',
       '**Si hay productos pero sin stock:**',
-      'Menciona: "Este modelo sería perfecto, pero actualmente aparece sin stock. Podemos ver alternativas similares disponibles o revisar más adelante cuando se reponga."',
+      'Menciona: "Este modelo sería perfecto, pero actualmente aparece sin stock. Podemos ver alternativas similares disponibles o revisar más adelante cuando se reponga." Solo usa este mensaje si stockDisponible es falso y ninguna talla muestra disponibilidad.',
       '',
       '### EJEMPLOS DE RAZONAMIENTO',
       '',
@@ -1472,7 +1499,7 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
     const stock = safeNumber(talla.stockDisponible);
     let stockTexto = 'stock no informado';
     if (stock !== null) {
-      stockTexto = stock <= 0 ? 'sin stock' : `${stock} uds`;
+      stockTexto = stock <= 0 ? 'sin stock' : 'stock disponible';
     }
     return `${talla.talla}: ${precio} (${stockTexto})`;
   }
@@ -1661,7 +1688,7 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
 
       const stockTotal = safeNumber(item?.stockTotal);
       if (stockTotal !== null) {
-        features.push(stockTotal <= 0 ? 'Sin stock general disponible' : `Stock total: ${stockTotal} pares`);
+        features.push(stockTotal <= 0 ? 'Sin stock disponible' : 'Stock disponible');
       }
 
       if (item?.color) {
