@@ -697,6 +697,26 @@
     gap: 4px;
 }
 
+.productos-empty-message {
+    margin: 1rem 0;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #ffe3a3;
+    background-color: #fff7e0;
+    color: #7a4a00;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+.productos-empty-message[hidden] {
+    display: none !important;
+}
+
+#addProductBtn:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
 .igv-toggle-title {
     font-weight: 600;
     color: #1f2937;

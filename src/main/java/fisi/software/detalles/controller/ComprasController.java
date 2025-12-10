@@ -4,9 +4,11 @@ import fisi.software.detalles.controller.dto.CompraRequestDTO;
 import fisi.software.detalles.controller.dto.CompraResponseDTO;
 import fisi.software.detalles.controller.dto.RecepcionCompraRequest;
 import fisi.software.detalles.entity.Producto;
+import fisi.software.detalles.entity.Inventario;
 import fisi.software.detalles.entity.Proveedor;
 import fisi.software.detalles.repository.ProductoRepository;
 import fisi.software.detalles.repository.TipoPagoRepository;
+import fisi.software.detalles.repository.InventarioRepository;
 import fisi.software.detalles.service.CompraService;
 import fisi.software.detalles.service.ProveedorService;
 import fisi.software.detalles.exception.RecepcionInvalidaException;
@@ -17,9 +19,12 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -37,6 +42,7 @@ public class ComprasController {
     private final ProveedorService proveedorService;
     private final ProductoRepository productoRepository;
     private final TipoPagoRepository tipoPagoRepository;
+    private final InventarioRepository inventarioRepository;
 
     /**
      * Muestra la página de gestión de compras
@@ -217,23 +223,33 @@ public class ComprasController {
     @ResponseBody
     public ResponseEntity<?> listarProductosPorProveedor(@PathVariable Integer idProveedor) {
         try {
-            List<Producto> productos = productoRepository.findAll().stream()
-                    .filter(p -> p.getProveedor() != null &&
-                            p.getProveedor().getIdProveedor().equals(idProveedor) &&
-                            p.getEstado())
-                    .collect(Collectors.toList());
+            List<Inventario> inventarios = inventarioRepository
+                    .findByProductoProveedorIdProveedorAndProductoEstadoTrue(idProveedor);
 
-            // Convertir a DTO simplificado para el frontend
-            List<Map<String, Object>> productosDTO = productos.stream()
-                    .map(p -> {
-                        Map<String, Object> dto = new HashMap<>();
-                        dto.put("id", p.getId());
-                        dto.put("nombre", p.getNombre());
-                        dto.put("costoCompra", p.getCostoCompra());
-                        dto.put("precioVenta", p.getPrecioVenta());
-                        return dto;
-                    })
-                    .collect(Collectors.toList());
+            Set<Long> productosIncluidos = new HashSet<>();
+            List<Map<String, Object>> productosDTO = new ArrayList<>();
+
+            for (Inventario inventario : inventarios) {
+                if (inventario == null) {
+                    continue;
+                }
+
+                Producto producto = inventario.getProducto();
+                if (producto == null || producto.getId() == null) {
+                    continue;
+                }
+
+                if (!productosIncluidos.add(producto.getId())) {
+                    continue;
+                }
+
+                Map<String, Object> dto = new HashMap<>();
+                dto.put("id", producto.getId());
+                dto.put("nombre", producto.getNombre());
+                dto.put("costoCompra", producto.getCostoCompra());
+                dto.put("precioVenta", producto.getPrecioVenta());
+                productosDTO.add(dto);
+            }
 
             return ResponseEntity.ok(productosDTO);
         } catch (Exception e) {

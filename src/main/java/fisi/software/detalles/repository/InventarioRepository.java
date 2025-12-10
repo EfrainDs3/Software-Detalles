@@ -33,6 +33,11 @@ public interface InventarioRepository extends JpaRepository<Inventario, Long> {
     List<Inventario> findByAlmacen(Almacen almacen);
 
     /**
+     * Busca inventarios asociados a un proveedor específico considerando solo productos activos
+     */
+    List<Inventario> findByProductoProveedorIdProveedorAndProductoEstadoTrue(Integer idProveedor);
+
+    /**
      * Busca productos con stock bajo (por debajo del mínimo)
      */
     @Query("SELECT i FROM Inventario i WHERE i.cantidadStock <= i.stockMinimo")

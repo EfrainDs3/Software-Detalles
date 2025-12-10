@@ -10,6 +10,7 @@
     const modalTitle = document.getElementById('modalTitle');
     const addProductBtn = document.getElementById('addProductBtn');
     const productosContainer = document.getElementById('productosContainer');
+    const productosEmptyMessage = document.getElementById('productosEmptyMessage');
     const compraTotalSpan = document.getElementById('compraTotal');
     const aplicaIgvToggle = document.getElementById('aplicaIgvToggle');
     const proveedorSearchInput = document.getElementById('proveedorSearchInput');
@@ -67,6 +68,12 @@
     let recepcionDetalleActual = [];
     let recepcionModoActual = 'parcial';
     const unidadesFormatter = new Intl.NumberFormat('es-PE');
+    const MENSAJE_SIN_INVENTARIO = 'Este proveedor no tiene productos registrados en inventario. Registre primero el producto en inventario para poder realizar la compra.';
+    const MENSAJE_ERROR_PRODUCTOS = 'No se pudieron cargar los productos del proveedor. Intenta nuevamente mas tarde.';
+
+    if (aplicaIgvToggle) {
+        aplicaIgvToggle.checked = false;
+    }
 
     // --- Funciones de API ---
 
@@ -118,14 +125,24 @@
 
     async function cargarProductosPorProveedor(idProveedor) {
         try {
+            mostrarMensajeProductos('');
             const response = await fetch(`/compras/api/productos/proveedor/${idProveedor}`);
             if (!response.ok) throw new Error('Error al cargar productos');
 
             productosDelProveedor = await response.json();
+            actualizarDisponibilidadProductos();
             return productosDelProveedor;
         } catch (error) {
             console.error('Error:', error);
-            alert('Error al cargar productos del proveedor');
+            alert(MENSAJE_ERROR_PRODUCTOS);
+            productosDelProveedor = [];
+            actualizarDisponibilidadProductos();
+            if (addProductBtn && proveedorSeleccionado !== null) {
+                addProductBtn.title = MENSAJE_ERROR_PRODUCTOS;
+            }
+            if (proveedorSeleccionado !== null) {
+                mostrarMensajeProductos(MENSAJE_ERROR_PRODUCTOS);
+            }
             return [];
         }
     }
@@ -239,6 +256,45 @@
     function toNumber(value) {
         const parsed = Number(value);
         return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    function mostrarMensajeProductos(mensaje) {
+        if (!productosEmptyMessage) {
+            return;
+        }
+
+        if (mensaje) {
+            productosEmptyMessage.textContent = mensaje;
+            productosEmptyMessage.hidden = false;
+            return;
+        }
+
+        productosEmptyMessage.hidden = true;
+    }
+
+    function actualizarDisponibilidadProductos() {
+        const hayProductos = Array.isArray(productosDelProveedor) && productosDelProveedor.length > 0;
+        const proveedorActivo = proveedorSeleccionado !== null;
+
+        if (addProductBtn) {
+            if (!proveedorActivo) {
+                addProductBtn.disabled = false;
+                addProductBtn.removeAttribute('title');
+            } else if (!hayProductos) {
+                addProductBtn.disabled = true;
+                addProductBtn.title = MENSAJE_SIN_INVENTARIO;
+            } else {
+                addProductBtn.disabled = false;
+                addProductBtn.removeAttribute('title');
+            }
+        }
+
+        if (proveedorActivo && !hayProductos) {
+            mostrarMensajeProductos(MENSAJE_SIN_INVENTARIO);
+            return;
+        }
+
+        mostrarMensajeProductos('');
     }
 
     // --- Componentes de búsqueda ---
@@ -420,6 +476,7 @@
             productosTallasCache = {};
             limpiarProductosAgregados();
             calcularTotales();
+            actualizarDisponibilidadProductos();
         }
     }
 
@@ -441,9 +498,16 @@
 
         compraRucInput.value = proveedor.ruc || '';
         productosTallasCache = {};
+        productosDelProveedor = [];
 
         limpiarProductosAgregados();
         calcularTotales();
+
+        if (addProductBtn) {
+            addProductBtn.disabled = true;
+            addProductBtn.title = 'Cargando productos del proveedor...';
+        }
+        mostrarMensajeProductos('');
 
         await cargarProductosPorProveedor(proveedorSeleccionado);
         closeProveedorDropdown();
@@ -839,9 +903,7 @@
         if (!producto) {
             return '';
         }
-        const costo = Number(producto.costoCompra);
-        const costoTexto = Number.isFinite(costo) ? ` · S/ ${costo.toFixed(2)}` : '';
-        return `${producto.nombre}${costoTexto}`;
+        return producto.nombre || '';
     }
 
     function obtenerMetaProducto(producto) {
@@ -1104,6 +1166,12 @@
             return;
         }
 
+        if (!Array.isArray(productosDelProveedor) || productosDelProveedor.length === 0) {
+            mostrarMensajeProductos(MENSAJE_SIN_INVENTARIO);
+            alert(MENSAJE_SIN_INVENTARIO);
+            return;
+        }
+
         const productoRow = document.createElement('div');
         productoRow.className = 'producto-row';
         productoRow.dataset.index = Date.now();
@@ -1131,9 +1199,9 @@
                     <label>Cantidad</label>
                     <input type="number" class="producto-cantidad" min="1" value="1" required>
                 </div>
-                <div class="form-group">
+                <div class="form-group producto-costo-container">
                     <label>Costo Unitario</label>
-                    <input type="number" class="producto-costo" step="0.01" min="0" required>
+                    <input type="number" class="producto-costo" step="0.01" min="0" required readonly>
                 </div>
                 <div class="producto-actions">
                     <button type="button" class="btn btn-danger btn-remove-producto" title="Eliminar producto">
@@ -1142,7 +1210,7 @@
                 </div>
             </div>
             <div class="producto-secondary-grid">
-                <div class="form-group">
+                <div class="form-group producto-subtotal-container">
                     <label>Subtotal</label>
                     <input type="text" class="producto-subtotal" readonly>
                 </div>
@@ -1192,6 +1260,7 @@
                 }
                 ocultarUITallas(productoRow);
                 costoInput.value = '';
+                delete productoRow.dataset.costoBase;
                 calcularSubtotalProducto(productoRow);
                 return;
             }
@@ -1204,7 +1273,14 @@
             }
 
             const costo = Number(producto.costoCompra);
-            costoInput.value = Number.isFinite(costo) ? costo.toFixed(2) : '';
+            if (Number.isFinite(costo)) {
+                const costoFormateado = costo.toFixed(2);
+                costoInput.value = costoFormateado;
+                productoRow.dataset.costoBase = costoFormateado;
+            } else {
+                costoInput.value = '';
+                delete productoRow.dataset.costoBase;
+            }
 
             if (tallasList) {
                 tallasList.innerHTML = '';
@@ -1239,6 +1315,12 @@
         const tallasContainer = productoRow.querySelector('.tallas-container');
         const cantidadContainer = productoRow.querySelector('.producto-cantidad-container');
         const tallaSelect = productoRow.querySelector('.talla-select');
+        const costoContainer = productoRow.querySelector('.producto-costo-container');
+        const costoInput = productoRow.querySelector('.producto-costo');
+        const subtotalContainer = productoRow.querySelector('.producto-subtotal-container');
+        const productoMainGrid = productoRow.querySelector('.producto-main-grid');
+        const productoSecondaryGrid = productoRow.querySelector('.producto-secondary-grid');
+        const productoActions = productoRow.querySelector('.producto-actions');
 
         // Ocultar input de cantidad normal
         cantidadContainer.style.display = 'none';
@@ -1246,12 +1328,36 @@
         // Mostrar contenedor de tallas
         tallasContainer.style.display = 'block';
 
+        if (costoContainer) {
+            costoContainer.style.display = 'none';
+        }
+        if (costoInput) {
+            costoInput.value = '';
+            costoInput.removeAttribute('required');
+        }
+
+        if (subtotalContainer && productoMainGrid && productoActions) {
+            subtotalContainer.classList.add('subtotal-inline');
+            productoMainGrid.insertBefore(subtotalContainer, productoActions);
+        }
+
+        if (productoSecondaryGrid && productoSecondaryGrid.contains(subtotalContainer)) {
+            productoSecondaryGrid.removeChild(subtotalContainer);
+        }
+
         // Llenar select de tallas
         tallaSelect.innerHTML = '<option value="">Seleccionar talla</option>';
-        tallas.forEach(t => {
+        (tallas || []).forEach(t => {
             const option = document.createElement('option');
             option.value = t.talla;
-            option.textContent = `Talla ${t.talla}`;
+            const costoRaw = t.costoCompra;
+            const costo = (costoRaw !== null && costoRaw !== undefined) ? Number(costoRaw) : NaN;
+            option.textContent = Number.isFinite(costo)
+                ? `Talla ${t.talla} · S/ ${costo.toFixed(2)}`
+                : `Talla ${t.talla}`;
+            if (Number.isFinite(costo)) {
+                option.dataset.costoCompra = costo.toFixed(2);
+            }
             tallaSelect.appendChild(option);
         });
 
@@ -1262,19 +1368,46 @@
     function ocultarUITallas(productoRow) {
         const tallasContainer = productoRow.querySelector('.tallas-container');
         const cantidadContainer = productoRow.querySelector('.producto-cantidad-container');
+        const costoContainer = productoRow.querySelector('.producto-costo-container');
+        const costoInput = productoRow.querySelector('.producto-costo');
+        const subtotalContainer = productoRow.querySelector('.producto-subtotal-container');
+        const productoSecondaryGrid = productoRow.querySelector('.producto-secondary-grid');
 
         cantidadContainer.style.display = 'block';
         tallasContainer.style.display = 'none';
         productoRow.dataset.tieneTallas = 'false';
+
+        if (costoContainer) {
+            costoContainer.style.display = 'block';
+        }
+
+        if (costoInput) {
+            costoInput.required = true;
+            if (!costoInput.value && productoRow.dataset.costoBase) {
+                const costoBase = Number(productoRow.dataset.costoBase);
+                if (Number.isFinite(costoBase)) {
+                    costoInput.value = costoBase.toFixed(2);
+                } else {
+                    costoInput.value = '';
+                }
+            }
+        }
+
+        if (subtotalContainer && productoSecondaryGrid && !productoSecondaryGrid.contains(subtotalContainer)) {
+            subtotalContainer.classList.remove('subtotal-inline');
+            productoSecondaryGrid.appendChild(subtotalContainer);
+        }
+
     }
 
     function agregarTallaAProducto(productoRow) {
         const tallaSelect = productoRow.querySelector('.talla-select');
         const tallaCantidadInput = productoRow.querySelector('.talla-cantidad');
         const tallasList = productoRow.querySelector('.tallas-list');
+        const costoInput = productoRow.querySelector('.producto-costo');
 
         const talla = tallaSelect.value;
-        const cantidad = parseInt(tallaCantidadInput.value);
+        const cantidad = parseInt(tallaCantidadInput.value, 10);
 
         if (!talla) {
             alert('Seleccione una talla');
@@ -1286,14 +1419,25 @@
             return;
         }
 
-        // Crear elemento de talla
+        const optionSeleccionada = tallaSelect.options[tallaSelect.selectedIndex];
+        const costoDesdeOpcion = optionSeleccionada && optionSeleccionada.dataset.costoCompra
+            ? parseFloat(optionSeleccionada.dataset.costoCompra)
+            : NaN;
+        const costoBaseFallback = parseFloat(productoRow.dataset.costoBase || costoInput.value) || 0;
+        const costoUnitario = Number.isFinite(costoDesdeOpcion)
+            ? Number(costoDesdeOpcion.toFixed(2))
+            : Number(costoBaseFallback.toFixed(2));
+
+        const cantidadTexto = cantidad === 1 ? '1 unidad' : `${cantidad} unidades`;
+
         const tallaItem = document.createElement('div');
         tallaItem.className = 'talla-item';
         tallaItem.dataset.talla = talla;
         tallaItem.dataset.cantidad = cantidad;
+        tallaItem.dataset.costo = costoUnitario.toFixed(2);
 
         tallaItem.innerHTML = `
-            <span><strong>Talla ${talla}:</strong> ${cantidad} unidades</span>
+            <span><strong>Talla ${talla}:</strong> ${cantidadTexto} · Precio unitario: S/ ${costoUnitario.toFixed(2)}</span>
             <button type="button" class="btn btn-sm btn-danger btn-remove-talla">
                 <i class="fas fa-times"></i>
             </button>
@@ -1301,30 +1445,34 @@
 
         tallasList.appendChild(tallaItem);
 
-        // Event listener para eliminar
         tallaItem.querySelector('.btn-remove-talla').addEventListener('click', () => {
-            // Volver a agregar la talla al select
+            const costoGuardado = parseFloat(tallaItem.dataset.costo);
             const option = document.createElement('option');
             option.value = talla;
-            option.textContent = `Talla ${talla}`;
+            if (Number.isFinite(costoGuardado)) {
+                option.dataset.costoCompra = costoGuardado.toFixed(2);
+                option.textContent = `Talla ${talla} · S/ ${costoGuardado.toFixed(2)}`;
+            } else {
+                option.textContent = `Talla ${talla}`;
+            }
             tallaSelect.appendChild(option);
 
-            // Eliminar el item
             tallaItem.remove();
             calcularSubtotalProducto(productoRow);
         });
 
-        // Eliminar la talla del select (ya fue seleccionada)
-        const selectedOption = tallaSelect.querySelector(`option[value="${talla}"]`);
-        if (selectedOption) {
-            selectedOption.remove();
+        if (optionSeleccionada) {
+            optionSeleccionada.remove();
+        } else {
+            const optionFallback = tallaSelect.querySelector(`option[value="${talla}"]`);
+            if (optionFallback) {
+                optionFallback.remove();
+            }
         }
 
-        // Limpiar inputs
         tallaSelect.value = '';
         tallaCantidadInput.value = '1';
 
-        // Recalcular subtotal
         calcularSubtotalProducto(productoRow);
     }
 
@@ -1333,21 +1481,26 @@
         const subtotalInput = productoRow.querySelector('.producto-subtotal');
         const tieneTallas = productoRow.dataset.tieneTallas === 'true';
 
-        const costo = parseFloat(costoInput.value) || 0;
+        const costoBase = parseFloat(costoInput.value) || 0;
         let cantidad = 0;
+        let subtotal = 0;
 
         if (tieneTallas) {
             // Sumar cantidades de todas las tallas
             const tallasItems = productoRow.querySelectorAll('.talla-item');
             tallasItems.forEach(item => {
-                cantidad += parseInt(item.dataset.cantidad) || 0;
+                const cantidadTalla = parseInt(item.dataset.cantidad, 10) || 0;
+                const costoTalla = parseFloat(item.dataset.costo);
+                const costoUnitario = Number.isFinite(costoTalla) ? costoTalla : costoBase;
+                cantidad += cantidadTalla;
+                subtotal += costoUnitario * cantidadTalla;
             });
         } else {
             const cantidadInput = productoRow.querySelector('.producto-cantidad');
             cantidad = parseInt(cantidadInput.value) || 0;
+            subtotal = costoBase * cantidad;
         }
 
-        const subtotal = costo * cantidad;
         subtotalInput.value = `S/ ${subtotal.toFixed(2)}`;
 
         calcularTotales();
@@ -1390,8 +1543,8 @@
             if (!productoSelect.value) return;
 
             const detalle = {
-                idProducto: parseInt(productoSelect.value),
-                costoUnitario: parseFloat(costoInput.value),
+                idProducto: parseInt(productoSelect.value, 10),
+                costoUnitario: parseFloat(costoInput.value) || 0,
                 tieneTallas: tieneTallas
             };
 
@@ -1399,21 +1552,33 @@
                 // Recopilar tallas
                 const tallas = [];
                 let cantidadTotal = 0;
+                let subtotalTotal = 0;
 
                 row.querySelectorAll('.talla-item').forEach(item => {
-                    const cantidad = parseInt(item.dataset.cantidad);
+                    const cantidad = parseInt(item.dataset.cantidad, 10);
+                    const costo = parseFloat(item.dataset.costo);
+                    const costoUnitario = Number.isFinite(costo)
+                        ? costo
+                        : parseFloat(row.dataset.costoBase || costoInput.value) || 0;
+                    const subtotal = Number((costoUnitario * cantidad).toFixed(2));
                     tallas.push({
                         talla: item.dataset.talla,
-                        cantidad: cantidad
+                        cantidad: cantidad,
+                        costoUnitario: costoUnitario,
+                        subtotal: subtotal
                     });
                     cantidadTotal += cantidad;
+                    subtotalTotal = Number((subtotalTotal + subtotal).toFixed(2));
                 });
 
                 detalle.cantidad = cantidadTotal;
                 detalle.tallas = tallas;
+                detalle.costoUnitario = cantidadTotal > 0 ? Number((subtotalTotal / cantidadTotal).toFixed(2)) : 0;
+                detalle.subtotal = Number(subtotalTotal.toFixed(2));
             } else {
                 detalle.cantidad = parseInt(cantidadInput.value);
                 detalle.tallas = null;
+                detalle.subtotal = Number((detalle.cantidad * (detalle.costoUnitario || 0)).toFixed(2));
             }
 
             detalles.push(detalle);
@@ -1535,6 +1700,8 @@
         }
     }
 
+    actualizarDisponibilidadProductos();
+
     // --- Event Listeners ---
 
     if (proveedorSearchInput) {
@@ -1642,8 +1809,11 @@
             rebuildProveedorSearchResults();
         }
 
+        mostrarMensajeProductos('');
+        actualizarDisponibilidadProductos();
+
         if (aplicaIgvToggle) {
-            aplicaIgvToggle.checked = true;
+            aplicaIgvToggle.checked = false;
         }
 
         // Establecer fecha actual
