@@ -113,9 +113,13 @@
                                        autocomplete="off">
                                 <ul class="searchable-options" id="proveedorSearchResults"></ul>
                             </div>
-                            <select id="compraProveedor" name="proveedor" required hidden>
+                            <select id="compraProveedor" name="proveedor" hidden>
                                 <option value="">Seleccionar proveedor</option>
                             </select>
+                            <div class="form-error-chip" id="proveedorErrorMessage" role="alert" hidden>
+                                <span class="form-error-chip-icon"><i class="fas fa-circle-exclamation"></i></span>
+                                <span class="form-error-chip-text" id="proveedorErrorMessageText">Debe seleccionar un proveedor.</span>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="compraRuc">RUC del Proveedor</label>
@@ -129,13 +133,13 @@
                         </div>
                         <div class="form-group">
                             <label for="compraFechaEntrega">Fecha Entrega Esperada</label>
-                            <input type="date" id="compraFechaEntrega" name="fechaEntrega">
+                            <input type="date" id="compraFechaEntrega" name="fechaEntrega" required>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="compraTipoPago">Método de Pago</label>
-                            <select id="compraTipoPago" name="tipoPago">
+                            <select id="compraTipoPago" name="tipoPago" required>
                                 <option value="">Seleccionar método</option>
                             </select>
                         </div>
@@ -339,6 +343,24 @@
                     <i class="fas fa-truck-loading"></i>
                     Registrar recepción
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+    <div id="confirmModal" class="modal confirm-modal" hidden>
+        <div class="modal-content confirm-modal-content">
+            <div class="confirm-icon" id="confirmIcon">
+                <i class="fas fa-triangle-exclamation"></i>
+            </div>
+            <div class="confirm-body">
+                <h3 id="confirmTitle">Confirmar acción</h3>
+                <p id="confirmMessage"></p>
+                <div class="confirm-actions">
+                    <button type="button" class="btn btn-secondary" id="confirmCancelBtn">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="confirmAcceptBtn">Aceptar</button>
+                </div>
             </div>
         </div>
     </div>

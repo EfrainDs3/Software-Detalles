@@ -13,9 +13,18 @@
     const productosEmptyMessage = document.getElementById('productosEmptyMessage');
     const compraTotalSpan = document.getElementById('compraTotal');
     const aplicaIgvToggle = document.getElementById('aplicaIgvToggle');
+    const toastContainer = document.getElementById('toastContainer');
+    const confirmModal = document.getElementById('confirmModal');
+    const confirmTitle = document.getElementById('confirmTitle');
+    const confirmMessage = document.getElementById('confirmMessage');
+    const confirmAcceptBtn = document.getElementById('confirmAcceptBtn');
+    const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+    const confirmIcon = document.getElementById('confirmIcon');
     const proveedorSearchInput = document.getElementById('proveedorSearchInput');
     const proveedorSearchResults = document.getElementById('proveedorSearchResults');
     const proveedorSelectContainer = document.getElementById('proveedorSelectContainer');
+    const proveedorErrorMessage = document.getElementById('proveedorErrorMessage');
+    const proveedorErrorMessageText = document.getElementById('proveedorErrorMessageText');
 
     // Referencias de los campos del formulario
     const compraIdInput = document.getElementById('compraId');
@@ -25,6 +34,7 @@
     const compraFechaEntregaInput = document.getElementById('compraFechaEntrega');
     const compraSubtotalSpan = document.getElementById('compraSubtotal');
     const compraIgvSpan = document.getElementById('compraIgv');
+    const compraTipoPagoSelect = document.getElementById('compraTipoPago');
 
     // Modal de detalle
     const detalleCompraModal = document.getElementById('detalleCompraModal');
@@ -70,6 +80,15 @@
     const unidadesFormatter = new Intl.NumberFormat('es-PE');
     const MENSAJE_SIN_INVENTARIO = 'Este proveedor no tiene productos registrados en inventario. Registre primero el producto en inventario para poder realizar la compra.';
     const MENSAJE_ERROR_PRODUCTOS = 'No se pudieron cargar los productos del proveedor. Intenta nuevamente mas tarde.';
+    const MENSAJE_PROVEEDOR_OBLIGATORIO = 'Debe seleccionar un proveedor.';
+    const TOAST_TYPES = {
+        success: { icon: 'fa-circle-check', title: 'Éxito' },
+        error: { icon: 'fa-circle-xmark', title: 'Error' },
+        warning: { icon: 'fa-triangle-exclamation', title: 'Atención' },
+        info: { icon: 'fa-circle-info', title: 'Información' }
+    };
+    let confirmResolve = null;
+    let confirmKeyListener = null;
 
     if (aplicaIgvToggle) {
         aplicaIgvToggle.checked = false;
@@ -99,7 +118,7 @@
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('Error al cargar proveedores');
+            mostrarNotificacion({ tipo: 'error', mensaje: 'Error al cargar proveedores' });
         }
     }
 
@@ -109,14 +128,16 @@
             if (!response.ok) throw new Error('Error al cargar tipos de pago');
 
             const tiposPago = await response.json();
-            const tipoPagoSelect = document.getElementById('compraTipoPago');
+            if (!compraTipoPagoSelect) {
+                return;
+            }
 
-            tipoPagoSelect.innerHTML = '<option value="">Seleccionar método</option>';
+            compraTipoPagoSelect.innerHTML = '<option value="">Seleccionar método</option>';
             tiposPago.forEach(tipo => {
                 const option = document.createElement('option');
                 option.value = tipo.id;
                 option.textContent = tipo.nombre;
-                tipoPagoSelect.appendChild(option);
+                compraTipoPagoSelect.appendChild(option);
             });
         } catch (error) {
             console.error('Error:', error);
@@ -134,7 +155,7 @@
             return productosDelProveedor;
         } catch (error) {
             console.error('Error:', error);
-            alert(MENSAJE_ERROR_PRODUCTOS);
+            mostrarNotificacion({ tipo: 'error', mensaje: MENSAJE_ERROR_PRODUCTOS });
             productosDelProveedor = [];
             actualizarDisponibilidadProductos();
             if (addProductBtn && proveedorSeleccionado !== null) {
@@ -175,7 +196,7 @@
             renderCompras(compras);
         } catch (error) {
             console.error('Error:', error);
-            alert('Error al cargar compras');
+            mostrarNotificacion({ tipo: 'error', mensaje: 'Error al cargar compras' });
         }
     }
 
@@ -256,6 +277,240 @@
     function toNumber(value) {
         const parsed = Number(value);
         return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    function mostrarErrorProveedor(mensaje) {
+        if (!proveedorErrorMessage) {
+            return;
+        }
+        if (proveedorErrorMessageText) {
+            proveedorErrorMessageText.textContent = mensaje || MENSAJE_PROVEEDOR_OBLIGATORIO;
+        }
+        proveedorErrorMessage.hidden = false;
+    }
+
+    function ocultarErrorProveedor() {
+        if (!proveedorErrorMessage) {
+            return;
+        }
+        proveedorErrorMessage.hidden = true;
+    }
+
+    function getTodayDate() {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return today;
+    }
+
+    function formatDateISO(date) {
+        if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+            return '';
+        }
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    function parseDateInput(value) {
+        if (!value) {
+            return null;
+        }
+        const [year, month, day] = value.split('-').map(Number);
+        if ([year, month, day].some(Number.isNaN)) {
+            return null;
+        }
+        const date = new Date(year, month - 1, day);
+        date.setHours(0, 0, 0, 0);
+        return date;
+    }
+
+    function actualizarRestriccionesFechas() {
+        if (!compraFechaPedidoInput || !compraFechaEntregaInput) {
+            return;
+        }
+
+        const today = getTodayDate();
+        const todayISO = formatDateISO(today);
+        compraFechaPedidoInput.min = todayISO;
+
+        const pedidoDate = parseDateInput(compraFechaPedidoInput.value) || today;
+        const minEntregaDate = pedidoDate > today ? pedidoDate : today;
+        compraFechaEntregaInput.min = formatDateISO(minEntregaDate);
+
+        const entregaDate = parseDateInput(compraFechaEntregaInput.value);
+        if (entregaDate && entregaDate < minEntregaDate) {
+            compraFechaEntregaInput.value = formatDateISO(minEntregaDate);
+        }
+    }
+
+    function cerrarToast(toast) {
+        if (!toast) {
+            return;
+        }
+        toast.classList.remove('toast--visible');
+        toast.classList.add('toast--closing');
+        toast.addEventListener('transitionend', () => toast.remove(), { once: true });
+    }
+
+    function mostrarNotificacion(opciones) {
+        const config = typeof opciones === 'string' ? { mensaje: opciones } : { ...opciones };
+        const tipo = TOAST_TYPES[config.tipo] ? config.tipo : 'info';
+        const titulo = config.titulo || TOAST_TYPES[tipo].title;
+        const mensaje = config.mensaje || '';
+        const duracion = Number.isFinite(config.duracion) && config.duracion > 0 ? config.duracion : 5000;
+        const persistente = Boolean(config.persistente);
+
+        if (!toastContainer) {
+            window.alert(mensaje);
+            return;
+        }
+
+        const toast = document.createElement('div');
+        toast.className = `toast toast--${tipo}`;
+        toast.style.setProperty('--toast-duration', `${duracion}ms`);
+
+        const iconSpan = document.createElement('span');
+        iconSpan.className = 'toast-icon';
+        iconSpan.innerHTML = `<i class="fas ${TOAST_TYPES[tipo].icon}"></i>`;
+        toast.appendChild(iconSpan);
+
+        const contentWrapper = document.createElement('div');
+        contentWrapper.className = 'toast-content';
+        const titleEl = document.createElement('span');
+        titleEl.className = 'toast-title';
+        titleEl.textContent = titulo;
+        const messageEl = document.createElement('span');
+        messageEl.className = 'toast-message';
+        messageEl.textContent = mensaje;
+        contentWrapper.append(titleEl, messageEl);
+        toast.appendChild(contentWrapper);
+
+        const closeBtn = document.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.className = 'toast-close';
+        closeBtn.setAttribute('aria-label', 'Cerrar notificación');
+        closeBtn.innerHTML = '<i class="fas fa-times"></i>';
+        toast.appendChild(closeBtn);
+
+        if (!persistente) {
+            const progress = document.createElement('span');
+            progress.className = 'toast-progress';
+            toast.appendChild(progress);
+        } else {
+            toast.classList.add('toast--persistent');
+        }
+
+        toastContainer.prepend(toast);
+
+        requestAnimationFrame(() => {
+            toast.classList.add('toast--visible');
+        });
+
+        let timeoutId = null;
+        if (!persistente) {
+            timeoutId = setTimeout(() => cerrarToast(toast), duracion);
+        }
+
+        closeBtn.addEventListener('click', () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+            cerrarToast(toast);
+        });
+    }
+
+    function actualizarClaseConfirmacion(tipo) {
+        if (!confirmModal) {
+            return 'info';
+        }
+        const tipos = ['success', 'error', 'warning', 'info'];
+        const tipoValido = TOAST_TYPES[tipo] ? tipo : 'info';
+        confirmModal.classList.remove(...tipos.map(t => `confirm-modal--${t}`));
+        confirmModal.classList.add(`confirm-modal--${tipoValido}`);
+        if (confirmIcon) {
+            confirmIcon.innerHTML = `<i class="fas ${TOAST_TYPES[tipoValido].icon}"></i>`;
+        }
+        return tipoValido;
+    }
+
+    function cerrarConfirmacion(resultado) {
+        if (confirmModal) {
+            confirmModal.style.display = 'none';
+            confirmModal.setAttribute('hidden', '');
+        }
+        if (confirmKeyListener) {
+            document.removeEventListener('keydown', confirmKeyListener);
+            confirmKeyListener = null;
+        }
+        const resolver = confirmResolve;
+        confirmResolve = null;
+        if (typeof resolver === 'function') {
+            resolver(Boolean(resultado));
+        }
+    }
+
+    function manejarConfirmKeydown(event) {
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            cerrarConfirmacion(false);
+        } else if (event.key === 'Enter') {
+            event.preventDefault();
+            cerrarConfirmacion(true);
+        }
+    }
+
+    function mostrarConfirmacion(opciones = {}) {
+        const {
+            mensaje = '',
+            titulo = 'Confirmar acción',
+            tipo = 'warning',
+            textoConfirmar = 'Aceptar',
+            textoCancelar = 'Cancelar'
+        } = opciones;
+
+        if (!confirmModal || !confirmTitle || !confirmMessage || !confirmAcceptBtn || !confirmCancelBtn) {
+            const fallback = window.confirm(mensaje || titulo);
+            return Promise.resolve(fallback);
+        }
+
+        actualizarClaseConfirmacion(tipo);
+        confirmTitle.textContent = titulo;
+        confirmMessage.textContent = mensaje;
+        confirmAcceptBtn.textContent = textoConfirmar;
+        confirmCancelBtn.textContent = textoCancelar;
+
+        confirmModal.removeAttribute('hidden');
+        confirmModal.style.display = 'flex';
+
+        if (confirmKeyListener) {
+            document.removeEventListener('keydown', confirmKeyListener);
+        }
+        confirmKeyListener = manejarConfirmKeydown;
+        document.addEventListener('keydown', confirmKeyListener);
+
+        return new Promise(resolve => {
+            confirmResolve = resolve;
+            setTimeout(() => {
+                confirmAcceptBtn.focus();
+            }, 50);
+        });
+    }
+
+    if (confirmAcceptBtn) {
+        confirmAcceptBtn.addEventListener('click', () => cerrarConfirmacion(true));
+    }
+
+    if (confirmCancelBtn) {
+        confirmCancelBtn.addEventListener('click', () => cerrarConfirmacion(false));
+    }
+
+    if (confirmModal) {
+        confirmModal.addEventListener('click', (event) => {
+            if (event.target === confirmModal) {
+                cerrarConfirmacion(false);
+            }
+        });
     }
 
     function mostrarMensajeProductos(mensaje) {
@@ -478,6 +733,7 @@
             calcularTotales();
             actualizarDisponibilidadProductos();
         }
+        ocultarErrorProveedor();
     }
 
     async function manejarProveedorSeleccion(proveedor) {
@@ -508,6 +764,7 @@
             addProductBtn.title = 'Cargando productos del proveedor...';
         }
         mostrarMensajeProductos('');
+        ocultarErrorProveedor();
 
         await cargarProductosPorProveedor(proveedorSeleccionado);
         closeProveedorDropdown();
@@ -832,7 +1089,7 @@
             recepcionModal.style.display = 'block';
         } catch (error) {
             console.error('Error:', error);
-            alert(error.message || 'Error al cargar la compra');
+            mostrarNotificacion({ tipo: 'error', mensaje: error.message || 'Error al cargar la compra' });
         }
     }
 
@@ -858,12 +1115,18 @@
         const payload = construirPayloadRecepcion();
 
         if (payload.detalles.length === 0) {
-            alert('Debe ingresar al menos una cantidad para registrar la recepción.');
+            mostrarNotificacion({ tipo: 'warning', mensaje: 'Debe ingresar al menos una cantidad para registrar la recepción.' });
             return;
         }
 
         if (recepcionModoActual === 'total') {
-            const confirmar = confirm('Se registrará la recepción total de los pendientes. ¿Desea continuar?');
+            const confirmar = await mostrarConfirmacion({
+                mensaje: 'Se registrará la recepción total de los pendientes. ¿Desea continuar?',
+                titulo: 'Confirmar recepción total',
+                tipo: 'warning',
+                textoConfirmar: 'Recibir todo',
+                textoCancelar: 'Volver'
+            });
             if (!confirmar) {
                 return;
             }
@@ -886,12 +1149,12 @@
             }
 
             await response.json();
-            alert('Recepción registrada exitosamente');
+            mostrarNotificacion({ tipo: 'success', mensaje: 'Recepción registrada exitosamente' });
             cerrarRecepcionModal();
             cargarCompras();
         } catch (error) {
             console.error('Error:', error);
-            alert(error.message || 'Error al registrar la recepción');
+            mostrarNotificacion({ tipo: 'error', mensaje: error.message || 'Error al registrar la recepción' });
         } finally {
             confirmRecepcionBtn.disabled = false;
         }
@@ -1162,13 +1425,13 @@
 
     async function agregarProducto() {
         if (!proveedorSeleccionado) {
-            alert('Primero seleccione un proveedor');
+            mostrarNotificacion({ tipo: 'warning', mensaje: 'Primero seleccione un proveedor' });
             return;
         }
 
         if (!Array.isArray(productosDelProveedor) || productosDelProveedor.length === 0) {
             mostrarMensajeProductos(MENSAJE_SIN_INVENTARIO);
-            alert(MENSAJE_SIN_INVENTARIO);
+            mostrarNotificacion({ tipo: 'warning', mensaje: MENSAJE_SIN_INVENTARIO });
             return;
         }
 
@@ -1410,12 +1673,12 @@
         const cantidad = parseInt(tallaCantidadInput.value, 10);
 
         if (!talla) {
-            alert('Seleccione una talla');
+            mostrarNotificacion({ tipo: 'warning', mensaje: 'Seleccione una talla' });
             return;
         }
 
         if (!cantidad || cantidad <= 0) {
-            alert('Ingrese una cantidad válida');
+            mostrarNotificacion({ tipo: 'warning', mensaje: 'Ingrese una cantidad válida' });
             return;
         }
 
@@ -1584,14 +1847,14 @@
             detalles.push(detalle);
         });
 
-        const tipoPagoSelect = document.getElementById('compraTipoPago');
         const referenciaInput = document.getElementById('compraReferencia');
         const observacionesInput = document.getElementById('compraObservaciones');
 
         return {
             idProveedor: parseInt(compraProveedorSelect.value),
+            fechaPedido: compraFechaPedidoInput.value,
             fechaEntregaEsperada: compraFechaEntregaInput.value,
-            idTipoPago: tipoPagoSelect.value ? parseInt(tipoPagoSelect.value) : null,
+            idTipoPago: compraTipoPagoSelect && compraTipoPagoSelect.value ? parseInt(compraTipoPagoSelect.value, 10) : null,
             referencia: referenciaInput.value || null,
             observaciones: observacionesInput.value || null,
             detalles: detalles,
@@ -1642,67 +1905,65 @@
             // Renderizar productos
             detalleProductosTableBody.innerHTML = '';
             compra.detalles.forEach(detalle => {
-                if (detalle.tieneTallas && detalle.tallas && detalle.tallas.length > 0) {
-                    // Producto con tallas - mostrar tabla expandida
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td colspan="5">
-                            <strong>${detalle.nombreProducto}</strong>
-                            <table class="table table-sm table-bordered mt-2 mb-0">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Talla</th>
-                                        <th>Cant. Pedida</th>
-                                        <th>Cant. Recibida</th>
-                                        <th>Costo Unit.</th>
-                                        <th>Subtotal</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${detalle.tallas.map(t => `
-                                        <tr>
-                                            <td>${t.talla}</td>
-                                            <td>${t.cantidad}</td>
-                                            <td>${t.cantidadRecibida}</td>
-                                            <td>S/ ${t.costoUnitario.toFixed(2)}</td>
-                                            <td>S/ ${t.subtotal.toFixed(2)}</td>
-                                        </tr>
-                                    `).join('')}
-                                    <tr class="table-secondary">
-                                        <td><strong>TOTAL</strong></td>
-                                        <td><strong>${detalle.cantidad}</strong></td>
-                                        <td><strong>${detalle.cantidadRecibida}</strong></td>
-                                        <td></td>
-                                        <td><strong>S/ ${detalle.subtotal.toFixed(2)}</strong></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </td>
+                const tieneTallas = detalle.tieneTallas && Array.isArray(detalle.tallas) && detalle.tallas.length > 0;
+
+                if (tieneTallas) {
+                    const totalRow = document.createElement('tr');
+                    totalRow.className = 'detalle-producto-con-tallas';
+                    totalRow.innerHTML = `
+                        <td><strong>${detalle.nombreProducto}</strong></td>
+                        <td><strong>${detalle.cantidad}</strong></td>
+                        <td><strong>${detalle.cantidadRecibida}</strong></td>
+                        <td class="detalle-costounitario-total">-</td>
+                        <td><strong>S/ ${(Number(detalle.subtotal) || 0).toFixed(2)}</strong></td>
                     `;
-                    detalleProductosTableBody.appendChild(row);
-                } else {
-                    // Producto sin tallas - fila normal
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${detalle.nombreProducto}</td>
-                        <td>${detalle.cantidad}</td>
-                        <td>${detalle.cantidadRecibida}</td>
-                        <td>S/ ${detalle.costoUnitario.toFixed(2)}</td>
-                        <td>S/ ${detalle.subtotal.toFixed(2)}</td>
-                    `;
-                    detalleProductosTableBody.appendChild(row);
+                    detalleProductosTableBody.appendChild(totalRow);
+
+                    detalle.tallas.forEach(talla => {
+                        const subRow = document.createElement('tr');
+                        subRow.className = 'detalle-producto-talla';
+                        subRow.innerHTML = `
+                            <td><span class="detalle-talla-label">Talla ${talla.talla}</span></td>
+                            <td>${Number(talla.cantidad || 0)}</td>
+                            <td>${Number(talla.cantidadRecibida || 0)}</td>
+                            <td>S/ ${(Number(talla.costoUnitario) || 0).toFixed(2)}</td>
+                            <td>S/ ${(Number(talla.subtotal) || 0).toFixed(2)}</td>
+                        `;
+                        detalleProductosTableBody.appendChild(subRow);
+                    });
+
+                    return;
                 }
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${detalle.nombreProducto}</td>
+                    <td>${detalle.cantidad}</td>
+                    <td>${detalle.cantidadRecibida}</td>
+                    <td>S/ ${(Number(detalle.costoUnitario) || 0).toFixed(2)}</td>
+                    <td>S/ ${(Number(detalle.subtotal) || 0).toFixed(2)}</td>
+                `;
+                detalleProductosTableBody.appendChild(row);
             });
 
             detalleCompraModal.style.display = 'block';
         } catch (error) {
-            alert('Error al cargar el detalle de la compra');
+            mostrarNotificacion({ tipo: 'error', mensaje: 'Error al cargar el detalle de la compra' });
         }
     }
 
     actualizarDisponibilidadProductos();
+    actualizarRestriccionesFechas();
 
     // --- Event Listeners ---
+
+    if (compraFechaPedidoInput) {
+        compraFechaPedidoInput.addEventListener('change', actualizarRestriccionesFechas);
+    }
+
+    if (compraFechaEntregaInput) {
+        compraFechaEntregaInput.addEventListener('change', actualizarRestriccionesFechas);
+    }
 
     if (proveedorSearchInput) {
         proveedorSearchInput.addEventListener('focus', () => {
@@ -1817,8 +2078,20 @@
         }
 
         // Establecer fecha actual
-        const hoy = new Date().toISOString().split('T')[0];
-        compraFechaPedidoInput.value = hoy;
+        const hoyDate = getTodayDate();
+        const hoyISO = formatDateISO(hoyDate);
+        if (compraFechaPedidoInput) {
+            compraFechaPedidoInput.value = hoyISO;
+        }
+        if (compraFechaEntregaInput) {
+            compraFechaEntregaInput.value = hoyISO;
+        }
+        if (compraTipoPagoSelect) {
+            compraTipoPagoSelect.value = '';
+        }
+
+        actualizarRestriccionesFechas();
+        ocultarErrorProveedor();
 
         calcularTotales();
         compraModal.style.display = 'block';
@@ -1858,33 +2131,73 @@
     compraForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        if (!compraProveedorSelect.value) {
-            alert('Debe seleccionar un proveedor');
+        if (!proveedorSeleccionado || !compraProveedorSelect.value) {
+            mostrarNotificacion({ tipo: 'warning', mensaje: 'Debe seleccionar un proveedor' });
+            mostrarErrorProveedor(MENSAJE_PROVEEDOR_OBLIGATORIO);
+            if (proveedorSearchInput) {
+                proveedorSearchInput.focus();
+            }
+            return;
+        }
+
+        const hoyDate = getTodayDate();
+        const fechaPedidoValor = compraFechaPedidoInput ? compraFechaPedidoInput.value : '';
+        const fechaEntregaValor = compraFechaEntregaInput ? compraFechaEntregaInput.value : '';
+        const fechaPedidoDate = parseDateInput(fechaPedidoValor);
+        const fechaEntregaDate = parseDateInput(fechaEntregaValor);
+
+        if (!fechaPedidoDate) {
+            mostrarNotificacion({ tipo: 'warning', mensaje: 'Debe ingresar una fecha de pedido válida' });
+            return;
+        }
+
+        if (fechaPedidoDate < hoyDate) {
+            mostrarNotificacion({ tipo: 'warning', mensaje: 'La fecha de pedido no puede ser anterior a la fecha actual' });
+            return;
+        }
+
+        if (!fechaEntregaDate) {
+            mostrarNotificacion({ tipo: 'warning', mensaje: 'Debe ingresar una fecha de entrega válida' });
+            return;
+        }
+
+        if (fechaEntregaDate < hoyDate) {
+            mostrarNotificacion({ tipo: 'warning', mensaje: 'La fecha de entrega no puede ser anterior a la fecha actual' });
+            return;
+        }
+
+        if (fechaEntregaDate < fechaPedidoDate) {
+            mostrarNotificacion({ tipo: 'warning', mensaje: 'La fecha de entrega no puede ser anterior a la fecha de pedido' });
+            return;
+        }
+
+        if (!compraTipoPagoSelect || !compraTipoPagoSelect.value) {
+            mostrarNotificacion({ tipo: 'warning', mensaje: 'Debe seleccionar un método de pago' });
             return;
         }
 
         const compraData = recopilarDatosCompra();
 
         if (compraData.detalles.length === 0) {
-            alert('Debe agregar al menos un producto');
+            mostrarNotificacion({ tipo: 'warning', mensaje: 'Debe agregar al menos un producto' });
             return;
         }
 
         // Validar que productos con tallas tengan al menos una talla
         for (const detalle of compraData.detalles) {
             if (detalle.tieneTallas && (!detalle.tallas || detalle.tallas.length === 0)) {
-                alert('Debe agregar al menos una talla para los productos que las requieren');
+                mostrarNotificacion({ tipo: 'warning', mensaje: 'Debe agregar al menos una talla para los productos que las requieren' });
                 return;
             }
         }
 
         try {
             await guardarCompra(compraData);
-            alert('Compra registrada exitosamente');
+            mostrarNotificacion({ tipo: 'success', mensaje: 'Compra registrada exitosamente' });
             compraModal.style.display = 'none';
             cargarCompras();
         } catch (error) {
-            alert(error.message || 'Error al guardar la compra');
+            mostrarNotificacion({ tipo: 'error', mensaje: error.message || 'Error al guardar la compra' });
         }
     });
 
@@ -1896,16 +2209,24 @@
         recepcionarCompra: abrirRecepcionModal,
 
         anular: async (idCompra) => {
-            if (!confirm('¿Está seguro de anular esta compra?')) {
+            const confirmado = await mostrarConfirmacion({
+                mensaje: '¿Está seguro de anular esta compra?',
+                titulo: 'Confirmar anulación',
+                tipo: 'warning',
+                textoConfirmar: 'Anular',
+                textoCancelar: 'Mantener'
+            });
+
+            if (!confirmado) {
                 return;
             }
 
             try {
                 await anularCompra(idCompra);
-                alert('Compra anulada exitosamente');
+                mostrarNotificacion({ tipo: 'success', mensaje: 'Compra anulada exitosamente' });
                 cargarCompras();
             } catch (error) {
-                alert(error.message || 'Error al anular la compra');
+                mostrarNotificacion({ tipo: 'error', mensaje: error.message || 'Error al anular la compra' });
             }
         }
     };

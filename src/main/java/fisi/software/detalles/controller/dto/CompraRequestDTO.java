@@ -7,6 +7,7 @@ import java.util.List;
 public class CompraRequestDTO {
 
     private Integer idProveedor;
+    private LocalDate fechaPedido;
     private LocalDate fechaEntregaEsperada;
     private Integer idTipoPago;
     private String referencia;
@@ -32,6 +33,14 @@ public class CompraRequestDTO {
 
     public void setIdProveedor(Integer idProveedor) {
         this.idProveedor = idProveedor;
+    }
+
+    public LocalDate getFechaPedido() {
+        return fechaPedido;
+    }
+
+    public void setFechaPedido(LocalDate fechaPedido) {
+        this.fechaPedido = fechaPedido;
     }
 
     public LocalDate getFechaEntregaEsperada() {

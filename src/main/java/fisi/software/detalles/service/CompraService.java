@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +48,7 @@ public class CompraService {
      * Listar todas las compras
      */
     public List<CompraResponseDTO> listarCompras() {
-        return pedidoCompraRepository.findAllByOrderByFechaPedidoDesc().stream()
+        return pedidoCompraRepository.findAllByOrderByIdPedidoCompraAsc().stream()
                 .map(this::convertirAResponseDTO)
                 .collect(Collectors.toList());
     }
@@ -65,6 +66,42 @@ public class CompraService {
      * Crear nueva compra
      */
     public CompraResponseDTO crearCompra(CompraRequestDTO request, Integer idUsuario) {
+        if (request == null) {
+            throw new RuntimeException("Solicitud de compra inválida");
+        }
+
+        if (request.getIdProveedor() == null) {
+            throw new RuntimeException("Debe seleccionar un proveedor");
+        }
+
+        LocalDate fechaPedido = request.getFechaPedido();
+        LocalDate fechaEntrega = request.getFechaEntregaEsperada();
+        LocalDate hoy = LocalDate.now();
+
+        if (fechaPedido == null) {
+            throw new RuntimeException("La fecha de pedido es obligatoria");
+        }
+
+        if (fechaPedido.isBefore(hoy)) {
+            throw new RuntimeException("La fecha de pedido no puede ser anterior a la fecha actual");
+        }
+
+        if (fechaEntrega == null) {
+            throw new RuntimeException("La fecha de entrega es obligatoria");
+        }
+
+        if (fechaEntrega.isBefore(hoy)) {
+            throw new RuntimeException("La fecha de entrega no puede ser anterior a la fecha actual");
+        }
+
+        if (fechaEntrega.isBefore(fechaPedido)) {
+            throw new RuntimeException("La fecha de entrega no puede ser anterior a la fecha de pedido");
+        }
+
+        if (request.getIdTipoPago() == null) {
+            throw new RuntimeException("Debe seleccionar un método de pago");
+        }
+
         // Validar proveedor
         Proveedor proveedor = proveedorRepository.findById(request.getIdProveedor())
                 .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));
@@ -83,15 +120,15 @@ public class CompraService {
         }
 
         // Crear pedido
-        PedidoCompra pedido = new PedidoCompra(proveedor, usuario, request.getFechaEntregaEsperada());
+        PedidoCompra pedido = new PedidoCompra(proveedor, usuario, fechaEntrega);
+        pedido.setFechaPedido(fechaPedido.atStartOfDay());
+        pedido.setFechaEntregaEsperada(fechaEntrega);
         pedido.setAplicaIgv(request.getAplicaIgv() != null ? request.getAplicaIgv() : Boolean.TRUE);
 
         // Asignar campos opcionales
-        if (request.getIdTipoPago() != null) {
-            TipoPago tipoPago = tipoPagoRepository.findById(request.getIdTipoPago())
-                    .orElse(null);
-            pedido.setTipoPago(tipoPago);
-        }
+        TipoPago tipoPago = tipoPagoRepository.findById(request.getIdTipoPago())
+            .orElseThrow(() -> new RuntimeException("Método de pago no válido"));
+        pedido.setTipoPago(tipoPago);
         pedido.setReferencia(request.getReferencia());
         pedido.setObservaciones(request.getObservaciones());
 

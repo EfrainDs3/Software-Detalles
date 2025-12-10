@@ -717,6 +717,297 @@
     opacity: 0.6;
 }
 
+.toast-container {
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    z-index: 1500;
+    pointer-events: none;
+}
+
+.toast {
+    position: relative;
+    min-width: 320px;
+    max-width: 360px;
+    padding: 1rem 1.25rem 1rem 1rem;
+    border-radius: 12px;
+    background-color: #ffffff;
+    box-shadow: 0 18px 40px -25px rgba(15, 23, 42, 0.75);
+    border-left: 4px solid #2563eb;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    transform: translateX(24px);
+    opacity: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    pointer-events: auto;
+}
+
+.toast--visible {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.toast--closing {
+    transform: translateX(24px);
+    opacity: 0;
+}
+
+.toast-icon {
+    font-size: 1.5rem;
+    line-height: 1;
+    margin-top: 0.1rem;
+}
+
+.toast-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.toast-title {
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.toast-message {
+    color: #475569;
+    font-size: 0.95rem;
+}
+
+.toast-close {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-left: 0.5rem;
+    transition: color 0.2s ease;
+}
+
+.toast-close:hover {
+    color: #1e293b;
+}
+
+.toast-progress {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 3px;
+    width: 100%;
+    background: var(--toast-progress-color, #2563eb);
+    transform-origin: left;
+    animation: toast-progress var(--toast-duration, 5000ms) linear forwards;
+    border-radius: 0 0 12px 12px;
+}
+
+.toast--persistent .toast-progress {
+    display: none;
+}
+
+.toast--success {
+    border-left-color: #2e7d32;
+    --toast-progress-color: #2e7d32;
+}
+
+.toast--success .toast-icon {
+    color: #2e7d32;
+}
+
+.toast--error {
+    border-left-color: #c62828;
+    --toast-progress-color: #c62828;
+}
+
+.toast--error .toast-icon {
+    color: #c62828;
+}
+
+.toast--warning {
+    border-left-color: #d97706;
+    --toast-progress-color: #d97706;
+}
+
+.toast--warning .toast-icon {
+    color: #d97706;
+}
+
+.toast--info {
+    border-left-color: #2563eb;
+    --toast-progress-color: #2563eb;
+}
+
+.toast--info .toast-icon {
+    color: #2563eb;
+}
+
+.form-error-chip {
+    margin-top: 0.5rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 10px;
+    border: 1px solid #fca5a5;
+    background-color: #fef2f2;
+    color: #b91c1c;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    box-shadow: 0 8px 18px -14px rgba(185, 28, 28, 0.65);
+}
+
+.form-error-chip[hidden] {
+    display: none !important;
+}
+
+.form-error-chip-icon {
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.form-error-chip-text {
+    flex: 1;
+    line-height: 1.4;
+}
+
+@keyframes toast-progress {
+    from {
+        transform: scaleX(1);
+    }
+    to {
+        transform: scaleX(0);
+    }
+}
+
+.confirm-modal {
+    z-index: 1200;
+    justify-content: center;
+    align-items: center;
+    padding: 1.5rem;
+}
+
+.confirm-modal[hidden] {
+    display: none;
+}
+
+.confirm-modal .modal-content {
+    max-width: 460px;
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.confirm-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    background: #e8f0fe;
+    color: #2563eb;
+    flex-shrink: 0;
+}
+
+.confirm-body h3 {
+    margin: 0 0 0.5rem;
+    color: #0f172a;
+    font-size: 1.25rem;
+}
+
+.confirm-body p {
+    margin: 0 0 1.5rem;
+    color: #475569;
+    line-height: 1.45;
+}
+
+.confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+.confirm-modal.confirm-modal--success .confirm-icon {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.confirm-modal.confirm-modal--error .confirm-icon {
+    background: #fdecea;
+    color: #c62828;
+}
+
+.confirm-modal.confirm-modal--warning .confirm-icon {
+    background: #fff4e5;
+    color: #d97706;
+}
+
+.confirm-modal.confirm-modal--info .confirm-icon {
+    background: #e8f0fe;
+    color: #2563eb;
+}
+
+.detalle-producto-con-tallas td {
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    font-weight: 500;
+}
+
+.detalle-producto-talla td {
+    border-top: none;
+    border-bottom: 1px dashed #e2e8f0;
+    background: #ffffff;
+}
+
+.detalle-producto-talla td:first-child {
+    padding-left: 2rem;
+}
+
+.detalle-talla-label {
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+.detalle-producto-talla:last-of-type td {
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.detalle-costounitario-total {
+    color: #94a3b8;
+    font-style: italic;
+}
+
+@media (max-width: 576px) {
+    .toast-container {
+        left: 1rem;
+        right: 1rem;
+        top: 1rem;
+        align-items: stretch;
+    }
+
+    .toast {
+        min-width: auto;
+        width: 100%;
+    }
+
+    .confirm-modal .modal-content {
+        margin: 0 1rem;
+        padding: 1.5rem;
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .confirm-actions {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
 .igv-toggle-title {
     font-weight: 600;
     color: #1f2937;

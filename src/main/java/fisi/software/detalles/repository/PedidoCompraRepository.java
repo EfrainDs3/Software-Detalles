@@ -38,4 +38,9 @@ public interface PedidoCompraRepository extends JpaRepository<PedidoCompra, Long
      * Listar todos los pedidos ordenados por fecha descendente
      */
     List<PedidoCompra> findAllByOrderByFechaPedidoDesc();
+
+    /**
+     * Listar todos los pedidos ordenados por ID ascendente
+     */
+    List<PedidoCompra> findAllByOrderByIdPedidoCompraAsc();
 }
