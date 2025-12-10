@@ -5,8 +5,6 @@ import java.math.RoundingMode;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -28,34 +26,29 @@ import fisi.software.detalles.controller.dto.AiRecommendationResponse.TallaDispo
 import fisi.software.detalles.entity.Catalogo.Tipo;
 import fisi.software.detalles.entity.CategoriaProducto;
 import fisi.software.detalles.entity.EtiquetaProductoIa;
-import fisi.software.detalles.entity.Inventario;
-import fisi.software.detalles.entity.InventarioTalla;
 import fisi.software.detalles.entity.Producto;
 import fisi.software.detalles.entity.ProductoTalla;
 import fisi.software.detalles.repository.CategoriaProductoRepository;
 import fisi.software.detalles.repository.EtiquetaProductoIaRepository;
-import fisi.software.detalles.repository.InventarioRepository;
-import fisi.software.detalles.repository.InventarioTallaRepository;
 import fisi.software.detalles.repository.ProductoRepository;
 
 /**
- * Servicio dedicado a construir un contexto rico con productos reales de la
- * base
- * de datos para que el asistente de IA limite sus recomendaciones a artículos
- * disponibles.
+ * Servicio que prepara un contexto real de productos para el asistente de IA
+ * y filtra recomendaciones según la necesidad del cliente ignorando el stock.
  */
 @Service
 @Transactional(readOnly = true)
 public class AiRecommendationService {
 
     private static final String CATEGORIA_CALZADO = "Calzado";
+    private static final int MAX_RESULTS = 8;
+
     private static final Map<String, List<String>> EVENT_KEYWORDS = Map.of(
             "formal", List.of("formal", "gala", "boda", "terno", "oxford", "charol", "evento de noche", "salón"),
             "semiformal", List.of("semi", "reunión", "cocktail", "smart", "mocasín"),
             "casual", List.of("casual", "diario", "jean", "salida", "urbano"),
-            "deportivo",
-            List.of("deportivo", "running", "gym", "training", "amortiguación", "sneaker", "correr", "zapatilla"),
-            "trabajo", List.of("oficina", "trabajo", "laboral", "executivo", "comodidad todo el día"));
+            "deportivo", List.of("deportivo", "running", "gym", "training", "amortiguación", "sneaker", "correr", "zapatilla"),
+            "trabajo", List.of("oficina", "trabajo", "laboral", "ejecutivo", "comodidad todo el día"));
 
     private static final Map<String, List<String>> STYLE_KEYWORDS = Map.of(
             "elegante", List.of("elegante", "formal", "charol", "oxford", "tacón"),
@@ -64,60 +57,54 @@ public class AiRecommendationService {
             "deportivo", List.of("deportivo", "running", "sport", "training", "correr", "zapatilla"),
             "casual", List.of("casual", "diario", "relajado", "urbano"));
 
-    private static final List<String> HIGH_COMFORT_KEYWORDS = List.of("amortigu", "acolch", "suela suave",
-            "plantilla", "espuma", "transpirable", "ergon", "deportivo", "running", "lightweight");
+    private static final Map<String, List<String>> INCOMPATIBLE_KEYWORDS = Map.ofEntries(
+            Map.entry("formal", List.of("deportivo", "running", "sneaker", "sandalia", "playera", "trail")),
+            Map.entry("deportivo", List.of("tacón", "charol", "formal", "mocasín", "vestir")),
+            Map.entry("casual", List.of("tacón alto", "salón", "stiletto")),
+            Map.entry("semiformal", List.of("playera", "sandalia plana")),
+            Map.entry("elegante", List.of("deportivo", "sneaker", "running")),
+            Map.entry("moderno", List.of("playera", "sandalia playera")));
 
-    private static final List<String> LOW_COMFORT_PRIORITY_KEYWORDS = List.of("tacón", "plataforma", "puntal",
-            "brillo", "moda", "estilizado");
-
-    // Palabras clave que DESCALIFICAN un producto para ciertos tipos de evento
-    private static final Map<String, List<String>> INCOMPATIBLE_KEYWORDS = Map.of(
-            "deportivo", List.of("sandalia", "chancleta", "tacón", "taco", "formal", "gala", "charol", "oxford"),
-            "formal", List.of("deportivo", "running", "gym", "training", "sneaker", "sandalia", "chancleta"),
-            "semiformal", List.of("deportivo", "running", "gym", "sandalia", "chancleta"),
-            "trabajo", List.of("sandalia", "chancleta", "deportivo muy casual"));
+    private static final List<String> HIGH_COMFORT_KEYWORDS = List.of(
+            "amortiguación", "memory foam", "plantilla acolchada", "suela flexible", "ergonómico", "acolchado");
+    private static final List<String> LOW_COMFORT_PRIORITY_KEYWORDS = List.of(
+            "punta fina", "tacón", "plataforma", "estructura rígida", "tacones altos");
 
     private final CategoriaProductoRepository categoriaProductoRepository;
     private final ProductoRepository productoRepository;
-    private final InventarioRepository inventarioRepository;
-    private final InventarioTallaRepository inventarioTallaRepository;
     private final EtiquetaProductoIaRepository etiquetaProductoIaRepository;
 
     public AiRecommendationService(CategoriaProductoRepository categoriaProductoRepository,
             ProductoRepository productoRepository,
-            InventarioRepository inventarioRepository,
-            InventarioTallaRepository inventarioTallaRepository,
             EtiquetaProductoIaRepository etiquetaProductoIaRepository) {
         this.categoriaProductoRepository = categoriaProductoRepository;
         this.productoRepository = productoRepository;
-        this.inventarioRepository = inventarioRepository;
-        this.inventarioTallaRepository = inventarioTallaRepository;
         this.etiquetaProductoIaRepository = etiquetaProductoIaRepository;
     }
 
     public List<AiRecommendationResponse> obtenerRecomendaciones(AiRecommendationRequest request) {
-        CategoriaProducto categoriaCalzado = categoriaProductoRepository.findByNombreIgnoreCase(CATEGORIA_CALZADO)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "No se encontró la categoría '" + CATEGORIA_CALZADO + "'"));
+        CategoriaProducto categoria = categoriaProductoRepository.findByNombreIgnoreCase(CATEGORIA_CALZADO)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "No se encontró la categoría de calzado"));
 
-        List<Producto> productos = productoRepository.findByCategoriaIdWithDetalles(categoriaCalzado.getId());
+        List<Producto> productos = productoRepository.findByCategoriaIdWithDetalles(categoria.getId());
         if (productos.isEmpty()) {
             return List.of();
         }
 
         Map<Long, List<String>> etiquetasConfiguradas = agruparEtiquetasConfiguradas(productos);
 
-        String eventKey = normalizarClave(request.getEventType());
-        String styleKey = normalizarClave(request.getStylePreference());
-        String colorKey = normalizarTexto(request.getColorPreference());
-        String tallaSolicitada = normalizarTalla(request.getShoeSize());
-        String comfortPriority = normalizarClave(request.getComfortPriority());
-        String gender = normalizarClave(request.getGender());
+        String eventKey = normalizarClave(request != null ? request.getEventType() : null);
+        String styleKey = normalizarClave(request != null ? request.getStylePreference() : null);
+        String colorKey = normalizarTexto(request != null ? request.getColorPreference() : null);
+        String tallaSolicitada = normalizarTalla(request != null ? request.getShoeSize() : null);
+        String comfortPriority = normalizarClave(request != null ? request.getComfortPriority() : null);
+        String gender = normalizarClave(request != null ? request.getGender() : null);
 
         List<Candidate> candidatos = productos.stream()
-                .filter(p -> !Boolean.FALSE.equals(p.getEstado()))
-            .map(p -> construirCandidato(p, eventKey, styleKey, colorKey, tallaSolicitada, comfortPriority, gender,
-                etiquetasConfiguradas.getOrDefault(p.getId(), List.of())))
+                .filter(p -> p.getEstado() == null || Boolean.TRUE.equals(p.getEstado()))
+                .map(p -> construirCandidato(p, eventKey, styleKey, colorKey, tallaSolicitada, comfortPriority, gender,
+                        etiquetasConfiguradas.getOrDefault(p.getId(), List.of())))
                 .filter(Objects::nonNull)
                 .sorted(Comparator.comparingDouble(Candidate::score).reversed()
                         .thenComparing(c -> c.respuesta().nombre(), Comparator.nullsLast(String::compareToIgnoreCase)))
@@ -128,7 +115,7 @@ public class AiRecommendationService {
         }
 
         return candidatos.stream()
-                .limit(8)
+                .limit(MAX_RESULTS)
                 .map(Candidate::respuesta)
                 .toList();
     }
@@ -142,45 +129,41 @@ public class AiRecommendationService {
             String gender,
             List<String> etiquetasConfiguradas) {
 
-        // FILTRADO CRÍTICO: Descartar productos incompatibles con el tipo de evento
         String textoProducto = construirTextoProducto(producto);
 
-        // Si se especificó un tipo de evento, verificar que el producto no sea
-        // incompatible
         if (StringUtils.hasText(eventKey)) {
             List<String> palabrasIncompatibles = INCOMPATIBLE_KEYWORDS.getOrDefault(eventKey, List.of());
             if (esProductoIncompatible(textoProducto, palabrasIncompatibles)) {
-                return null; // Descartar este producto completamente
+                return null;
             }
         }
 
-        // Si se especificó un estilo, verificar compatibilidad
         if (StringUtils.hasText(styleKey)) {
             List<String> palabrasIncompatibles = INCOMPATIBLE_KEYWORDS.getOrDefault(styleKey, List.of());
             if (esProductoIncompatible(textoProducto, palabrasIncompatibles)) {
-                return null; // Descartar este producto completamente
+                return null;
             }
         }
 
-        StockDetalle stock = calcularStock(producto);
         List<ProductoTalla> tallasOrdenadas = producto.getTallas().stream()
-                .sorted(Comparator.comparing(ProductoTalla::getTalla,
-                        Comparator.nullsLast(String::compareToIgnoreCase)))
+                .sorted(Comparator.comparing(ProductoTalla::getTalla, Comparator.nullsLast(String::compareToIgnoreCase)))
                 .toList();
 
-        List<TallaDisponibilidad> tallas = crearTallas(producto, stock, tallasOrdenadas);
-        Integer stockTotal = stock.total();
+        List<TallaDisponibilidad> tallas = crearTallas(producto, tallasOrdenadas);
 
-        if (stockTotal == null) {
-            stockTotal = 0;
+        MatchingScore matchingScore = calcularScore(producto, tallasOrdenadas, eventKey, styleKey, colorKey,
+                tallaSolicitada, comfortPriority, gender);
+
+        boolean hayFiltrosActivos = StringUtils.hasText(eventKey) || StringUtils.hasText(styleKey)
+                || StringUtils.hasText(colorKey) || StringUtils.hasText(tallaSolicitada)
+                || StringUtils.hasText(comfortPriority) || StringUtils.hasText(gender);
+
+        if (hayFiltrosActivos && matchingScore.coincidencias().isEmpty()) {
+            return null;
         }
 
-        MatchingScore matchingScore = calcularScore(producto, tallasOrdenadas, stock, eventKey, styleKey, colorKey,
-            tallaSolicitada, comfortPriority, gender);
-
         List<String> etiquetas = construirEtiquetasProducto(producto, etiquetasConfiguradas, eventKey, styleKey,
-            colorKey, gender, matchingScore);
-        boolean stockDisponible = stockTotal > 0;
+                colorKey, gender, matchingScore);
 
         AiRecommendationResponse respuesta = new AiRecommendationResponse(
                 producto.getId(),
@@ -191,21 +174,18 @@ public class AiRecommendationService {
                 matchingScore.estiloPrincipal(),
                 producto.getTipo(),
                 resolverPrecioReferencia(producto, tallas),
-                stockTotal,
-            stockDisponible,
+                null,
+                true,
                 tallas,
                 producto.getImagen(),
                 matchingScore.coincidencias(),
-            etiquetas,
+                etiquetas,
                 matchingScore.score(),
                 matchingScore.tallaDisponible());
 
         return new Candidate(respuesta, matchingScore.score());
     }
 
-    /**
-     * Verifica si un producto contiene palabras clave incompatibles
-     */
     private boolean esProductoIncompatible(String textoProducto, List<String> palabrasIncompatibles) {
         if (!StringUtils.hasText(textoProducto) || palabrasIncompatibles == null || palabrasIncompatibles.isEmpty()) {
             return false;
@@ -217,26 +197,24 @@ public class AiRecommendationService {
             }
             String palabraNormalizada = normalizarTexto(palabraIncompatible);
             if (textoProducto.contains(palabraNormalizada)) {
-                return true; // Producto incompatible encontrado
+                return true;
             }
         }
         return false;
     }
 
-    private List<TallaDisponibilidad> crearTallas(Producto producto, StockDetalle stock,
-            List<ProductoTalla> tallasOrdenadas) {
+    private List<TallaDisponibilidad> crearTallas(Producto producto, List<ProductoTalla> tallasOrdenadas) {
         if (!tallasOrdenadas.isEmpty()) {
             return tallasOrdenadas.stream()
                     .map(t -> new TallaDisponibilidad(
                             t.getTalla(),
                             normalizarPrecio(t.getPrecioVenta(), producto.getPrecioVenta()),
-                            stock.stockPorTalla().getOrDefault(normalizarTalla(t.getTalla()), 0)))
+                            null))
                     .toList();
         }
 
-        // Productos sin tallas diferenciadas
         BigDecimal referencia = normalizarPrecio(producto.getPrecioVenta(), BigDecimal.ZERO);
-        return List.of(new TallaDisponibilidad("Única", referencia, stock.total()));
+        return List.of(new TallaDisponibilidad("Única", referencia, null));
     }
 
     private BigDecimal resolverPrecioReferencia(Producto producto, List<TallaDisponibilidad> tallas) {
@@ -252,14 +230,14 @@ public class AiRecommendationService {
 
     private MatchingScore calcularScore(Producto producto,
             List<ProductoTalla> tallas,
-            StockDetalle stock,
             String eventKey,
             String styleKey,
             String colorKey,
             String tallaSolicitada,
             String comfortPriority,
             String gender) {
-        double score = 10d; // Base para todos los productos activos
+
+        double score = 10d;
         List<String> coincidencias = new ArrayList<>();
         boolean tallaDisponible = false;
 
@@ -310,30 +288,21 @@ public class AiRecommendationService {
         }
 
         if (StringUtils.hasText(tallaSolicitada)) {
-            Set<String> tallasDisponibles = stock.stockPorTalla().keySet();
-            if (tallasDisponibles.contains(tallaSolicitada)) {
+            Set<String> tallasProducto = tallas.stream()
+                    .map(ProductoTalla::getTalla)
+                    .map(AiRecommendationService::normalizarTalla)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+
+            if (tallasProducto.contains(tallaSolicitada)) {
                 tallaDisponible = true;
-                score += 20;
-                coincidencias.add("Talla " + denormalizarTalla(tallaSolicitada) + " con stock");
-            } else if (tallasDisponibles.isEmpty()) {
-                // Si no tenemos tallas en inventario pero el producto declara la talla, usar
-                // referencia
-                tallaDisponible = tallas.stream()
-                        .map(ProductoTalla::getTalla)
-                        .map(AiRecommendationService::normalizarTalla)
-                        .anyMatch(tallaSolicitada::equals);
-                if (tallaDisponible) {
-                    score += 12;
-                    coincidencias.add("Talla " + denormalizarTalla(tallaSolicitada) + " disponible bajo pedido");
-                } else {
-                    score -= 12;
-                }
+                score += 12;
+                coincidencias.add("Incluye talla " + denormalizarTalla(tallaSolicitada));
             } else {
-                score -= 14;
+                score -= 8;
             }
         }
 
-        // Ajustes por confort
         if (StringUtils.hasText(comfortPriority)) {
             switch (comfortPriority) {
                 case "high" -> {
@@ -344,28 +313,21 @@ public class AiRecommendationService {
                         score -= 5;
                     }
                 }
+                case "medium" -> score += 2;
                 case "low" -> {
                     if (coincideCon(textoProducto, LOW_COMFORT_PRIORITY_KEYWORDS)) {
-                        score += 4;
+                        score += 6;
                     }
                 }
                 default -> {
+                    // sin ajustes
                 }
             }
         }
 
-        // Favorecer disponibilidad
-        int stockTotal = stock.total() != null ? stock.total() : 0;
-        if (stockTotal > 0) {
-            score += Math.min(10, stockTotal);
-            if (!coincidencias.contains("Stock disponible")) {
-                coincidencias.add("Stock disponible");
-            }
-        } else {
-            score -= 8;
-        }
+        score = Math.max(0, score);
 
-        return new MatchingScore(Math.max(score, 1), coincidencias, estiloPrincipal, tallaDisponible);
+        return new MatchingScore(score, List.copyOf(coincidencias), estiloPrincipal, tallaDisponible);
     }
 
     private List<String> construirEtiquetasProducto(Producto producto,
@@ -375,22 +337,16 @@ public class AiRecommendationService {
             String colorKey,
             String gender,
             MatchingScore matchingScore) {
-        Set<String> etiquetas = new LinkedHashSet<>();
 
-        if (producto.getCategoria() != null) {
-            agregarEtiqueta(etiquetas, producto.getCategoria().getNombre());
-        }
-        agregarEtiqueta(etiquetas, producto.getTipo());
+        Set<String> etiquetas = new LinkedHashSet<>();
         agregarEtiqueta(etiquetas, producto.getNombre());
+        agregarEtiqueta(etiquetas, producto.getCategoria() != null ? producto.getCategoria().getNombre() : null);
         agregarEtiqueta(etiquetas, producto.getColor());
+        agregarEtiqueta(etiquetas, producto.getTipo());
 
         producto.getTiposProducto().stream()
                 .map(Tipo::getNombre)
                 .forEach(valor -> agregarEtiqueta(etiquetas, valor));
-
-        if (matchingScore != null) {
-            agregarEtiqueta(etiquetas, matchingScore.estiloPrincipal());
-        }
 
         if (etiquetasConfiguradas != null) {
             etiquetasConfiguradas.forEach(valor -> agregarEtiqueta(etiquetas, valor));
@@ -400,6 +356,9 @@ public class AiRecommendationService {
         agregarEtiqueta(etiquetas, styleKey);
         agregarEtiqueta(etiquetas, colorKey);
         agregarEtiqueta(etiquetas, gender);
+        agregarEtiqueta(etiquetas, matchingScore.estiloPrincipal());
+
+        matchingScore.coincidencias().forEach(valor -> agregarEtiqueta(etiquetas, valor));
 
         return etiquetas.stream()
                 .map(valor -> valor != null ? valor.trim() : null)
@@ -466,40 +425,6 @@ public class AiRecommendationService {
             return procesada.substring(0, procesada.length() - 1);
         }
         return procesada;
-    }
-
-    private StockDetalle calcularStock(Producto producto) {
-        List<Inventario> inventarios = inventarioRepository.findByProducto(producto);
-        if (inventarios.isEmpty()) {
-            return new StockDetalle(0, Map.of());
-        }
-
-        Map<String, Integer> stockPorTalla = new HashMap<>();
-        int total = 0;
-        for (Inventario inventario : inventarios) {
-            total += nullSafeInt(inventario.getCantidadStock());
-            List<InventarioTalla> tallasInventario = inventarioTallaRepository.findByInventario(inventario);
-            for (InventarioTalla inventarioTalla : tallasInventario) {
-                String talla = normalizarTalla(inventarioTalla.getTalla());
-                stockPorTalla.merge(talla, nullSafeInt(inventarioTalla.getCantidadStock()), Integer::sum);
-            }
-        }
-
-        if (stockPorTalla.isEmpty()) {
-            // Repartir stock total de forma aproximada si existen tallas declaradas en el
-            // producto
-            Set<String> tallasProducto = producto.getTallas().stream()
-                    .map(ProductoTalla::getTalla)
-                    .filter(StringUtils::hasText)
-                    .map(AiRecommendationService::normalizarTalla)
-                    .collect(Collectors.toCollection(HashSet::new));
-            if (!tallasProducto.isEmpty() && total > 0) {
-                int reparto = Math.max(1, total / tallasProducto.size());
-                tallasProducto.forEach(t -> stockPorTalla.put(t, reparto));
-            }
-        }
-
-        return new StockDetalle(total, stockPorTalla);
     }
 
     private Map<Long, List<String>> agruparEtiquetasConfiguradas(List<Producto> productos) {
@@ -596,13 +521,6 @@ public class AiRecommendationService {
     private static BigDecimal normalizarPrecio(BigDecimal precio, BigDecimal respaldo) {
         BigDecimal valor = precio != null ? precio : respaldo;
         return valor != null ? valor.setScale(2, RoundingMode.HALF_UP) : null;
-    }
-
-    private static int nullSafeInt(Integer valor) {
-        return valor != null ? valor : 0;
-    }
-
-    private record StockDetalle(Integer total, Map<String, Integer> stockPorTalla) {
     }
 
     private record MatchingScore(double score, List<String> coincidencias, String estiloPrincipal,

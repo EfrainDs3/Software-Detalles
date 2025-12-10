@@ -6,7 +6,6 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,14 +21,10 @@ import fisi.software.detalles.controller.dto.AiRecommendationRequest;
 import fisi.software.detalles.controller.dto.AiRecommendationResponse;
 import fisi.software.detalles.entity.Catalogo.Tipo;
 import fisi.software.detalles.entity.CategoriaProducto;
-import fisi.software.detalles.entity.Inventario;
-import fisi.software.detalles.entity.InventarioTalla;
 import fisi.software.detalles.entity.Producto;
 import fisi.software.detalles.entity.ProductoTalla;
 import fisi.software.detalles.repository.CategoriaProductoRepository;
 import fisi.software.detalles.repository.EtiquetaProductoIaRepository;
-import fisi.software.detalles.repository.InventarioRepository;
-import fisi.software.detalles.repository.InventarioTallaRepository;
 import fisi.software.detalles.repository.ProductoRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,10 +34,6 @@ class AiRecommendationServiceTest {
     private CategoriaProductoRepository categoriaProductoRepository;
     @Mock
     private ProductoRepository productoRepository;
-    @Mock
-    private InventarioRepository inventarioRepository;
-    @Mock
-    private InventarioTallaRepository inventarioTallaRepository;
     @Mock
     private EtiquetaProductoIaRepository etiquetaProductoIaRepository;
 
@@ -73,11 +64,8 @@ class AiRecommendationServiceTest {
         when(categoriaProductoRepository.findByNombreIgnoreCase("Calzado"))
                 .thenReturn(Optional.of(categoriaCalzado));
         when(productoRepository.findByCategoriaIdWithDetalles(1L))
-                .thenReturn(List.of(botasImpermeables, zapatillasUrbanas));
+            .thenReturn(List.of(botasImpermeables, zapatillasUrbanas));
         when(etiquetaProductoIaRepository.findByProductoIdIn(List.of(10L, 20L))).thenReturn(List.of());
-
-        configurarInventario(botasImpermeables, 8, "42", 5);
-        configurarInventario(zapatillasUrbanas, 0, "42", 0);
 
         AiRecommendationRequest request = new AiRecommendationRequest();
         request.setEventType("formal");
@@ -91,11 +79,11 @@ class AiRecommendationServiceTest {
         assertThat(recomendaciones).isNotEmpty();
         AiRecommendationResponse principal = recomendaciones.getFirst();
         assertThat(principal.nombre()).contains("Botas impermeables");
-        assertThat(principal.stockTotal()).isEqualTo(8);
+        assertThat(principal.stockTotal()).isNull();
         assertThat(principal.stockDisponible()).isTrue();
         assertThat(principal.coincidencias())
-                .anyMatch(texto -> texto.toLowerCase().contains("formal"))
-                .anyMatch(texto -> texto.toLowerCase().contains("stock disponible"));
+            .anyMatch(texto -> texto.toLowerCase().contains("eventos formal"))
+            .anyMatch(texto -> texto.toLowerCase().contains("incluye talla 42"));
         assertThat(principal.etiquetas())
             .anyMatch(valor -> valor.toLowerCase().contains("formal"))
             .anyMatch(valor -> valor.toLowerCase().contains("botas"));
@@ -108,21 +96,6 @@ class AiRecommendationServiceTest {
 
         AiRecommendationRequest request = new AiRecommendationRequest();
         assertThrows(ResponseStatusException.class, () -> aiRecommendationService.obtenerRecomendaciones(request));
-    }
-
-    private void configurarInventario(Producto producto, int stockTotal, String talla, int stockTalla) {
-        Inventario inventario = new Inventario();
-        inventario.setProducto(producto);
-        inventario.setCantidadStock(stockTotal);
-        inventario.setFechaUltimaActualizacion(LocalDateTime.now());
-
-        InventarioTalla inventarioTalla = new InventarioTalla();
-        inventarioTalla.setInventario(inventario);
-        inventarioTalla.setTalla(talla);
-        inventarioTalla.setCantidadStock(stockTalla);
-
-        when(inventarioRepository.findByProducto(producto)).thenReturn(List.of(inventario));
-        when(inventarioTallaRepository.findByInventario(inventario)).thenReturn(List.of(inventarioTalla));
     }
 
     private Producto crearProducto(Long id, String nombre, String descripcion, String color, String tipoPublico, BigDecimal precio) {
