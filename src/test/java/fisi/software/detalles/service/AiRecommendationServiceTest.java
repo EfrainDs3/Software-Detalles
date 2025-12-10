@@ -2,6 +2,7 @@ package fisi.software.detalles.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
@@ -26,6 +27,7 @@ import fisi.software.detalles.entity.InventarioTalla;
 import fisi.software.detalles.entity.Producto;
 import fisi.software.detalles.entity.ProductoTalla;
 import fisi.software.detalles.repository.CategoriaProductoRepository;
+import fisi.software.detalles.repository.EtiquetaProductoIaRepository;
 import fisi.software.detalles.repository.InventarioRepository;
 import fisi.software.detalles.repository.InventarioTallaRepository;
 import fisi.software.detalles.repository.ProductoRepository;
@@ -41,6 +43,8 @@ class AiRecommendationServiceTest {
     private InventarioRepository inventarioRepository;
     @Mock
     private InventarioTallaRepository inventarioTallaRepository;
+    @Mock
+    private EtiquetaProductoIaRepository etiquetaProductoIaRepository;
 
     @InjectMocks
     private AiRecommendationService aiRecommendationService;
@@ -55,6 +59,8 @@ class AiRecommendationServiceTest {
         categoriaCalzado.setId(1L);
         categoriaCalzado.setNombre("Calzado");
 
+        when(etiquetaProductoIaRepository.findByProductoIdIn(anyList())).thenReturn(List.of());
+
         botasImpermeables = crearProducto(10L, "Botas impermeables urbanas", "Charol impermeable ideal para clima lluvioso con eventos formales", "Negro", "Hombre", new BigDecimal("350.00"));
         botasImpermeables.getTiposProducto().add(crearTipo("Formal"));
 
@@ -68,6 +74,7 @@ class AiRecommendationServiceTest {
                 .thenReturn(Optional.of(categoriaCalzado));
         when(productoRepository.findByCategoriaIdWithDetalles(1L))
                 .thenReturn(List.of(botasImpermeables, zapatillasUrbanas));
+        when(etiquetaProductoIaRepository.findByProductoIdIn(List.of(10L, 20L))).thenReturn(List.of());
 
         configurarInventario(botasImpermeables, 8, "42", 5);
         configurarInventario(zapatillasUrbanas, 0, "42", 0);
@@ -85,9 +92,13 @@ class AiRecommendationServiceTest {
         AiRecommendationResponse principal = recomendaciones.getFirst();
         assertThat(principal.nombre()).contains("Botas impermeables");
         assertThat(principal.stockTotal()).isEqualTo(8);
+        assertThat(principal.stockDisponible()).isTrue();
         assertThat(principal.coincidencias())
                 .anyMatch(texto -> texto.toLowerCase().contains("formal"))
                 .anyMatch(texto -> texto.toLowerCase().contains("stock disponible"));
+        assertThat(principal.etiquetas())
+            .anyMatch(valor -> valor.toLowerCase().contains("formal"))
+            .anyMatch(valor -> valor.toLowerCase().contains("botas"));
     }
 
     @Test

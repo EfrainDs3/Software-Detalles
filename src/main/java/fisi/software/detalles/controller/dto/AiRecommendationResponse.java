@@ -17,9 +17,11 @@ public record AiRecommendationResponse(
         String publicoObjetivo,
         BigDecimal precioReferencia,
         Integer stockTotal,
+        boolean stockDisponible,
         List<TallaDisponibilidad> tallas,
         String imagen,
         List<String> coincidencias,
+        List<String> etiquetas,
         double puntuacion,
         boolean tallaSolicitadaDisponible
 ) {

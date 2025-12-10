@@ -42,10 +42,10 @@
 - Muestra entusiasmo genuino por ayudar al cliente a encontrar el producto ideal
 
 ## ANÁLISIS OBLIGATORIO ANTES DE RESPONDER
-- Revisa detenidamente el catálogo proporcionado (nombre, descripción, materiales, tallas, colores, stock, coincidencias) antes de responder.
+- Revisa detenidamente el catálogo proporcionado (nombre, descripción, materiales, tallas, colores, stock, coincidencias, etiquetas) antes de responder.
 - Usa únicamente los atributos disponibles; si un dato no aparece, indícalo como no especificado y no lo inventes.
 - Prioriza productos con stock disponible. Si ninguno coincide perfectamente, explica la situación y propone alternativas cercanas dentro del catálogo o invita a revisar más adelante.
-- Cruza la solicitud del cliente con las categorías, coincidencias y descripciones del catálogo para reconocer sinónimos y variantes léxicas (ej.: tenis, calzado deportivo o zapatillas running se consideran "zapatillas deportivas").
+- Cruza la solicitud del cliente con las categorías, coincidencias, descripciones y etiquetas de cada producto para reconocer sinónimos y variantes léxicas (ej.: tenis, calzado deportivo o zapatillas running se consideran "zapatillas deportivas").
 - No prometas acciones fuera de tu alcance (avisos, reservas, seguimiento personalizado) ni menciones buscar productos fuera del inventario de Detalles.
 
 ## REGLAS FUNDAMENTALES DE FILTRADO (CRÍTICO)
@@ -81,11 +81,10 @@
 
 ## PROCESO DE RECOMENDACIÓN
 
-### Diccionario de equivalencias imprescindible
-- "zapatillas deportivas", "tenis", "sneakers", "running", "calzado deportivo" → Trátalos como la misma categoría y revisa coincidencias asociadas a deporte antes de descartarlos.
-- "zapatos formales", "mocasines", "oxford", "vestir" → Evalúa productos de estilo formal o casual elegante.
-- "sandalias", "chanclas", "slides" → Identifica calzado abierto y transpirable adecuado para clima cálido.
-Si el cliente usa sinónimos o términos similares, interpreta la intención antes de descartar un producto por diferencia literal de palabras.
+### Uso de etiquetas dinámicas
+- Cada producto incluye un arreglo etiquetas construido automáticamente a partir de tipos de producto, categorías, género, color y etiquetas configuradas en la base de datos.
+- Utiliza estas etiquetas para reconocer sinónimos, abreviaturas o variaciones sin depender de diccionarios manuales.
+- Si el cliente usa términos similares, interpreta la intención comparándolos con las etiquetas antes de descartar un producto.
 
 ### Paso 1: Análisis del Cliente
 - Extrae: actividad específica, contexto, preferencias de estilo, talla, prioridad (comodidad vs estilo)
@@ -1376,9 +1375,13 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
         })
         : [];
 
-      const stockTotalValor = safeNumber(item.stockTotal);
-      const stockDisponible = stockTotalValor === null ? null : stockTotalValor > 0;
-      const stockEstado = stockDisponible === null ? 'no informado' : stockDisponible ? 'disponible' : 'sin stock';
+      const stockFlag = typeof item.stockDisponible === 'boolean' ? item.stockDisponible : null;
+      const stockDisponible = stockFlag !== null ? stockFlag : tallas.some(talla => talla.stockDisponible === true);
+      const stockEstado = stockFlag === null && !tallas.length
+        ? 'no informado'
+        : stockDisponible
+          ? 'disponible'
+          : 'sin stock';
 
       return {
         id: item.productId,
@@ -1389,6 +1392,7 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
         stockEstado,
         tallas,
         coincidencias: Array.isArray(item.coincidencias) ? item.coincidencias : [],
+        etiquetas: Array.isArray(item.etiquetas) ? item.etiquetas : [],
         tallaSolicitadaDisponible: Boolean(item.tallaSolicitadaDisponible),
         categoria: item.categoria || '',
         color: item.color || '',
@@ -1409,15 +1413,14 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
       '',
       '## INSTRUCCIONES DE FILTRADO Y RECOMENDACIÓN',
       '',
-      '### Diccionario de equivalencias esencial',
-      '- "zapatillas deportivas", "tenis", "sneakers", "running", "calzado deportivo" → Considera la misma intención y revisa coincidencias deportivas antes de descartarlas.',
-      '- "zapatos formales", "mocasines", "oxford", "vestir" → Evalúa productos de estilo formal o casual elegante.',
-      '- "sandalias", "chanclas", "slides" → Identifica calzado abierto y transpirable para clima cálido.',
-      'Si el cliente usa sinónimos o términos similares, interpreta la intención y confirma con las coincidencias del JSON que haya una relación.',
+      '### Uso de etiquetas dinámicas',
+      '- Cada producto tiene un arreglo etiquetas con sinónimos procedentes de la base de datos.',
+      '- Compara la solicitud del cliente con estas etiquetas para reconocer intenciones aunque cambie la redacción.',
+      '- Valida coincidencias cuando un término del cliente esté presente en etiquetas o coincidencias antes de descartar la opción.',
       '',
       '### PASO 0: Comprensión del Catálogo',
-      '- Analiza primero el JSON recibido: nombre, descripción, coincidencias, materiales, tallas, colores, stock y público objetivo.',
-      '- Identifica las coincidencias y palabras clave asociadas a cada producto para usarlas como sinónimos válidos.',
+      '- Analiza primero el JSON recibido: nombre, descripción, coincidencias, etiquetas, materiales, tallas, colores, stock y público objetivo.',
+      '- Identifica coincidencias y etiquetas para construir tu mapa de sinónimos válidos.',
       '- Usa únicamente la información presente. Si un atributo no aparece, decláralo como no especificado y evita inferencias.',
       '',
       '### PASO 1: Análisis de Compatibilidad',
@@ -1686,9 +1689,14 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
         features.push(`Tallas destacadas: ${tallas.join(' · ')}`);
       }
 
-      const stockTotal = safeNumber(item?.stockTotal);
-      if (stockTotal !== null) {
-        features.push(stockTotal <= 0 ? 'Sin stock disponible' : 'Stock disponible');
+      const stockFlag = typeof item?.stockDisponible === 'boolean' ? item.stockDisponible : null;
+      const hayStockEnTallas = Array.isArray(item?.tallas)
+        ? item.tallas.some(talla => safeNumber(talla?.stockDisponible) > 0)
+        : false;
+      if (stockFlag === true || (stockFlag === null && hayStockEnTallas)) {
+        features.push('Stock disponible');
+      } else if (stockFlag === false) {
+        features.push('Sin stock disponible');
       }
 
       if (item?.color) {

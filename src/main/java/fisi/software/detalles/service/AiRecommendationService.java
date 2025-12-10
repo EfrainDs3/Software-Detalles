@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -25,11 +27,13 @@ import fisi.software.detalles.controller.dto.AiRecommendationResponse;
 import fisi.software.detalles.controller.dto.AiRecommendationResponse.TallaDisponibilidad;
 import fisi.software.detalles.entity.Catalogo.Tipo;
 import fisi.software.detalles.entity.CategoriaProducto;
+import fisi.software.detalles.entity.EtiquetaProductoIa;
 import fisi.software.detalles.entity.Inventario;
 import fisi.software.detalles.entity.InventarioTalla;
 import fisi.software.detalles.entity.Producto;
 import fisi.software.detalles.entity.ProductoTalla;
 import fisi.software.detalles.repository.CategoriaProductoRepository;
+import fisi.software.detalles.repository.EtiquetaProductoIaRepository;
 import fisi.software.detalles.repository.InventarioRepository;
 import fisi.software.detalles.repository.InventarioTallaRepository;
 import fisi.software.detalles.repository.ProductoRepository;
@@ -77,15 +81,18 @@ public class AiRecommendationService {
     private final ProductoRepository productoRepository;
     private final InventarioRepository inventarioRepository;
     private final InventarioTallaRepository inventarioTallaRepository;
+    private final EtiquetaProductoIaRepository etiquetaProductoIaRepository;
 
     public AiRecommendationService(CategoriaProductoRepository categoriaProductoRepository,
             ProductoRepository productoRepository,
             InventarioRepository inventarioRepository,
-            InventarioTallaRepository inventarioTallaRepository) {
+            InventarioTallaRepository inventarioTallaRepository,
+            EtiquetaProductoIaRepository etiquetaProductoIaRepository) {
         this.categoriaProductoRepository = categoriaProductoRepository;
         this.productoRepository = productoRepository;
         this.inventarioRepository = inventarioRepository;
         this.inventarioTallaRepository = inventarioTallaRepository;
+        this.etiquetaProductoIaRepository = etiquetaProductoIaRepository;
     }
 
     public List<AiRecommendationResponse> obtenerRecomendaciones(AiRecommendationRequest request) {
@@ -98,6 +105,8 @@ public class AiRecommendationService {
             return List.of();
         }
 
+        Map<Long, List<String>> etiquetasConfiguradas = agruparEtiquetasConfiguradas(productos);
+
         String eventKey = normalizarClave(request.getEventType());
         String styleKey = normalizarClave(request.getStylePreference());
         String colorKey = normalizarTexto(request.getColorPreference());
@@ -107,7 +116,8 @@ public class AiRecommendationService {
 
         List<Candidate> candidatos = productos.stream()
                 .filter(p -> !Boolean.FALSE.equals(p.getEstado()))
-                .map(p -> construirCandidato(p, eventKey, styleKey, colorKey, tallaSolicitada, comfortPriority, gender))
+            .map(p -> construirCandidato(p, eventKey, styleKey, colorKey, tallaSolicitada, comfortPriority, gender,
+                etiquetasConfiguradas.getOrDefault(p.getId(), List.of())))
                 .filter(Objects::nonNull)
                 .sorted(Comparator.comparingDouble(Candidate::score).reversed()
                         .thenComparing(c -> c.respuesta().nombre(), Comparator.nullsLast(String::compareToIgnoreCase)))
@@ -129,7 +139,8 @@ public class AiRecommendationService {
             String colorKey,
             String tallaSolicitada,
             String comfortPriority,
-            String gender) {
+            String gender,
+            List<String> etiquetasConfiguradas) {
 
         // FILTRADO CRÍTICO: Descartar productos incompatibles con el tipo de evento
         String textoProducto = construirTextoProducto(producto);
@@ -165,7 +176,11 @@ public class AiRecommendationService {
         }
 
         MatchingScore matchingScore = calcularScore(producto, tallasOrdenadas, stock, eventKey, styleKey, colorKey,
-                tallaSolicitada, comfortPriority, gender);
+            tallaSolicitada, comfortPriority, gender);
+
+        List<String> etiquetas = construirEtiquetasProducto(producto, etiquetasConfiguradas, eventKey, styleKey,
+            colorKey, gender, matchingScore);
+        boolean stockDisponible = stockTotal > 0;
 
         AiRecommendationResponse respuesta = new AiRecommendationResponse(
                 producto.getId(),
@@ -177,9 +192,11 @@ public class AiRecommendationService {
                 producto.getTipo(),
                 resolverPrecioReferencia(producto, tallas),
                 stockTotal,
+            stockDisponible,
                 tallas,
                 producto.getImagen(),
                 matchingScore.coincidencias(),
+            etiquetas,
                 matchingScore.score(),
                 matchingScore.tallaDisponible());
 
@@ -342,13 +359,113 @@ public class AiRecommendationService {
         if (stockTotal > 0) {
             score += Math.min(10, stockTotal);
             if (!coincidencias.contains("Stock disponible")) {
-                coincidencias.add("Stock disponible: " + stockTotal + " unidades");
+                coincidencias.add("Stock disponible");
             }
         } else {
             score -= 8;
         }
 
         return new MatchingScore(Math.max(score, 1), coincidencias, estiloPrincipal, tallaDisponible);
+    }
+
+    private List<String> construirEtiquetasProducto(Producto producto,
+            List<String> etiquetasConfiguradas,
+            String eventKey,
+            String styleKey,
+            String colorKey,
+            String gender,
+            MatchingScore matchingScore) {
+        Set<String> etiquetas = new LinkedHashSet<>();
+
+        if (producto.getCategoria() != null) {
+            agregarEtiqueta(etiquetas, producto.getCategoria().getNombre());
+        }
+        agregarEtiqueta(etiquetas, producto.getTipo());
+        agregarEtiqueta(etiquetas, producto.getNombre());
+        agregarEtiqueta(etiquetas, producto.getColor());
+
+        producto.getTiposProducto().stream()
+                .map(Tipo::getNombre)
+                .forEach(valor -> agregarEtiqueta(etiquetas, valor));
+
+        if (matchingScore != null) {
+            agregarEtiqueta(etiquetas, matchingScore.estiloPrincipal());
+        }
+
+        if (etiquetasConfiguradas != null) {
+            etiquetasConfiguradas.forEach(valor -> agregarEtiqueta(etiquetas, valor));
+        }
+
+        agregarEtiqueta(etiquetas, eventKey);
+        agregarEtiqueta(etiquetas, styleKey);
+        agregarEtiqueta(etiquetas, colorKey);
+        agregarEtiqueta(etiquetas, gender);
+
+        return etiquetas.stream()
+                .map(valor -> valor != null ? valor.trim() : null)
+                .filter(StringUtils::hasText)
+                .limit(50)
+                .toList();
+    }
+
+    private void agregarEtiqueta(Set<String> etiquetas, String valor) {
+        if (!StringUtils.hasText(valor)) {
+            return;
+        }
+        String base = valor.trim();
+        if (base.isEmpty()) {
+            return;
+        }
+
+        etiquetas.add(base);
+        String minusculas = base.toLowerCase(Locale.ROOT);
+        etiquetas.add(minusculas);
+
+        String normalizada = normalizarTexto(base);
+        if (StringUtils.hasText(normalizada)) {
+            etiquetas.add(normalizada);
+        }
+
+        agregarVariaciones(etiquetas, minusculas);
+    }
+
+    private void agregarVariaciones(Set<String> etiquetas, String valor) {
+        if (!StringUtils.hasText(valor)) {
+            return;
+        }
+
+        String singular = singularizar(valor);
+        if (StringUtils.hasText(singular)) {
+            etiquetas.add(singular);
+        }
+
+        for (String token : valor.split("[\\s,/\\-]+")) {
+            if (token.length() <= 2) {
+                continue;
+            }
+            etiquetas.add(token);
+            String tokenSingular = singularizar(token);
+            if (StringUtils.hasText(tokenSingular)) {
+                etiquetas.add(tokenSingular);
+            }
+        }
+    }
+
+    private String singularizar(String palabra) {
+        if (!StringUtils.hasText(palabra)) {
+            return null;
+        }
+        String procesada = palabra.trim().toLowerCase(Locale.ROOT);
+        if (procesada.length() <= 3) {
+            return procesada;
+        }
+        if (procesada.endsWith("es")) {
+            return procesada.substring(0, procesada.length() - 2);
+        }
+        if (procesada.endsWith("s") && !procesada.endsWith("ss")) {
+            return procesada.substring(0, procesada.length() - 1);
+        }
+        return procesada;
     }
 
     private StockDetalle calcularStock(Producto producto) {
@@ -383,6 +500,36 @@ public class AiRecommendationService {
         }
 
         return new StockDetalle(total, stockPorTalla);
+    }
+
+    private Map<Long, List<String>> agruparEtiquetasConfiguradas(List<Producto> productos) {
+        List<Long> ids = productos.stream()
+                .map(Producto::getId)
+                .filter(Objects::nonNull)
+                .toList();
+
+        if (ids.isEmpty()) {
+            return Map.of();
+        }
+
+        List<EtiquetaProductoIa> registros = etiquetaProductoIaRepository.findByProductoIdIn(ids);
+        if (registros.isEmpty()) {
+            return Map.of();
+        }
+
+        Map<Long, List<String>> agrupadas = new LinkedHashMap<>();
+        for (EtiquetaProductoIa registro : registros) {
+            if (registro.getProducto() == null || registro.getProducto().getId() == null) {
+                continue;
+            }
+            if (!StringUtils.hasText(registro.getEtiqueta())) {
+                continue;
+            }
+            agrupadas.computeIfAbsent(registro.getProducto().getId(), id -> new ArrayList<>())
+                    .add(registro.getEtiqueta());
+        }
+
+        return agrupadas;
     }
 
     private String construirTextoProducto(Producto producto) {
