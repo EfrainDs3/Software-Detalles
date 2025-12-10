@@ -37,6 +37,7 @@ import fisi.software.detalles.repository.TipoComprobantePagoRepository;
 import fisi.software.detalles.repository.ProductoRepository;
 import fisi.software.detalles.repository.CajaRepository;
 import fisi.software.detalles.repository.AperturaCajaRepository;
+import fisi.software.detalles.repository.InventarioRepository;
 
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfPCell;
@@ -48,6 +49,8 @@ public class VentaService {
 
     @Autowired
     private VentaRepository ventaRepository;
+    @Autowired
+    private InventarioRepository inventarioRepository;
     @Autowired
     private UsuarioRepository usuarioRepository;
     @Autowired
@@ -120,6 +123,40 @@ public class VentaService {
         }
 
         ComprobantePago nuevaVenta = convertDtoToEntity(ventaDTO);
+
+        // 🚀 LÓGICA DE ACTUALIZACIÓN DE STOCK (INVENTARIO)
+        // Iteramos sobre los detalles para descontar el stock
+        for (DetalleComprobantePago detalle : nuevaVenta.getDetalles()) {
+            Producto producto = detalle.getProducto();
+            int cantidadVendida = detalle.getCantidad();
+
+            // Buscamos inventario disponible (Prioridad: Almacén principal o cualquiera con
+            // stock)
+            // Aquí usamos una lógica simple: buscar el primer inventario con stock
+            // suficiente
+            List<fisi.software.detalles.entity.Inventario> inventarios = inventarioRepository.findByProducto(producto);
+
+            fisi.software.detalles.entity.Inventario inventarioSeleccionado = null;
+
+            // Buscar primero un almacén con suficiente stock
+            for (fisi.software.detalles.entity.Inventario inv : inventarios) {
+                if (inv.getCantidadStock() >= cantidadVendida) {
+                    inventarioSeleccionado = inv;
+                    break;
+                }
+            }
+
+            // Si no hay ninguno con suficiente stock completo, lanzamos error (por ahora no
+            // soportamos dividir en múltiples almacenes)
+            if (inventarioSeleccionado == null) {
+                throw new IllegalStateException("Stock insuficiente para el producto: " + producto.getNombre());
+            }
+
+            // Descontar stock
+            inventarioSeleccionado.setCantidadStock(inventarioSeleccionado.getCantidadStock() - cantidadVendida);
+            inventarioRepository.save(inventarioSeleccionado);
+        }
+
         nuevaVenta = ventaRepository.save(nuevaVenta);
 
         Map<String, Object> response = new HashMap<>();

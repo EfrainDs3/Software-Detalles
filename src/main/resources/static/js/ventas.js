@@ -421,16 +421,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Función para renderizar la lista de productos
         function renderProductDropdown(filteredProducts) {
-            if (filteredProducts.length === 0) {
-                dropdown.innerHTML = '<div class="dropdown-item no-results">No se encontraron productos</div>';
+            // Filter out products with 0 stock
+            const availableProducts = filteredProducts.filter(p => (p.stockDisponible || 0) > 0);
+
+            if (availableProducts.length === 0) {
+                dropdown.innerHTML = '<div class="dropdown-item no-results">No se encontraron productos con stock</div>';
                 dropdown.style.display = 'block';
                 return;
             }
 
-            dropdown.innerHTML = filteredProducts.map(p => `
+            dropdown.innerHTML = availableProducts.map(p => `
                 <div class="dropdown-item" data-producto='${JSON.stringify(p)}'>
                     <div class="dropdown-item-name">${p.nombre}</div>
-                    <div class="dropdown-item-price">S/ ${(p.precioVenta || 0).toFixed(2)}</div>
+                    <div class="dropdown-item-details" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span class="price">S/ ${(p.precioVenta || 0).toFixed(2)}</span>
+                        <span class="stock badge badge-success">Stock: ${p.stockDisponible || 0}</span>
+                    </div>
                 </div>
             `).join('');
             dropdown.style.display = 'block';
@@ -516,7 +522,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function cargarProductosDisponibles() {
         try {
-            const response = await fetch('/api/productos/simple', { credentials: 'include' });
+            const response = await fetch('/ventas/api/productos-disponibles', { credentials: 'include' });
             if (response.ok) {
                 productosDisponibles = await response.json();
                 console.log(`✅ ${productosDisponibles.length} productos cargados`);
