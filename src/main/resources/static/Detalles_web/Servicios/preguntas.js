@@ -1,27 +1,61 @@
 (() => {
-  const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-  const STORAGE_KEY_API = 'detalles_groq_api_key';
-  const STORAGE_KEY_CONVERSATION = 'detalles_groq_conversation';
-  const STORAGE_KEY_MODEL = 'detalles_groq_model';
-  const STORAGE_KEY_HISTORY = 'detalles_groq_conversation_history';
-  const ADMIN_MODE_KEY = 'detalles_groq_admin_mode';
-  const DEFAULT_GROQ_MODEL = 'openai/gpt-oss-120b';
-  const SUPPORTED_GROQ_MODELS = [
-    { value: 'openai/gpt-oss-120b', label: 'GPT OSS 120B (OpenAI)' },
-    { value: 'llama-3.3-70b-instruct', label: 'Llama 3.3 70B Instruct' },
-    { value: 'llama-4-scout', label: 'Llama 4 Scout' },
-    { value: 'gpt-oss-20b', label: 'GPT OSS 20B' },
-    { value: 'gpt-oss-120b', label: 'GPT OSS 120B' },
-    { value: 'kimi-k2', label: 'Kimi K2' }
-  ];
+  const AI_PROVIDERS = {
+    groq: {
+      id: 'groq',
+      label: 'Groq',
+      baseUrl: 'https://api.groq.com/openai/v1/chat/completions',
+      serverKeyEndpoint: '/api/config/groq-key',
+      description: 'Compatible con API estilo OpenAI; requiere claves que inician con gsk_.',
+      storage: {
+        apiKey: 'detalles_groq_api_key',
+        model: 'detalles_groq_model'
+      },
+      docUrl: 'https://console.groq.com/keys',
+      keyPrefixes: ['gsk_'],
+      placeholder: 'gsk_...',
+      defaultModel: 'openai/gpt-oss-120b',
+      models: [
+        { value: 'openai/gpt-oss-120b', label: 'GPT OSS 120B (OpenAI)' },
+        { value: 'llama-3.3-70b-instruct', label: 'Llama 3.3 70B Instruct' },
+        { value: 'llama-4-scout', label: 'Llama 4 Scout' },
+        { value: 'gpt-oss-20b', label: 'GPT OSS 20B' },
+        { value: 'gpt-oss-120b', label: 'GPT OSS 120B' },
+        { value: 'kimi-k2', label: 'Kimi K2' }
+      ]
+    },
+    gemini: {
+      id: 'gemini',
+      label: 'Google Gemini',
+      baseUrl: 'https://generativelanguage.googleapis.com/v1beta/models',
+      serverKeyEndpoint: '/api/config/gemini-key',
+      description: 'Modelos de Google AI Studio; usa claves AI Studio que comienzan con AIza.',
+      storage: {
+        apiKey: 'detalles_gemini_api_key',
+        model: 'detalles_gemini_model'
+      },
+      docUrl: 'https://aistudio.google.com/app/apikey',
+      keyPrefixes: ['AIza'],
+      placeholder: 'AIza...',
+      defaultModel: 'gemini-2.5-flash',
+      models: [
+        { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
+        { value: 'gemini-2.5-flash-lite', label: 'Gemini 2.5 Flash Lite' },
+        { value: 'gemini-2.5-flash-tts', label: 'Gemini 2.5 Flash TTS' }
+      ]
+    }
+  };
+  const DEFAULT_PROVIDER = 'groq';
+  const STORAGE_KEY_PROVIDER = 'detalles_ai_provider';
+  const STORAGE_KEY_CONVERSATION_PREFIX = 'detalles_ai_conversation';
+  const STORAGE_KEY_HISTORY_PREFIX = 'detalles_ai_conversation_history';
+  const ADMIN_MODE_KEY = 'detalles_ai_admin_mode';
+  const MASKED_VALUE = '••••••••••••••••';
   const AI_RECOMMENDATIONS_URL = '/api/ai/recommendations';
   const AI_CONTEXT_URL = '/api/ai/context';
   const MAX_RECOMMENDATIONS_FOR_PROMPT = 5;
   const MAX_PRODUCT_CARDS = 4;
   const MAX_HISTORY_SESSIONS = 25;
-  const CONTEXT_CACHE_MS = 15 * 60 * 1000; // 15 minutos
-  const SERVER_KEY_ENDPOINT = '/api/config/groq-key';
-  const MASKED_VALUE = '••••••••••••••••';
+  const CONTEXT_CACHE_MS = 15 * 60 * 1000;
   const TOPIC_RESET_KEYWORDS = [
     'olvida',
     'olvídate',
@@ -169,6 +203,30 @@ Reconoce el cambio y enfócate completamente en la nueva solicitud, olvidando la
 Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto se ajusta a la necesidad ESPECÍFICA del cliente, no solo por recomendar productos del catálogo.`;
 
 
+  const INTENT_KEYWORDS = {
+    deportivo: ['deport', 'sport', 'running', 'runner', 'run', 'training', 'entren', 'gym', 'fitness', 'atlet', 'sneaker', 'tenis'],
+    formal: ['formal', 'etiqueta', 'gala', 'boda', 'vestir', 'ceremon', 'executive', 'elegant'],
+    tacon: ['tacon', 'tacone', 'heel', 'stilet', 'plataforma'],
+    casual: ['casual', 'urbano', 'urbana', 'street', 'diario', 'dia a dia', 'informal'],
+    bota: ['bota', 'botin', 'botines'],
+    sandalia: ['sandalia', 'sandalias', 'chancl', 'flipflop', 'flip flop'],
+    impermeable: ['imperme', 'waterproof', 'lluvia'],
+    descanso: ['comod', 'amortigu', 'acolch', 'relaj', 'descanso']
+  };
+  const INTENT_KEYWORD_LABELS = {
+    deportivo: 'deportivos',
+    formal: 'formales',
+    tacon: 'de tacón',
+    casual: 'casuales',
+    bota: 'botas',
+    sandalia: 'sandalias',
+    impermeable: 'impermeables',
+    descanso: 'de descanso'
+  };
+  const INTENT_KEYWORDS_ENTRIES = Object.entries(INTENT_KEYWORDS);
+  const PLURAL_HINTS = ['zapatos', 'zapatillas', 'botas', 'botines', 'sandalias', 'tacones'];
+
+
   const PRODUCT_IMG_PLACEHOLDER = '/img/Upload/productos/producto-default.jpg';
 
   const elements = {};
@@ -176,9 +234,10 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
   let conversationHistory = [];
   let conversationHistorySessions = [];
   let isProcessing = false;
+  let currentProvider = DEFAULT_PROVIDER;
   let currentModel = '';
   let adminModeEnabled = false;
-  let hasServerKey = false;
+  let providerHasServerKey = false;
   let situationalContext = null;
   let contextLastFetch = 0;
   let contextErrorMessage = '';
@@ -188,6 +247,34 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
   let confirmPreviousFocus = null;
   const FOCUSABLE_SELECTOR = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
 
+  function sanitizeProvider(provider) {
+    return provider && AI_PROVIDERS[provider] ? provider : DEFAULT_PROVIDER;
+  }
+
+  function getProviderConfig(provider = currentProvider) {
+    return AI_PROVIDERS[sanitizeProvider(provider)];
+  }
+
+  function getApiStorageKey(provider = currentProvider) {
+    return getProviderConfig(provider).storage.apiKey;
+  }
+
+  function getModelStorageKey(provider = currentProvider) {
+    return getProviderConfig(provider).storage.model;
+  }
+
+  function conversationStorageKey(provider = currentProvider) {
+    return `${STORAGE_KEY_CONVERSATION_PREFIX}_${sanitizeProvider(provider)}`;
+  }
+
+  function historyStorageKey(provider = currentProvider) {
+    return `${STORAGE_KEY_HISTORY_PREFIX}_${sanitizeProvider(provider)}`;
+  }
+
+  function getDefaultModel(provider = currentProvider) {
+    return getProviderConfig(provider).defaultModel;
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     void init();
   });
@@ -196,6 +283,7 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
     cacheElements();
     loadAdminModePreference();
     applyAdminMode(true);
+    loadProvider();
     await loadApiKey();
     loadModel();
     loadHistory();
@@ -226,9 +314,13 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
     elements.saveApiKey = document.getElementById('saveApiKey');
     elements.clearApiKey = document.getElementById('clearApiKey');
     elements.apiStatusText = document.getElementById('apiStatusText');
+    elements.apiProviderSelect = document.getElementById('apiProviderSelect');
     elements.apiModelSelect = document.getElementById('apiModelSelect');
+    elements.apiModelProviderLabel = document.getElementById('apiModelProviderLabel');
     elements.modelStatus = document.getElementById('modelStatus');
     elements.assistantStatus = document.getElementById('assistantStatus');
+    elements.apiProviderDescription = document.getElementById('apiProviderDescription');
+    elements.apiDocsLink = document.getElementById('apiDocsLink');
     elements.chat = document.getElementById('chat');
     elements.sendBtn = document.getElementById('sendBtn');
     elements.userInput = document.getElementById('userInput');
@@ -254,6 +346,156 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
     elements.confirmCancel = document.getElementById('confirmCancel');
   }
 
+  function getServerConfig(provider = currentProvider) {
+    const fallbackConfig = {};
+    const globalConfig = window.DETALLES_AI_CONFIG;
+
+    if (globalConfig && typeof globalConfig === 'object') {
+      const entry = globalConfig[sanitizeProvider(provider)];
+      if (entry && typeof entry === 'object') {
+        return entry;
+      }
+    }
+
+    const legacy = sanitizeProvider(provider);
+    if (legacy === 'groq') {
+      return {
+        apiKey: typeof window.DETALLES_GROQ_API_KEY === 'string' ? window.DETALLES_GROQ_API_KEY : '',
+        model: typeof window.DETALLES_GROQ_MODEL === 'string' ? window.DETALLES_GROQ_MODEL : ''
+      };
+    }
+    if (legacy === 'gemini') {
+      return {
+        apiKey: typeof window.DETALLES_GEMINI_API_KEY === 'string' ? window.DETALLES_GEMINI_API_KEY : '',
+        model: typeof window.DETALLES_GEMINI_MODEL === 'string' ? window.DETALLES_GEMINI_MODEL : ''
+      };
+    }
+
+    return fallbackConfig;
+  }
+
+  function getServerProvidedApiKey(provider = currentProvider) {
+    const config = getServerConfig(provider);
+    const key = typeof config.apiKey === 'string' ? config.apiKey.trim() : '';
+    if (!key) {
+      return '';
+    }
+    return key;
+  }
+
+  function getServerProvidedModel(provider = currentProvider) {
+    const config = getServerConfig(provider);
+    const model = typeof config.model === 'string' ? config.model.trim() : '';
+    if (!model) {
+      return '';
+    }
+    return model;
+  }
+
+  function loadProvider(initial = false) {
+    let storedProvider = '';
+    try {
+      storedProvider = localStorage.getItem(STORAGE_KEY_PROVIDER) || '';
+    } catch (error) {
+      if (!initial) {
+        console.error('No se pudo leer el proveedor almacenado:', error);
+      }
+    }
+
+    currentProvider = sanitizeProvider(storedProvider);
+
+    if (!storedProvider) {
+      try {
+        localStorage.setItem(STORAGE_KEY_PROVIDER, currentProvider);
+      } catch (error) {
+        console.error('No se pudo establecer el proveedor por defecto en localStorage:', error);
+      }
+    }
+
+    if (elements.apiProviderSelect) {
+      elements.apiProviderSelect.value = currentProvider;
+    }
+
+    const serverKey = getServerProvidedApiKey(currentProvider);
+    providerHasServerKey = Boolean(serverKey);
+    if (providerHasServerKey) {
+      apiKey = serverKey;
+    }
+
+    const serverModel = getServerProvidedModel(currentProvider);
+    if (serverModel) {
+      currentModel = serverModel;
+    }
+
+    updateProviderUI();
+  }
+
+  function updateProviderUI() {
+    const config = getProviderConfig();
+
+    if (elements.apiProviderSelect && elements.apiProviderSelect.value !== currentProvider) {
+      elements.apiProviderSelect.value = currentProvider;
+    }
+
+    if (elements.apiProviderDescription) {
+      elements.apiProviderDescription.textContent = config.description || `Configura la conexión con ${config.label}.`;
+    }
+
+    if (elements.apiDocsLink) {
+      if (config.docUrl) {
+        elements.apiDocsLink.href = config.docUrl;
+        elements.apiDocsLink.textContent = config.docUrl;
+        elements.apiDocsLink.style.pointerEvents = '';
+        elements.apiDocsLink.style.opacity = '';
+      } else {
+        elements.apiDocsLink.removeAttribute('href');
+        elements.apiDocsLink.textContent = 'Sin documentación pública disponible';
+        elements.apiDocsLink.style.pointerEvents = 'none';
+        elements.apiDocsLink.style.opacity = '0.65';
+      }
+    }
+
+    if (elements.apiKeyInput) {
+      elements.apiKeyInput.placeholder = config.placeholder;
+    }
+
+    if (elements.apiStatusText) {
+      elements.apiStatusText.textContent = `Configuración de API Key (${config.label})`;
+    }
+
+    if (elements.apiModelProviderLabel) {
+      elements.apiModelProviderLabel.textContent = config.label;
+    }
+
+    if (elements.apiModelSelect) {
+      populateModelSelect();
+      syncModelSelect(currentModel || getDefaultModel());
+    }
+  }
+
+  async function handleProviderChange(event) {
+    const selectedProvider = sanitizeProvider((event?.target?.value || '').trim());
+    if (!selectedProvider || selectedProvider === currentProvider) {
+      return;
+    }
+
+    currentProvider = selectedProvider;
+    try {
+      localStorage.setItem(STORAGE_KEY_PROVIDER, currentProvider);
+    } catch (error) {
+      console.error('No se pudo guardar el proveedor seleccionado:', error);
+    }
+
+    loadProvider();
+    await loadApiKey();
+    loadModel();
+    loadConversation();
+    loadHistory();
+    renderConversation();
+    renderHistoryList();
+    updateUIState();
+  }
+
   function setupEventListeners() {
     if (elements.apiKeyForm) {
       elements.apiKeyForm.addEventListener('submit', event => {
@@ -265,10 +507,17 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
     if (elements.apiHeader) {
       elements.apiHeader.addEventListener('click', toggleApiConfig);
     }
-    if (!hasServerKey && elements.saveApiKey && elements.clearApiKey) {
+    if (elements.saveApiKey) {
       elements.saveApiKey.addEventListener('click', saveApiKeyHandler);
+    }
+    if (elements.clearApiKey) {
       elements.clearApiKey.addEventListener('click', () => {
         void clearApiKey(true);
+      });
+    }
+    if (elements.apiProviderSelect) {
+      elements.apiProviderSelect.addEventListener('change', event => {
+        void handleProviderChange(event);
       });
     }
     if (elements.apiModelSelect) {
@@ -479,54 +728,73 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
   }
 
   async function loadApiKey() {
-    apiKey = await fetchServerApiKey();
-    hasServerKey = Boolean(apiKey);
+    const config = getProviderConfig();
+    const inlineKey = getServerProvidedApiKey();
 
-    if (hasServerKey) {
+    if (inlineKey) {
+      apiKey = inlineKey;
+      providerHasServerKey = true;
       configureServerKeyUIState();
       return;
     }
 
-    apiKey = localStorage.getItem(STORAGE_KEY_API) || '';
+    const fetchedKey = await fetchServerApiKey();
+    if (fetchedKey) {
+      apiKey = fetchedKey;
+      providerHasServerKey = true;
+      configureServerKeyUIState();
+      return;
+    }
+
+    providerHasServerKey = false;
+
+    try {
+      apiKey = localStorage.getItem(getApiStorageKey()) || '';
+    } catch (error) {
+      console.error('No se pudo leer la API Key almacenada:', error);
+      apiKey = '';
+    }
 
     if (!elements.apiConfig) {
       return;
     }
 
-    if (apiKey) {
-      if (elements.apiKeyInput) {
+    if (elements.apiKeyInput) {
+      elements.apiKeyInput.placeholder = config.placeholder;
+      if (apiKey) {
         elements.apiKeyInput.value = MASKED_VALUE;
         elements.apiKeyInput.disabled = true;
-      }
-      if (elements.saveApiKey) {
-        elements.saveApiKey.textContent = 'Actualizar';
-        elements.saveApiKey.dataset.mode = 'view';
-        elements.saveApiKey.disabled = false;
-      }
-      if (elements.clearApiKey) {
-        elements.clearApiKey.style.display = 'inline-flex';
-      }
-      elements.apiConfig.classList.add('configured');
-      if (elements.apiStatusText) {
-        elements.apiStatusText.textContent = 'API Key configurada (Groq)';
-      }
-    } else {
-      if (elements.apiKeyInput) {
+      } else {
         elements.apiKeyInput.value = '';
         elements.apiKeyInput.disabled = false;
       }
-      if (elements.saveApiKey) {
+    }
+
+    if (elements.saveApiKey) {
+      elements.saveApiKey.disabled = false;
+      if (apiKey) {
+        elements.saveApiKey.textContent = 'Actualizar';
+        elements.saveApiKey.dataset.mode = 'view';
+      } else {
         elements.saveApiKey.textContent = 'Guardar';
         elements.saveApiKey.dataset.mode = 'save';
-        elements.saveApiKey.disabled = false;
       }
-      if (elements.clearApiKey) {
-        elements.clearApiKey.style.display = 'none';
-      }
+    }
+
+    if (elements.clearApiKey) {
+      elements.clearApiKey.style.display = apiKey ? 'inline-flex' : 'none';
+    }
+
+    if (apiKey) {
+      elements.apiConfig.classList.add('configured');
+    } else {
       elements.apiConfig.classList.remove('configured');
-      if (elements.apiStatusText) {
-        elements.apiStatusText.textContent = 'Configuración de API Key (Groq)';
-      }
+    }
+
+    if (elements.apiStatusText) {
+      elements.apiStatusText.textContent = apiKey
+        ? `API Key configurada (${config.label})`
+        : `Configuración de API Key (${config.label})`;
     }
   }
 
@@ -535,26 +803,35 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
       return;
     }
 
+    const config = getProviderConfig();
+
     if (elements.apiKeyInput) {
       elements.apiKeyInput.value = MASKED_VALUE;
       elements.apiKeyInput.disabled = true;
+      elements.apiKeyInput.placeholder = config.placeholder;
     }
     if (elements.saveApiKey) {
       elements.saveApiKey.textContent = 'Definida en servidor';
       elements.saveApiKey.disabled = true;
+      elements.saveApiKey.dataset.mode = 'server';
     }
     if (elements.clearApiKey) {
       elements.clearApiKey.style.display = 'none';
     }
     elements.apiConfig.classList.add('configured');
     if (elements.apiStatusText) {
-      elements.apiStatusText.textContent = 'API Key configurada desde el servidor (Groq)';
+      elements.apiStatusText.textContent = `API Key configurada desde el servidor (${config.label})`;
     }
   }
 
-  async function fetchServerApiKey() {
+  async function fetchServerApiKey(provider = currentProvider) {
+    const config = getProviderConfig(provider);
+    if (!config.serverKeyEndpoint) {
+      return '';
+    }
+
     try {
-      const response = await fetch(SERVER_KEY_ENDPOINT, {
+      const response = await fetch(config.serverKeyEndpoint, {
         method: 'GET',
         headers: {
           'Accept': 'application/json'
@@ -567,10 +844,19 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
 
       const payload = await response.json();
       const key = typeof payload?.apiKey === 'string' ? payload.apiKey.trim() : '';
-      if (key.startsWith('gsk_')) {
-        return key;
+      if (!key) {
+        return '';
       }
-      return '';
+
+      if (Array.isArray(config.keyPrefixes) && config.keyPrefixes.length > 0) {
+        const isValidPrefix = config.keyPrefixes.some(prefix => key.startsWith(prefix));
+        if (!isValidPrefix) {
+          console.warn(`API Key recibida para ${config.label} no coincide con el formato esperado.`);
+          return '';
+        }
+      }
+
+      return key;
     } catch (error) {
       console.error('No se pudo obtener la API Key desde el servidor:', error);
       return '';
@@ -580,24 +866,35 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
   function loadModel() {
     populateModelSelect();
 
-    if (typeof window.DETALLES_GROQ_MODEL === 'string' && window.DETALLES_GROQ_MODEL.trim()) {
-      currentModel = window.DETALLES_GROQ_MODEL.trim();
+    const config = getProviderConfig();
+    const availableModels = Array.isArray(config.models) ? config.models.map(model => model.value) : [];
+
+    const serverModel = getServerProvidedModel();
+    if (serverModel) {
+      currentModel = serverModel;
     } else {
       try {
-        const storedModel = localStorage.getItem(STORAGE_KEY_MODEL);
-        currentModel = storedModel ? storedModel : '';
+        const storedModel = localStorage.getItem(getModelStorageKey());
+        if (storedModel && availableModels.includes(storedModel)) {
+          currentModel = storedModel;
+        } else {
+          currentModel = '';
+        }
       } catch (error) {
         console.error('No se pudo leer el modelo almacenado:', error);
         currentModel = '';
       }
     }
 
+    const defaultModel = getDefaultModel();
     if (!currentModel) {
-      currentModel = DEFAULT_GROQ_MODEL;
+      currentModel = defaultModel;
+    } else if (availableModels.length > 0 && !availableModels.includes(currentModel)) {
+      currentModel = defaultModel;
     }
 
     try {
-      localStorage.setItem(STORAGE_KEY_MODEL, currentModel);
+      localStorage.setItem(getModelStorageKey(), currentModel);
     } catch (error) {
       console.error('No se pudo persistir el modelo activo en localStorage:', error);
     }
@@ -611,18 +908,29 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
       return;
     }
 
-    const existingValues = new Set(
-      Array.from(elements.apiModelSelect.options || []).map(option => option.value)
-    );
+    const select = elements.apiModelSelect;
+    const config = getProviderConfig();
+    const previousValue = select.value;
 
-    SUPPORTED_GROQ_MODELS.forEach(model => {
-      if (!existingValues.has(model.value)) {
-        const option = document.createElement('option');
-        option.value = model.value;
-        option.textContent = model.label;
-        elements.apiModelSelect.appendChild(option);
-      }
+    select.innerHTML = '';
+
+    const models = Array.isArray(config.models) ? config.models : [];
+    models.forEach(model => {
+      const option = document.createElement('option');
+      option.value = model.value;
+      option.textContent = model.label || model.value;
+      select.appendChild(option);
     });
+
+    select.dataset.provider = config.id;
+
+    const targetValue = models.some(model => model.value === previousValue)
+      ? previousValue
+      : '';
+
+    if (targetValue) {
+      select.value = targetValue;
+    }
   }
 
   function syncModelSelect(modelValue) {
@@ -659,7 +967,7 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
     currentModel = selected;
 
     try {
-      localStorage.setItem(STORAGE_KEY_MODEL, selected);
+      localStorage.setItem(getModelStorageKey(), selected);
     } catch (error) {
       console.error('No se pudo guardar el modelo seleccionado:', error);
     }
@@ -673,7 +981,8 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
   }
 
   function handleModelDeprecation() {
-    const message = `El modelo ${currentModel || DEFAULT_GROQ_MODEL} ya no está disponible. Selecciona otro en la configuración.`;
+    const fallbackModel = getDefaultModel();
+    const message = `El modelo ${currentModel || fallbackModel} ya no está disponible. Selecciona otro en la configuración.`;
     updateModelStatus(message, true);
 
     if (elements.apiBody && !elements.apiBody.classList.contains('open')) {
@@ -685,7 +994,7 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
   }
 
   function saveApiKeyHandler() {
-    if (hasServerKey) {
+    if (providerHasServerKey) {
       alert('La API Key está administrada por el servidor. Ajusta la configuración backend para modificarla.');
       return;
     }
@@ -712,14 +1021,19 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
       return;
     }
 
-    if (!key.startsWith('gsk_')) {
-      alert('La API Key de Groq debe comenzar con "gsk_".');
-      return;
+    const config = getProviderConfig();
+    if (Array.isArray(config.keyPrefixes) && config.keyPrefixes.length > 0) {
+      const hasValidPrefix = config.keyPrefixes.some(prefix => key.startsWith(prefix));
+      if (!hasValidPrefix) {
+        const expected = config.keyPrefixes.join('" o "');
+        alert(`La API Key de ${config.label} debe comenzar con "${expected}".`);
+        return;
+      }
     }
 
     apiKey = key;
     try {
-      localStorage.setItem(STORAGE_KEY_API, key);
+      localStorage.setItem(getApiStorageKey(), key);
     } catch (error) {
       console.error('No se pudo guardar la API Key en localStorage:', error);
     }
@@ -730,7 +1044,7 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
   }
 
   async function clearApiKey(showConfirmation = true) {
-    if (hasServerKey) {
+    if (providerHasServerKey) {
       alert('La API Key está administrada por el servidor. Ajusta la configuración backend para modificarla.');
       return;
     }
@@ -750,7 +1064,7 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
 
     apiKey = '';
     try {
-      localStorage.removeItem(STORAGE_KEY_API);
+      localStorage.removeItem(getApiStorageKey());
     } catch (error) {
       console.error('No se pudo eliminar la API Key de localStorage:', error);
     }
@@ -767,20 +1081,22 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
     const canSend = Boolean(apiKey && elements.userInput.value.trim() && !isProcessing);
     elements.sendBtn.disabled = !canSend;
 
+    const providerLabel = getProviderConfig().label;
+
     if (apiKey) {
-      const status = hasServerKey
-        ? '<span style="color:#10b981"><i class="fas fa-check-circle"></i> Asistente activo con API Key definida en servidor</span>'
-        : '<span style="color:#10b981"><i class="fas fa-check-circle"></i> Asistente activo y listo</span>';
+      const status = providerHasServerKey
+        ? `<span style="color:#10b981"><i class="fas fa-check-circle"></i> Asistente activo con API Key de servidor (${providerLabel})</span>`
+        : `<span style="color:#10b981"><i class="fas fa-check-circle"></i> Asistente activo y listo (${providerLabel})</span>`;
       elements.assistantStatus.innerHTML = status;
     } else {
-      elements.assistantStatus.innerHTML = '<span class="muted"><i class="fas fa-exclamation-circle"></i> Configura tu API Key para comenzar</span>';
+      elements.assistantStatus.innerHTML = `<span class="muted"><i class="fas fa-exclamation-circle"></i> Configura tu API Key de ${providerLabel} para comenzar</span>`;
     }
   }
 
   function loadConversation() {
     let stored = null;
     try {
-      stored = localStorage.getItem(STORAGE_KEY_CONVERSATION);
+      stored = localStorage.getItem(conversationStorageKey());
     } catch (error) {
       console.error('No se pudo acceder a localStorage para leer la conversación:', error);
     }
@@ -796,7 +1112,7 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
     } catch (error) {
       console.error('No se pudo leer el historial guardado:', error);
       conversationHistory = [];
-      localStorage.removeItem(STORAGE_KEY_CONVERSATION);
+      localStorage.removeItem(conversationStorageKey());
     }
 
     if (apiKey && conversationHistory.length > 0 && !conversationHistory.some(entry => entry.role === 'system')) {
@@ -810,7 +1126,7 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
 
   function saveConversation() {
     try {
-      localStorage.setItem(STORAGE_KEY_CONVERSATION, JSON.stringify(conversationHistory));
+      localStorage.setItem(conversationStorageKey(), JSON.stringify(conversationHistory));
     } catch (error) {
       console.error('No se pudo guardar el historial:', error);
     }
@@ -880,7 +1196,7 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
 
     conversationHistory = [];
     try {
-      localStorage.removeItem(STORAGE_KEY_CONVERSATION);
+      localStorage.removeItem(conversationStorageKey());
     } catch (error) {
       console.error('No se pudo limpiar el historial de la conversación en localStorage:', error);
     }
@@ -912,6 +1228,158 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
     msgDiv.textContent = text;
     elements.chat.appendChild(msgDiv);
     elements.chat.scrollTop = elements.chat.scrollHeight;
+  }
+
+  function getLastUserMessageContent() {
+    for (let i = conversationHistory.length - 1; i >= 0; i -= 1) {
+      const entry = conversationHistory[i];
+      if (entry && entry.role === 'user' && typeof entry.content === 'string') {
+        return entry.content;
+      }
+    }
+    return '';
+  }
+
+  function extractIntentFromMessage(message) {
+    const normalizedRaw = stripAccents((message || '').toLowerCase());
+    const quantityMatch = normalizedRaw.match(/\b(\d{1,2})\b/);
+    const quantity = quantityMatch ? Number.parseInt(quantityMatch[1], 10) || 0 : 0;
+    const keywords = new Set();
+
+    INTENT_KEYWORDS_ENTRIES.forEach(([key, patterns]) => {
+      if (patterns.some(pattern => pattern && normalizedRaw.includes(pattern))) {
+        keywords.add(key);
+      }
+    });
+
+    const plural = PLURAL_HINTS.some(word => normalizedRaw.includes(word));
+
+    return {
+      quantity: Number.isFinite(quantity) ? quantity : 0,
+      keywords,
+      plural,
+      raw: normalizedRaw
+    };
+  }
+
+  function refineRecommendationsForIntent(recommendations, intent) {
+    if (!Array.isArray(recommendations) || recommendations.length === 0 || !intent || intent.keywords.size === 0) {
+      return recommendations;
+    }
+
+    const scored = recommendations.map(item => {
+      const textParts = [
+        item?.nombre,
+        item?.descripcion,
+        item?.categoria,
+        item?.estiloSugerido,
+        item?.publicoObjetivo,
+        Array.isArray(item?.coincidencias) ? item.coincidencias.join(' ') : '',
+        Array.isArray(item?.etiquetas) ? item.etiquetas.join(' ') : ''
+      ].filter(Boolean);
+
+      const haystack = stripAccents(textParts.join(' ').toLowerCase());
+      let score = 0;
+
+      intent.keywords.forEach(key => {
+        const patterns = INTENT_KEYWORDS[key] || [];
+        patterns.forEach(pattern => {
+          if (pattern && haystack.includes(pattern)) {
+            score += 3;
+          }
+        });
+      });
+
+      if (intent.keywords.has('deportivo') && haystack.includes('zapatill')) {
+        score += 1;
+      }
+      if (intent.keywords.has('tacon') && (haystack.includes('tacon') || haystack.includes('tacone'))) {
+        score += 1;
+      }
+      if (intent.keywords.has('bota') && haystack.includes('bota')) {
+        score += 1;
+      }
+
+      return { item, score };
+    });
+
+    const matched = scored.filter(entry => entry.score > 0).sort((a, b) => b.score - a.score);
+    if (matched.length === 0) {
+      return recommendations;
+    }
+
+    const unmatched = scored.filter(entry => entry.score === 0).map(entry => entry.item);
+    return matched.map(entry => entry.item).concat(unmatched);
+  }
+
+  function normalizeAssistantText(text) {
+    if (!text || typeof text !== 'string') {
+      return '';
+    }
+    return text
+      .replace(/\*\*/g, '')
+      .replace(/^\s*[-*]\s+/gm, '')
+      .replace(/\s+$/g, '')
+      .replace(/[\t\r]+/g, ' ')
+      .trim();
+  }
+
+  function splitAssistantResponse(text) {
+    const normalized = normalizeAssistantText(text);
+    if (!normalized) {
+      return [];
+    }
+    const rawChunks = normalized.split(/\n{2,}/).map(segment => segment.trim()).filter(Boolean);
+    if (rawChunks.length === 0) {
+      return [normalized];
+    }
+
+    const merged = [];
+    for (let i = 0; i < rawChunks.length; i += 1) {
+      const current = rawChunks[i];
+      if (/^\d+\.$/.test(current) && i < rawChunks.length - 1) {
+        rawChunks[i + 1] = `${current} ${rawChunks[i + 1]}`.replace(/\s+/g, ' ').trim();
+        continue;
+      }
+      merged.push(current);
+    }
+
+    if (merged.length > 1) {
+      const last = merged[merged.length - 1];
+      if (last.length < 12 && !/[.!?]$/.test(last)) {
+        merged[merged.length - 2] = `${merged[merged.length - 2]} ${last}`.replace(/\s+/g, ' ').trim();
+        merged.pop();
+      }
+    }
+
+    return merged.length > 0 ? merged : [normalized];
+  }
+
+  function filterRecommendationsByMentions(segments, recommendations, intent) {
+    if (!Array.isArray(recommendations) || recommendations.length === 0) {
+      return [];
+    }
+
+    const normalizedCorpus = segments
+      .filter(Boolean)
+      .map(segment => stripAccents(segment.toLowerCase()))
+      .join(' ');
+
+    const mentioned = recommendations.filter(item => {
+      const name = stripAccents((item?.nombre || '').toLowerCase().trim());
+      return name && normalizedCorpus.includes(name);
+    });
+
+    if (mentioned.length > 0) {
+      return mentioned.slice(0, MAX_PRODUCT_CARDS);
+    }
+
+    const fallbackLimit = intent && intent.quantity > 0
+      ? Math.min(MAX_PRODUCT_CARDS, intent.quantity)
+      : intent && intent.plural
+        ? Math.min(MAX_PRODUCT_CARDS, Math.max(2, segments.length || 2))
+        : Math.max(1, Math.min(MAX_PRODUCT_CARDS, segments.length || 1));
+    return recommendations.slice(0, fallbackLimit);
   }
 
   function appendProductCards(cards) {
@@ -1067,6 +1535,8 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
         notifyContextError(contextError.message || contextError);
       }
 
+      const lastUserMessage = getLastUserMessageContent();
+      const intentInfo = extractIntentFromMessage(lastUserMessage);
       const profile = getProfileContext();
       const messages = conversationHistory.map(entry => ({
         role: entry.role,
@@ -1082,6 +1552,10 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
         }
       }
 
+      if (contextualRecommendations.length > 0) {
+        contextualRecommendations = refineRecommendationsForIntent(contextualRecommendations, intentInfo);
+      }
+
       if (profile && !isInitial) {
         messages.push({
           role: 'system',
@@ -1093,6 +1567,28 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
         messages.push({
           role: 'system',
           content: situationalPrompt
+        });
+      }
+
+      if (intentInfo.keywords.size > 0) {
+        const keywordSummary = Array.from(intentInfo.keywords)
+          .map(key => INTENT_KEYWORD_LABELS[key] || key)
+          .join(', ');
+        messages.push({
+          role: 'system',
+          content: `El cliente resaltó la necesidad de productos ${keywordSummary}. Revisa explícitamente el nombre, la descripción y las etiquetas de cada producto y solo recomienda aquellos que realmente correspondan a esos conceptos, considerando variaciones en singular y plural.`
+        });
+      }
+
+      if (intentInfo.quantity > 0) {
+        messages.push({
+          role: 'system',
+          content: `El cliente pidió ver ${intentInfo.quantity} opciones. Si existen al menos ${intentInfo.quantity} productos compatibles, presenta esa cantidad. Si hay menos, indica cuántos cumplen realmente con la solicitud sin inventar.`
+        });
+      } else if (intentInfo.plural) {
+        messages.push({
+          role: 'system',
+          content: 'El cliente se expresó en plural, por lo que se esperan varias recomendaciones (idealmente entre 2 y 4) siempre que existan productos que cumplan con su pedido.'
         });
       }
 
@@ -1110,69 +1606,193 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
         });
       }
 
-      const response = await fetch(GROQ_API_URL, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: currentModel || DEFAULT_GROQ_MODEL,
-          messages,
-          temperature: 1,
-          top_p: 1,
-          max_completion_tokens: 8192,
-          reasoning_effort: 'medium',
-          stream: false,
-          stop: null
-        })
-      });
+      const providerConfig = getProviderConfig();
+      const modelToUse = currentModel || getDefaultModel();
+      const providerLabel = providerConfig.label;
 
-      if (!response.ok) {
-        let errorMessage = 'Error en la API de Groq.';
-        try {
-          const errorPayload = await response.json();
-          errorMessage = errorPayload.error?.message || errorMessage;
-        } catch (error) {
-          console.error('No se pudo interpretar el error de la API:', error);
-        }
-        throw new Error(errorMessage);
+      let aiMessage = '';
+      if (currentProvider === 'gemini') {
+        aiMessage = await requestGeminiCompletion({ messages, model: modelToUse });
+      } else {
+        aiMessage = await requestGroqCompletion({ messages, model: modelToUse });
       }
-
-      const data = await response.json();
-      const aiMessage = data?.choices?.[0]?.message?.content?.trim();
 
       if (!aiMessage) {
         throw new Error('La respuesta del asistente llegó vacía.');
       }
 
-      const productCards = buildProductCardsFromRecommendations(contextualRecommendations);
+      const segments = splitAssistantResponse(aiMessage);
 
-      conversationHistory.push({
-        role: 'assistant',
-        content: aiMessage,
-        cards: productCards
-      });
+      if (segments.length === 0) {
+        throw new Error('La respuesta del asistente llegó vacía.');
+      }
+
+      const matchedRecommendations = filterRecommendationsByMentions(segments, contextualRecommendations, intentInfo);
+      const productCards = buildProductCardsFromRecommendations(matchedRecommendations);
 
       hideTypingIndicator();
-      appendMessage(aiMessage, 'ai');
-      if (productCards.length) {
-        appendProductCards(productCards);
-      }
+
+      segments.forEach((segment, index) => {
+        const entry = {
+          role: 'assistant',
+          content: segment
+        };
+        const isLast = index === segments.length - 1;
+        if (isLast && productCards.length) {
+          entry.cards = productCards;
+        }
+        conversationHistory.push(entry);
+        appendMessage(segment, 'ai');
+        if (isLast && productCards.length) {
+          appendProductCards(productCards);
+        }
+      });
+
       saveConversation();
     } catch (error) {
       hideTypingIndicator();
-      console.error('Error al consultar Groq:', error);
-      if (typeof error.message === 'string' && error.message.toLowerCase().includes('decommissioned')) {
+      const providerConfig = getProviderConfig();
+      const providerLabel = providerConfig.label;
+      console.error(`Error al consultar ${providerLabel}:`, error);
+      if (
+        currentProvider === 'groq' &&
+        typeof error.message === 'string' &&
+        error.message.toLowerCase().includes('decommissioned')
+      ) {
         handleModelDeprecation();
       }
-      const prefix = 'Error: ' + (error.message || 'Se produjo un error inesperado.');
+      const prefix = `Error con ${providerLabel}: ${error.message || 'Se produjo un error inesperado.'}`;
       const suffix = ' Por favor verifica tu API Key, la conexión a internet y que el modelo seleccionado siga vigente.';
       appendMessage(prefix + suffix, 'system');
     } finally {
       isProcessing = false;
       updateUIState();
     }
+  }
+
+  async function requestGroqCompletion({ messages, model }) {
+    const config = getProviderConfig();
+    const response = await fetch(config.baseUrl, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model,
+        messages,
+        temperature: 1,
+        top_p: 1,
+        max_completion_tokens: 8192,
+        reasoning_effort: 'medium',
+        stream: false,
+        stop: null
+      })
+    });
+
+    if (!response.ok) {
+      let errorMessage = `Error en la API de ${config.label}.`;
+      try {
+        const errorPayload = await response.json();
+        errorMessage = errorPayload.error?.message || errorMessage;
+      } catch (parseError) {
+        console.error('No se pudo interpretar el error de la API:', parseError);
+      }
+      throw new Error(errorMessage);
+    }
+
+    const data = await response.json();
+    return data?.choices?.[0]?.message?.content?.trim() || '';
+  }
+
+  async function requestGeminiCompletion({ messages, model }) {
+    const config = getProviderConfig();
+    const endpoint = `${config.baseUrl}/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+    const { contents, systemInstruction } = transformMessagesForGemini(messages);
+
+    if (!Array.isArray(contents) || contents.length === 0) {
+      throw new Error('No se pudo construir la conversación para Gemini.');
+    }
+
+    const payload = {
+      contents,
+      generationConfig: {
+        temperature: 0.8,
+        topP: 0.9,
+        maxOutputTokens: 2048,
+        candidateCount: 1
+      }
+    };
+
+    if (systemInstruction) {
+      payload.systemInstruction = systemInstruction;
+    }
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      const errorMessage = data?.error?.message || `Error en la API de ${config.label}.`;
+      throw new Error(errorMessage);
+    }
+
+    if (data?.promptFeedback?.blockReason) {
+      throw new Error(`La solicitud fue bloqueada: ${data.promptFeedback.blockReason}`);
+    }
+
+    const textParts = data?.candidates?.[0]?.content?.parts;
+    if (!Array.isArray(textParts) || textParts.length === 0) {
+      return '';
+    }
+
+    return textParts
+      .map(part => (typeof part?.text === 'string' ? part.text : ''))
+      .filter(Boolean)
+      .join('\n')
+      .trim();
+  }
+
+  // Gemini usa el formato `contents` con roles `user|model` y un bloque independiente para instrucciones de sistema.
+  function transformMessagesForGemini(messages) {
+    if (!Array.isArray(messages)) {
+      return { contents: [], systemInstruction: null };
+    }
+
+    const systemMessages = [];
+    const contents = [];
+
+    messages.forEach(entry => {
+      if (!entry || typeof entry.content !== 'string' || !entry.content.trim()) {
+        return;
+      }
+
+      if (entry.role === 'system') {
+        systemMessages.push(entry.content.trim());
+        return;
+      }
+
+      const role = entry.role === 'assistant' ? 'model' : 'user';
+      contents.push({
+        role,
+        parts: [{ text: entry.content.trim() }]
+      });
+    });
+
+    const systemInstruction = systemMessages.length
+      ? {
+          role: 'system',
+          parts: [{ text: systemMessages.join('\n\n') }]
+        }
+      : null;
+
+    return { contents, systemInstruction };
   }
 
   function getProfileContext() {
@@ -1253,11 +1873,11 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
    * Detecta automáticamente el tipo de evento desde la conversación
    */
   function inferEventTypeFromConversation() {
-    const lastUserMessage = [...conversationHistory].reverse().find(entry => entry.role === 'user');
-    if (!lastUserMessage || !lastUserMessage.content) {
+    const contentRaw = getLastUserMessageContent();
+    if (!contentRaw) {
       return '';
     }
-    const content = lastUserMessage.content.toLowerCase();
+    const content = stripAccents(contentRaw.toLowerCase());
     
     // Palabras clave para cada tipo de evento
     const eventPatterns = {
@@ -1282,11 +1902,11 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
    * Detecta automáticamente el estilo desde la conversación
    */
   function inferStyleFromConversation() {
-    const lastUserMessage = [...conversationHistory].reverse().find(entry => entry.role === 'user');
-    if (!lastUserMessage || !lastUserMessage.content) {
+    const contentRaw = getLastUserMessageContent();
+    if (!contentRaw) {
       return '';
     }
-    const content = lastUserMessage.content.toLowerCase();
+    const content = stripAccents(contentRaw.toLowerCase());
     
     // Palabras clave para cada estilo
     const stylePatterns = {
@@ -1308,11 +1928,11 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
   }
 
   function inferGenderFromConversation() {
-    const lastUserMessage = [...conversationHistory].reverse().find(entry => entry.role === 'user');
-    if (!lastUserMessage || !lastUserMessage.content) {
+    const contentRaw = getLastUserMessageContent();
+    if (!contentRaw) {
       return '';
     }
-    const content = lastUserMessage.content.toLowerCase();
+    const content = stripAccents(contentRaw.toLowerCase());
     if (content.includes('mujer') || content.includes('femenin')) {
       return 'mujer';
     }
@@ -1426,6 +2046,7 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
       '### PASO 1: Análisis de Compatibilidad',
       '- Revisa la solicitud del cliente e identifica: actividad específica, contexto ambiental y preferencias.',
       '- Compara la solicitud con categorías, coincidencias y descripciones para detectar sinónimos o términos equivalentes antes de descartar un producto.',
+      '- Corrobora explícitamente el nombre y la descripción (singular y plural) en busca de términos clave como deportivo, tacón, botas, sandalias u otros mencionados por el cliente.',
       '- Para CADA producto del catálogo, pregúntate: "¿Es este producto lógicamente apropiado para [actividad] en [contexto]?"',
       '- Aplica la Matriz de Compatibilidad Actividad-Calzado de tu prompt del sistema.',
       '',
@@ -1440,6 +2061,7 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
       '- De los productos compatibles, prioriza aquellos con stock disponible. Considera que hay disponibilidad si el campo stockDisponible es verdadero o si al menos una talla reporta disponibilidad.',
       '- Si la talla solicitada no está disponible, menciona tallas cercanas si existen e indica que la talla exacta está agotada.',
       '- Selecciona máximo 3-4 productos que mejor se ajusten.',
+      '- Si el cliente pide una cantidad concreta (ej. "muéstrame 4"), procura entregar exactamente ese número de recomendaciones compatibles o explica por qué no es posible.',
       '',
       '### PASO 4: Construcción de Respuesta',
       'Para cada producto recomendado:',
@@ -1496,15 +2118,14 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
 
   function formatTallaSummary(talla) {
     if (!talla || !talla.talla) {
-      return 'Talla no especificada';
+      return '';
     }
     const precio = formatPrice(talla.precio);
-    const stock = safeNumber(talla.stockDisponible);
-    let stockTexto = 'stock no informado';
-    if (stock !== null) {
-      stockTexto = stock <= 0 ? 'sin stock' : 'stock disponible';
+    const base = talla.talla.trim();
+    if (!base) {
+      return '';
     }
-    return `${talla.talla}: ${precio} (${stockTexto})`;
+    return precio === 'S/ --' ? base : `${base} (${precio})`;
   }
 
   function safeNumber(value) {
@@ -1523,7 +2144,7 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
   function loadHistory() {
     let raw = null;
     try {
-      raw = localStorage.getItem(STORAGE_KEY_HISTORY);
+      raw = localStorage.getItem(historyStorageKey());
     } catch (error) {
       console.error('No se pudo leer el historial de conversaciones archivadas:', error);
     }
@@ -1539,6 +2160,11 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
     } catch (error) {
       console.error('No se pudo interpretar el historial de conversaciones archivadas:', error);
       conversationHistorySessions = [];
+      try {
+        localStorage.removeItem(historyStorageKey());
+      } catch (storageError) {
+        console.error('No se pudo limpiar el historial archivado corrupto:', storageError);
+      }
     }
   }
 
@@ -1684,19 +2310,14 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
       }
 
       const features = [];
-      const tallas = Array.isArray(item?.tallas) ? item.tallas.filter(Boolean).slice(0, 3).map(formatTallaSummary) : [];
+      const tallas = Array.isArray(item?.tallas)
+        ? item.tallas
+            .filter(Boolean)
+            .map(formatTallaSummary)
+            .filter(Boolean)
+        : [];
       if (tallas.length) {
-        features.push(`Tallas destacadas: ${tallas.join(' · ')}`);
-      }
-
-      const stockFlag = typeof item?.stockDisponible === 'boolean' ? item.stockDisponible : null;
-      const hayStockEnTallas = Array.isArray(item?.tallas)
-        ? item.tallas.some(talla => safeNumber(talla?.stockDisponible) > 0)
-        : false;
-      if (stockFlag === true || (stockFlag === null && hayStockEnTallas)) {
-        features.push('Stock disponible');
-      } else if (stockFlag === false) {
-        features.push('Sin stock disponible');
+        features.push(`Tallas disponibles: ${tallas.join(' · ')}`);
       }
 
       if (item?.color) {
@@ -1745,11 +2366,21 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
     return lower.charAt(0).toUpperCase() + lower.slice(1);
   }
 
+  function stripAccents(text) {
+    if (typeof text !== 'string' || !text) {
+      return '';
+    }
+    if (typeof text.normalize !== 'function') {
+      return text;
+    }
+    return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  }
+
   function performHistoryClear({ clearArchived, clearConversation }) {
     if (clearArchived) {
       conversationHistorySessions = [];
       try {
-        localStorage.removeItem(STORAGE_KEY_HISTORY);
+        localStorage.removeItem(historyStorageKey());
       } catch (error) {
         console.error('No se pudo limpiar el historial archivado:', error);
       }
@@ -1766,7 +2397,7 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
         });
       }
       try {
-        localStorage.removeItem(STORAGE_KEY_CONVERSATION);
+        localStorage.removeItem(conversationStorageKey());
       } catch (error) {
         console.error('No se pudo limpiar la conversación actual:', error);
       }
@@ -1843,9 +2474,9 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
   function saveHistory() {
     try {
       if (conversationHistorySessions.length === 0) {
-        localStorage.removeItem(STORAGE_KEY_HISTORY);
+        localStorage.removeItem(historyStorageKey());
       } else {
-        localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(conversationHistorySessions));
+        localStorage.setItem(historyStorageKey(), JSON.stringify(conversationHistorySessions));
       }
     } catch (error) {
       console.error('No se pudo guardar el historial de conversaciones archivadas:', error);

@@ -880,15 +880,26 @@
 			<div class="api-header" id="apiHeader">
 				<h3>
 					<i class="fas fa-key"></i>
-					<span id="apiStatusText">Configuración de API Key (Groq)</span>
+					<span id="apiStatusText">Configuración de API Key</span>
 				</h3>
 				<i class="fas fa-chevron-down" id="apiChevron"></i>
 			</div>
 			<div class="api-body" id="apiBody">
-				<p class="muted" style="margin:0 0 .5rem 0;font-size:.9rem">
-					Ingresa tu API Key de Groq para activar el asistente.
-					<a href="https://console.groq.com/keys" target="_blank" style="color:var(--accent)">Obtener API
-						Key</a>
+				<div class="profile-row" style="margin-bottom:.8rem">
+					<label for="apiProviderSelect"><i class="fas fa-cloud"></i> Proveedor de IA</label>
+					<select id="apiProviderSelect" class="select">
+						<option value="groq">Groq (OpenAI compatible)</option>
+						<option value="gemini">Google Gemini</option>
+					</select>
+				</div>
+				<p id="apiProviderDescription" class="muted" style="margin:0 0 .5rem 0;font-size:.9rem">
+					Configura la conexión con Groq.
+				</p>
+				<p class="muted" style="margin:0 0 1rem 0;font-size:.85rem">
+					Consulta la documentación oficial en
+					<a id="apiDocsLink" href="https://console.groq.com/keys" target="_blank" style="color:var(--accent)">
+						https://console.groq.com/keys
+					</a>
 				</p>
 				<form id="apiKeyForm" class="api-input-row">
 					<input type="password" id="apiKeyInput" class="api-input" placeholder="gsk_..." autocomplete="off" />
@@ -900,14 +911,9 @@
 					La API Key se guarda localmente en tu navegador y nunca se comparte.
 				</small>
 				<div class="profile-row" style="margin-top:1rem">
-					<label for="apiModelSelect"><i class="fas fa-microchip"></i> Modelo de IA (Groq)</label>
+					<label for="apiModelSelect"><i class="fas fa-microchip"></i> Modelo de IA (<span id="apiModelProviderLabel">Groq</span>)</label>
 					<select id="apiModelSelect" class="select">
 						<option value="openai/gpt-oss-120b">GPT OSS 120B (OpenAI)</option>
-						<option value="llama-3.3-70b-instruct">Llama 3.3 70B Instruct</option>
-						<option value="llama-4-scout">Llama 4 Scout</option>
-						<option value="gpt-oss-20b">GPT OSS 20B</option>
-						<option value="gpt-oss-120b">GPT OSS 120B</option>
-						<option value="kimi-k2">Kimi K2</option>
 					</select>
 				</div>
 				<small id="modelStatus" class="muted" style="display:block;margin-top:.4rem;font-size:.85rem"></small>
@@ -1075,8 +1081,20 @@
 	</div>
 
 	<script>
-		window.DETALLES_GROQ_API_KEY = 'COLOCA_TU_API_KEY_GROQ_AQUI';
-		window.DETALLES_GROQ_MODEL = 'openai/gpt-oss-120b';
+		window.DETALLES_AI_CONFIG = {
+			groq: {
+				apiKey: 'COLOCA_TU_API_KEY_GROQ_AQUI',
+				model: 'openai/gpt-oss-120b'
+			},
+			gemini: {
+				apiKey: '',
+				model: 'gemini-2.5-flash'
+			}
+		};
+		window.DETALLES_GROQ_API_KEY = window.DETALLES_AI_CONFIG.groq.apiKey;
+		window.DETALLES_GROQ_MODEL = window.DETALLES_AI_CONFIG.groq.model;
+		window.DETALLES_GEMINI_API_KEY = window.DETALLES_AI_CONFIG.gemini.apiKey;
+		window.DETALLES_GEMINI_MODEL = window.DETALLES_AI_CONFIG.gemini.model;
 	</script>
 	<script src="/Detalles_web/Servicios/preguntas.js" type="module"></script>
 </body>
