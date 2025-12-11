@@ -1242,8 +1242,19 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
 
   function extractIntentFromMessage(message) {
     const normalizedRaw = stripAccents((message || '').toLowerCase());
-    const quantityMatch = normalizedRaw.match(/\b(\d{1,2})\b/);
-    const quantity = quantityMatch ? Number.parseInt(quantityMatch[1], 10) || 0 : 0;
+    let quantity = 0;
+    const leadPattern = /(muestr\w*|ensena\w*|ensen\w*|mostrar|dame|quiero ver|ensename|muestreme)\D{0,12}(\d{1,2})/;
+    const leadMatch = normalizedRaw.match(leadPattern);
+    if (leadMatch) {
+      quantity = Number.parseInt(leadMatch[2], 10) || 0;
+    }
+    if (!quantity) {
+      const trailingPattern = /(\d{1,2})\s+(opcion|opciones|modelo|modelos|producto|productos|par|pares)/;
+      const trailingMatch = normalizedRaw.match(trailingPattern);
+      if (trailingMatch) {
+        quantity = Number.parseInt(trailingMatch[1], 10) || 0;
+      }
+    }
     const keywords = new Set();
 
     INTENT_KEYWORDS_ENTRIES.forEach(([key, patterns]) => {
@@ -1258,13 +1269,20 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
       quantity: Number.isFinite(quantity) ? quantity : 0,
       keywords,
       plural,
-      raw: normalizedRaw
+      raw: normalizedRaw,
+      matchCount: 0,
+      totalCandidates: 0
     };
   }
 
   function refineRecommendationsForIntent(recommendations, intent) {
-    if (!Array.isArray(recommendations) || recommendations.length === 0 || !intent || intent.keywords.size === 0) {
-      return recommendations;
+    const total = Array.isArray(recommendations) ? recommendations.length : 0;
+    if (!Array.isArray(recommendations) || total === 0 || !intent || intent.keywords.size === 0) {
+      return {
+        items: Array.isArray(recommendations) ? recommendations : [],
+        matchCount: 0,
+        total
+      };
     }
 
     const scored = recommendations.map(item => {
@@ -1279,25 +1297,28 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
       ].filter(Boolean);
 
       const haystack = stripAccents(textParts.join(' ').toLowerCase());
-      let score = 0;
+      let baseScore = 0;
 
       intent.keywords.forEach(key => {
         const patterns = INTENT_KEYWORDS[key] || [];
         patterns.forEach(pattern => {
           if (pattern && haystack.includes(pattern)) {
-            score += 3;
+            baseScore += 3;
           }
         });
       });
 
-      if (intent.keywords.has('deportivo') && haystack.includes('zapatill')) {
-        score += 1;
-      }
-      if (intent.keywords.has('tacon') && (haystack.includes('tacon') || haystack.includes('tacone'))) {
-        score += 1;
-      }
-      if (intent.keywords.has('bota') && haystack.includes('bota')) {
-        score += 1;
+      let score = baseScore;
+      if (baseScore > 0) {
+        if (intent.keywords.has('deportivo') && haystack.includes('zapatill')) {
+          score += 1;
+        }
+        if (intent.keywords.has('tacon') && (haystack.includes('tacon') || haystack.includes('tacone'))) {
+          score += 1;
+        }
+        if (intent.keywords.has('bota') && haystack.includes('bota')) {
+          score += 1;
+        }
       }
 
       return { item, score };
@@ -1305,11 +1326,19 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
 
     const matched = scored.filter(entry => entry.score > 0).sort((a, b) => b.score - a.score);
     if (matched.length === 0) {
-      return recommendations;
+      return {
+        items: [],
+        matchCount: 0,
+        total
+      };
     }
 
-    const unmatched = scored.filter(entry => entry.score === 0).map(entry => entry.item);
-    return matched.map(entry => entry.item).concat(unmatched);
+    const items = matched.map(entry => entry.item);
+    return {
+      items,
+      matchCount: items.length,
+      total
+    };
   }
 
   function normalizeAssistantText(text) {
@@ -1552,8 +1581,15 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
         }
       }
 
+      let refinementResult = { items: contextualRecommendations, matchCount: 0, total: contextualRecommendations.length };
       if (contextualRecommendations.length > 0) {
-        contextualRecommendations = refineRecommendationsForIntent(contextualRecommendations, intentInfo);
+        refinementResult = refineRecommendationsForIntent(contextualRecommendations, intentInfo);
+        contextualRecommendations = refinementResult.items;
+        intentInfo.matchCount = refinementResult.matchCount;
+        intentInfo.totalCandidates = refinementResult.total;
+      } else {
+        intentInfo.matchCount = 0;
+        intentInfo.totalCandidates = 0;
       }
 
       if (profile && !isInitial) {
@@ -1578,6 +1614,12 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
           role: 'system',
           content: `El cliente resaltó la necesidad de productos ${keywordSummary}. Revisa explícitamente el nombre, la descripción y las etiquetas de cada producto y solo recomienda aquellos que realmente correspondan a esos conceptos, considerando variaciones en singular y plural.`
         });
+        if (intentInfo.matchCount === 0) {
+          messages.push({
+            role: 'system',
+            content: 'Tras aplicar el filtro semántico no se encontraron productos que coincidan con los términos solicitados. Comunica esta situación y ofrece explorar otras categorías sin inventar resultados.'
+          });
+        }
       }
 
       if (intentInfo.quantity > 0) {
@@ -1585,11 +1627,23 @@ Recuerda: La calidad de tu recomendación se mide por qué tan bien el producto 
           role: 'system',
           content: `El cliente pidió ver ${intentInfo.quantity} opciones. Si existen al menos ${intentInfo.quantity} productos compatibles, presenta esa cantidad. Si hay menos, indica cuántos cumplen realmente con la solicitud sin inventar.`
         });
+        if (intentInfo.matchCount > 0 && intentInfo.matchCount < intentInfo.quantity) {
+          messages.push({
+            role: 'system',
+            content: `Solo se identificaron ${intentInfo.matchCount} productos que cumplen con la petición; acláralo en tu respuesta.`
+          });
+        }
       } else if (intentInfo.plural) {
         messages.push({
           role: 'system',
           content: 'El cliente se expresó en plural, por lo que se esperan varias recomendaciones (idealmente entre 2 y 4) siempre que existan productos que cumplan con su pedido.'
         });
+        if (intentInfo.matchCount > 0 && intentInfo.matchCount < 2) {
+          messages.push({
+            role: 'system',
+            content: `Solo se detectó ${intentInfo.matchCount} producto que cumple con la petición en plural. Menciona explícitamente que no hay más coincidencias.`
+          });
+        }
       }
 
       if (contextualRecommendations.length > 0) {
