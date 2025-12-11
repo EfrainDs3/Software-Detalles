@@ -1,12 +1,15 @@
 ﻿<!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zapatos Casuales para Niños - Detalles</title>
     <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="../css/product-modal.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
+
 <body>
     <header>
         <nav class="navbar">
@@ -16,10 +19,10 @@
                         <img src="../img/logo-detalles.jpg" alt="Detalles - Calzados y Accesorios">
                     </a>
                 </div>
-                
+
                 <ul class="nav-menu">
                     <li><a href="../index.html">Inicio</a></li>
-                    
+
                     <!-- Submenú Mujeres -->
                     <li class="menu-item-has-children">
                         <a href="#mujeres">Mujeres <i class="fas fa-chevron-down"></i></a>
@@ -28,7 +31,8 @@
                                 <div class="submenu-column">
                                     <h3>Calzado</h3>
                                     <ul>
-                                        <li><a href="../mujeres/zapatillas-deportivas.html">Zapatillas Deportivas</a></li>
+                                        <li><a href="../mujeres/zapatillas-deportivas.html">Zapatillas Deportivas</a>
+                                        </li>
                                         <li><a href="../mujeres/zapatos-casuales.html">Zapatos Casuales</a></li>
                                         <li><a href="../mujeres/tacones.html">Tacones</a></li>
                                         <li><a href="../mujeres/sandalias.html">Sandalias</a></li>
@@ -47,7 +51,7 @@
                             </div>
                         </div>
                     </li>
-                    
+
                     <!-- Submenú Hombres -->
                     <li class="menu-item-has-children">
                         <a href="#hombres">Hombres <i class="fas fa-chevron-down"></i></a>
@@ -56,7 +60,8 @@
                                 <div class="submenu-column">
                                     <h3>Calzado</h3>
                                     <ul>
-                                        <li><a href="../hombres/zapatillas-deportivas-h.html">Zapatillas Deportivas</a></li>
+                                        <li><a href="../hombres/zapatillas-deportivas-h.html">Zapatillas Deportivas</a>
+                                        </li>
                                         <li><a href="../hombres/zapatos-casuales-h.html">Zapatos Casuales</a></li>
                                         <li><a href="../hombres/zapatos-formales-h.html">Zapatos Formales</a></li>
                                         <li><a href="../hombres/botas-h.html">Botas</a></li>
@@ -76,7 +81,7 @@
                             </div>
                         </div>
                     </li>
-                    
+
                     <!-- Submenú Niños -->
                     <li class="menu-item-has-children">
                         <a href="#ninos">Niños <i class="fas fa-chevron-down"></i></a>
@@ -106,7 +111,7 @@
                         </div>
                     </li>
                 </ul>
-                
+
                 <div class="nav-icons">
                     <!-- BARRA DE BÚSQUEDA FUNCIONAL -->
                     <div class="search-container">
@@ -123,7 +128,7 @@
                         <span class="cart-count">0</span>
                     </a>
                 </div>
-                
+
                 <div class="hamburger">
                     <span></span><span></span><span></span>
                 </div>
@@ -134,8 +139,8 @@
     <!-- Breadcrumb -->
     <div class="breadcrumb">
         <div class="breadcrumb-content">
-            <a href="../index.html">Inicio</a> / 
-            <a href="#ninos">Niños</a> / 
+            <a href="../index.html">Inicio</a> /
+            <a href="#ninos">Niños</a> /
             <span>Zapatos Casuales</span>
         </div>
     </div>
@@ -183,7 +188,8 @@
                     <h3>Color</h3>
                     <div class="color-filter">
                         <div class="color-option" style="background: #000;" title="Negro"></div>
-                        <div class="color-option" style="background: #fff; border: 1px solid #ddd;" title="Blanco"></div>
+                        <div class="color-option" style="background: #fff; border: 1px solid #ddd;" title="Blanco">
+                        </div>
                         <div class="color-option" style="background: #2196F3;" title="Azul"></div>
                         <div class="color-option" style="background: #e91e63;" title="Rosado"></div>
                         <div class="color-option" style="background: #f44336;" title="Rojo"></div>
@@ -205,7 +211,7 @@
                     </div>
                 </div>
 
-         
+
 
                 <div class="filter-section">
                     <h3>Material</h3>
@@ -217,9 +223,10 @@
                     </div>
                 </div>
 
-              
 
-                <button class="btn-add-cart" style="width: 100%; margin-top: 1rem;" onclick="aplicarFiltros()">Aplicar Filtros</button>
+
+                <button class="btn-add-cart" style="width: 100%; margin-top: 1rem;" onclick="aplicarFiltros()">Aplicar
+                    Filtros</button>
             </aside>
 
             <!-- Products Main Content -->
@@ -228,7 +235,7 @@
                     <h1>Zapatos Casuales para Niños</h1>
                     <div class="sort-options">
                         <span class="products-count" id="productsCount">Cargando...</span>
-                        
+
                     </div>
                 </div>
 
@@ -236,7 +243,7 @@
                     <!-- Los productos se cargarán dinámicamente desde la API -->
                     <div class="loading-message">Cargando zapatos casuales...</div>
                 </div>
-                
+
                 <div class="pagination">
                     <!-- Paginación si es necesaria -->
                 </div>
@@ -277,7 +284,7 @@
             </div>
         </div>
     </footer>
-    
+
     <div id="quickViewModal" class="modal">
         <div class="modal-content">
             <span class="close-modal">&times;</span>
@@ -286,7 +293,7 @@
             </div>
         </div>
     </div>
-    
+
     <script src="../js/script.js"></script>
     <script src="../js/carrito.js"></script>
 
@@ -297,7 +304,7 @@
         let productosFiltrados = [];
 
         // Cargar productos al iniciar la página
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             cargarZapatosCasualesNinos();
             configurarFiltros();
         });
@@ -306,34 +313,34 @@
         async function cargarZapatosCasualesNinos() {
             try {
                 console.log('Cargando zapatos casuales para niños...');
-                
+
                 // Primero intentar con filtros específicos, si no funciona cargar todos los productos de niños
                 let response = await fetch('/api/productos/calzados?sexo=NIÑO&tipo=Zapatos%20Casuales');
-                
+
                 if (!response.ok) {
                     throw new Error('Error en la respuesta de la API');
                 }
-                
+
                 let productos = await response.json();
-                
+
                 // Si no hay resultados, cargar todos los productos de niños
                 if (!productos || productos.length === 0) {
                     console.log('No se encontraron zapatos casuales específicos, cargando todos los productos de niños...');
                     response = await fetch('/api/productos/calzados?sexo=NIÑO');
                     productos = await response.json();
                 }
-                
+
                 console.log('Productos cargados:', productos);
-                
+
                 todosLosProductos = productos;
                 productosFiltrados = [...productos];
-                
+
                 mostrarProductos(productos);
                 actualizarContadorProductos(productos.length);
-                
+
             } catch (error) {
                 console.error('Error cargando productos:', error);
-                document.getElementById('productosContainer').innerHTML = 
+                document.getElementById('productosContainer').innerHTML =
                     '<p class="error-message">Error al cargar los productos. Intenta nuevamente.</p>';
             }
         }
@@ -341,7 +348,7 @@
         // Función para mostrar productos en la página
         function mostrarProductos(productos) {
             const contenedor = document.getElementById('productosContainer');
-            
+
             if (!productos || productos.length === 0) {
                 contenedor.innerHTML = `
                     <div class="no-products">
@@ -355,13 +362,13 @@
 
             // Generar HTML para cada producto
             contenedor.innerHTML = productos.map(producto => `
-                <div class="product-card-detailed" data-product-id="${producto.id}">
+                <div class="product-card-detailed" data-product-id="${producto.id}" onclick="abrirModalProducto(${producto.id})" style="cursor: pointer;">
                     <div class="product-image-detailed">
                         <img src="${producto.imagen || '/img/Upload/productos/producto-default.jpg'}" 
                              alt="${producto.nombre}" 
                              onerror="this.src='/img/Upload/productos/producto-default.jpg'">
                         <div class="product-overlay">
-                            <button class="quick-view" onclick="vistaRapida(${producto.id})">Vista Rápida</button>
+                            <button class="quick-view" onclick="event.stopPropagation(); vistaRapida(${producto.id})">Vista Rápida</button>
                         </div>
                     </div>
                     <div class="product-info-detailed">
@@ -371,10 +378,10 @@
                             <span class="current-price">S/ ${producto.precio_venta || producto.precioVenta || producto.precio || '0.00'}</span>
                         </div>
                         <div class="product-actions">
-                            <button class="btn-add-cart" onclick="agregarAlCarrito(${producto.id})">
+                            <button class="btn-add-cart" onclick="event.stopPropagation(); agregarAlCarrito(${producto.id})">
                                 Añadir al Carrito
                             </button>
-                            <button class="btn-wishlist" onclick="agregarFavoritos(${producto.id})">
+                            <button class="btn-wishlist" onclick="event.stopPropagation(); agregarFavoritos(${producto.id})">
                                 <i class="far fa-heart"></i>
                             </button>
                         </div>
@@ -393,22 +400,22 @@
         // Función para búsqueda desde el navbar
         async function buscarProductos() {
             const searchTerm = document.getElementById('searchInput').value.trim();
-            
+
             if (!searchTerm) {
                 // Si no hay término de búsqueda, recargar productos originales
                 cargarZapatosCasualesNinos();
                 return;
             }
-            
+
             try {
                 console.log('Buscando:', searchTerm);
                 const response = await fetch(`/api/productos/calzados?nombre=${encodeURIComponent(searchTerm)}&sexo=NIÑO&tipo=Zapatos%20Casuales`);
                 const productos = await response.json();
-                
+
                 productosFiltrados = productos;
                 mostrarProductos(productos);
                 actualizarContadorProductos(productos.length);
-                
+
             } catch (error) {
                 console.error('Error en búsqueda:', error);
             }
@@ -420,59 +427,59 @@
             const precioRange = document.querySelector('.price-range');
             const precioMin = document.querySelector('.price-inputs input[placeholder="Mín"]');
             const precioMax = document.querySelector('.price-inputs input[placeholder="Máx"]');
-            
+
             if (precioRange && precioMin && precioMax) {
-                precioRange.addEventListener('input', function() {
+                precioRange.addEventListener('input', function () {
                     precioMax.value = this.value;
                     aplicarFiltros();
                 });
-                
+
                 precioMin.addEventListener('change', aplicarFiltros);
                 precioMax.addEventListener('change', aplicarFiltros);
             }
-            
+
             // Filtro de tallas
             const tallas = document.querySelectorAll('.size-option');
             tallas.forEach(talla => {
-                talla.addEventListener('click', function() {
+                talla.addEventListener('click', function () {
                     this.classList.toggle('selected');
                     aplicarFiltros();
                 });
             });
-            
+
             // Filtro de colores
             const colores = document.querySelectorAll('.color-option');
             colores.forEach(color => {
-                color.addEventListener('click', function() {
+                color.addEventListener('click', function () {
                     this.classList.toggle('selected');
                     aplicarFiltros();
                 });
             });
-            
+
             // Filtro de marcas
             const marcas = document.querySelectorAll('.filter-section:nth-child(4) .brand-option input[type="checkbox"]');
             marcas.forEach(marca => {
                 marca.addEventListener('change', aplicarFiltros);
             });
-            
+
             // Filtro de géneros
             const generos = document.querySelectorAll('.filter-section:nth-child(5) .brand-option input[type="checkbox"]');
             generos.forEach(genero => {
                 genero.addEventListener('change', aplicarFiltros);
             });
-            
+
             // Filtro de tipos
             const tipos = document.querySelectorAll('.filter-section:nth-child(6) .brand-option input[type="checkbox"]');
             tipos.forEach(tipo => {
                 tipo.addEventListener('change', aplicarFiltros);
             });
-            
+
             // Filtro de materiales
             const materiales = document.querySelectorAll('.filter-section:nth-child(7) .brand-option input[type="checkbox"]');
             materiales.forEach(material => {
                 material.addEventListener('change', aplicarFiltros);
             });
-            
+
             // Filtro de cierres
             const cierres = document.querySelectorAll('.filter-section:nth-child(8) .brand-option input[type="checkbox"]');
             cierres.forEach(cierre => {
@@ -483,20 +490,20 @@
         // Función para aplicar todos los filtros
         function aplicarFiltros() {
             console.log('🎯 Aplicando filtros...');
-            
+
             let productos = [...todosLosProductos];
-            
+
             // 1. FILTRAR POR PRECIO
             const precioMin = parseInt(document.querySelector('.price-inputs input[placeholder="Mín"]')?.value) || 0;
             const precioMax = parseInt(document.querySelector('.price-inputs input[placeholder="Máx"]')?.value) || 9999;
-            
+
             console.log('💰 Filtro precio:', { precioMin, precioMax });
-            
+
             productos = productos.filter(producto => {
                 const precio = producto.precio_venta || producto.precioVenta || producto.precio || 0;
                 return precio >= precioMin && precio <= precioMax;
             });
-            
+
             // 2. FILTRAR POR COLORES SELECCIONADOS
             const coloresSeleccionados = Array.from(document.querySelectorAll('.color-option.selected'))
                 .map(color => {
@@ -504,24 +511,24 @@
                     return title ? title.toLowerCase() : '';
                 })
                 .filter(color => color !== '');
-            
+
             console.log('🎨 Colores seleccionados:', coloresSeleccionados);
-            
+
             if (coloresSeleccionados.length > 0) {
-                productos = productos.filter(producto => 
+                productos = productos.filter(producto =>
                     producto.color && coloresSeleccionados.includes(producto.color.toLowerCase())
                 );
             }
-            
+
             // 3. FILTRAR POR MARCAS SELECCIONADAS (extraer marca del nombre)
             const marcasSeleccionadas = Array.from(document.querySelectorAll('.filter-section:nth-child(4) .brand-option input[type="checkbox"]:checked'))
                 .map(cb => {
                     const label = cb.parentElement;
                     return label.textContent.trim().toLowerCase();
                 });
-            
+
             console.log('🏷️ Marcas seleccionadas:', marcasSeleccionadas);
-            
+
             if (marcasSeleccionadas.length > 0) {
                 productos = productos.filter(producto => {
                     // Extraer marca del nombre del producto (primera palabra)
@@ -529,9 +536,9 @@
                     return marcaProducto && marcasSeleccionadas.includes(marcaProducto);
                 });
             }
-            
+
             console.log('✅ Productos después de filtros:', productos);
-            
+
             productosFiltrados = productos;
             mostrarProductos(productos);
             actualizarContadorProductos(productos.length);
@@ -547,7 +554,7 @@
 
         // Funciones auxiliares (puedes implementarlas después)
         function vistaRapida(productoId) {
-            alert(`Vista rápida del producto ${productoId}`);
+            abrirModalProducto(productoId);
         }
 
         function agregarAlCarrito(productoId) {
@@ -560,10 +567,10 @@
         }
 
         // Permitir búsqueda con Enter
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const searchInput = document.getElementById('searchInput');
             if (searchInput) {
-                searchInput.addEventListener('keypress', function(e) {
+                searchInput.addEventListener('keypress', function (e) {
                     if (e.key === 'Enter') {
                         buscarProductos();
                     }
@@ -571,7 +578,9 @@
             }
         });
     </script>
-        <script src="../js/favorites-handler.js"></script>
-<script src="../js/user-nav.js"></script>
+    <script src="../js/product-modal.js"></script>
+    <script src="../js/favorites-handler.js"></script>
+    <script src="../js/user-nav.js"></script>
 </body>
+
 </html>

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cinturones para Hombres - Detalles</title>
     <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="../css/product-modal.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
@@ -369,7 +370,7 @@
 
             // Generar HTML para cada producto
             contenedor.innerHTML = productos.map(producto => `
-                <div class="product-card-detailed" data-product-id="${producto.id}">
+                <div class="product-card-detailed" data-product-id="${producto.id}" onclick="abrirModalProducto(${producto.id})" style="cursor: pointer;">
                     <div class="product-image-detailed">
                         <img src="${producto.imagen || '/img/Upload/productos/producto-default.jpg'}" 
                              alt="${producto.nombre}" 
@@ -385,10 +386,10 @@
                             <span class="current-price">S/ ${producto.precio_venta || producto.precioVenta || producto.precio || '0.00'}</span>
                         </div>
                         <div class="product-actions">
-                            <button class="btn-add-cart" onclick="agregarAlCarrito(${producto.id})">
+                            <button class="btn-add-cart" onclick="event.stopPropagation(); agregarAlCarrito(${producto.id})">
                                 Añadir al Carrito
                             </button>
-                            <button class="btn-wishlist" onclick="agregarFavoritos(${producto.id})">
+                            <button class="btn-wishlist" onclick="event.stopPropagation(); agregarFavoritos(${producto.id})">
                                 <i class="far fa-heart"></i>
                             </button>
                         </div>
@@ -579,7 +580,8 @@
             }
         });
     </script>
-        <script src="../js/favorites-handler.js"></script>
+            <script src="../js/product-modal.js"></script>
+    <script src="../js/favorites-handler.js"></script>
 <script src="../js/user-nav.js"></script>
 </body>
 </html>
